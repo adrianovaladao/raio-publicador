@@ -178,8 +178,7 @@ export default function CadastroPage() {
           {/* ── Passo: cadastro ── */}
           {step === "signup" && (
             <>
-              <Link href="/"><RaioLockup height={22} variant="dark" /></Link>
-              <h1 style={{ marginTop: 28 }}>Crie sua <em>conta</em>.</h1>
+              <h1>Crie sua <em>conta</em>.</h1>
               <p className="lead">Comece a distribuir releases para centenas de veículos.</p>
 
               <form onSubmit={handleSignUp}>
