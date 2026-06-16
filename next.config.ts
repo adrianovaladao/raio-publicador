@@ -1,0 +1,33 @@
+import type { NextConfig } from "next";
+
+const isDev = process.env.NODE_ENV === "development";
+
+const nextConfig: NextConfig = {
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          {
+            key: "Content-Security-Policy",
+            value: [
+              "default-src 'self'",
+              // Em dev o Next.js e o Clerk precisam de unsafe-eval
+              isDev
+                ? "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://*.clerk.accounts.dev https://clerk.accounts.dev https://*.clerk.com https://js.stripe.com"
+                : "script-src 'self' 'unsafe-inline' https://*.clerk.accounts.dev https://clerk.accounts.dev https://*.clerk.com https://js.stripe.com",
+              "style-src 'self' 'unsafe-inline'",
+              "img-src 'self' data: blob: https:",
+              "font-src 'self' data:",
+              "connect-src 'self' https://*.clerk.accounts.dev https://clerk.accounts.dev https://*.clerk.com wss://*.clerk.accounts.dev",
+              "frame-src 'self' https://*.clerk.accounts.dev https://clerk.accounts.dev https://*.clerk.com https://js.stripe.com",
+              "worker-src 'self' blob:",
+            ].join("; "),
+          },
+        ],
+      },
+    ];
+  },
+};
+
+export default nextConfig;
