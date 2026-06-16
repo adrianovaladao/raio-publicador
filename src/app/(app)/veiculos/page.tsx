@@ -241,7 +241,7 @@ export default function VeiculosPage() {
   const [vehicles, setVehicles] = useState(VEHICLES);
   const [showModal, setShowModal] = useState(false);
 
-  let list = vehicles.filter(v =>
+  const list = vehicles.filter(v =>
     (cat === "Todos" || v.cat === cat) &&
     (uf  === "Todas" || v.uf  === uf)  &&
     (!q.trim() || (v.name + v.domain).toLowerCase().includes(q.toLowerCase()))

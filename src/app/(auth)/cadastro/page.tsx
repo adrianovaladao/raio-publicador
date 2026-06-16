@@ -34,7 +34,8 @@ const STEPS_MINI = [
 ];
 
 export default function CadastroPage() {
-  const { signUp, setActive } = useSignUp();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { signUp, setActive } = useSignUp() as any;
   const { isSignedIn } = useAuth();
   const router = useRouter();
 
@@ -60,6 +61,7 @@ export default function CadastroPage() {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function getClerkSignUp(): any {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return typeof window !== "undefined" ? (window as any).Clerk?.client?.signUp : null;
   }
 

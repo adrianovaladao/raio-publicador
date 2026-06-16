@@ -361,7 +361,7 @@ function StepVehicles({ selected, setSelected }: { selected: string[]; setSelect
     setSelected(selected.includes(id) ? selected.filter(x => x !== id) : [...selected, id]);
   const remove = (id: string) => setSelected(selected.filter(x => x !== id));
 
-  let list = VEHICLES.filter(v =>
+  const list = VEHICLES.filter(v =>
     (cat === "Todos" || v.cat === cat) &&
     (uf  === "Todas" || v.uf  === uf)  &&
     (!q.trim() || (v.name + v.domain).toLowerCase().includes(q.toLowerCase()))

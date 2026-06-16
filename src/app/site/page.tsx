@@ -97,6 +97,7 @@ function useReveal() {
 
 // ─── Nav ──────────────────────────────────────────────────────────────────────
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function Nav({ onContact }: { onContact: () => void }) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -361,7 +362,7 @@ function Testimonials() {
               <div className="stars">
                 {[0,1,2,3,4].map((s) => <Star key={s} size={16} fill="currentColor" />)}
               </div>
-              <p className="q">"{t.q}"</p>
+              <p className="q">&ldquo;{t.q}&rdquo;</p>
               <div className="by">
                 <div className="av">{t.av}</div>
                 <div>

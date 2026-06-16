@@ -137,6 +137,7 @@ function PerfilPanel({ onToast }: { onToast: (m: string) => void }) {
 
 // ─── Conta ────────────────────────────────────────────────────────────────────
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function ContaPanel({ onToast }: { onToast: (m: string) => void }) {
   const [twofa, setTwofa] = useState(true);
   const [notif, setNotif] = useState({ published: true, scheduled: true, comments: true, weekly: false });
@@ -396,7 +397,7 @@ function MarcasPanel({ onToast }: { onToast: (m: string) => void }) {
       </div>
 
       <div className="card" key={`boiler-${brandId}`} style={{ marginTop: 16 }}>
-        <div className="card-head"><h3>Boilerplate <span className="muted" style={{ fontWeight: 400, fontSize: 13 }}>· "sobre a empresa"</span></h3></div>
+        <div className="card-head"><h3>Boilerplate <span className="muted" style={{ fontWeight: 400, fontSize: 13 }}>&middot; &ldquo;sobre a empresa&rdquo;</span></h3></div>
         <div className="card-pad">
           <div className="field" style={{ margin: 0 }}>
             <label>Texto padrão incluído ao final dos releases</label>

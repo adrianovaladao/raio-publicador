@@ -11,7 +11,6 @@ import {
   Zap,
   ChevronDown,
   Check,
-  Plus,
 } from "lucide-react";
 
 // ── BrandSwitcher local ──────────────────────────────────────────────────────
@@ -71,14 +70,6 @@ const KPIS = [
   { id: "k4", icon: Zap,       label: "Créditos restantes",  val: "1.800", suffix: "",    delta: -36, period: "de 5.000 do plano" },
 ];
 
-const CHART = [
-  { m: "Jan", pub: 5,  sch: 1 },
-  { m: "Fev", pub: 8,  sch: 2 },
-  { m: "Mar", pub: 6,  sch: 1 },
-  { m: "Abr", pub: 11, sch: 3 },
-  { m: "Mai", pub: 14, sch: 2 },
-  { m: "Jun", pub: 9,  sch: 6 },
-];
 
 const TOP_VEHICLES = [
   { id: "v1",  name: "Capital Econômica",   meta: "18 releases", n: "14,2", color: "#1A1A1A" },
@@ -156,7 +147,7 @@ function PerformanceDonut() {
     acc += len;
     return seg;
   });
-  const top5pct = Math.round(total / 49.2 * 77); // proporção do alcance total
+  // top5pct reserved for future dynamic calculation
   return (
     <div className="card">
       <div className="card-head">

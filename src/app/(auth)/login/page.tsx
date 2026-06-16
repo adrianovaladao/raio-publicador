@@ -15,7 +15,8 @@ const STEPS_MINI = [
 ];
 
 export default function LoginPage() {
-  const { signIn, setActive } = useSignIn();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { setActive } = useSignIn() as any;
   const { isSignedIn } = useAuth();
   const router = useRouter();
 

@@ -2,7 +2,6 @@
 
 import { useState, useRef } from "react";
 import { useUser } from "@clerk/nextjs";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowRight, ArrowLeft, Check, X, Sparkles, Rocket,
@@ -471,22 +470,22 @@ function Tone({ go, data, setData }: { go: (s: Stage) => void; data: OnbData; se
           <div className="vg-col yes">
             <div className="vg-tag"><Check size={13} /> Diga assim</div>
             <div className="vg-ex">
-              <p>"Em 90 dias, conquistamos 27 matérias para a marca em veículos nacionais."</p>
+              <p>&ldquo;Em 90 dias, conquistamos 27 matérias para a marca em veículos nacionais.&rdquo;</p>
               <span>Concreto: número, prazo e resultado. Sem adjetivo de mais.</span>
             </div>
             <div className="vg-ex">
-              <p>"Mídia espontânea é diferente de publicidade — e <em>essa</em> diferença muda a confiança do cliente."</p>
+              <p>&ldquo;Mídia espontânea é diferente de publicidade — e <em>essa</em> diferença muda a confiança do cliente.&rdquo;</p>
               <span>Educa o leitor. O itálico marca a virada de ideia.</span>
             </div>
           </div>
           <div className="vg-col no">
             <div className="vg-tag"><X size={13} /> Não diga assim</div>
             <div className="vg-ex">
-              <p>"Somos a melhor assessoria do Brasil, com soluções inovadoras e disruptivas!"</p>
+              <p>&ldquo;Somos a melhor assessoria do Brasil, com soluções inovadoras e disruptivas!&rdquo;</p>
               <span>Vago e auto-elogioso, sem prova. Adjetivos batidos.</span>
             </div>
             <div className="vg-ex">
-              <p>"🚀🔥 Bora alavancar sua marca?? 💥 Sucesso garantido! ✨"</p>
+              <p>&ldquo;🚀🔥 Bora alavancar sua marca?? 💥 Sucesso garantido! ✨&rdquo;</p>
               <span>Excesso de emoji, promessa vazia, venda forçada.</span>
             </div>
           </div>
@@ -526,7 +525,6 @@ function Done({ data }: { data: OnbData }) {
 // ─── WIZARD ───────────────────────────────────────────────────
 export default function BoasVindasPage() {
   const { user } = useUser();
-  const router = useRouter();
   const firstName = user?.firstName || "";
   const [step, setStep] = useState<Stage>("welcome");
   const [data, setData] = useState<OnbData>({
@@ -538,7 +536,7 @@ export default function BoasVindasPage() {
   });
 
   const idx = STAGES.findIndex(s => s.id === step);
-  const go = (s: Stage) => { setStep(s); try { window.scrollTo(0, 0); } catch (_) {} };
+  const go = (s: Stage) => { setStep(s); try { window.scrollTo(0, 0); } catch { /* ignore */ } };
 
   let screen;
   switch (step) {

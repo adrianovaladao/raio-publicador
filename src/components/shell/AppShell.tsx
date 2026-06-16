@@ -6,10 +6,10 @@ import { useUser, useClerk } from "@clerk/nextjs";
 import {
   LayoutDashboard, FileText, CalendarDays, Radio, Settings,
   Bell, Search, LogOut, ChevronDown, Zap, Check, X,
-  Plus, ArrowRight, Headphones,
+  ArrowRight, Headphones,
 } from "lucide-react";
 import { RaioLockup } from "@/components/logo/RaioLockup";
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 
 // ─── Mock data ────────────────────────────────────────────────────────────────
 
@@ -34,50 +34,6 @@ function getInitials(name: string) {
   return name.split(" ").filter(Boolean).slice(0, 2).map(w => w[0]).join("").toUpperCase();
 }
 
-// ─── BrandSwitcher ────────────────────────────────────────────────────────────
-
-function BrandSwitcher({ onAddBrand, active, onSelect }: { onAddBrand: () => void; active: typeof BRANDS[0]; onSelect: (b: typeof BRANDS[0]) => void }) {
-  const [open, setOpen] = useState(false);
-
-  return (
-    <div className="tb-brandsel">
-      <button className="tbb-btn" onClick={() => setOpen(o => !o)}>
-        <span className="tbb-av" style={{ background: active.color }}>{getInitials(active.name)}</span>
-        <span className="tbb-meta">
-          <span className="tbb-lbl">Marca ativa</span>
-          <span className="tbb-nm">{active.name}</span>
-        </span>
-        <ChevronDown size={15} className={`tbb-chev${open ? " open" : ""}`} />
-      </button>
-
-      {open && (
-        <>
-          <div className="tbb-backdrop" onClick={() => setOpen(false)} />
-          <div className="tbb-menu">
-            <div className="tbb-menu-label">Trocar de marca</div>
-            {BRANDS.map(b => (
-              <button
-                key={b.id}
-                className={`tbb-opt${b.id === active.id ? " on" : ""}`}
-                onClick={() => { onSelect(b); setOpen(false); }}
-              >
-                <span className="tbb-av" style={{ background: b.color }}>{getInitials(b.name)}</span>
-                <span className="tbb-opt-meta">
-                  <span className="tbb-nm">{b.name}</span>
-                  <span className="tbb-sg">{b.segment} · {b.releases} releases</span>
-                </span>
-                {b.id === active.id && <Check size={15} />}
-              </button>
-            ))}
-            <button className="tbb-add" onClick={() => { setOpen(false); onAddBrand(); }}>
-              <Plus size={15} /> Adicionar marca
-            </button>
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
 
 // ─── PlansModal ───────────────────────────────────────────────────────────────
 
@@ -275,7 +231,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [showPlans, setShowPlans] = useState(false);
   const [showNewBrand, setShowNewBrand] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
-  const [activeBrand, setActiveBrand] = useState(BRANDS[0]);
 
   const firstName = user?.firstName ?? "";
   const lastName  = user?.lastName  ?? "";
