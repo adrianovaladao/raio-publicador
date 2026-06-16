@@ -16,10 +16,19 @@ const STEPS_MINI = [
 ];
 
 export default function LoginPage() {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { signIn, setActive, isLoaded } = useSignIn() as any;
   const { isSignedIn } = useAuth();
   const router = useRouter();
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  function getClerkSignIn(): any {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return typeof window !== "undefined" ? (window as any).Clerk?.client?.signIn : null;
+  }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  function getClerk(): any {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return typeof window !== "undefined" ? (window as any).Clerk : null;
+  }
 
   useEffect(() => {
     if (isSignedIn) router.replace("/dashboard");
@@ -39,10 +48,11 @@ export default function LoginPage() {
   const [resetMsg, setResetMsg]     = useState("");
 
   async function sendResetEmail() {
-    if (!isLoaded || !signIn) return;
     setLoading(true); setError("");
     try {
-      await signIn.create({ strategy: "reset_password_email_code", identifier: resetEmail });
+      const clerkSi = getClerkSignIn();
+      if (!clerkSi) { setError("Aguarde e tente novamente."); return; }
+      await clerkSi.create({ strategy: "reset_password_email_code", identifier: resetEmail });
       setResetStep("code");
       setResetMsg("Enviamos um código para " + resetEmail);
     } catch (err: unknown) {
@@ -52,13 +62,15 @@ export default function LoginPage() {
   }
 
   async function confirmReset() {
-    if (!isLoaded || !signIn) return;
     setLoading(true); setError("");
     try {
-      const result = await signIn.attemptFirstFactor({ strategy: "reset_password_email_code", code: resetCode, password: resetPw });
+      const clerk   = getClerk();
+      const clerkSi = getClerkSignIn();
+      if (!clerkSi) { setError("Aguarde e tente novamente."); return; }
+      const result = await clerkSi.attemptFirstFactor({ strategy: "reset_password_email_code", code: resetCode, password: resetPw });
       if (result.status === "complete") {
-        await setActive!({ session: result.createdSessionId });
-        router.replace("/dashboard");
+        await clerk.setActive({ session: result.createdSessionId });
+        window.location.href = "/dashboard";
       }
     } catch (err: unknown) {
       const e = err as { errors?: { longMessage?: string; message?: string }[] };
@@ -67,23 +79,26 @@ export default function LoginPage() {
   }
 
   async function doLogin() {
-    if (!isLoaded || !signIn) return;
     setLoading(true);
     setError("");
     try {
-      const result = await signIn.create({ identifier: email, password });
+      const clerk   = getClerk();
+      const clerkSi = getClerkSignIn();
+      if (!clerkSi) { setError("Aguarde um instante e tente novamente."); setLoading(false); return; }
+
+      const result = await clerkSi.create({ identifier: email, password });
 
       if (result.status === "complete") {
-        await setActive({ session: result.createdSessionId });
-        router.replace("/dashboard");
+        await clerk.setActive({ session: result.createdSessionId });
+        window.location.href = "/dashboard";
         return;
       }
 
       if (result.status === "needs_first_factor") {
-        const attempt = await signIn.attemptFirstFactor({ strategy: "password", password });
+        const attempt = await clerkSi.attemptFirstFactor({ strategy: "password", password });
         if (attempt.status === "complete") {
-          await setActive({ session: attempt.createdSessionId });
-          router.replace("/dashboard");
+          await clerk.setActive({ session: attempt.createdSessionId });
+          window.location.href = "/dashboard";
           return;
         }
       }
