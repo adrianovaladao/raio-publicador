@@ -7,6 +7,7 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Eye, EyeOff, CheckCircle, Feather, Newspaper, Send, Mail } from "lucide-react";
 import { RaioLockup } from "@/components/logo/RaioLockup";
+import { translateClerkError } from "@/lib/clerkErrors";
 
 type Step = "signup" | "verify" | "done";
 
@@ -83,7 +84,7 @@ export default function CadastroPage() {
       setStep("verify");
     } catch (err: unknown) {
       const e = err as { errors?: { longMessage?: string; message?: string }[] };
-      setError(e?.errors?.[0]?.longMessage || e?.errors?.[0]?.message || "Erro ao criar conta.");
+      setError(translateClerkError(e?.errors?.[0]?.longMessage || e?.errors?.[0]?.message || "") || "Erro ao criar conta.");
     } finally {
       setLoading(false);
     }
@@ -108,7 +109,7 @@ export default function CadastroPage() {
       }
     } catch (err: unknown) {
       const e = err as { errors?: { longMessage?: string; message?: string }[] };
-      setError(e?.errors?.[0]?.longMessage || e?.errors?.[0]?.message || "Código inválido.");
+      setError(translateClerkError(e?.errors?.[0]?.longMessage || e?.errors?.[0]?.message || "") || "Código inválido.");
     } finally {
       setLoading(false);
     }

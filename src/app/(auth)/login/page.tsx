@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, ArrowRight, Feather, Newspaper, Send } from "lucide-react";
+import { translateClerkError } from "@/lib/clerkErrors";
 import { RaioLockup } from "@/components/logo/RaioLockup";
 
 const STEPS_MINI = [
@@ -83,7 +84,7 @@ export default function LoginPage() {
       setError("Não foi possível completar o login. Tente novamente.");
     } catch (err: unknown) {
       const e = err as { errors?: { longMessage?: string; message?: string }[] };
-      setError(e?.errors?.[0]?.longMessage || e?.errors?.[0]?.message || "E-mail ou senha incorretos.");
+      setError(translateClerkError(e?.errors?.[0]?.longMessage || e?.errors?.[0]?.message || "") || "E-mail ou senha incorretos.");
     } finally {
       setLoading(false);
     }
