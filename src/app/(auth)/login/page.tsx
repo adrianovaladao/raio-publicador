@@ -17,7 +17,7 @@ const STEPS_MINI = [
 
 export default function LoginPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { setActive } = useSignIn() as any;
+  const { signIn, setActive, isLoaded } = useSignIn() as any;
   const { isSignedIn } = useAuth();
   const router = useRouter();
 
@@ -39,12 +39,10 @@ export default function LoginPage() {
   const [resetMsg, setResetMsg]     = useState("");
 
   async function sendResetEmail() {
+    if (!isLoaded || !signIn) return;
     setLoading(true); setError("");
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const clerkSi = (window as any).Clerk?.client?.signIn;
-      if (!clerkSi) { setError("Aguarde e tente novamente."); return; }
-      await clerkSi.create({ strategy: "reset_password_email_code", identifier: resetEmail });
+      await signIn.create({ strategy: "reset_password_email_code", identifier: resetEmail });
       setResetStep("code");
       setResetMsg("Enviamos um código para " + resetEmail);
     } catch (err: unknown) {
@@ -54,16 +52,13 @@ export default function LoginPage() {
   }
 
   async function confirmReset() {
+    if (!isLoaded || !signIn) return;
     setLoading(true); setError("");
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const clerk   = (window as any).Clerk;
-      const clerkSi = clerk?.client?.signIn;
-      const result  = await clerkSi.attemptFirstFactor({ strategy: "reset_password_email_code", code: resetCode, password: resetPw });
+      const result = await signIn.attemptFirstFactor({ strategy: "reset_password_email_code", code: resetCode, password: resetPw });
       if (result.status === "complete") {
-        const sa = setActive ?? clerk?.setActive;
-        await sa({ session: result.createdSessionId });
-        window.location.href = "/dashboard";
+        await setActive!({ session: result.createdSessionId });
+        router.replace("/dashboard");
       }
     } catch (err: unknown) {
       const e = err as { errors?: { longMessage?: string; message?: string }[] };
@@ -72,56 +67,17 @@ export default function LoginPage() {
   }
 
   async function doLogin() {
+    if (!isLoaded || !signIn) return;
     setLoading(true);
     setError("");
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const clerk   = (window as any).Clerk;
-      const clerkSi = clerk?.client?.signIn;
-      if (!clerkSi) { setError("Aguarde um instante e tente novamente."); return; }
-
-      const result = await clerkSi.create({ identifier: email, password });
-
+      const result = await signIn.create({ identifier: email, password });
       if (result.status === "complete") {
-        const sa = setActive ?? clerk?.setActive;
-        await sa({ session: result.createdSessionId });
-        window.location.href = "/dashboard";
-        return;
+        await setActive!({ session: result.createdSessionId });
+        router.replace("/dashboard");
+      } else {
+        setError("Não foi possível completar o login. Tente novamente.");
       }
-
-      if (result.status === "needs_first_factor") {
-        const attempt = await clerkSi.attemptFirstFactor({ strategy: "password", password });
-        if (attempt.status === "complete") {
-          const sa = setActive ?? clerk?.setActive;
-          await sa({ session: attempt.createdSessionId });
-          window.location.href = "/dashboard";
-          return;
-        }
-      }
-
-      if (result.status === "needs_client_trust") {
-        await clerk?.client?.fetch?.();
-        const activeSession = clerk?.session ?? clerk?.client?.activeSessions?.[0];
-        if (activeSession?.id) {
-          const sa = setActive ?? clerk?.setActive;
-          await sa({ session: activeSession.id });
-          window.location.href = "/dashboard";
-          return;
-        }
-        try {
-          const attempt = await clerkSi.attemptFirstFactor({ strategy: "password", password });
-          if (attempt.status === "complete") {
-            const sa = setActive ?? clerk?.setActive;
-            await sa({ session: attempt.createdSessionId });
-            window.location.href = "/dashboard";
-            return;
-          }
-        } catch { /* cai no erro genérico */ }
-        setError("Não foi possível verificar sua sessão. Tente novamente.");
-        return;
-      }
-
-      setError("Não foi possível completar o login. Tente novamente.");
     } catch (err: unknown) {
       const e = err as { errors?: { longMessage?: string; message?: string }[] };
       setError(translateClerkError(e?.errors?.[0]?.longMessage || e?.errors?.[0]?.message || "") || "E-mail ou senha incorretos.");
