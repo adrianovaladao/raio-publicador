@@ -136,8 +136,6 @@ export default function LoginPage() {
       {/* ── Painel direito ── */}
       <div className="auth-main">
         <div className="auth-card">
-          <Link href="/"><RaioLockup height={22} variant="dark" /></Link>
-
           {/* ── Esqueci a senha: passo e-mail ── */}
           {resetStep === "email" && (
             <>
