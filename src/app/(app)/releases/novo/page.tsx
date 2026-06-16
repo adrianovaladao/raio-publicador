@@ -5,8 +5,14 @@ import { useRouter } from "next/navigation";
 import {
   ArrowLeft, ArrowRight, Check, ChevronDown,
   Image as ImageIcon, Rocket, Calendar, X, Search,
-  List, LayoutGrid, Plus,
+  List, LayoutGrid, Plus, Download,
 } from "lucide-react";
+import {
+  Document, Packer, Paragraph, TextRun, HeadingLevel,
+  AlignmentType, BorderStyle, Table, TableRow, TableCell,
+  WidthType, ShadingType,
+} from "docx";
+import { saveAs } from "file-saver";
 
 // ── Dados mock ──────────────────────────────────────────────────────────────
 
@@ -500,6 +506,117 @@ function StepVehicles({ selected, setSelected }: { selected: string[]; setSelect
 
 interface When { mode: "now" | "schedule"; date: string; time: string }
 
+const BOILERPLATE = (brand: Brand | null) =>
+  brand
+    ? `Sobre ${brand.name}: referência no segmento de ${brand.segment.toLowerCase()}, com atuação nacional e foco em inovação e proximidade com o cliente.`
+    : "";
+
+async function downloadDocx(content: Content, selVehicles: typeof VEHICLES, brand: Brand | null) {
+  const brandName = brand?.name ?? "Marca";
+  const slug = content.title.slice(0, 40).replace(/\s+/g, "-").toLowerCase() || "release";
+
+  const doc = new Document({
+    styles: {
+      default: {
+        document: { run: { font: "Calibri", size: 24 } },
+      },
+    },
+    sections: [{
+      properties: { page: { margin: { top: 1080, bottom: 1080, left: 1260, right: 1260 } } },
+      children: [
+        // Cabeçalho — marca
+        new Paragraph({
+          spacing: { after: 80 },
+          children: [
+            new TextRun({ text: brandName.toUpperCase(), bold: true, size: 18, color: "848484", font: "Calibri" }),
+            new TextRun({ text: `  ·  ${content.cat}`, size: 18, color: "848484", font: "Calibri" }),
+          ],
+        }),
+
+        // Título
+        new Paragraph({
+          heading: HeadingLevel.HEADING_1,
+          spacing: { after: 160 },
+          children: [new TextRun({ text: content.title || "Título do release", bold: true, size: 52, font: "Calibri" })],
+        }),
+
+        // Subtítulo
+        ...(content.subtitle ? [new Paragraph({
+          spacing: { after: 320 },
+          children: [new TextRun({ text: content.subtitle, italics: true, size: 30, color: "555555", font: "Calibri" })],
+        })] : []),
+
+        // Divisor
+        new Paragraph({
+          border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: "E0DFDB" } },
+          spacing: { after: 320 },
+          children: [],
+        }),
+
+        // Corpo
+        ...content.body.split("\n").filter(Boolean).map(line =>
+          new Paragraph({
+            spacing: { after: 200 },
+            children: [new TextRun({ text: line, size: 24, font: "Calibri" })],
+            alignment: AlignmentType.JUSTIFIED,
+          })
+        ),
+
+        // Boilerplate
+        ...(brand ? [
+          new Paragraph({ spacing: { after: 120, before: 400 }, children: [] }),
+          new Paragraph({
+            border: { top: { style: BorderStyle.SINGLE, size: 6, color: "E0DFDB" } },
+            spacing: { after: 200, before: 160 },
+            children: [new TextRun({ text: "SOBRE A EMPRESA", bold: true, size: 18, color: "848484", font: "Calibri" })],
+          }),
+          new Paragraph({
+            spacing: { after: 320 },
+            children: [new TextRun({ text: BOILERPLATE(brand), size: 22, color: "555555", font: "Calibri" })],
+          }),
+        ] : []),
+
+        // Veículos
+        ...(selVehicles.length > 0 ? [
+          new Paragraph({
+            border: { top: { style: BorderStyle.SINGLE, size: 6, color: "E0DFDB" } },
+            spacing: { after: 200, before: 160 },
+            children: [new TextRun({ text: "VEÍCULOS SELECIONADOS", bold: true, size: 18, color: "848484", font: "Calibri" })],
+          }),
+          new Table({
+            width: { size: 100, type: WidthType.PERCENTAGE },
+            rows: [
+              new TableRow({
+                tableHeader: true,
+                children: ["Veículo", "Editoria", "UF", "Tier", "Alcance"].map(h =>
+                  new TableCell({
+                    shading: { type: ShadingType.SOLID, color: "F1F0EC" },
+                    children: [new Paragraph({ children: [new TextRun({ text: h, bold: true, size: 18, font: "Calibri" })] })],
+                  })
+                ),
+              }),
+              ...selVehicles.map(v =>
+                new TableRow({
+                  children: [
+                    v.name, v.cat, v.uf, v.tier, fmtReach(v.reach),
+                  ].map(val =>
+                    new TableCell({
+                      children: [new Paragraph({ children: [new TextRun({ text: val, size: 18, font: "Calibri" })] })],
+                    })
+                  ),
+                })
+              ),
+            ],
+          }),
+        ] : []),
+      ],
+    }],
+  });
+
+  const blob = await Packer.toBlob(doc);
+  saveAs(blob, `${slug}.docx`);
+}
+
 function StepReview({ content, selected, when, setWhen, brand }: {
   content: Content; selected: string[]; when: When; setWhen: (w: When) => void; brand: Brand | null;
 }) {
@@ -512,9 +629,18 @@ function StepReview({ content, selected, when, setWhen, brand }: {
       <div className="card">
         <div className="card-head">
           <h3>Pré-visualização do <em>release</em></h3>
-          <span className={`badge-status ${when.mode === "now" ? "review" : "scheduled"}`}>
-            {when.mode === "now" ? "Em revisão" : "Agendado"}
-          </span>
+          <div className="row" style={{ gap: 10 }}>
+            <span className={`badge-status ${when.mode === "now" ? "review" : "scheduled"}`}>
+              {when.mode === "now" ? "Em revisão" : "Agendado"}
+            </span>
+            <button
+              className="btn btn-ghost btn-sm"
+              onClick={() => downloadDocx(content, selVehicles, brand)}
+              title="Baixar como Word"
+            >
+              <Download size={14} /> Baixar .docx
+            </button>
+          </div>
         </div>
         <div className="card-pad">
           {brand && (
