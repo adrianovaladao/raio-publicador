@@ -466,7 +466,9 @@ function Footer({ onContact }: { onContact: () => void }) {
           <span className="cp">© 2026 Raio Publicador. Todos os direitos reservados.</span>
           <span className="powered">
             Energizado pela{" "}
-            <Image src="/assets/logo/markable-horizontal-mono-white.svg" alt="Markable" width={80} height={16} style={{ height: 16, width: "auto", opacity: 0.8 }} />
+            <a href="https://markable.com.br" target="_blank" rel="noopener noreferrer">
+              <Image src="/assets/logo/markable-horizontal-mono-white.svg" alt="Markable" width={80} height={16} style={{ height: 16, width: "auto", opacity: 0.8 }} />
+            </a>
           </span>
         </div>
       </div>

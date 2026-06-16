@@ -146,7 +146,7 @@ export default function CadastroPage() {
         <span className="grid-bg" />
 
         <div className="top">
-          <RaioLockup height={24} variant="dark" />
+          <Link href="/"><RaioLockup height={24} variant="dark" /></Link>
         </div>
 
         <div className="mid">
@@ -165,7 +165,9 @@ export default function CadastroPage() {
 
         <div className="powered">
           Energizado pela{" "}
-          <Image src="/assets/logo/markable-horizontal-mono-white.svg" alt="Markable" width={80} height={15} style={{ height: 15, width: "auto" }} />
+          <a href="https://markable.com.br" target="_blank" rel="noopener noreferrer">
+            <Image src="/assets/logo/markable-horizontal-mono-white.svg" alt="Markable" width={80} height={15} style={{ height: 15, width: "auto" }} />
+          </a>
         </div>
       </aside>
 
@@ -176,7 +178,7 @@ export default function CadastroPage() {
           {/* ── Passo: cadastro ── */}
           {step === "signup" && (
             <>
-              <RaioLockup height={22} variant="dark" />
+              <Link href="/"><RaioLockup height={22} variant="dark" /></Link>
               <h1 style={{ marginTop: 28 }}>Crie sua <em>conta</em>.</h1>
               <p className="lead">Comece a distribuir releases para centenas de veículos.</p>
 
