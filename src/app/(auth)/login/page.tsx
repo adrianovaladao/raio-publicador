@@ -72,12 +72,23 @@ export default function LoginPage() {
     setError("");
     try {
       const result = await signIn.create({ identifier: email, password });
+
       if (result.status === "complete") {
-        await setActive!({ session: result.createdSessionId });
+        await setActive({ session: result.createdSessionId });
         router.replace("/dashboard");
-      } else {
-        setError("Não foi possível completar o login. Tente novamente.");
+        return;
       }
+
+      if (result.status === "needs_first_factor") {
+        const attempt = await signIn.attemptFirstFactor({ strategy: "password", password });
+        if (attempt.status === "complete") {
+          await setActive({ session: attempt.createdSessionId });
+          router.replace("/dashboard");
+          return;
+        }
+      }
+
+      setError("Não foi possível completar o login. Tente novamente.");
     } catch (err: unknown) {
       const e = err as { errors?: { longMessage?: string; message?: string }[] };
       setError(translateClerkError(e?.errors?.[0]?.longMessage || e?.errors?.[0]?.message || "") || "E-mail ou senha incorretos.");
