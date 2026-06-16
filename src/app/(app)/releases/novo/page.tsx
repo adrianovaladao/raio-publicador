@@ -722,6 +722,7 @@ function StepReview({ content, selected, when, setWhen, brand }: {
 export default function NovoReleasePage() {
   const router  = useRouter();
   const [step, setStep] = useState(0);
+  const [done, setDone] = useState(false);
   const [brand, setBrand] = useState<Brand | null>(null);
   const [brands, setBrands] = useState<Brand[]>(BRANDS);
   const [content, setContent] = useState<Content>({ title: "", subtitle: "", body: "", cat: "Negócios", author: "Samara Perez" });
@@ -739,6 +740,63 @@ export default function NovoReleasePage() {
     step === 1 ? content.title.trim().length > 0 :
     step === 2 ? (selected.length > 0 && !over) :
     true;
+
+  // ── Tela de sucesso ───────────────────────────────────────────────────────
+  if (done) {
+    const scheduled = when.mode === "schedule";
+    const selVehicles = selected.map(id => VEHICLES.find(v => v.id === id)).filter(Boolean) as typeof VEHICLES;
+    const selReach    = selVehicles.reduce((s, v) => s + v.reach, 0);
+    return (
+      <div className="content scroll">
+        <div className="content-inner" style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "80vh" }}>
+          <div style={{ maxWidth: 540, width: "100%", textAlign: "center" }}>
+            {/* Ícone */}
+            <div style={{ width: 72, height: 72, borderRadius: "50%", background: scheduled ? "var(--amber-soft)" : "var(--green-soft)", display: "grid", placeItems: "center", margin: "0 auto 28px" }}>
+              {scheduled
+                ? <Calendar size={32} color="var(--coral-ink)" />
+                : <Rocket size={32} color="var(--green)" />}
+            </div>
+
+            {/* Título */}
+            <h2 style={{ fontFamily: "var(--sans)", fontWeight: 800, fontSize: 32, letterSpacing: "-0.03em", margin: "0 0 12px" }}>
+              {scheduled ? "Release agendado!" : "Release publicado!"}
+            </h2>
+            <p className="muted" style={{ fontSize: 16, lineHeight: 1.6, margin: "0 0 32px" }}>
+              {scheduled
+                ? <>O release <strong style={{ color: "var(--ink)" }}>&ldquo;{content.title}&rdquo;</strong> será enviado em {when.date.split("-").reverse().join("/")} às {when.time} para <strong style={{ color: "var(--ink)" }}>{selVehicles.length} veículos</strong>.</>
+                : <>O release <strong style={{ color: "var(--ink)" }}>&ldquo;{content.title}&rdquo;</strong> está sendo distribuído agora para <strong style={{ color: "var(--ink)" }}>{selVehicles.length} veículos</strong>, com alcance estimado de <strong style={{ color: "var(--ink)" }}>{fmtReach(selReach)}</strong>.</>}
+            </p>
+
+            {/* Stats */}
+            <div style={{ display: "flex", gap: 12, justifyContent: "center", marginBottom: 36 }}>
+              <div className="card" style={{ flex: 1, padding: "16px 20px", textAlign: "center" }}>
+                <div style={{ fontFamily: "var(--mono)", fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 6 }}>Veículos</div>
+                <div style={{ fontWeight: 800, fontSize: 28, letterSpacing: "-0.03em" }}>{selVehicles.length}</div>
+              </div>
+              <div className="card" style={{ flex: 1, padding: "16px 20px", textAlign: "center" }}>
+                <div style={{ fontFamily: "var(--mono)", fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 6 }}>Alcance</div>
+                <div style={{ fontWeight: 800, fontSize: 28, letterSpacing: "-0.03em" }}>{fmtReach(selReach)}</div>
+              </div>
+              <div className="card" style={{ flex: 1, padding: "16px 20px", textAlign: "center" }}>
+                <div style={{ fontFamily: "var(--mono)", fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 6 }}>Marca</div>
+                <div style={{ fontWeight: 800, fontSize: 16, letterSpacing: "-0.02em", marginTop: 6 }}>{brand?.name ?? "—"}</div>
+              </div>
+            </div>
+
+            {/* Ações */}
+            <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
+              <button className="btn btn-ghost" onClick={() => router.push("/releases")}>
+                Ver biblioteca
+              </button>
+              <button className="btn btn-dark" onClick={() => router.push("/dashboard")}>
+                Ir para o dashboard
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="content scroll">
@@ -772,7 +830,7 @@ export default function NovoReleasePage() {
                 Continuar <ArrowRight size={16} />
               </button>
             ) : (
-              <button className="btn btn-primary" onClick={() => { alert("Release enviado! (demo)"); router.push("/releases"); }}>
+              <button className="btn btn-primary" onClick={() => setDone(true)}>
                 {when.mode === "now"
                   ? <><Rocket size={16} /> Publicar agora</>
                   : <><Calendar size={16} /> Agendar release</>}
