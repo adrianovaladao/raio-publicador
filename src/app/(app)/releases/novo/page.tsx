@@ -745,8 +745,8 @@ export default function NovoReleasePage() {
   useEffect(() => {
     fetch("/api/brands")
       .then(r => r.json())
-      .then((data: Brand[]) => {
-        if (Array.isArray(data)) setBrands(data);
+      .then((data: unknown) => {
+        setBrands(Array.isArray(data) ? (data as Brand[]) : []);
       })
       .catch(() => setBrands([]));
   }, []);

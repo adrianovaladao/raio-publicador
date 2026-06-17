@@ -26,3 +26,6 @@ Thumbs.db
 /src/generated/prisma
 .vercel
 .env*
+
+# clerk configuration (can include secrets)
+/.clerk/

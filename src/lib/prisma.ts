@@ -1,11 +1,12 @@
 import { PrismaClient } from "@prisma/client";
+import { withAccelerate } from "@prisma/extension-accelerate";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const g = globalThis as any;
 
-export function getPrisma(): PrismaClient {
+export function getPrisma() {
   if (!g._prisma) {
-    g._prisma = new PrismaClient();
+    g._prisma = new PrismaClient().$extends(withAccelerate());
   }
   return g._prisma;
 }

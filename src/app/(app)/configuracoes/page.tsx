@@ -556,10 +556,12 @@ function MarcasPanel({ onToast }: { onToast: (m: string) => void }) {
   useEffect(() => {
     fetch("/api/brands")
       .then(r => r.json())
-      .then((data: Brand[]) => {
-        setBrands(data);
-        if (data.length > 0) setBrandId(data[0].id);
+      .then((data: unknown) => {
+        const arr = Array.isArray(data) ? (data as Brand[]) : [];
+        setBrands(arr);
+        if (arr.length > 0) setBrandId(arr[0].id);
       })
+      .catch(() => setBrands([]))
       .finally(() => setLoading(false));
   }, []);
 
