@@ -113,6 +113,7 @@ function NewBrandModal({ onClose, onCreate }: { onClose: () => void; onCreate: (
   const [contact, setContact] = useState("");
   const [color, setColor] = useState(BRAND_COLORS[0]);
   const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState("");
   const valid = name.trim().length > 1;
 
   useEffect(() => {
@@ -124,15 +125,22 @@ function NewBrandModal({ onClose, onCreate }: { onClose: () => void; onCreate: (
   async function submit() {
     if (!valid) return;
     setSaving(true);
+    setErr("");
     try {
       const res = await fetch("/api/brands", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: name.trim(), segment, color, site, description: desc, contact }),
       });
-      const brand = await res.json();
-      onCreate(brand);
+      const data = await res.json();
+      if (!res.ok) {
+        setErr(data?.error ?? `Erro ${res.status}. Tente novamente.`);
+        return;
+      }
+      onCreate(data);
       onClose();
+    } catch {
+      setErr("Falha de conexão. Verifique e tente novamente.");
     } finally {
       setSaving(false);
     }
@@ -196,6 +204,7 @@ function NewBrandModal({ onClose, onCreate }: { onClose: () => void; onCreate: (
             </div>
           </div>
         </div>
+        {err && <p style={{ color: "var(--red, #c0392b)", fontSize: 13, margin: "0 24px 12px", fontWeight: 500 }}>{err}</p>}
         <div className="m-foot">
           <button className="btn btn-quiet btn-sm" onClick={onClose}>Cancelar</button>
           <button className="btn btn-primary btn-sm" disabled={!valid || saving} onClick={submit}>
