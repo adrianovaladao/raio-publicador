@@ -61,13 +61,15 @@ const CONSUMPTION = [
   { m: "Abr", credits: 3400 }, { m: "Mai", credits: 4200 }, { m: "Jun", credits: 3200 },
 ];
 
-function fmtDate(iso: string) {
+function fmtDate(iso: string | null | undefined) {
+  if (!iso) return "—";
   const [y, m, d] = iso.split("-").map(Number);
   const meses = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
   return `${String(d).padStart(2,"0")} ${meses[m-1]} ${y}`;
 }
 
-function getInitials(name: string) {
+function getInitials(name: string | null | undefined) {
+  if (!name) return "?";
   return name.split(" ").filter(Boolean).slice(0,2).map(w => w[0]).join("").toUpperCase();
 }
 
