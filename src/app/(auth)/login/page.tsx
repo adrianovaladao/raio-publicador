@@ -115,18 +115,18 @@ export default function LoginPage() {
 
       if (result.status === "needs_client_trust") {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const c = clerk.client as any;
-        if (c?.fetch) await c.fetch();
-        const session =
-          result.createdSessionId ??
-          clerk.client?.lastActiveSessionId ??
-          c?.activeSessions?.[0]?.id;
-        if (session) {
-          await clerk.setActive({ session });
+        const w = window as any;
+        if (w.Clerk?.client?.fetch) await w.Clerk.client.fetch();
+        const sessionId =
+          w.Clerk?.client?.activeSessions?.[0]?.id ??
+          w.Clerk?.session?.id ??
+          clerk.client?.lastActiveSessionId;
+        if (sessionId) {
+          await clerk.setActive({ session: sessionId });
           router.replace("/dashboard");
           return;
         }
-        setError("Verificação de dispositivo necessária. Desative o Smart Session Management no Clerk Dashboard.");
+        setError("Não foi possível verificar o dispositivo. Tente novamente.");
         return;
       }
 
@@ -302,6 +302,7 @@ export default function LoginPage() {
                   </button>
                 </div>
 
+                <div id="clerk-captcha" />
                 {error && <p style={{ color: "var(--red)", fontSize: 13, marginBottom: 14 }}>{error}</p>}
 
                 <button className="btn btn-primary btn-block btn-lg" type="submit" disabled={loading}>
