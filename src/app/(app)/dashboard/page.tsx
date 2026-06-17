@@ -204,7 +204,7 @@ function EmptyState() {
       <Building2 size={34} />
       <div className="t">Nenhuma marca cadastrada ainda</div>
       <div className="h">Cadastre sua primeira marca para começar a distribuir releases.</div>
-      <Link href="/configuracoes" className="btn btn-primary btn-sm" style={{ marginTop: 16 }}>
+      <Link href="/configuracoes?tab=marcas" className="btn btn-primary btn-sm" style={{ marginTop: 16 }}>
         Cadastrar marca
       </Link>
     </div>

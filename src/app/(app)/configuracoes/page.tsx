@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import Image from "next/image";
 import {
@@ -824,8 +825,10 @@ const GROUPS = [
   { label: "Organização", items: [{ id: "equipe", icon: Users, label: "Equipe e permissões" }, { id: "marcas", icon: Building2, label: "Marcas" }, { id: "cobranca", icon: CreditCard, label: "Cobrança" }] },
 ];
 
-export default function ConfiguracoesPage() {
-  const [tab, setTab] = useState("perfil");
+function ConfiguracoesInner() {
+  const searchParams = useSearchParams();
+  const initialTab = searchParams.get("tab") ?? "perfil";
+  const [tab, setTab] = useState(initialTab);
   const [toast, setToast] = useState<string | null>(null);
 
   function showToast(msg: string) {
@@ -865,5 +868,13 @@ export default function ConfiguracoesPage() {
         </div>
       )}
     </>
+  );
+}
+
+export default function ConfiguracoesPage() {
+  return (
+    <Suspense>
+      <ConfiguracoesInner />
+    </Suspense>
   );
 }

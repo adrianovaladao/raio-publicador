@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
 import {
   ArrowLeft, ArrowRight, Check, ChevronDown,
   Image as ImageIcon, Rocket, Calendar, X, Search,
@@ -721,19 +722,33 @@ function StepReview({ content, selected, when, setWhen, brand }: {
 
 export default function NovoReleasePage() {
   const router  = useRouter();
+  const { user } = useUser();
   const [step, setStep] = useState(0);
   const [done, setDone] = useState(false);
   const [brand, setBrand] = useState<Brand | null>(null);
   const [brands, setBrands] = useState<Brand[]>([]);
-  const [content, setContent] = useState<Content>({ title: "", subtitle: "", body: "", cat: "Negócios", author: "Samara Perez" });
+  const [content, setContent] = useState<Content>({ title: "", subtitle: "", body: "", cat: "Negócios", author: "" });
+
+  useEffect(() => {
+    if (user && !content.author) {
+      const name = [user.firstName, user.lastName].filter(Boolean).join(" ");
+      if (name) setContent(c => ({ ...c, author: name }));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
   const [selected, setSelected] = useState<string[]>([]);
-  const [when, setWhen] = useState<When>({ mode: "schedule", date: "2026-06-20", time: "09:00" });
+  const now = new Date();
+  const defaultDate = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()+1).padStart(2,"0")}`;
+  const [when, setWhen] = useState<When>({ mode: "schedule", date: defaultDate, time: "09:00" });
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     fetch("/api/brands")
       .then(r => r.json())
-      .then((data: Brand[]) => setBrands(data));
+      .then((data: Brand[]) => {
+        if (Array.isArray(data)) setBrands(data);
+      })
+      .catch(() => setBrands([]));
   }, []);
 
   const last = STEPS.length - 1;

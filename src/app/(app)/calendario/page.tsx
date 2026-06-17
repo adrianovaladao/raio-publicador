@@ -1,41 +1,61 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 
 const MESES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 const DOW   = ["Seg","Ter","Qua","Qui","Sex","Sáb","Dom"];
-const TODAY = "2026-06-15";
-
-const CAL_EVENTS: Record<string, { id: string; title: string; status: string }[]> = {
-  "2026-06-03": [{ id: "r5", title: "Pesquisa franquias +23%",        status: "review" }],
-  "2026-06-05": [{ id: "r2", title: "Fintech capta R$ 45 mi",         status: "scheduled" }],
-  "2026-06-09": [{ id: "x1", title: "Balanço trimestral cliente X",   status: "scheduled" }],
-  "2026-06-11": [{ id: "r4", title: "Startup logística no Sul",        status: "scheduled" }],
-  "2026-06-12": [{ id: "x2", title: "Nota — nova diretoria",          status: "review" }],
-  "2026-06-15": [{ id: "x0", title: "Relatório de impacto Q2",        status: "review" }],
-  "2026-06-18": [{ id: "r9", title: "Shoppings R$ 1,2 bi",            status: "scheduled" }],
-  "2026-06-23": [{ id: "x3", title: "Lançamento app cliente Y",       status: "scheduled" }],
-  "2026-06-25": [{ id: "x4", title: "Release resultados 1S",          status: "scheduled" }, { id: "x5", title: "Pauta ESG", status: "review" }],
-  "2026-05-28": [{ id: "r1", title: "Expansão 120 franquias",         status: "published" }],
-  "2026-05-30": [{ id: "x6", title: "Nota institucional",             status: "published" }],
-};
 
 const STATUS_LABEL: Record<string, string> = {
-  published: "Publicado", scheduled: "Agendado", draft: "Rascunho", review: "Em revisão",
+  PUBLISHED: "Publicado", published: "Publicado",
+  SCHEDULED: "Agendado",  scheduled: "Agendado",
+  DRAFT:     "Rascunho",  draft:     "Rascunho",
 };
+
+function statusClass(s: string) {
+  const l = s.toLowerCase();
+  if (l === "published") return "published";
+  if (l === "scheduled") return "scheduled";
+  return "draft";
+}
+
+interface CalEvent { id: string; title: string; status: string }
 
 function calKey(y: number, m: number, d: number) {
   return `${y}-${String(m + 1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
 }
 
 export default function CalendarioPage() {
-  const [y, setY] = useState(2026);
-  const [m, setM] = useState(5); // junho (0-indexed)
+  const now = new Date();
+  const [y, setY] = useState(now.getFullYear());
+  const [m, setM] = useState(now.getMonth());
+  const TODAY = calKey(now.getFullYear(), now.getMonth(), now.getDate());
+
+  const [events, setEvents] = useState<Record<string, CalEvent[]>>({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setLoading(true);
+    fetch("/api/releases")
+      .then(r => r.json())
+      .then((releases: { id: string; title: string; status: string; scheduledAt?: string | null; publishedAt?: string | null; createdAt: string }[]) => {
+        const map: Record<string, CalEvent[]> = {};
+        for (const r of releases) {
+          const dateStr = r.scheduledAt ?? r.publishedAt ?? r.createdAt;
+          const d = new Date(dateStr);
+          const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+          if (!map[key]) map[key] = [];
+          map[key].push({ id: r.id, title: r.title, status: r.status });
+        }
+        setEvents(map);
+      })
+      .catch(() => setEvents({}))
+      .finally(() => setLoading(false));
+  }, []);
 
   const first   = new Date(y, m, 1);
-  const lead    = (first.getDay() + 6) % 7; // seg=0
+  const lead    = (first.getDay() + 6) % 7;
   const dim     = new Date(y, m + 1, 0).getDate();
   const prevDim = new Date(y, m, 0).getDate();
 
@@ -51,8 +71,9 @@ export default function CalendarioPage() {
     setM(nm); setY(ny);
   }
 
-  const monthEvs = Object.entries(CAL_EVENTS).filter(([k]) => k.startsWith(`${y}-${String(m + 1).padStart(2,"0")}`));
-  const scheduledCount = monthEvs.flatMap(([,v]) => v).filter(e => e.status === "scheduled").length;
+  const monthPrefix = `${y}-${String(m + 1).padStart(2,"0")}`;
+  const monthEvs = Object.entries(events).filter(([k]) => k.startsWith(monthPrefix));
+  const scheduledCount = monthEvs.flatMap(([,v]) => v).filter(e => e.status.toLowerCase() === "scheduled").length;
 
   return (
     <div className="content scroll">
@@ -61,12 +82,16 @@ export default function CalendarioPage() {
           <div>
             <p className="eyebrow">Planejamento</p>
             <h2>Calendário de <em>publicação</em></h2>
-            <p className="sub">{scheduledCount} release{scheduledCount !== 1 ? "s" : ""} agendado{scheduledCount !== 1 ? "s" : ""} em {MESES[m].toLowerCase()}. Clique em um evento para abrir o release.</p>
+            <p className="sub">
+              {loading
+                ? "Carregando…"
+                : `${scheduledCount} release${scheduledCount !== 1 ? "s" : ""} agendado${scheduledCount !== 1 ? "s" : ""} em ${MESES[m].toLowerCase()}.`}
+            </p>
           </div>
           <div className="actions">
             <div className="chips">
               <span className="chip"><i style={{ width: 9, height: 9, borderRadius: 3, background: "var(--blue)", display: "inline-block", marginRight: 4 }} />Agendado</span>
-              <span className="chip"><i style={{ width: 9, height: 9, borderRadius: 3, background: "var(--coral)", display: "inline-block", marginRight: 4 }} />Em revisão</span>
+              <span className="chip"><i style={{ width: 9, height: 9, borderRadius: 3, background: "var(--coral)", display: "inline-block", marginRight: 4 }} />Rascunho</span>
               <span className="chip"><i style={{ width: 9, height: 9, borderRadius: 3, background: "var(--green)", display: "inline-block", marginRight: 4 }} />Publicado</span>
             </div>
             <Link href="/releases/novo" className="btn btn-primary btn-sm">
@@ -83,7 +108,7 @@ export default function CalendarioPage() {
               <button onClick={() => shift(1)}><ChevronRight size={16} /></button>
             </div>
             <div style={{ flex: 1 }} />
-            <button className="btn btn-ghost btn-sm" onClick={() => { setY(2026); setM(5); }}>Hoje</button>
+            <button className="btn btn-ghost btn-sm" onClick={() => { setY(now.getFullYear()); setM(now.getMonth()); }}>Hoje</button>
           </div>
 
           <div className="cal-dow">
@@ -93,13 +118,13 @@ export default function CalendarioPage() {
           <div className="cal-grid">
             {cells.map((c, i) => {
               const k = c.out ? null : calKey(y, m, c.d);
-              const evs = k ? (CAL_EVENTS[k] ?? []) : [];
+              const evs = k ? (events[k] ?? []) : [];
               const isToday = k === TODAY;
               return (
                 <div key={i} className={`cal-cell${c.out ? " out" : ""}${isToday ? " today" : ""}`}>
                   <div className="dn">{c.d}</div>
                   {evs.slice(0, 2).map(e => (
-                    <span key={e.id} className={`cal-event ${e.status}`} title={`${STATUS_LABEL[e.status]}: ${e.title}`}>
+                    <span key={e.id} className={`cal-event ${statusClass(e.status)}`} title={`${STATUS_LABEL[e.status] ?? e.status}: ${e.title}`}>
                       {e.title}
                     </span>
                   ))}
