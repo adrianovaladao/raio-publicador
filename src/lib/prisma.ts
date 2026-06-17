@@ -1,12 +1,11 @@
 import { PrismaClient } from "@prisma/client";
-import { withAccelerate } from "@prisma/extension-accelerate";
 
-const globalForPrisma = globalThis as unknown as { prisma: ReturnType<typeof makePrisma> };
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const g = globalThis as any;
 
-function makePrisma() {
-  return new PrismaClient().$extends(withAccelerate());
+export function getPrisma(): PrismaClient {
+  if (!g._prisma) {
+    g._prisma = new PrismaClient();
+  }
+  return g._prisma;
 }
-
-export const prisma = globalForPrisma.prisma ?? makePrisma();
-
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;

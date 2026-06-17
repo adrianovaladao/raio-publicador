@@ -1,13 +1,14 @@
+export const dynamic = "force-dynamic";
 import { auth } from "@clerk/nextjs/server";
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 export async function GET() {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const [brands, releases] = await Promise.all([
-    prisma.brand.findMany({ where: { ownerId: userId }, orderBy: { name: "asc" } }),
-    prisma.release.findMany({ where: { brand: { ownerId: userId } }, select: { status: true, brandId: true } }),
+    getPrisma().brand.findMany({ where: { ownerId: userId }, orderBy: { name: "asc" } }),
+    getPrisma().release.findMany({ where: { brand: { ownerId: userId } }, select: { status: true, brandId: true } }),
   ]);
   const stats = {
     total: releases.length,
