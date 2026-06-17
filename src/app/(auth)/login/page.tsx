@@ -1,6 +1,6 @@
 "use client";
 
-import { useAuth, useSignIn } from "@clerk/nextjs";
+import { useAuth, useClerk } from "@clerk/nextjs";
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react";
@@ -17,8 +17,7 @@ const STEPS_MINI = [
 
 export default function LoginPage() {
   const { isSignedIn } = useAuth();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { signIn, setActive, isLoaded } = useSignIn() as any;
+  const clerk = useClerk();
   const router = useRouter();
 
   useEffect(() => {
@@ -42,13 +41,18 @@ export default function LoginPage() {
   const [resetPw, setResetPw]       = useState("");
   const [resetMsg, setResetMsg]     = useState("");
 
+  function getSignIn() {
+    return clerk.client?.signIn;
+  }
+
   async function doTotp() {
-    if (!isLoaded || !signIn || !setActive) return;
+    const si = getSignIn();
+    if (!si) { setError("Aguarde e tente novamente."); return; }
     setLoading(true); setError("");
     try {
-      const result = await signIn.attemptSecondFactor({ strategy: "totp", code: totpCode });
+      const result = await si.attemptSecondFactor({ strategy: "totp", code: totpCode });
       if (result.status === "complete") {
-        await setActive({ session: result.createdSessionId });
+        await clerk.setActive({ session: result.createdSessionId });
         router.replace("/dashboard");
       } else {
         setError("Código inválido. Tente novamente.");
@@ -60,10 +64,11 @@ export default function LoginPage() {
   }
 
   async function sendResetEmail() {
-    if (!isLoaded || !signIn) return;
+    const si = getSignIn();
+    if (!si) { setError("Aguarde e tente novamente."); return; }
     setLoading(true); setError("");
     try {
-      await signIn.create({ strategy: "reset_password_email_code", identifier: resetEmail });
+      await si.create({ strategy: "reset_password_email_code", identifier: resetEmail });
       setResetStep("code");
       setResetMsg("Enviamos um código para " + resetEmail);
     } catch (err: unknown) {
@@ -73,12 +78,13 @@ export default function LoginPage() {
   }
 
   async function confirmReset() {
-    if (!isLoaded || !signIn || !setActive) return;
+    const si = getSignIn();
+    if (!si) { setError("Aguarde e tente novamente."); return; }
     setLoading(true); setError("");
     try {
-      const result = await signIn.attemptFirstFactor({ strategy: "reset_password_email_code", code: resetCode, password: resetPw });
+      const result = await si.attemptFirstFactor({ strategy: "reset_password_email_code", code: resetCode, password: resetPw });
       if (result.status === "complete") {
-        await setActive({ session: result.createdSessionId });
+        await clerk.setActive({ session: result.createdSessionId });
         router.replace("/dashboard");
       } else {
         setError("Não foi possível redefinir a senha. Tente novamente.");
@@ -90,13 +96,14 @@ export default function LoginPage() {
   }
 
   async function doLogin() {
-    if (!isLoaded || !signIn || !setActive) return;
+    const si = getSignIn();
+    if (!si) { setError("Aguarde um instante e tente novamente."); return; }
     setLoading(true); setError("");
     try {
-      const result = await signIn.create({ identifier: email, password });
+      const result = await si.create({ identifier: email, password });
 
       if (result.status === "complete") {
-        await setActive({ session: result.createdSessionId });
+        await clerk.setActive({ session: result.createdSessionId });
         router.replace("/dashboard");
         return;
       }
