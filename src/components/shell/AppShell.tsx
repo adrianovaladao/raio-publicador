@@ -15,12 +15,6 @@ import { useState, useEffect } from "react";
 
 const PLAN = { total: 5000, used: 3200 };
 
-const BRANDS = [
-  { id: "b1", name: "Franquia Sabor Brasil", segment: "Franquias",  color: "#C25E00", releases: 12 },
-  { id: "b2", name: "TechNova Sistemas",     segment: "Tecnologia", color: "#2A6FDB", releases: 7  },
-  { id: "b3", name: "Rede Bem Estar",        segment: "Saúde",      color: "#2F8A5B", releases: 4  },
-];
-
 const APP_PLANS = [
   { name: "Básico",       amt: "999",   credits: "500 créditos",   feats: ["Até 2 veículos AAA por release", "Centenas de veículos parceiros", "1 usuário"] },
   { name: "Avançado",     amt: "1.500", credits: "1.000 créditos", feats: ["Até 5 veículos AAA por release", "Relatórios de desempenho", "Até 3 usuários"], featured: true },
@@ -109,13 +103,16 @@ function PlansModal({ onClose }: { onClose: () => void }) {
 
 // ─── NewBrandModal ────────────────────────────────────────────────────────────
 
-function NewBrandModal({ onClose, onCreate }: { onClose: () => void; onCreate: (b: typeof BRANDS[0]) => void }) {
+interface Brand { id: string; name: string; segment: string | null; color: string | null }
+
+function NewBrandModal({ onClose, onCreate }: { onClose: () => void; onCreate: (b: Brand) => void }) {
   const [name, setName] = useState("");
   const [segment, setSegment] = useState("Franquias");
   const [site, setSite] = useState("");
   const [desc, setDesc] = useState("");
   const [contact, setContact] = useState("");
   const [color, setColor] = useState(BRAND_COLORS[0]);
+  const [saving, setSaving] = useState(false);
   const valid = name.trim().length > 1;
 
   useEffect(() => {
@@ -124,10 +121,21 @@ function NewBrandModal({ onClose, onCreate }: { onClose: () => void; onCreate: (
     return () => window.removeEventListener("keydown", fn);
   }, [onClose]);
 
-  function submit() {
+  async function submit() {
     if (!valid) return;
-    onCreate({ id: `b${Date.now()}`, name: name.trim(), segment, color, releases: 0 });
-    onClose();
+    setSaving(true);
+    try {
+      const res = await fetch("/api/brands", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: name.trim(), segment, color, site, description: desc, contact }),
+      });
+      const brand = await res.json();
+      onCreate(brand);
+      onClose();
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -190,8 +198,8 @@ function NewBrandModal({ onClose, onCreate }: { onClose: () => void; onCreate: (
         </div>
         <div className="m-foot">
           <button className="btn btn-quiet btn-sm" onClick={onClose}>Cancelar</button>
-          <button className="btn btn-primary btn-sm" disabled={!valid} onClick={submit}>
-            <Check size={15} /> Criar marca
+          <button className="btn btn-primary btn-sm" disabled={!valid || saving} onClick={submit}>
+            <Check size={15} /> {saving ? "Criando…" : "Criar marca"}
           </button>
         </div>
       </div>

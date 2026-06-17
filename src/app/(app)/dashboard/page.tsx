@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useUser } from "@clerk/nextjs";
+import Link from "next/link";
 import {
   TrendingUp,
   TrendingDown,
@@ -11,27 +12,48 @@ import {
   Zap,
   ChevronDown,
   Check,
+  Building2,
 } from "lucide-react";
 
-// ── BrandSwitcher local ──────────────────────────────────────────────────────
+// ── Types ────────────────────────────────────────────────────────────────────
 
-const BRANDS = [
-  { id: "b1", name: "Franquia Sabor Brasil", segment: "Franquias",  color: "#C25E00" },
-  { id: "b2", name: "TechNova Sistemas",     segment: "Tecnologia", color: "#2A6FDB" },
-  { id: "b3", name: "Rede Bem Estar",        segment: "Saúde",      color: "#2F8A5B" },
-];
+interface BrandWithCount {
+  id: string;
+  name: string;
+  segment: string | null;
+  color: string | null;
+  releases: number;
+}
+
+interface DashboardData {
+  stats: {
+    total: number;
+    published: number;
+    scheduled: number;
+    draft: number;
+  };
+  brands: BrandWithCount[];
+}
+
+// ── BrandSwitcher local ──────────────────────────────────────────────────────
 
 function getInitials(name: string) {
   return name.split(" ").filter(Boolean).slice(0, 2).map(w => w[0]).join("").toUpperCase();
 }
 
-function DashBrandSwitcher() {
+function DashBrandSwitcher({ brands }: { brands: BrandWithCount[] }) {
   const [open, setOpen] = useState(false);
-  const [active, setActive] = useState(BRANDS[0]);
+  const [activeIdx, setActiveIdx] = useState(0);
+
+  if (brands.length === 0) return null;
+
+  const active = brands[activeIdx] ?? brands[0];
+  const color = active.color ?? "#1A1A1A";
+
   return (
     <div className="tb-brandsel" style={{ position: "relative" }}>
       <button className="tbb-btn" onClick={() => setOpen(o => !o)}>
-        <span className="tbb-av" style={{ background: active.color }}>{getInitials(active.name)}</span>
+        <span className="tbb-av" style={{ background: color }}>{getInitials(active.name)}</span>
         <span className="tbb-meta">
           <span className="tbb-lbl">Marca ativa</span>
           <span className="tbb-nm">{active.name}</span>
@@ -43,15 +65,15 @@ function DashBrandSwitcher() {
           <div className="tbb-backdrop" onClick={() => setOpen(false)} />
           <div className="tbb-menu">
             <div className="tbb-menu-label">Trocar de marca</div>
-            {BRANDS.map(b => (
-              <button key={b.id} className={`tbb-opt${b.id === active.id ? " on" : ""}`}
-                onClick={() => { setActive(b); setOpen(false); }}>
-                <span className="tbb-av" style={{ background: b.color }}>{getInitials(b.name)}</span>
+            {brands.map((b, i) => (
+              <button key={b.id} className={`tbb-opt${i === activeIdx ? " on" : ""}`}
+                onClick={() => { setActiveIdx(i); setOpen(false); }}>
+                <span className="tbb-av" style={{ background: b.color ?? "#1A1A1A" }}>{getInitials(b.name)}</span>
                 <span className="tbb-opt-meta">
                   <span className="tbb-nm">{b.name}</span>
-                  <span className="tbb-sg">{b.segment}</span>
+                  <span className="tbb-sg">{b.segment ?? ""}</span>
                 </span>
-                {b.id === active.id && <Check size={15} />}
+                {i === activeIdx && <Check size={15} />}
               </button>
             ))}
           </div>
@@ -61,15 +83,7 @@ function DashBrandSwitcher() {
   );
 }
 
-// ── Dados mock ──────────────────────────────────────────────────────────────
-
-const KPIS = [
-  { id: "k1", icon: Send,      label: "Releases publicados", val: "42",    suffix: "",    delta: +18, period: "vs. mês anterior", accent: true },
-  { id: "k2", icon: Eye,       label: "Alcance estimado",    val: "64,2",  suffix: " mi", delta: +24, period: "vs. mês anterior" },
-  { id: "k3", icon: Newspaper, label: "Veículos ativos",     val: "318",   suffix: "",    delta: +9,  period: "de centenas na rede" },
-  { id: "k4", icon: Zap,       label: "Créditos restantes",  val: "1.800", suffix: "",    delta: -36, period: "de 5.000 do plano" },
-];
-
+// ── Dados mock (veículos — permanecem estáticos) ──────────────────────────────
 
 const TOP_VEHICLES = [
   { id: "v1",  name: "Capital Econômica",   meta: "18 releases", n: "14,2", color: "#1A1A1A" },
@@ -79,57 +93,25 @@ const TOP_VEHICLES = [
   { id: "v7",  name: "Gazeta do Investidor",meta: "9 releases",  n: "5,7",  color: "#0E7C86" },
 ];
 
-const RELEASES = [
-  { id: "r1", title: "Rede de franquias de alimentação anuncia expansão de 120 unidades em 2026", cat: "Franquias", author: "Liliane Pires",   status: "published", date: "2026-05-28", vehicles: 18, reach: 12400000 },
-  { id: "r2", title: "Fintech de crédito para PMEs capta R$ 45 milhões em rodada Série A",        cat: "Negócios",  author: "Analina Arouche", status: "scheduled", date: "2026-06-05", vehicles: 12, reach: 0 },
-  { id: "r3", title: "Varejista lança programa de logística reversa em 200 lojas",                 cat: "Varejo",    author: "Daiana Napoleão", status: "published", date: "2026-05-21", vehicles: 9,  reach: 6300000 },
-  { id: "r6", title: "Indústria de bebidas inaugura fábrica carbono neutro no interior de SP",     cat: "Negócios",  author: "Daiana Napoleão", status: "published", date: "2026-05-14", vehicles: 15, reach: 9800000 },
-  { id: "r9", title: "Grupo de shoppings anuncia R$ 1,2 bi em investimentos para 2026",            cat: "Economia",  author: "Daiana Napoleão", status: "scheduled", date: "2026-06-18", vehicles: 14, reach: 0 },
-];
-
 // ── Helpers ──────────────────────────────────────────────────────────────────
-
-function fmtDate(iso: string) {
-  const [y, m, d] = iso.split("-").map(Number);
-  const meses = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
-  return `${String(d).padStart(2,"0")} ${meses[m - 1]} ${y}`;
-}
-
-function fmtReach(n: number) {
-  if (!n) return "—";
-  if (n >= 1_000_000) return (n / 1_000_000).toFixed(n >= 10_000_000 ? 0 : 1).replace(".", ",") + " mi";
-  if (n >= 1_000) return Math.round(n / 1_000) + " mil";
-  return String(n);
-}
 
 function initials(name: string) {
   return name.split(" ").filter(Boolean).slice(0, 2).map(w => w[0]).join("").toUpperCase();
 }
 
-const STATUS_LABEL: Record<string, string> = {
-  published: "Publicado",
-  scheduled: "Agendado",
-  draft: "Rascunho",
-  review: "Em revisão",
-};
-
-// ── Sub-componentes ──────────────────────────────────────────────────────────
-
-function StatusBadge({ status }: { status: string }) {
-  return <span className={`badge-status ${status}`}>{STATUS_LABEL[status] ?? status}</span>;
-}
-
-function KpiCard({ k }: { k: typeof KPIS[number] }) {
-  const up = k.delta >= 0;
-  const Icon = k.icon;
+function KpiCard({ icon: Icon, label, val, suffix, delta, period, accent }: {
+  icon: React.ElementType; label: string; val: string; suffix?: string;
+  delta: number; period: string; accent?: boolean;
+}) {
+  const up = delta >= 0;
   return (
-    <div className={`card kpi${k.accent ? " accent" : ""}`}>
+    <div className={`card kpi${accent ? " accent" : ""}`}>
       <div className="ic"><Icon size={19} /></div>
-      <div className="lbl">{k.label}</div>
-      <div className="val">{k.val}{k.suffix && <small>{k.suffix}</small>}</div>
+      <div className="lbl">{label}</div>
+      <div className="val">{val}{suffix && <small>{suffix}</small>}</div>
       <div className={`delta ${up ? "up" : "down"}`}>
         {up ? <TrendingUp size={13} /> : <TrendingDown size={13} />}
-        {up ? "+" : ""}{k.delta}% <span className="muted">· {k.period}</span>
+        {up ? "+" : ""}{delta}% <span className="muted">· {period}</span>
       </div>
     </div>
   );
@@ -147,7 +129,6 @@ function PerformanceDonut() {
     acc += len;
     return seg;
   });
-  // top5pct reserved for future dynamic calculation
   return (
     <div className="card">
       <div className="card-head">
@@ -215,11 +196,47 @@ function TopVehicles() {
   );
 }
 
+// ── Empty state ───────────────────────────────────────────────────────────────
+
+function EmptyState() {
+  return (
+    <div className="card empty" style={{ marginTop: 32 }}>
+      <Building2 size={34} />
+      <div className="t">Nenhuma marca cadastrada ainda</div>
+      <div className="h">Cadastre sua primeira marca para começar a distribuir releases.</div>
+      <Link href="/configuracoes" className="btn btn-primary btn-sm" style={{ marginTop: 16 }}>
+        Cadastrar marca
+      </Link>
+    </div>
+  );
+}
+
 // ── Página ───────────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
   const { user } = useUser();
   const firstName = user?.firstName ?? "Usuário";
+
+  const [data, setData] = useState<DashboardData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/dashboard")
+      .then(r => r.json())
+      .then(setData)
+      .finally(() => setLoading(false));
+  }, []);
+
+  const stats = data?.stats;
+  const brands = data?.brands ?? [];
+  const hasBrands = brands.length > 0;
+
+  const KPIS = [
+    { id: "k1", icon: Send,      label: "Releases publicados", val: String(stats?.published ?? "—"), suffix: "",    delta: +18, period: "vs. mês anterior", accent: true },
+    { id: "k2", icon: Eye,       label: "Alcance estimado",    val: "—",                             suffix: "",    delta: +24, period: "vs. mês anterior" },
+    { id: "k3", icon: Newspaper, label: "Veículos ativos",     val: "—",                             suffix: "",    delta: +9,  period: "de centenas na rede" },
+    { id: "k4", icon: Zap,       label: "Créditos restantes",  val: "1.800",                         suffix: "",    delta: -36, period: "de 5.000 do plano" },
+  ];
 
   return (
     <div className="content scroll">
@@ -227,62 +244,68 @@ export default function DashboardPage() {
         {/* Cabeçalho */}
         <div className="page-head">
           <div>
-            <p className="eyebrow">Painel · Markable</p>
+            <p className="eyebrow">Painel · Raio Publicador</p>
             <h2>Olá, {firstName} 👋</h2>
             <p className="sub">
-              Os releases de <b style={{ color: "var(--ink)" }}>sua marca</b> alcançaram{" "}
-              <b style={{ color: "var(--ink)" }}>64,2 milhões</b> de pessoas neste mês — 24% acima do anterior.
+              {hasBrands
+                ? <>Você tem <b style={{ color: "var(--ink)" }}>{brands.length} marca{brands.length !== 1 ? "s" : ""}</b> e <b style={{ color: "var(--ink)" }}>{stats?.total ?? 0} release{(stats?.total ?? 0) !== 1 ? "s" : ""}</b> no total.</>
+                : "Bem-vindo! Cadastre sua primeira marca para começar."}
             </p>
           </div>
           <div className="actions">
-            <DashBrandSwitcher />
+            {hasBrands && <DashBrandSwitcher brands={brands} />}
           </div>
         </div>
 
+        {loading ? (
+          <div className="card empty"><div className="muted">Carregando…</div></div>
+        ) : !hasBrands ? (
+          <EmptyState />
+        ) : (
+          <>
+            {/* KPIs */}
+            <div className="kpi-grid">
+              {KPIS.map(k => <KpiCard key={k.id} {...k} />)}
+            </div>
 
-        {/* KPIs */}
-        <div className="kpi-grid">
-          {KPIS.map(k => <KpiCard k={k} key={k.id} />)}
-        </div>
+            {/* Gráfico + ranking */}
+            <div className="dash-2col">
+              <PerformanceDonut />
+              <TopVehicles />
+            </div>
 
-        {/* Gráfico + ranking */}
-        <div className="dash-2col">
-          <PerformanceDonut />
-          <TopVehicles />
-        </div>
-
-        {/* Atividade recente */}
-        <div className="card" style={{ marginBottom: 32 }}>
-          <div className="card-head">
-            <h3>Atividade <em>recente</em></h3>
-            <a href="/releases" className="link">Abrir biblioteca</a>
-          </div>
-          <table className="tbl">
-            <thead>
-              <tr>
-                <th style={{ width: "44%" }}>Release</th>
-                <th>Status</th>
-                <th>Data</th>
-                <th>Veículos</th>
-                <th style={{ textAlign: "right" }}>Alcance</th>
-              </tr>
-            </thead>
-            <tbody>
-              {RELEASES.map(r => (
-                <tr key={r.id}>
-                  <td className="title-cell">
-                    {r.title.length > 64 ? r.title.slice(0, 64) + "…" : r.title}
-                    <span className="ph">{r.cat} · {r.author}</span>
-                  </td>
-                  <td><StatusBadge status={r.status} /></td>
-                  <td className="muted num">{fmtDate(r.date)}</td>
-                  <td className="num">{r.vehicles || "—"}</td>
-                  <td className="num" style={{ textAlign: "right", fontWeight: 600 }}>{fmtReach(r.reach)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+            {/* Atividade recente — marcas */}
+            <div className="card" style={{ marginBottom: 32 }}>
+              <div className="card-head">
+                <h3>Suas <em>marcas</em></h3>
+                <a href="/configuracoes" className="link">Gerenciar</a>
+              </div>
+              <table className="tbl">
+                <thead>
+                  <tr>
+                    <th style={{ width: "44%" }}>Marca</th>
+                    <th>Segmento</th>
+                    <th style={{ textAlign: "right" }}>Releases</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {brands.map(b => (
+                    <tr key={b.id}>
+                      <td className="title-cell" style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <div style={{ width: 28, height: 28, borderRadius: 8, background: b.color ?? "#1A1A1A", display: "grid", placeItems: "center", fontFamily: "var(--mono)", fontWeight: 700, fontSize: 11, color: "#fff", flex: "none" }}>
+                          {getInitials(b.name)}
+                        </div>
+                        {b.name}
+                      </td>
+                      <td className="muted">{b.segment ?? "—"}</td>
+                      <td className="num" style={{ textAlign: "right", fontWeight: 600 }}>{b.releases}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

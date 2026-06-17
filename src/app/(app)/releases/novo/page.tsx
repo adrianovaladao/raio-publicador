@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft, ArrowRight, Check, ChevronDown,
@@ -37,11 +37,6 @@ const VEH_CATS = ["Todos","Economia","Negócios","Franquias","Varejo","Tecnologi
 const VEH_UFS  = ["Todas","SP","RJ","MG","RS","PE","DF","GO","AM"];
 const PLAN = { total: 5000, used: 3200 };
 
-const BRANDS = [
-  { id: "b1", name: "Franquia Sabor Brasil", segment: "Franquias", color: "#C25E00", releases: 12, tone: true },
-  { id: "b2", name: "TechNova Sistemas",     segment: "Tecnologia", color: "#2A6FDB", releases: 7,  tone: true },
-  { id: "b3", name: "Rede Bem Estar",        segment: "Saúde",      color: "#2F8A5B", releases: 4,  tone: false },
-];
 
 const BRAND_COLORS = ["#C25E00","#2A6FDB","#2F8A5B","#6D3BD9","#0E7C86","#B0322E","#8A6500","#1A1A1A"];
 const BRAND_SEGMENTS = ["Franquias","Tecnologia","Saúde","Economia","Varejo","Negócios","Educação","Serviços","Indústria","Outro"];
@@ -63,7 +58,7 @@ const STEPS = ["Marca", "Conteúdo", "Veículos & créditos", "Revisão"];
 
 // ── Passo 0: Marca ────────────────────────────────────────────────────────────
 
-type Brand = typeof BRANDS[number];
+type Brand = { id: string; name: string; segment: string | null; color: string | null; releases?: number; tone?: boolean };
 
 function NewBrandModal({ onClose, onCreate }: { onClose: () => void; onCreate: (b: Brand) => void }) {
   const [name, setName] = useState("");
@@ -111,8 +106,13 @@ function NewBrandModal({ onClose, onCreate }: { onClose: () => void; onCreate: (
           <button
             className="btn btn-dark"
             disabled={!name.trim()}
-            onClick={() => {
-              const nb: Brand = { id: `b${Date.now()}`, name: name.trim(), segment, color, releases: 0, tone: false };
+            onClick={async () => {
+              const res = await fetch("/api/brands", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name: name.trim(), segment, color }),
+              });
+              const nb: Brand = await res.json();
               onCreate(nb);
             }}
           >Cadastrar marca</button>
@@ -178,7 +178,7 @@ function StepBrand({ selected, onSelect, brands, onAddBrand }: {
               style={{ cursor: "pointer", outline: selected?.id === b.id ? "2px solid var(--coral)" : "none" }}
               onClick={() => onSelect(b)}
             >
-              <div className="thumb" style={{ background: b.color, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div className="thumb" style={{ background: b.color ?? "#1A1A1A", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <span style={{ fontFamily: "var(--mono)", fontWeight: 700, fontSize: 32, color: "rgba(255,255,255,0.9)", letterSpacing: "-0.02em" }}>{initials(b.name)}</span>
                 {selected?.id === b.id && (
                   <span style={{ position: "absolute", top: 10, right: 10, background: "var(--coral)", borderRadius: 99, width: 24, height: 24, display: "grid", placeItems: "center" }}>
@@ -233,7 +233,7 @@ function StepBrand({ selected, onSelect, brands, onAddBrand }: {
                   onClick={() => onSelect(b)}
                 >
                   <td className="title-cell" style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <div style={{ width: 28, height: 28, borderRadius: 8, background: b.color, display: "grid", placeItems: "center", fontFamily: "var(--mono)", fontWeight: 700, fontSize: 11, color: "#fff", flex: "none" }}>{initials(b.name)}</div>
+                    <div style={{ width: 28, height: 28, borderRadius: 8, background: b.color ?? "#1A1A1A", display: "grid", placeItems: "center", fontFamily: "var(--mono)", fontWeight: 700, fontSize: 11, color: "#fff", flex: "none" }}>{initials(b.name)}</div>
                     {b.name}
                     {selected?.id === b.id && <Check size={14} color="var(--coral)" style={{ marginLeft: "auto" }} />}
                   </td>
@@ -508,7 +508,7 @@ interface When { mode: "now" | "schedule"; date: string; time: string }
 
 const BOILERPLATE = (brand: Brand | null) =>
   brand
-    ? `Sobre ${brand.name}: referência no segmento de ${brand.segment.toLowerCase()}, com atuação nacional e foco em inovação e proximidade com o cliente.`
+    ? `Sobre ${brand.name}: referência no segmento de ${(brand.segment ?? "").toLowerCase()}, com atuação nacional e foco em inovação e proximidade com o cliente.`
     : "";
 
 async function downloadDocx(content: Content, selVehicles: typeof VEHICLES, brand: Brand | null) {
@@ -645,7 +645,7 @@ function StepReview({ content, selected, when, setWhen, brand }: {
         <div className="card-pad">
           {brand && (
             <div className="review-brand">
-              <span className="bc-av" style={{ background: brand.color }}>{initials(brand.name)}</span>
+              <span className="bc-av" style={{ background: brand.color ?? "#1A1A1A" }}>{initials(brand.name)}</span>
               <div className="bc-meta">
                 <span className="bc-lbl">Marca</span>
                 <span className="bc-nm">{brand.name}</span>
@@ -724,10 +724,17 @@ export default function NovoReleasePage() {
   const [step, setStep] = useState(0);
   const [done, setDone] = useState(false);
   const [brand, setBrand] = useState<Brand | null>(null);
-  const [brands, setBrands] = useState<Brand[]>(BRANDS);
+  const [brands, setBrands] = useState<Brand[]>([]);
   const [content, setContent] = useState<Content>({ title: "", subtitle: "", body: "", cat: "Negócios", author: "Samara Perez" });
   const [selected, setSelected] = useState<string[]>([]);
   const [when, setWhen] = useState<When>({ mode: "schedule", date: "2026-06-20", time: "09:00" });
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/brands")
+      .then(r => r.json())
+      .then((data: Brand[]) => setBrands(data));
+  }, []);
 
   const last = STEPS.length - 1;
 
@@ -830,10 +837,38 @@ export default function NovoReleasePage() {
                 Continuar <ArrowRight size={16} />
               </button>
             ) : (
-              <button className="btn btn-primary" onClick={() => setDone(true)}>
-                {when.mode === "now"
-                  ? <><Rocket size={16} /> Publicar agora</>
-                  : <><Calendar size={16} /> Agendar release</>}
+              <button className="btn btn-primary" disabled={submitting} onClick={async () => {
+                if (!brand) return;
+                setSubmitting(true);
+                try {
+                  const scheduledAt = when.mode === "schedule" && when.date
+                    ? new Date(`${when.date}T${when.time || "09:00"}:00`).toISOString()
+                    : null;
+                  await fetch("/api/releases", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      title: content.title,
+                      body: content.body,
+                      summary: content.subtitle,
+                      status: when.mode === "now" ? "PUBLISHED" : "SCHEDULED",
+                      scheduledAt,
+                      brandId: brand.id,
+                      creditsUsed: 0,
+                    }),
+                  });
+                  setDone(true);
+                } catch {
+                  alert("Erro ao salvar release. Tente novamente.");
+                } finally {
+                  setSubmitting(false);
+                }
+              }}>
+                {submitting
+                  ? "Salvando…"
+                  : when.mode === "now"
+                    ? <><Rocket size={16} /> Publicar agora</>
+                    : <><Calendar size={16} /> Agendar release</>}
               </button>
             )}
           </div>

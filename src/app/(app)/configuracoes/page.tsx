@@ -10,15 +10,22 @@ import {
   Tag, Ban, Trash2, Send, Sparkles, Upload, Zap,
 } from "lucide-react";
 
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface Brand {
+  id: string;
+  name: string;
+  segment: string | null;
+  color: string | null;
+  cnpj: string | null;
+  site: string | null;
+  boilerplate: string | null;
+  toneConfig: unknown;
+}
+
 // ─── Mock data ────────────────────────────────────────────────────────────────
 
 const PLAN = { total: 5000, used: 3200 };
-
-const BRANDS = [
-  { id: "b1", name: "Franquia Sabor Brasil", segment: "Franquias",  color: "#C25E00", releases: 12, tone: true },
-  { id: "b2", name: "TechNova Sistemas",     segment: "Tecnologia", color: "#2A6FDB", releases: 7,  tone: true },
-  { id: "b3", name: "Rede Bem Estar",        segment: "Saúde",      color: "#2F8A5B", releases: 4,  tone: false },
-];
 
 const ROLES: Record<string, { label: string; desc: string; color: string; bg: string }> = {
   admin:    { label: "Administração", desc: "Acesso total: edita releases, gerencia pessoas, marcas e cobrança.", color: "#8A6500", bg: "#FCEFCB" },
@@ -65,7 +72,7 @@ function getInitials(name: string) {
 
 function brandNames(brands: string[] | "all") {
   if (brands === "all") return "Todas as marcas";
-  return brands.map(id => BRANDS.find(b => b.id === id)?.name).filter(Boolean).join(", ");
+  return brands.join(", ");
 }
 
 // ─── Shared ───────────────────────────────────────────────────────────────────
@@ -347,7 +354,7 @@ function InviteModal({ onClose, onToast }: { onClose: () => void; onToast: (m: s
           <div className="field" style={{ marginBottom: 4 }}>
             <label>Marcas com acesso</label>
             <div className="select-wrap">
-              <select className="input">{role === "reviewer" ? BRANDS.map(b => <option key={b.id}>{b.name}</option>) : <><option>Todas as marcas</option>{BRANDS.map(b => <option key={b.id}>{b.name}</option>)}</>}</select>
+              <select className="input"><option>Todas as marcas</option></select>
               <ChevronDown size={16} />
             </div>
             {role === "reviewer" && <p className="muted" style={{ fontSize: 12, margin: "7px 0 0" }}>Revisão acessa apenas a marca atribuída.</p>}
@@ -453,92 +460,269 @@ function EquipePanel({ onToast }: { onToast: (m: string) => void }) {
 
 // ─── Marcas ───────────────────────────────────────────────────────────────────
 
+const BRAND_COLORS = ["#C25E00","#2A6FDB","#2F8A5B","#6D3BD9","#0E7C86","#B0322E","#8A6500","#1A1A1A"];
+const BRAND_SEGMENTS = ["Franquias","Tecnologia","Saúde","Economia","Varejo","Negócios","Educação","Serviços","Indústria","Outro"];
+
+function NewBrandModal({ onClose, onCreate }: { onClose: () => void; onCreate: (b: Brand) => void }) {
+  const [name, setName] = useState("");
+  const [segment, setSegment] = useState(BRAND_SEGMENTS[0]);
+  const [color, setColor] = useState(BRAND_COLORS[0]);
+  const [saving, setSaving] = useState(false);
+
+  async function submit() {
+    if (!name.trim()) return;
+    setSaving(true);
+    try {
+      const res = await fetch("/api/brands", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: name.trim(), segment, color }),
+      });
+      const brand = await res.json();
+      onCreate(brand);
+      onClose();
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="overlay" onClick={onClose}>
+      <div className="modal" onClick={e => e.stopPropagation()}>
+        <div className="m-head"><h3>Cadastrar nova <em>marca</em></h3></div>
+        <div className="m-body">
+          <div className="nb-preview">
+            <span className="nb-av" style={{ background: color }}>
+              {name.trim() ? getInitials(name) : "?"}
+            </span>
+            <div>
+              <div className="nb-pv-nm">{name.trim() || "Nome da marca"}</div>
+              <div className="nb-pv-sg">{segment}</div>
+            </div>
+          </div>
+          <div className="field">
+            <label>Nome da marca / cliente</label>
+            <input className="input" value={name} onChange={e => setName(e.target.value)}
+              placeholder="Ex.: Franquia Sabor Brasil" autoFocus />
+          </div>
+          <div className="field">
+            <label>Segmento / setor</label>
+            <div className="select-wrap">
+              <select className="input" value={segment} onChange={e => setSegment(e.target.value)}>
+                {BRAND_SEGMENTS.map(s => <option key={s}>{s}</option>)}
+              </select>
+              <ChevronDown size={16} />
+            </div>
+          </div>
+          <div className="field" style={{ marginBottom: 4 }}>
+            <label>Cor de identificação</label>
+            <div className="nb-colors">
+              {BRAND_COLORS.map(c => (
+                <button key={c} className={`nb-color${color === c ? " on" : ""}`}
+                  style={{ background: c }} onClick={() => setColor(c)} type="button">
+                  {color === c && <Check size={14} />}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+        <div className="m-foot">
+          <button className="btn btn-quiet btn-sm" onClick={onClose}>Cancelar</button>
+          <button className="btn btn-primary btn-sm" disabled={!name.trim() || saving} onClick={submit}>
+            <Check size={15} /> {saving ? "Criando…" : "Criar marca"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function MarcasPanel({ onToast }: { onToast: (m: string) => void }) {
-  const [brandId, setBrandId] = useState("b1");
-  const brand = BRANDS.find(b => b.id === brandId) || BRANDS[0];
+  const [brands, setBrands] = useState<Brand[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [brandId, setBrandId] = useState<string>("");
+  const [showNew, setShowNew] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  // form state
+  const [name, setName] = useState("");
+  const [cnpj, setCnpj] = useState("");
+  const [site, setSite] = useState("");
+  const [segment, setSegment] = useState("");
+  const [boilerplate, setBoilerplate] = useState("");
+
+  useEffect(() => {
+    fetch("/api/brands")
+      .then(r => r.json())
+      .then((data: Brand[]) => {
+        setBrands(data);
+        if (data.length > 0) setBrandId(data[0].id);
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  const brand = brands.find(b => b.id === brandId) ?? null;
+
+  useEffect(() => {
+    if (!brand) return;
+    setName(brand.name);
+    setCnpj(brand.cnpj ?? "");
+    setSite(brand.site ?? "");
+    setSegment(brand.segment ?? "");
+    setBoilerplate(brand.boilerplate ?? "");
+  }, [brand]);
+
+  async function handleSave() {
+    if (!brandId) return;
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/brands/${brandId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, cnpj, site, segment, boilerplate }),
+      });
+      const updated = await res.json();
+      setBrands(prev => prev.map(b => b.id === brandId ? { ...b, ...updated } : b));
+      onToast("Marca atualizada");
+    } catch {
+      onToast("Erro ao salvar marca");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!brandId || !confirm(`Excluir a marca "${brand?.name}"? Esta ação não pode ser desfeita.`)) return;
+    setDeleting(true);
+    try {
+      await fetch(`/api/brands/${brandId}`, { method: "DELETE" });
+      const remaining = brands.filter(b => b.id !== brandId);
+      setBrands(remaining);
+      setBrandId(remaining[0]?.id ?? "");
+      onToast("Marca excluída");
+    } catch {
+      onToast("Erro ao excluir marca");
+    } finally {
+      setDeleting(false);
+    }
+  }
+
+  if (loading) return <div className="set-panel"><div className="card card-pad muted">Carregando…</div></div>;
+
   return (
     <div className="set-panel">
       <PanelHead title="Configurações da <em>marca</em>" desc="Dados que abastecem os releases desta marca."
         action={
           <div className="row" style={{ gap: 10 }}>
-            <div className="select-wrap" style={{ width: 200 }}>
-              <select className="input" value={brandId} onChange={e => setBrandId(e.target.value)}>
-                {BRANDS.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-              </select>
-              <ChevronDown size={16} />
-            </div>
-            <button className="btn btn-primary"><Plus size={16} /> Nova marca</button>
+            {brands.length > 0 && (
+              <div className="select-wrap" style={{ width: 200 }}>
+                <select className="input" value={brandId} onChange={e => setBrandId(e.target.value)}>
+                  {brands.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                </select>
+                <ChevronDown size={16} />
+              </div>
+            )}
+            <button className="btn btn-primary" onClick={() => setShowNew(true)}><Plus size={16} /> Nova marca</button>
           </div>
         } />
 
-      <div className="card">
-        <div className="card-head"><h3>Identidade</h3></div>
-        <div className="card-pad">
-          <div className="profile-top">
-            <div style={{ width: 64, height: 64, borderRadius: 12, background: brand.color, display: "grid", placeItems: "center", color: "#fff", fontFamily: "var(--mono)", fontWeight: 700, fontSize: 22, flexShrink: 0 }}>
-              {getInitials(brand.name)}
-            </div>
-            <div>
-              <div className="row" style={{ gap: 10 }}>
-                <button className="btn btn-ghost btn-sm"><Upload size={15} /> Enviar logo</button>
-                <button className="btn btn-quiet btn-sm">Remover</button>
-              </div>
-              <p className="muted" style={{ fontSize: 12.5, margin: "8px 0 0" }}>PNG ou SVG com fundo transparente, mín. 256×256.</p>
-            </div>
-          </div>
+      {brands.length === 0 ? (
+        <div className="card card-pad">
+          <p className="muted" style={{ fontSize: 14 }}>Nenhuma marca cadastrada. Crie sua primeira marca para começar.</p>
         </div>
-      </div>
-
-      <div className="card" key={`inst-${brandId}`} style={{ marginTop: 16 }}>
-        <div className="card-head"><h3>Dados institucionais</h3></div>
-        <div className="card-pad">
-          <div className="set-grid2">
-            <div className="field"><label>Nome da marca</label><input className="input" defaultValue={brand.name} /></div>
-            <div className="field"><label>CNPJ</label><input className="input" defaultValue="12.345.678/0001-90" /></div>
-            <div className="field"><label>Site</label><input className="input" defaultValue={`www.${brand.name.toLowerCase().replace(/[^a-z]/g,"")}.com.br`} /></div>
-            <div className="field">
-              <label>Setor</label>
-              <div className="select-wrap">
-                <select className="input" defaultValue={brand.segment}><option>{brand.segment}</option><option>Economia</option><option>Varejo</option></select>
-                <ChevronDown size={16} />
+      ) : brand ? (
+        <>
+          <div className="card">
+            <div className="card-head"><h3>Identidade</h3></div>
+            <div className="card-pad">
+              <div className="profile-top">
+                <div style={{ width: 64, height: 64, borderRadius: 12, background: brand.color ?? "#1A1A1A", display: "grid", placeItems: "center", color: "#fff", fontFamily: "var(--mono)", fontWeight: 700, fontSize: 22, flexShrink: 0 }}>
+                  {getInitials(brand.name)}
+                </div>
+                <div>
+                  <div className="row" style={{ gap: 10 }}>
+                    <button className="btn btn-ghost btn-sm"><Upload size={15} /> Enviar logo</button>
+                    <button className="btn btn-quiet btn-sm">Remover</button>
+                  </div>
+                  <p className="muted" style={{ fontSize: 12.5, margin: "8px 0 0" }}>PNG ou SVG com fundo transparente, mín. 256×256.</p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
 
-      <div className="card" key={`boiler-${brandId}`} style={{ marginTop: 16 }}>
-        <div className="card-head"><h3>Boilerplate <span className="muted" style={{ fontWeight: 400, fontSize: 13 }}>&middot; &ldquo;sobre a empresa&rdquo;</span></h3></div>
-        <div className="card-pad">
-          <div className="field" style={{ margin: 0 }}>
-            <label>Texto padrão incluído ao final dos releases</label>
-            <textarea className="input" rows={4} defaultValue={`A ${brand.name} é referência no segmento de ${brand.segment.toLowerCase()}, com atuação nacional e foco em inovação e proximidade com o cliente.`} />
-            <p className="muted" style={{ fontSize: 12.5, margin: "8px 0 0" }}>Aparece automaticamente como último parágrafo de cada release desta marca.</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="card" style={{ marginTop: 16 }}>
-        <div className="card-pad set-inline-row" style={{ padding: 22 }}>
-          <div className="row" style={{ gap: 13 }}>
-            <div style={{ width: 40, height: 40, borderRadius: 10, background: "var(--amber-soft)", display: "grid", placeItems: "center", flexShrink: 0 }}>
-              <Sparkles size={19} style={{ color: "var(--coral-ink)" }} />
-            </div>
-            <div>
-              <div className="sir-title">Tom de voz{" "}
-                <span className="role-badge" style={{ color: brand.tone ? "var(--green)" : "var(--stone)", background: brand.tone ? "var(--green-soft)" : "var(--cream)" }}>{brand.tone ? "Configurado" : "Pendente"}</span>
+          <div className="card" key={`inst-${brandId}`} style={{ marginTop: 16 }}>
+            <div className="card-head"><h3>Dados institucionais</h3></div>
+            <div className="card-pad">
+              <div className="set-grid2">
+                <div className="field"><label>Nome da marca</label><input className="input" value={name} onChange={e => setName(e.target.value)} /></div>
+                <div className="field"><label>CNPJ</label><input className="input" value={cnpj} onChange={e => setCnpj(e.target.value)} placeholder="12.345.678/0001-90" /></div>
+                <div className="field"><label>Site</label><input className="input" value={site} onChange={e => setSite(e.target.value)} placeholder="www.exemplo.com.br" /></div>
+                <div className="field">
+                  <label>Setor</label>
+                  <div className="select-wrap">
+                    <select className="input" value={segment} onChange={e => setSegment(e.target.value)}>
+                      {BRAND_SEGMENTS.map(s => <option key={s}>{s}</option>)}
+                    </select>
+                    <ChevronDown size={16} />
+                  </div>
+                </div>
               </div>
-              <div className="sir-sub">Atributos, eixos e vocabulário que guiam a escrita da marca.</div>
             </div>
           </div>
-          <button className="btn btn-ghost btn-sm">{brand.tone ? "Editar tom de voz" : "Configurar"} <ArrowRight size={15} /></button>
-        </div>
-      </div>
 
-      <div className="set-foot">
-        <button className="btn btn-quiet" style={{ color: "var(--red)" }}>Excluir marca</button>
-        <button className="btn btn-primary" onClick={() => onToast("Marca atualizada")}>Salvar alterações</button>
-      </div>
+          <div className="card" key={`boiler-${brandId}`} style={{ marginTop: 16 }}>
+            <div className="card-head"><h3>Boilerplate <span className="muted" style={{ fontWeight: 400, fontSize: 13 }}>&middot; &ldquo;sobre a empresa&rdquo;</span></h3></div>
+            <div className="card-pad">
+              <div className="field" style={{ margin: 0 }}>
+                <label>Texto padrão incluído ao final dos releases</label>
+                <textarea className="input" rows={4} value={boilerplate} onChange={e => setBoilerplate(e.target.value)}
+                  placeholder={`A ${brand.name} é referência no segmento de ${(brand.segment ?? "").toLowerCase()}, com atuação nacional.`} />
+                <p className="muted" style={{ fontSize: 12.5, margin: "8px 0 0" }}>Aparece automaticamente como último parágrafo de cada release desta marca.</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="card" style={{ marginTop: 16 }}>
+            <div className="card-pad set-inline-row" style={{ padding: 22 }}>
+              <div className="row" style={{ gap: 13 }}>
+                <div style={{ width: 40, height: 40, borderRadius: 10, background: "var(--amber-soft)", display: "grid", placeItems: "center", flexShrink: 0 }}>
+                  <Sparkles size={19} style={{ color: "var(--coral-ink)" }} />
+                </div>
+                <div>
+                  <div className="sir-title">Tom de voz{" "}
+                    <span className="role-badge" style={{ color: brand.toneConfig ? "var(--green)" : "var(--stone)", background: brand.toneConfig ? "var(--green-soft)" : "var(--cream)" }}>
+                      {brand.toneConfig ? "Configurado" : "Pendente"}
+                    </span>
+                  </div>
+                  <div className="sir-sub">Atributos, eixos e vocabulário que guiam a escrita da marca.</div>
+                </div>
+              </div>
+              <button className="btn btn-ghost btn-sm">{brand.toneConfig ? "Editar tom de voz" : "Configurar"} <ArrowRight size={15} /></button>
+            </div>
+          </div>
+
+          <div className="set-foot">
+            <button className="btn btn-quiet" style={{ color: "var(--red)" }} onClick={handleDelete} disabled={deleting}>
+              {deleting ? "Excluindo…" : "Excluir marca"}
+            </button>
+            <button className="btn btn-primary" onClick={handleSave} disabled={saving}>
+              {saving ? "Salvando…" : "Salvar alterações"}
+            </button>
+          </div>
+        </>
+      ) : null}
+
+      {showNew && (
+        <NewBrandModal
+          onClose={() => setShowNew(false)}
+          onCreate={b => {
+            setBrands(prev => [...prev, b]);
+            setBrandId(b.id);
+            onToast(`Marca "${b.name}" criada`);
+          }}
+        />
+      )}
     </div>
   );
 }
