@@ -108,12 +108,28 @@ export default function LoginPage() {
         return;
       }
 
-      if (result.status === "needs_second_factor" || result.status === "needs_client_trust") {
+      if (result.status === "needs_second_factor") {
         setTotpStep(true);
         return;
       }
 
-      setError("Não foi possível completar o login. Status: " + result.status);
+      if (result.status === "needs_client_trust") {
+        await clerk.client?.fetch();
+        const session =
+          result.createdSessionId ??
+          clerk.client?.lastActiveSession?.id ??
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (clerk.client as any)?.activeSessions?.[0]?.id;
+        if (session) {
+          await clerk.setActive({ session });
+          router.replace("/dashboard");
+          return;
+        }
+        setError("Verificação de dispositivo necessária. Desative o Smart Session Management no Clerk Dashboard.");
+        return;
+      }
+
+      setError("Status inesperado: " + result.status);
     } catch (err: unknown) {
       const e = err as { errors?: { longMessage?: string; message?: string }[] };
       setError(translateClerkError(e?.errors?.[0]?.longMessage || e?.errors?.[0]?.message || "") || "E-mail ou senha incorretos.");
