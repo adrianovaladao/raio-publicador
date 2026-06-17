@@ -1,0 +1,106 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Marca / cliente ─────────────────────────────────────────────────────────
+
+model Brand {
+  id          String   @id @default(cuid())
+  name        String
+  segment     String   @default("Outro")
+  color       String   @default("#1A1A1A")
+  cnpj        String?
+  site        String?
+  contact     String?
+  description String?
+  boilerplate String?
+  logoUrl     String?
+  toneConfig  Json?
+  ownerId     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  releases    Release[]
+  members     BrandMember[]
+}
+
+// ─── Release ─────────────────────────────────────────────────────────────────
+
+model Release {
+  id          String        @id @default(cuid())
+  title       String
+  body        String        @db.Text
+  summary     String?
+  status      ReleaseStatus @default(DRAFT)
+  scheduledAt DateTime?
+  publishedAt DateTime?
+  creditsUsed Int           @default(0)
+  brandId     String
+  authorId    String
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  brand       Brand         @relation(fields: [brandId], references: [id], onDelete: Cascade)
+}
+
+enum ReleaseStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHED
+  CANCELLED
+}
+
+// ─── Equipe ──────────────────────────────────────────────────────────────────
+
+model TeamMember {
+  id        String       @id @default(cuid())
+  clerkId   String       @unique
+  email     String
+  name      String
+  role      TeamRole     @default(EDITOR)
+  status    MemberStatus @default(ACTIVE)
+  ownerId   String
+  createdAt DateTime     @default(now())
+
+  brands    BrandMember[]
+}
+
+model BrandMember {
+  brandId      String
+  teamMemberId String
+
+  brand        Brand      @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  member       TeamMember @relation(fields: [teamMemberId], references: [id], onDelete: Cascade)
+
+  @@id([brandId, teamMemberId])
+}
+
+enum TeamRole {
+  ADMIN
+  EDITOR
+  REVIEWER
+}
+
+enum MemberStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+// ─── Convite ─────────────────────────────────────────────────────────────────
+
+model Invite {
+  id        String   @id @default(cuid())
+  email     String
+  role      TeamRole @default(EDITOR)
+  brandIds  String[]
+  token     String   @unique @default(cuid())
+  ownerId   String
+  sentAt    DateTime @default(now())
+  expiresAt DateTime
+  accepted  Boolean  @default(false)
+}
