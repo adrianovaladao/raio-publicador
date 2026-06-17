@@ -114,12 +114,13 @@ export default function LoginPage() {
       }
 
       if (result.status === "needs_client_trust") {
-        await clerk.client?.fetch();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const c = clerk.client as any;
+        if (c?.fetch) await c.fetch();
         const session =
           result.createdSessionId ??
-          clerk.client?.lastActiveSession?.id ??
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (clerk.client as any)?.activeSessions?.[0]?.id;
+          clerk.client?.lastActiveSessionId ??
+          c?.activeSessions?.[0]?.id;
         if (session) {
           await clerk.setActive({ session });
           router.replace("/dashboard");
