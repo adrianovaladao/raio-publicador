@@ -101,11 +101,19 @@ export default function LoginPage() {
           window.location.href = "/dashboard";
           return;
         }
-        setError("Erro no primeiro fator. Status: " + attempt.status);
-        return;
       }
 
-      setError("Status inesperado: " + result.status);
+      if (result.status === "needs_client_trust") {
+        await clerk.client.fetch();
+        const session = clerk.client.activeSessions?.[0] ?? clerk.session;
+        if (session?.id) {
+          await clerk.setActive({ session: session.id });
+          window.location.href = "/dashboard";
+          return;
+        }
+      }
+
+      setError("Não foi possível completar o login. Tente novamente.");
     } catch (err: unknown) {
       const e = err as { errors?: { longMessage?: string; message?: string }[] };
       setError(translateClerkError(e?.errors?.[0]?.longMessage || e?.errors?.[0]?.message || "") || "E-mail ou senha incorretos.");
