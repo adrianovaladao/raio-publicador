@@ -108,12 +108,12 @@ export default function LoginPage() {
         return;
       }
 
-      if (result.status === "needs_second_factor") {
+      if (result.status === "needs_second_factor" || result.status === "needs_client_trust") {
         setTotpStep(true);
         return;
       }
 
-      setError("Não foi possível completar o login. Tente novamente.");
+      setError("Não foi possível completar o login. Status: " + result.status);
     } catch (err: unknown) {
       const e = err as { errors?: { longMessage?: string; message?: string }[] };
       setError(translateClerkError(e?.errors?.[0]?.longMessage || e?.errors?.[0]?.message || "") || "E-mail ou senha incorretos.");
