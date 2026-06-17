@@ -101,9 +101,11 @@ export default function LoginPage() {
           window.location.href = "/dashboard";
           return;
         }
+        setError("Erro no primeiro fator. Status: " + attempt.status);
+        return;
       }
 
-      setError("Não foi possível completar o login. Tente novamente.");
+      setError("Status inesperado: " + result.status);
     } catch (err: unknown) {
       const e = err as { errors?: { longMessage?: string; message?: string }[] };
       setError(translateClerkError(e?.errors?.[0]?.longMessage || e?.errors?.[0]?.message || "") || "E-mail ou senha incorretos.");
