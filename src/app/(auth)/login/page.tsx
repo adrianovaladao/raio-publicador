@@ -280,7 +280,7 @@ export default function LoginPage() {
 
                 {error && <p style={{ color: "var(--red)", fontSize: 13, marginBottom: 14 }}>{error}</p>}
 
-                <button className="btn btn-primary btn-block btn-lg" type="submit" disabled={loading || !isLoaded}>
+                <button className="btn btn-primary btn-block btn-lg" type="submit" disabled={loading}>
                   {loading ? "Entrando…" : <><span>Entrar</span><ArrowRight size={17} /></>}
                 </button>
               </form>
