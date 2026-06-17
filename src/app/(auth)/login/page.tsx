@@ -40,12 +40,35 @@ export default function LoginPage() {
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState("");
 
+  // ── 2FA ─────────────────────────────────────────────────────────────────────
+  const [totpStep, setTotpStep] = useState(false);
+  const [totpCode, setTotpCode] = useState("");
+
   // ── Reset de senha ───────────────────────────────────────────────────────
   const [resetStep, setResetStep] = useState<"none" | "email" | "code">("none");
   const [resetEmail, setResetEmail] = useState("");
   const [resetCode, setResetCode]   = useState("");
   const [resetPw, setResetPw]       = useState("");
   const [resetMsg, setResetMsg]     = useState("");
+
+  async function doTotp() {
+    setLoading(true); setError("");
+    try {
+      const clerk   = getClerk();
+      const clerkSi = getClerkSignIn();
+      if (!clerkSi) { setError("Aguarde e tente novamente."); return; }
+      const result = await clerkSi.attemptSecondFactor({ strategy: "totp", code: totpCode });
+      if (result.status === "complete") {
+        await clerk.setActive({ session: result.createdSessionId });
+        window.location.href = "/dashboard";
+        return;
+      }
+      setError("Código inválido. Tente novamente.");
+    } catch (err: unknown) {
+      const e = err as { errors?: { longMessage?: string; message?: string }[] };
+      setError(translateClerkError(e?.errors?.[0]?.longMessage || e?.errors?.[0]?.message || "") || "Código inválido.");
+    } finally { setLoading(false); }
+  }
 
   async function sendResetEmail() {
     setLoading(true); setError("");
@@ -101,6 +124,15 @@ export default function LoginPage() {
           window.location.href = "/dashboard";
           return;
         }
+        if (attempt.status === "needs_second_factor") {
+          setTotpStep(true);
+          return;
+        }
+      }
+
+      if (result.status === "needs_second_factor") {
+        setTotpStep(true);
+        return;
       }
 
       if (result.status === "needs_client_trust") {
@@ -161,8 +193,34 @@ export default function LoginPage() {
       {/* ── Painel direito ── */}
       <div className="auth-main">
         <div className="auth-card">
+          {/* ── 2FA ── */}
+          {totpStep && (
+            <>
+              <h1 style={{ marginTop: 28 }}>Verificação em <em>duas etapas</em>.</h1>
+              <p className="lead">Digite o código de 6 dígitos do seu app autenticador.</p>
+              <form onSubmit={(e) => { e.preventDefault(); doTotp(); }}>
+                <div className="fld">
+                  <label>Código do autenticador</label>
+                  <input className="in" type="text" inputMode="numeric" placeholder="000000"
+                    value={totpCode} onChange={e => setTotpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                    required maxLength={6} autoFocus style={{ letterSpacing: "0.25em", fontSize: 22 }} />
+                </div>
+                {error && <p style={{ color: "var(--red)", fontSize: 13, marginBottom: 14 }}>{error}</p>}
+                <button className="btn btn-primary btn-block btn-lg" type="submit" disabled={loading || totpCode.length < 6}>
+                  {loading ? "Verificando…" : <>Verificar <ArrowRight size={17} /></>}
+                </button>
+              </form>
+              <div className="auth-foot">
+                <button style={{ background: "none", border: "none", color: "var(--coral)", fontWeight: 600, cursor: "pointer", fontSize: 14 }}
+                  onClick={() => { setTotpStep(false); setTotpCode(""); setError(""); }}>
+                  Voltar ao login
+                </button>
+              </div>
+            </>
+          )}
+
           {/* ── Esqueci a senha: passo e-mail ── */}
-          {resetStep === "email" && (
+          {!totpStep && resetStep === "email" && (
             <>
               <h1 style={{ marginTop: 28 }}>Recuperar <em>senha</em>.</h1>
               <p className="lead">Digite seu e-mail e enviaremos um código de verificação.</p>
@@ -181,7 +239,7 @@ export default function LoginPage() {
           )}
 
           {/* ── Esqueci a senha: passo código + nova senha ── */}
-          {resetStep === "code" && (
+          {!totpStep && resetStep === "code" && (
             <>
               <h1 style={{ marginTop: 28 }}>Nova <em>senha</em>.</h1>
               <p className="lead">{resetMsg}</p>
@@ -209,7 +267,7 @@ export default function LoginPage() {
           )}
 
           {/* ── Login normal ── */}
-          {resetStep === "none" && (<>
+          {!totpStep && resetStep === "none" && (<>
           <h1 style={{ marginTop: 28 }}>
             Bem-vindo<br />de <em>volta</em>.
           </h1>
