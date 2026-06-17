@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
+import { useUser } from "@clerk/nextjs";
+import Image from "next/image";
 import {
   UserCircle, Settings2, Users, Building2, CreditCard,
-  Plus, ChevronDown, ArrowRight, Camera, Globe, Lock,
+  Plus, ChevronDown, ArrowRight, Camera, Lock,
   Mail, Download, Check, X, MoreHorizontal, Shield,
   Tag, Ban, Trash2, Send, Sparkles, Upload, Zap,
 } from "lucide-react";
@@ -97,38 +99,123 @@ function PanelHead({ title, desc, action }: { title: string; desc?: string; acti
 // ─── Perfil ───────────────────────────────────────────────────────────────────
 
 function PerfilPanel({ onToast }: { onToast: (m: string) => void }) {
+  const { user, isLoaded } = useUser();
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const [firstName, setFirstName] = useState("");
+  const [lastName,  setLastName]  = useState("");
+  const [cargo,     setCargo]     = useState("");
+  const [telefone,  setTelefone]  = useState("");
+  const [bio,       setBio]       = useState("");
+  const [timezone,  setTimezone]  = useState("America/Sao_Paulo");
+  const [saving,    setSaving]    = useState(false);
+  const [photoLoading, setPhotoLoading] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    setFirstName(user.firstName ?? "");
+    setLastName(user.lastName ?? "");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const meta = (user.unsafeMetadata ?? {}) as any;
+    setCargo(meta.cargo ?? "");
+    setTelefone(meta.telefone ?? "");
+    setBio(meta.bio ?? "");
+    setTimezone(meta.timezone ?? "America/Sao_Paulo");
+  }, [user]);
+
+  async function handleSave() {
+    if (!user) return;
+    setSaving(true);
+    try {
+      await user.update({
+        firstName,
+        lastName,
+        unsafeMetadata: { cargo, telefone, bio, timezone },
+      });
+      onToast("Perfil atualizado");
+    } catch {
+      onToast("Erro ao salvar perfil");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handlePhoto(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    setPhotoLoading(true);
+    try {
+      await user.setProfileImage({ file });
+      onToast("Foto atualizada");
+    } catch {
+      onToast("Erro ao enviar foto");
+    } finally {
+      setPhotoLoading(false);
+    }
+  }
+
+  async function handleRemovePhoto() {
+    if (!user) return;
+    try {
+      await user.setProfileImage({ file: null });
+      onToast("Foto removida");
+    } catch {
+      onToast("Erro ao remover foto");
+    }
+  }
+
+  const fullName = [firstName, lastName].filter(Boolean).join(" ") || "?";
+
+  if (!isLoaded) return <div className="set-panel"><div className="card card-pad muted">Carregando…</div></div>;
+
   return (
     <div className="set-panel">
       <PanelHead title="Perfil" desc="Como você aparece para a equipe e nos releases que assina." />
       <div className="card card-pad">
         <div className="profile-top">
-          <Av name="Samara Perez" color="#C25E00" size={76} />
+          {user?.hasImage ? (
+            <Image src={user.imageUrl} alt={fullName} width={76} height={76}
+              style={{ borderRadius: 14, objectFit: "cover", flexShrink: 0 }} />
+          ) : (
+            <Av name={fullName} color="#C25E00" size={76} />
+          )}
           <div className="profile-photo-actions">
             <div className="row" style={{ gap: 10 }}>
-              <button className="btn btn-ghost btn-sm"><Camera size={15} /> Alterar foto</button>
-              <button className="btn btn-quiet btn-sm">Remover</button>
+              <input ref={fileRef} type="file" accept="image/png,image/jpeg" style={{ display: "none" }} onChange={handlePhoto} />
+              <button className="btn btn-ghost btn-sm" onClick={() => fileRef.current?.click()} disabled={photoLoading}>
+                <Camera size={15} /> {photoLoading ? "Enviando…" : "Alterar foto"}
+              </button>
+              <button className="btn btn-quiet btn-sm" onClick={handleRemovePhoto}>Remover</button>
             </div>
             <p className="muted" style={{ fontSize: 12.5, margin: "8px 0 0" }}>JPG ou PNG quadrado, até 2 MB.</p>
           </div>
         </div>
         <div className="set-grid2" style={{ marginTop: 22 }}>
-          <div className="field"><label>Nome completo</label><input className="input" defaultValue="Samara Perez" /></div>
-          <div className="field"><label>Cargo / função</label><input className="input" defaultValue="Social media" /></div>
-          <div className="field"><label>Telefone</label><input className="input" defaultValue="(11) 98888-1234" /></div>
+          <div className="field"><label>Nome</label><input className="input" value={firstName} onChange={e => setFirstName(e.target.value)} placeholder="Primeiro nome" /></div>
+          <div className="field"><label>Sobrenome</label><input className="input" value={lastName} onChange={e => setLastName(e.target.value)} placeholder="Sobrenome" /></div>
+          <div className="field"><label>Cargo / função</label><input className="input" value={cargo} onChange={e => setCargo(e.target.value)} placeholder="Ex.: Assessor de imprensa" /></div>
+          <div className="field"><label>Telefone</label><input className="input" value={telefone} onChange={e => setTelefone(e.target.value)} placeholder="(11) 99999-0000" /></div>
           <div className="field">
             <label>Fuso horário</label>
             <div className="select-wrap">
-              <select className="input"><option>Brasília (GMT-3)</option><option>Fernando de Noronha (GMT-2)</option><option>Acre (GMT-5)</option></select>
+              <select className="input" value={timezone} onChange={e => setTimezone(e.target.value)}>
+                <option value="America/Sao_Paulo">Brasília (GMT-3)</option>
+                <option value="America/Noronha">Fernando de Noronha (GMT-2)</option>
+                <option value="America/Rio_Branco">Acre (GMT-5)</option>
+                <option value="America/Manaus">Manaus (GMT-4)</option>
+              </select>
               <ChevronDown size={16} />
             </div>
           </div>
         </div>
         <div className="field" style={{ marginTop: 4 }}>
           <label>Bio curta</label>
-          <textarea className="input" rows={3} defaultValue="Assessora de imprensa na Markable, cuidando da distribuição de releases de franquias e tecnologia." />
+          <textarea className="input" rows={3} value={bio} onChange={e => setBio(e.target.value)} placeholder="Em uma frase, o que você faz." />
         </div>
         <div className="set-foot">
-          <button className="btn btn-primary" onClick={() => onToast("Perfil atualizado")}>Salvar alterações</button>
+          <button className="btn btn-primary" onClick={handleSave} disabled={saving}>
+            {saving ? "Salvando…" : "Salvar alterações"}
+          </button>
         </div>
       </div>
     </div>
@@ -137,15 +224,36 @@ function PerfilPanel({ onToast }: { onToast: (m: string) => void }) {
 
 // ─── Conta ────────────────────────────────────────────────────────────────────
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function ContaPanel({ onToast }: { onToast: (m: string) => void }) {
-  const [twofa, setTwofa] = useState(true);
+  const { user, isLoaded } = useUser();
   const [notif, setNotif] = useState({ published: true, scheduled: true, comments: true, weekly: false });
-  const sessions = [
-    { id: "s1", dev: "Chrome · macOS", where: "São Paulo, BR", when: "Agora", current: true },
-    { id: "s2", dev: "Safari · iPhone", where: "São Paulo, BR", when: "há 2 h" },
-    { id: "s3", dev: "Chrome · Windows", where: "Campinas, BR", when: "ontem" },
-  ];
+
+  // troca de senha
+  const [showPwForm, setShowPwForm] = useState(false);
+  const [currentPw,  setCurrentPw]  = useState("");
+  const [newPw,      setNewPw]      = useState("");
+  const [savingPw,   setSavingPw]   = useState(false);
+
+  async function handleChangePassword() {
+    if (!user || !newPw) return;
+    setSavingPw(true);
+    try {
+      await user.updatePassword({ currentPassword: currentPw, newPassword: newPw });
+      onToast("Senha alterada com sucesso");
+      setShowPwForm(false);
+      setCurrentPw(""); setNewPw("");
+    } catch (err: unknown) {
+      const e = err as { errors?: { message?: string }[] };
+      onToast(e?.errors?.[0]?.message ?? "Erro ao alterar senha");
+    } finally {
+      setSavingPw(false);
+    }
+  }
+
+  if (!isLoaded) return <div className="set-panel"><div className="card card-pad muted">Carregando…</div></div>;
+
+  const email = user?.primaryEmailAddress?.emailAddress ?? "";
+
   return (
     <div className="set-panel">
       <PanelHead title="Conta" desc="Login, segurança e preferências de notificação." />
@@ -154,25 +262,42 @@ function ContaPanel({ onToast }: { onToast: (m: string) => void }) {
         <div className="card-head"><h3>Acesso</h3></div>
         <div className="card-pad">
           <div className="set-grid2">
-            <div className="field"><label>E-mail de login</label><input className="input" type="email" defaultValue="samara@markable.com.br" /></div>
+            <div className="field">
+              <label>E-mail de login</label>
+              <input className="input" type="email" value={email} readOnly
+                style={{ opacity: 0.7, cursor: "default" }} title="Para alterar o e-mail, entre em contato com o suporte." />
+            </div>
             <div className="field">
               <label>Idioma</label>
               <div className="select-wrap"><select className="input"><option>Português (Brasil)</option><option>English</option></select><ChevronDown size={16} /></div>
             </div>
           </div>
-          <div className="set-inline-row">
-            <div><div className="sir-title">Senha</div><div className="sir-sub">Última alteração há 3 meses</div></div>
-            <button className="btn btn-ghost btn-sm"><Lock size={15} /> Alterar senha</button>
-          </div>
-          <div className="set-inline-row">
-            <div>
-              <div className="sir-title">Verificação em duas etapas{" "}
-                <span className="role-badge" style={{ color: twofa ? "var(--green)" : "var(--stone)", background: twofa ? "var(--green-soft)" : "var(--cream)" }}>{twofa ? "Ativada" : "Desativada"}</span>
-              </div>
-              <div className="sir-sub">Proteja o acesso com um código no login.</div>
+
+          {!showPwForm ? (
+            <div className="set-inline-row">
+              <div><div className="sir-title">Senha</div><div className="sir-sub">Altere sua senha de acesso.</div></div>
+              <button className="btn btn-ghost btn-sm" onClick={() => setShowPwForm(true)}><Lock size={15} /> Alterar senha</button>
             </div>
-            <button className={`toggle${twofa ? " on" : ""}`} onClick={() => setTwofa(v => !v)}><span className="knob" /></button>
-          </div>
+          ) : (
+            <div className="card" style={{ padding: "18px 20px", marginTop: 8, marginBottom: 4, background: "var(--cream)" }}>
+              <div className="set-grid2" style={{ marginBottom: 12 }}>
+                <div className="field" style={{ marginBottom: 0 }}>
+                  <label>Senha atual</label>
+                  <input className="input" type="password" value={currentPw} onChange={e => setCurrentPw(e.target.value)} placeholder="Senha atual" />
+                </div>
+                <div className="field" style={{ marginBottom: 0 }}>
+                  <label>Nova senha</label>
+                  <input className="input" type="password" value={newPw} onChange={e => setNewPw(e.target.value)} placeholder="Mínimo 8 caracteres" minLength={8} />
+                </div>
+              </div>
+              <div className="row" style={{ gap: 10 }}>
+                <button className="btn btn-primary btn-sm" onClick={handleChangePassword} disabled={savingPw || !currentPw || newPw.length < 8}>
+                  {savingPw ? "Salvando…" : <><Check size={15} /> Salvar nova senha</>}
+                </button>
+                <button className="btn btn-quiet btn-sm" onClick={() => { setShowPwForm(false); setCurrentPw(""); setNewPw(""); }}>Cancelar</button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -186,20 +311,6 @@ function ContaPanel({ onToast }: { onToast: (m: string) => void }) {
             </div>
           ))}
         </div>
-      </div>
-
-      <div className="card" style={{ marginTop: 16 }}>
-        <div className="card-head"><h3>Sessões ativas</h3><button className="link">Encerrar todas</button></div>
-        {sessions.map(s => (
-          <div className="session-row" key={s.id}>
-            <div className="session-ic"><Globe size={17} /></div>
-            <div>
-              <div className="sir-title">{s.dev}{s.current && <span className="role-badge" style={{ color: "var(--coral-ink)", background: "var(--amber-soft)", marginLeft: 8 }}>Esta sessão</span>}</div>
-              <div className="sir-sub">{s.where} · {s.when}</div>
-            </div>
-            {!s.current && <button className="btn btn-quiet btn-sm" style={{ marginLeft: "auto" }}>Encerrar</button>}
-          </div>
-        ))}
       </div>
 
       <div className="card danger-card" style={{ marginTop: 16 }}>
