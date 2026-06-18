@@ -577,7 +577,7 @@ function BrandFormModal({ brand, onClose, onSaved }: {
 
   return (
     <div className="overlay" onClick={onClose}>
-      <div className="modal" style={{ maxWidth: 560 }} onClick={e => e.stopPropagation()}>
+      <div className="modal" style={{ maxWidth: 480 }} onClick={e => e.stopPropagation()}>
         <div className="m-head" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <h3>{isEdit ? "Editar" : "Cadastrar nova"} <em>marca</em></h3>
           <button className="icon-btn" onClick={onClose}><X size={17} /></button>
@@ -609,7 +609,7 @@ function BrandFormModal({ brand, onClose, onSaved }: {
             </div>
           </div>
           {/* Campos */}
-          <div className="set-grid2">
+          <div className="nb-grid2">
             <div className="field"><label>Nome da marca / cliente</label><input className="input" value={name} onChange={e => setName(e.target.value)} placeholder="Ex.: Franquia Sabor Brasil" autoFocus /></div>
             <div className="field">
               <label>Segmento / setor</label>
