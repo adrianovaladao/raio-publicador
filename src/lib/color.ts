@@ -1,13 +1,18 @@
 function pixelsToColor(data: Uint8ClampedArray): string {
+  let whiteCount = 0;
+  let darkCount  = 0;
+  let totalOpaque = 0;
   const counts: Record<string, number> = {};
 
   for (let i = 0; i < data.length; i += 4) {
     const r = data[i], g = data[i + 1], b = data[i + 2], a = data[i + 3];
     if (a < 128) continue;
+    totalOpaque++;
 
     const brightness = (r + g + b) / 3;
-    if (brightness > 230) continue;
-    if (brightness < 25)  continue;
+
+    if (brightness > 230) { whiteCount++; continue; }
+    if (brightness < 25)  { darkCount++;  continue; }
 
     const qr = Math.round(r / 24) * 24;
     const qg = Math.round(g / 24) * 24;
@@ -21,6 +26,14 @@ function pixelsToColor(data: Uint8ClampedArray): string {
     const key = `${qr},${qg},${qb}`;
     counts[key] = (counts[key] ?? 0) + weight;
   }
+
+  if (totalOpaque === 0) return "#1A1A1A";
+
+  // Se mais de 55% dos pixels opacos são brancos → fundo branco
+  if (whiteCount / totalOpaque > 0.55) return "#FFFFFF";
+
+  // Se mais de 55% são pretos/escuros → fundo escuro
+  if (darkCount / totalOpaque > 0.55) return "#1A1A1A";
 
   const best = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
   if (!best) return "#1A1A1A";
