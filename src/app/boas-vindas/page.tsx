@@ -5,23 +5,19 @@ import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import {
   ArrowRight, ArrowLeft, Check, X, Sparkles, Rocket,
-  ChevronDown, BarChart2, Tag, FileText, Eye, Megaphone,
-  CheckCircle, AlertCircle, Bold, Italic, Link as LinkIcon,
+  ChevronDown, Tag, Megaphone,
+  CheckCircle, Bold, Italic, Link as LinkIcon,
   Coins, Image as ImageIcon,
 } from "lucide-react";
 import { RaioLockup } from "@/components/logo/RaioLockup";
 import "./onboarding.css";
 
 // ─── tipos ────────────────────────────────────────────────────
-type Stage = "welcome" | "tour" | "brand" | "tone" | "done";
+type Stage = "welcome" | "tour" | "brand" | "done";
 
 interface OnbData {
   name: string; segment: string; site: string; contact: string; desc: string;
   logoUrl: string;
-  tone: { formal: number; tech: number; energy: number };
-  attrs: { confiante: number; claro: number; caloroso: number; agil: number };
-  useWords: string[]; avoidWords: string[];
-  reference: string;
 }
 
 // ─── MINI MOCKS ───────────────────────────────────────────────
@@ -108,7 +104,6 @@ const STAGES: { id: Stage; nm: string }[] = [
   { id: "welcome", nm: "Boas-vindas" },
   { id: "tour",    nm: "Tour" },
   { id: "brand",   nm: "Sua marca" },
-  { id: "tone",    nm: "Tom de voz" },
   { id: "done",    nm: "Pronto" },
 ];
 
@@ -137,9 +132,6 @@ function Welcome({ go, firstName }: { go: (s: Stage) => void; firstName: string 
           <p>Pular o tour e ir direto para o cadastro da sua marca.</p>
           <span className="go">Ir direto <ArrowRight size={14} /></span>
         </div>
-      </div>
-      <div style={{ marginTop: 26 }}>
-        <Link href="/dashboard" className="welcome skip-link">Prefiro explorar por conta própria — ir para o painel</Link>
       </div>
     </div>
   );
@@ -186,12 +178,44 @@ const SEGMENTS = ["Franquias","Varejo","Tecnologia","Alimentação","Saúde","Se
 function Brand({ go, data, setData }: { go: (s: Stage) => void; data: OnbData; setData: (d: OnbData) => void }) {
   const up = (k: keyof OnbData, v: string) => setData({ ...data, [k]: v });
   const fileRef = useRef<HTMLInputElement>(null);
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState("");
 
   function handleLogo(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
     const url = URL.createObjectURL(file);
     setData({ ...data, logoUrl: url });
+  }
+
+  async function saveBrand() {
+    setSaving(true);
+    setErr("");
+    try {
+      const res = await fetch("/api/brands", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: data.name.trim(),
+          segment: data.segment,
+          site: data.site.trim() || undefined,
+          contact: data.contact.trim() || undefined,
+          description: data.desc.trim() || undefined,
+        }),
+      });
+      const text = await res.text();
+      if (!res.ok) {
+        let msg = `Erro ${res.status}`;
+        try { msg = JSON.parse(text)?.error ?? msg; } catch { /* ignore */ }
+        setErr(msg);
+        return;
+      }
+      go("done");
+    } catch {
+      setErr("Falha de conexão. Verifique e tente novamente.");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -243,259 +267,13 @@ function Brand({ go, data, setData }: { go: (s: Stage) => void; data: OnbData; s
           <textarea className="in" placeholder="Em uma ou duas frases, o que é a marca e o que ela faz. Isso ajuda a IA a contextualizar seus releases." value={data.desc} onChange={e => up("desc", e.target.value)} />
         </div>
       </div>
+      {err && <p style={{ color: "var(--red, #c0392b)", fontSize: 13, margin: "12px 0 0", fontWeight: 500 }}>{err}</p>}
       <div className="onb-nav">
         <button className="btn btn-ghost" onClick={() => go("tour")}><ArrowLeft size={16} /> Voltar</button>
         <div className="right">
-          <button className="btn btn-primary" disabled={!data.name.trim()} onClick={() => go("tone")}>
-            Continuar para o tom de voz <ArrowRight size={16} />
+          <button className="btn btn-primary" disabled={!data.name.trim() || saving} onClick={saveBrand}>
+            {saving ? "Salvando…" : <><span>Concluir cadastro</span> <ArrowRight size={16} /></>}
           </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── TOM DE VOZ ───────────────────────────────────────────────
-const TONE_AXES = [
-  { id: "formal" as const, left: "Formal",   right: "Coloquial" },
-  { id: "tech"   as const, left: "Técnico",  right: "Acessível" },
-  { id: "energy" as const, left: "Sóbrio",   right: "Entusiasmado" },
-];
-const BRAND_ATTRS = [
-  { id: "confiante" as const, name: "Confiante", not: "arrogante", desc: "Afirma com segurança e prova — sem se gabar." },
-  { id: "claro"     as const, name: "Claro",     not: "raso",      desc: "Direto e simples, sem perder profundidade." },
-  { id: "caloroso"  as const, name: "Caloroso",  not: "bajulador", desc: "Próximo e humano, sem puxar o saco." },
-  { id: "agil"      as const, name: "Ágil",      not: "apressado", desc: "Ritmo dinâmico, sem atropelar a informação." },
-];
-const ATTR_SUPPORT: Record<string, string> = {
-  confiante: "A marca chega a esse patamar com resultado comprovado — não com promessa.",
-  claro: "Na prática: mais pontos de atendimento, perto de quem realmente importa.",
-  caloroso: "Por trás dos números, há um time que acredita no que constrói todo dia.",
-  agil: "120 unidades, 14 estados, um objetivo — a marca não perde tempo.",
-};
-
-function bucket(v: number) { return v < 34 ? 0 : v < 67 ? 1 : 2; }
-function attrLevel(v: number, not: string) {
-  if (v >= 90) return { t: "pode soar " + not, warn: true };
-  if (v >= 68) return { t: "forte", warn: false };
-  if (v >= 34) return { t: "equilibrado", warn: false };
-  return { t: "sutil", warn: false };
-}
-function dominantAttr(attrs: Record<string, number>) {
-  let best = "confiante", bv = -1;
-  Object.keys(attrs).forEach(k => { if (attrs[k] > bv) { bv = attrs[k]; best = k; } });
-  return best;
-}
-function buildTone(tone: OnbData["tone"], attrs: OnbData["attrs"]) {
-  const f = bucket(tone.formal), t = bucket(tone.tech), e = bucket(tone.energy);
-  const abre = ["A companhia comunica ao mercado a","A marca anuncia a","É com entusiasmo que a marca anuncia a"][f === 0 ? 0 : e === 2 ? 2 : 1];
-  const corpo = ["expansão de sua rede de unidades, mediante aporte destinado à ampliação da capacidade operacional","abertura de 120 novas unidades, com um investimento que amplia a capacidade de atendimento","chegada de 120 novas lojas — um salto que vai levar a marca a muito mais clientes"][t];
-  const fecho = ["no decorrer do exercício corrente.","ao longo deste ano.","já nos próximos meses."][e];
-  return { lead: `${abre} ${corpo} ${fecho}`, support: ATTR_SUPPORT[dominantAttr(attrs)] };
-}
-
-function WordInput({ kind, words, setWords, placeholder }: { kind: string; words: string[]; setWords: (w: string[]) => void; placeholder: string }) {
-  const [v, setV] = useState("");
-  function add(w: string) { w = w.trim(); if (w && !words.includes(w)) setWords([...words, w]); setV(""); }
-  return (
-    <div className="word-box" onClick={e => (e.currentTarget.querySelector("input") as HTMLInputElement)?.focus()}>
-      {words.map(w => (
-        <span key={w} className={"wchip " + kind}>{w}
-          <button onClick={() => setWords(words.filter(x => x !== w))}><X size={13} /></button>
-        </span>
-      ))}
-      <input value={v} placeholder={words.length ? "" : placeholder}
-        onChange={e => setV(e.target.value)}
-        onKeyDown={e => { if (e.key === "Enter" || e.key === ",") { e.preventDefault(); add(v); } else if (e.key === "Backspace" && !v && words.length) setWords(words.slice(0, -1)); }}
-        onBlur={() => add(v)} />
-    </div>
-  );
-}
-
-function Tone({ go, data, setData }: { go: (s: Stage) => void; data: OnbData; setData: (d: OnbData) => void }) {
-  const tone = data.tone, attrs = data.attrs;
-  const [open, setOpen] = useState("");
-  const [touched, setTouched] = useState({ atributos: false, eixo: false });
-  const setTone = (k: keyof typeof tone, v: number) => { setTouched(t => ({ ...t, eixo: true })); setData({ ...data, tone: { ...tone, [k]: v } }); };
-  const setAttr = (k: keyof typeof attrs, v: number) => { setTouched(t => ({ ...t, atributos: true })); setData({ ...data, attrs: { ...attrs, [k]: v } }); };
-
-  const { lead, support } = buildTone(tone, attrs);
-  const axisBadges = [
-    bucket(tone.formal) === 0 ? "Formal" : bucket(tone.formal) === 2 ? "Coloquial" : "Equilibrado",
-    bucket(tone.tech) === 0 ? "Técnico" : bucket(tone.tech) === 2 ? "Acessível" : "Misto",
-    bucket(tone.energy) === 0 ? "Sóbrio" : bucket(tone.energy) === 2 ? "Entusiasmado" : "Moderado",
-  ];
-  const activeAttrs = BRAND_ATTRS.filter(a => attrs[a.id] >= 50);
-  const headline = bucket(tone.energy) === 2 ? "Marca dá salto e abre 120 novas unidades" : bucket(tone.formal) === 0 ? "Marca formaliza expansão com 120 novas unidades" : "Marca anuncia expansão com 120 novas unidades";
-  const defined = { atributos: touched.atributos, eixo: touched.eixo, vocabulario: (data.useWords.length + data.avoidWords.length) > 0 };
-  const sections = [
-    { id: "atributos", Icon: Sparkles, title: "Atributos da marca", hint: "Confiante · claro · caloroso · ágil" },
-    { id: "eixo",      Icon: BarChart2, title: "Eixos de tom",       hint: "Formal · técnico · energia" },
-    { id: "vocabulario", Icon: Tag,    title: "Vocabulário",         hint: "Palavras a usar e a evitar" },
-  ];
-  const doneCount = Object.values(defined).filter(Boolean).length;
-
-  return (
-    <div className="onb-card wide">
-      <div className="onb-head">
-        <span className="eyebrow">Passo 2 de 2 · Configuração</span>
-        <h1>Defina o <em>tom de voz</em> da marca</h1>
-        <p className="sub">Calibre como os releases devem soar. A IA usa isso como guia ao gerar e revisar textos para {data.name || "sua marca"}.</p>
-      </div>
-      <div className="tone-layout">
-        {/* MENU 30% */}
-        <div className="tone-menu">
-          <div className="tm-progress">
-            <div className="tm-prog-top">
-              <span className="tm-prog-lbl">Configuração</span>
-              <span className="tm-prog-n">{doneCount}/{sections.length}</span>
-            </div>
-            <div className="tm-prog-bar"><i style={{ width: (doneCount / sections.length * 100) + "%" }} /></div>
-          </div>
-          {sections.map(sec => {
-            const isOpen = open === sec.id;
-            const ok = defined[sec.id as keyof typeof defined];
-            return (
-              <div key={sec.id} className={"tsec" + (isOpen ? " open" : "")}>
-                <button className="tsec-head" onClick={() => setOpen(isOpen ? "" : sec.id)}>
-                  <span className="tsec-ic"><sec.Icon size={17} /></span>
-                  <span className="tsec-meta">
-                    <span className="tsec-title">{sec.title}</span>
-                    <span className="tsec-hint">{sec.hint}</span>
-                  </span>
-                  <span className={"tsec-stat" + (ok ? " ok" : "")}>{ok && <Check size={13} />}</span>
-                  <ChevronDown size={16} className={"tsec-chev" + (isOpen ? " open" : "")} />
-                </button>
-                {isOpen && sec.id === "atributos" && (
-                  <div className="tsec-body">
-                    <div className="attr-dials">
-                      {BRAND_ATTRS.map(a => {
-                        const v = attrs[a.id], lv = attrLevel(v, a.not);
-                        return (
-                          <div className="attr-dial" key={a.id}>
-                            <div className="ad-head">
-                              <div>
-                                <span className="ad-name">{a.name} <span className="ad-not">não {a.not}</span></span>
-                                <span className="ad-desc">{a.desc}</span>
-                              </div>
-                              <span className={"ad-level" + (lv.warn ? " warn" : "")}>
-                                {lv.warn && <AlertCircle size={12} />}{lv.t}
-                              </span>
-                            </div>
-                            <input className="rng" type="range" min="0" max="100" value={v} onChange={e => setAttr(a.id, +e.target.value)} />
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-                {isOpen && sec.id === "eixo" && (
-                  <div className="tsec-body">
-                    <div className="tone-sliders">
-                      {TONE_AXES.map(ax => {
-                        const v = tone[ax.id], b = bucket(v);
-                        return (
-                          <div className="slider-field" key={ax.id}>
-                            <div className="slabel">
-                              <span className={"a" + (b === 0 ? "" : " dim")}>{ax.left}</span>
-                              <span className={"a" + (b === 2 ? "" : " dim")}>{ax.right}</span>
-                            </div>
-                            <input className="rng" type="range" min="0" max="100" value={v} onChange={e => setTone(ax.id, +e.target.value)} />
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-                {isOpen && sec.id === "vocabulario" && (
-                  <div className="tsec-body">
-                    <div className="fld">
-                      <label style={{ color: "var(--green)" }}>Palavras a usar</label>
-                      <WordInput kind="use" words={data.useWords} setWords={w => setData({ ...data, useWords: w })} placeholder="Digite e tecle Enter" />
-                    </div>
-                    <div className="fld" style={{ marginTop: 14 }}>
-                      <label style={{ color: "var(--red)" }}>Palavras a evitar</label>
-                      <WordInput kind="avoid" words={data.avoidWords} setWords={w => setData({ ...data, avoidWords: w })} placeholder="Ex.: líder, único" />
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-
-        {/* DIREITA 70% */}
-        <div className="tone-right">
-          <div className="ref-card">
-            <div className="ref-head">
-              <FileText size={16} style={{ color: "var(--coral)" }} />
-              <span className="ref-lbl">Texto de referência</span>
-              <span className="ref-opt">opcional</span>
-            </div>
-            <textarea className="in" placeholder="Cole um release ou trecho que represente bem a voz da marca. A IA aprende o estilo a partir dele." value={data.reference} onChange={e => setData({ ...data, reference: e.target.value })} />
-          </div>
-          <div className="tone-preview">
-            <div className="pv-top">
-              <Eye size={15} style={{ color: "var(--tx-3)" }} />
-              <span className="lbl">Amostra de texto</span>
-              <span className="live"><span className="pulse" /> ao vivo</span>
-            </div>
-            <div className="pv-body">
-              <div className="ph">Exemplo gerado no tom escolhido para {data.name || "sua marca"}</div>
-              <h4>{headline}</h4>
-              <p>{lead}</p>
-              <p style={{ marginTop: 12 }}>{support}</p>
-              <div className="tone-badges">
-                {axisBadges.map((b, i) => <span className="tone-badge" key={i}>{b}</span>)}
-              </div>
-              {activeAttrs.length > 0 && (
-                <div className="attr-chips">
-                  {activeAttrs.map(a => {
-                    const lv = attrLevel(attrs[a.id], a.not);
-                    return <span className={"attr-chip" + (lv.warn ? " warn" : "")} key={a.id}>{a.name}</span>;
-                  })}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="voice-guide">
-        <div className="vg-head">
-          <span className="eyebrow">Guia de voz · Markable</span>
-          <p>Princípios que valem para todo release, em qualquer tom. <em>Sempre concreto — números, nomes, resultados.</em></p>
-        </div>
-        <div className="vg-cols">
-          <div className="vg-col yes">
-            <div className="vg-tag"><Check size={13} /> Diga assim</div>
-            <div className="vg-ex">
-              <p>&ldquo;Em 90 dias, conquistamos 27 matérias para a marca em veículos nacionais.&rdquo;</p>
-              <span>Concreto: número, prazo e resultado. Sem adjetivo de mais.</span>
-            </div>
-            <div className="vg-ex">
-              <p>&ldquo;Mídia espontânea é diferente de publicidade — e <em>essa</em> diferença muda a confiança do cliente.&rdquo;</p>
-              <span>Educa o leitor. O itálico marca a virada de ideia.</span>
-            </div>
-          </div>
-          <div className="vg-col no">
-            <div className="vg-tag"><X size={13} /> Não diga assim</div>
-            <div className="vg-ex">
-              <p>&ldquo;Somos a melhor assessoria do Brasil, com soluções inovadoras e disruptivas!&rdquo;</p>
-              <span>Vago e auto-elogioso, sem prova. Adjetivos batidos.</span>
-            </div>
-            <div className="vg-ex">
-              <p>&ldquo;🚀🔥 Bora alavancar sua marca?? 💥 Sucesso garantido! ✨&rdquo;</p>
-              <span>Excesso de emoji, promessa vazia, venda forçada.</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="onb-nav">
-        <button className="btn btn-ghost" onClick={() => go("brand")}><ArrowLeft size={16} /> Voltar</button>
-        <div className="right">
-          <button className="btn btn-primary" onClick={() => go("done")}>Concluir configuração <Check size={16} /></button>
         </div>
       </div>
     </div>
@@ -511,12 +289,11 @@ function Done({ data }: { data: OnbData }) {
       <p className="sub">{data.name || "Sua marca"} está configurada. Agora é só criar seu primeiro release e publicar como um raio.</p>
       <div className="onb-summary">
         <div className="s"><span className="ic"><Tag size={18} /></span><div><div className="t">{data.name || "Marca cadastrada"}</div><div className="d">{data.segment}</div></div></div>
-        <div className="s"><span className="ic"><Megaphone size={18} /></span><div><div className="t">Tom de voz</div><div className="d">Definido</div></div></div>
+        <div className="s"><span className="ic"><Megaphone size={18} /></span><div><div className="t">Marca configurada</div><div className="d">Pronta para uso</div></div></div>
         <div className="s"><span className="ic"><Coins size={18} /></span><div><div className="t">1.800 créditos</div><div className="d">Prontos para uso</div></div></div>
       </div>
       <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
         <Link className="btn btn-primary btn-lg" href="/dashboard">Ir para o painel <ArrowRight size={17} /></Link>
-        <Link className="btn btn-ghost btn-lg" href="/dashboard/releases/novo">Criar primeiro release</Link>
       </div>
     </div>
   );
@@ -529,10 +306,6 @@ export default function BoasVindasPage() {
   const [step, setStep] = useState<Stage>("welcome");
   const [data, setData] = useState<OnbData>({
     name: "", segment: "Franquias", site: "", contact: "", desc: "", logoUrl: "",
-    tone: { formal: 30, tech: 60, energy: 50 },
-    attrs: { confiante: 72, claro: 80, caloroso: 56, agil: 64 },
-    useWords: [], avoidWords: [],
-    reference: "",
   });
 
   const idx = STAGES.findIndex(s => s.id === step);
@@ -543,7 +316,6 @@ export default function BoasVindasPage() {
     case "welcome": screen = <Welcome go={go} firstName={firstName} />; break;
     case "tour":    screen = <Tour go={go} />; break;
     case "brand":   screen = <Brand go={go} data={data} setData={setData} />; break;
-    case "tone":    screen = <Tone go={go} data={data} setData={setData} />; break;
     case "done":    screen = <Done data={data} />; break;
   }
 
