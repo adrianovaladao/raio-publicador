@@ -19,7 +19,6 @@ interface Brand {
   name: string;
   segment: string | null;
   color: string | null;
-  cnpj: string | null;
   site: string | null;
   contact: string | null;
   description: string | null;
@@ -510,7 +509,6 @@ function BrandFormModal({ brand, onClose, onSaved }: {
   const [site,    setSite]    = useState(brand?.site ?? "");
   const [contact, setContact] = useState(brand?.contact ?? "");
   const [desc,    setDesc]    = useState(brand?.description ?? "");
-  const [cnpj,    setCnpj]    = useState(brand?.cnpj ?? "");
   const [boiler,  setBoiler]  = useState(brand?.boilerplate ?? "");
   const [color,   setColor]   = useState(brand?.color ?? BRAND_COLORS[0]);
   const [logoUrl, setLogoUrl] = useState(brand?.logoUrl ?? "");
@@ -549,7 +547,7 @@ function BrandFormModal({ brand, onClose, onSaved }: {
     try {
       let finalLogo = logoUrl;
       if (logoFile) finalLogo = await uploadBrandLogo(logoFile);
-      const body = { name: name.trim(), segment, color, site: site.trim() || null, contact: contact.trim() || null, description: desc.trim() || null, cnpj: cnpj.trim() || null, boilerplate: boiler.trim() || null, logoUrl: finalLogo || null };
+      const body = { name: name.trim(), segment, color, site: site.trim() || null, contact: contact.trim() || null, description: desc.trim() || null, boilerplate: boiler.trim() || null, logoUrl: finalLogo || null };
       const url = isEdit ? `/api/brands/${brand!.id}` : "/api/brands";
       const method = isEdit ? "PUT" : "POST";
       const res  = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
@@ -613,7 +611,6 @@ function BrandFormModal({ brand, onClose, onSaved }: {
           {/* Campos */}
           <div className="set-grid2">
             <div className="field"><label>Nome da marca / cliente</label><input className="input" value={name} onChange={e => setName(e.target.value)} placeholder="Ex.: Franquia Sabor Brasil" autoFocus /></div>
-            <div className="field"><label>CNPJ</label><input className="input" value={cnpj} onChange={e => setCnpj(e.target.value)} placeholder="12.345.678/0001-90" /></div>
             <div className="field">
               <label>Segmento / setor</label>
               <div className="select-wrap">

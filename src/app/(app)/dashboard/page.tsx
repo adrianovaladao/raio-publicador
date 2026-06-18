@@ -221,7 +221,6 @@ function NewBrandModal({ onClose, onSave }: { onClose: () => void; onSave: () =>
   const [name,    setName]    = useState("");
   const [segment, setSegment] = useState("Franquias");
   const [site,    setSite]    = useState("");
-  const [cnpj,    setCnpj]    = useState("");
   const [contact, setContact] = useState("");
   const [desc,    setDesc]    = useState("");
   const [boiler,  setBoiler]  = useState("");
@@ -255,7 +254,7 @@ function NewBrandModal({ onClose, onSave }: { onClose: () => void; onSave: () =>
       const res = await fetch("/api/brands", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), segment, color, site: site.trim() || null, cnpj: cnpj.trim() || null, contact: contact.trim() || null, description: desc.trim() || null, boilerplate: boiler.trim() || null, logoUrl }),
+        body: JSON.stringify({ name: name.trim(), segment, color, site: site.trim() || null, contact: contact.trim() || null, description: desc.trim() || null, boilerplate: boiler.trim() || null, logoUrl }),
       });
       const text = await res.text();
       if (!res.ok) {
@@ -317,7 +316,6 @@ function NewBrandModal({ onClose, onSave }: { onClose: () => void; onSave: () =>
               </div>
             </div>
             <div className="field"><label>Site</label><input className="input" value={site} onChange={e => setSite(e.target.value)} placeholder="www.exemplo.com.br" /></div>
-            <div className="field"><label>CNPJ</label><input className="input" value={cnpj} onChange={e => setCnpj(e.target.value)} placeholder="12.345.678/0001-90" /></div>
             <div className="field"><label>Pessoa de contato</label><input className="input" value={contact} onChange={e => setContact(e.target.value)} placeholder="Nome do responsável" /></div>
           </div>
           <div className="field"><label>Descrição curta</label><textarea className="input" rows={2} value={desc} onChange={e => setDesc(e.target.value)} placeholder="Em uma frase, o que a marca faz." /></div>

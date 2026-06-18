@@ -68,7 +68,6 @@ function NewBrandModal({ onClose, onCreate }: { onClose: () => void; onCreate: (
   const [segment, setSegment] = useState(BRAND_SEGMENTS[0]);
   const [color,   setColor]   = useState(BRAND_COLORS[0]);
   const [site,    setSite]    = useState("");
-  const [cnpj,    setCnpj]    = useState("");
   const [contact, setContact] = useState("");
   const [desc,    setDesc]    = useState("");
   const [boiler,  setBoiler]  = useState("");
@@ -109,7 +108,7 @@ function NewBrandModal({ onClose, onCreate }: { onClose: () => void; onCreate: (
       const res = await fetch("/api/brands", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), segment, color, site: site.trim() || null, cnpj: cnpj.trim() || null, contact: contact.trim() || null, description: desc.trim() || null, boilerplate: boiler.trim() || null, logoUrl }),
+        body: JSON.stringify({ name: name.trim(), segment, color, site: site.trim() || null, contact: contact.trim() || null, description: desc.trim() || null, boilerplate: boiler.trim() || null, logoUrl }),
       });
       const text = await res.text();
       if (!res.ok) { setErr(`Erro ${res.status}`); return; }
@@ -158,7 +157,6 @@ function NewBrandModal({ onClose, onCreate }: { onClose: () => void; onCreate: (
           {/* Campos */}
           <div className="set-grid2">
             <div className="field"><label>Nome da marca / cliente</label><input className="input" value={name} onChange={e => setName(e.target.value)} placeholder="Ex.: Franquia Sabor Brasil" autoFocus /></div>
-            <div className="field"><label>CNPJ</label><input className="input" value={cnpj} onChange={e => setCnpj(e.target.value)} placeholder="12.345.678/0001-90" /></div>
             <div className="field">
               <label>Segmento / setor</label>
               <div className="select-wrap">
