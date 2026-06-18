@@ -20,7 +20,10 @@ interface Brand {
   color: string | null;
   cnpj: string | null;
   site: string | null;
+  contact: string | null;
+  description: string | null;
   boilerplate: string | null;
+  logoUrl: string | null;
   toneConfig: unknown;
 }
 
@@ -463,77 +466,181 @@ function EquipePanel({ onToast }: { onToast: (m: string) => void }) {
 
 // ─── Marcas ───────────────────────────────────────────────────────────────────
 
-const BRAND_COLORS = ["#C25E00","#2A6FDB","#2F8A5B","#6D3BD9","#0E7C86","#B0322E","#8A6500","#1A1A1A"];
+const BRAND_COLORS   = ["#C25E00","#2A6FDB","#2F8A5B","#6D3BD9","#0E7C86","#B0322E","#8A6500","#1A1A1A"];
 const BRAND_SEGMENTS = ["Franquias","Tecnologia","Saúde","Economia","Varejo","Negócios","Educação","Serviços","Indústria","Outro"];
 
-function NewBrandModal({ onClose, onCreate }: { onClose: () => void; onCreate: (b: Brand) => void }) {
-  const [name, setName] = useState("");
-  const [segment, setSegment] = useState(BRAND_SEGMENTS[0]);
-  const [color, setColor] = useState(BRAND_COLORS[0]);
-  const [saving, setSaving] = useState(false);
+function BrandAv({ name, color, logoUrl, size = 36 }: { name: string | null | undefined; color: string | null | undefined; logoUrl?: string | null; size?: number }) {
+  const bg = color ?? "#1A1A1A";
+  if (logoUrl) {
+    return (
+      <span style={{ width: size, height: size, borderRadius: 8, overflow: "hidden", display: "inline-flex", alignItems: "center", justifyContent: "center", background: bg, flexShrink: 0 }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={logoUrl} alt={name ?? ""} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+      </span>
+    );
+  }
+  return (
+    <span style={{ width: size, height: size, borderRadius: 8, background: bg, display: "inline-flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--mono)", fontWeight: 700, fontSize: Math.round(size * 0.38), color: "#fff", flexShrink: 0 }}>
+      {getInitials(name)}
+    </span>
+  );
+}
 
-  async function submit() {
-    if (!name.trim()) return;
-    setSaving(true);
+async function uploadBrandLogo(file: File): Promise<string> {
+  const form = new FormData();
+  form.append("file", file);
+  const res  = await fetch("/api/upload", { method: "POST", body: form });
+  const text = await res.text();
+  let data: { url?: string; error?: string } = {};
+  try { data = JSON.parse(text); } catch { /* ignore */ }
+  if (!res.ok) throw new Error(data.error ?? `Erro ${res.status} no upload`);
+  if (!data.url) throw new Error("Upload falhou: URL não retornada");
+  return data.url;
+}
+
+function BrandFormModal({ brand, onClose, onSaved }: {
+  brand?: Brand;
+  onClose: () => void;
+  onSaved: (b: Brand) => void;
+}) {
+  const isEdit = !!brand;
+  const [name,    setName]    = useState(brand?.name ?? "");
+  const [segment, setSegment] = useState(brand?.segment ?? BRAND_SEGMENTS[0]);
+  const [site,    setSite]    = useState(brand?.site ?? "");
+  const [contact, setContact] = useState(brand?.contact ?? "");
+  const [desc,    setDesc]    = useState(brand?.description ?? "");
+  const [cnpj,    setCnpj]    = useState(brand?.cnpj ?? "");
+  const [boiler,  setBoiler]  = useState(brand?.boilerplate ?? "");
+  const [color,   setColor]   = useState(brand?.color ?? BRAND_COLORS[0]);
+  const [logoUrl, setLogoUrl] = useState(brand?.logoUrl ?? "");
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState(brand?.logoUrl ?? "");
+  const [saving,  setSaving]  = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [err, setErr] = useState("");
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const fn = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", fn);
+    return () => window.removeEventListener("keydown", fn);
+  }, [onClose]);
+
+  function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setLogoFile(file);
+    setLogoPreview(URL.createObjectURL(file));
+  }
+
+  async function save() {
+    setSaving(true); setErr("");
     try {
-      const res = await fetch("/api/brands", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), segment, color }),
-      });
-      const brand = await res.json();
-      onCreate(brand);
+      let finalLogo = logoUrl;
+      if (logoFile) finalLogo = await uploadBrandLogo(logoFile);
+      const body = { name: name.trim(), segment, color, site: site.trim() || null, contact: contact.trim() || null, description: desc.trim() || null, cnpj: cnpj.trim() || null, boilerplate: boiler.trim() || null, logoUrl: finalLogo || null };
+      const url = isEdit ? `/api/brands/${brand!.id}` : "/api/brands";
+      const method = isEdit ? "PUT" : "POST";
+      const res  = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      const text = await res.text();
+      if (!res.ok) {
+        let msg = `Erro ${res.status}`;
+        try { msg = JSON.parse(text)?.error ?? msg; } catch { /* ignore */ }
+        setErr(msg); return;
+      }
+      const saved = JSON.parse(text) as Brand;
+      onSaved(saved);
       onClose();
-    } finally {
-      setSaving(false);
-    }
+    } catch (e) { setErr(e instanceof Error ? e.message : "Falha de conexão."); }
+    finally { setSaving(false); }
+  }
+
+  async function deleteBrand() {
+    if (!brand || !confirm(`Excluir a marca "${brand.name}"? Esta ação não pode ser desfeita.`)) return;
+    setDeleting(true);
+    try {
+      await fetch(`/api/brands/${brand.id}`, { method: "DELETE" });
+      onSaved({ ...brand, id: `__deleted__${brand.id}` });
+      onClose();
+    } catch { setErr("Erro ao excluir."); }
+    finally { setDeleting(false); }
   }
 
   return (
     <div className="overlay" onClick={onClose}>
-      <div className="modal" onClick={e => e.stopPropagation()}>
-        <div className="m-head"><h3>Cadastrar nova <em>marca</em></h3></div>
+      <div className="modal" style={{ maxWidth: 560 }} onClick={e => e.stopPropagation()}>
+        <div className="m-head" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <h3>{isEdit ? "Editar" : "Cadastrar nova"} <em>marca</em></h3>
+          <button className="icon-btn" onClick={onClose}><X size={17} /></button>
+        </div>
         <div className="m-body">
+          {/* Preview + logo */}
           <div className="nb-preview">
-            <span className="nb-av" style={{ background: color }}>
-              {name.trim() ? getInitials(name) : "?"}
-            </span>
-            <div>
+            <div style={{ position: "relative", cursor: "pointer" }} onClick={() => fileRef.current?.click()}>
+              <BrandAv name={name || "?"} color={color} logoUrl={logoPreview || null} size={40} />
+            </div>
+            <div style={{ flex: 1 }}>
               <div className="nb-pv-nm">{name.trim() || "Nome da marca"}</div>
-              <div className="nb-pv-sg">{segment}</div>
+              <div className="nb-pv-sg">{segment}{site.trim() ? ` · ${site.trim()}` : ""}</div>
             </div>
+            <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleLogoChange} />
           </div>
           <div className="field">
-            <label>Nome da marca / cliente</label>
-            <input className="input" value={name} onChange={e => setName(e.target.value)}
-              placeholder="Ex.: Franquia Sabor Brasil" autoFocus />
-          </div>
-          <div className="field">
-            <label>Segmento / setor</label>
-            <div className="select-wrap">
-              <select className="input" value={segment} onChange={e => setSegment(e.target.value)}>
-                {BRAND_SEGMENTS.map(s => <option key={s}>{s}</option>)}
-              </select>
-              <ChevronDown size={16} />
+            <label>Logotipo</label>
+            <div className="row" style={{ gap: 8 }}>
+              <button type="button" className="btn btn-quiet btn-sm" onClick={() => fileRef.current?.click()} style={{ gap: 7 }}>
+                <Upload size={14} /> {logoPreview ? "Trocar imagem" : "Adicionar logo"}
+              </button>
+              {logoPreview && (
+                <button type="button" className="btn btn-quiet btn-sm" style={{ color: "var(--red,#c0392b)" }}
+                  onClick={() => { setLogoPreview(""); setLogoFile(null); setLogoUrl(""); }}>
+                  Remover
+                </button>
+              )}
             </div>
           </div>
+          {/* Campos */}
+          <div className="set-grid2">
+            <div className="field"><label>Nome da marca / cliente</label><input className="input" value={name} onChange={e => setName(e.target.value)} placeholder="Ex.: Franquia Sabor Brasil" autoFocus /></div>
+            <div className="field"><label>CNPJ</label><input className="input" value={cnpj} onChange={e => setCnpj(e.target.value)} placeholder="12.345.678/0001-90" /></div>
+            <div className="field">
+              <label>Segmento / setor</label>
+              <div className="select-wrap">
+                <select className="input" value={segment} onChange={e => setSegment(e.target.value)}>
+                  {BRAND_SEGMENTS.map(s => <option key={s}>{s}</option>)}
+                </select>
+                <ChevronDown size={16} />
+              </div>
+            </div>
+            <div className="field"><label>Site</label><input className="input" value={site} onChange={e => setSite(e.target.value)} placeholder="www.exemplo.com.br" /></div>
+            <div className="field"><label>Pessoa de contato</label><input className="input" value={contact} onChange={e => setContact(e.target.value)} placeholder="Nome do responsável" /></div>
+          </div>
+          <div className="field"><label>Descrição curta</label><textarea className="input" rows={2} value={desc} onChange={e => setDesc(e.target.value)} placeholder="Em uma frase, o que a marca faz." /></div>
+          <div className="field"><label>Boilerplate <span className="muted" style={{ fontWeight: 400 }}>· "sobre a empresa"</span></label><textarea className="input" rows={3} value={boiler} onChange={e => setBoiler(e.target.value)} placeholder={`A ${name || "marca"} é referência em ${segment.toLowerCase()}.`} /></div>
           <div className="field" style={{ marginBottom: 4 }}>
             <label>Cor de identificação</label>
             <div className="nb-colors">
               {BRAND_COLORS.map(c => (
-                <button key={c} className={`nb-color${color === c ? " on" : ""}`}
-                  style={{ background: c }} onClick={() => setColor(c)} type="button">
+                <button key={c} className={`nb-color${color === c ? " on" : ""}`} style={{ background: c }} onClick={() => setColor(c)} type="button">
                   {color === c && <Check size={14} />}
                 </button>
               ))}
             </div>
           </div>
         </div>
-        <div className="m-foot">
-          <button className="btn btn-quiet btn-sm" onClick={onClose}>Cancelar</button>
-          <button className="btn btn-primary btn-sm" disabled={!name.trim() || saving} onClick={submit}>
-            <Check size={15} /> {saving ? "Criando…" : "Criar marca"}
-          </button>
+        {err && <p style={{ color: "var(--red,#c0392b)", fontSize: 13, margin: "0 24px 12px", fontWeight: 500 }}>{err}</p>}
+        <div className="m-foot" style={{ justifyContent: isEdit ? "space-between" : "flex-end" }}>
+          {isEdit && (
+            <button className="btn btn-quiet btn-sm" style={{ color: "var(--red,#c0392b)" }} onClick={deleteBrand} disabled={deleting}>
+              {deleting ? "Excluindo…" : <><Trash2 size={14} /> Excluir marca</>}
+            </button>
+          )}
+          <div className="row" style={{ gap: 8 }}>
+            <button className="btn btn-quiet btn-sm" onClick={onClose}>Cancelar</button>
+            <button className="btn btn-primary btn-sm" disabled={!name.trim() || saving} onClick={save}>
+              <Check size={15} /> {saving ? "Salvando…" : isEdit ? "Salvar alterações" : "Criar marca"}
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -541,88 +648,29 @@ function NewBrandModal({ onClose, onCreate }: { onClose: () => void; onCreate: (
 }
 
 function MarcasPanel({ onToast }: { onToast: (m: string) => void }) {
-  const [brands, setBrands] = useState<Brand[]>([]);
+  const [brands,  setBrands]  = useState<Brand[]>([]);
   const [loading, setLoading] = useState(true);
-  const [brandId, setBrandId] = useState<string>("");
+  const [editing, setEditing] = useState<Brand | null>(null);
   const [showNew, setShowNew] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-  const [saveStatus, setSaveStatus] = useState<{ ok: boolean; msg: string } | null>(null);
-
-  // form state
-  const [name, setName] = useState("");
-  const [cnpj, setCnpj] = useState("");
-  const [site, setSite] = useState("");
-  const [segment, setSegment] = useState("");
-  const [boilerplate, setBoilerplate] = useState("");
 
   useEffect(() => {
     fetch("/api/brands")
       .then(r => r.json())
-      .then((data: unknown) => {
-        const arr = Array.isArray(data) ? (data as Brand[]) : [];
-        setBrands(arr);
-        if (arr.length > 0) setBrandId(arr[0].id);
-      })
+      .then((data: unknown) => setBrands(Array.isArray(data) ? (data as Brand[]) : []))
       .catch(() => setBrands([]))
       .finally(() => setLoading(false));
   }, []);
 
-  const brand = brands.find(b => b.id === brandId) ?? null;
-
-  useEffect(() => {
-    if (!brand) return;
-    setName(brand.name);
-    setCnpj(brand.cnpj ?? "");
-    setSite(brand.site ?? "");
-    setSegment(brand.segment ?? "");
-    setBoilerplate(brand.boilerplate ?? "");
-  }, [brand]);
-
-  async function handleSave() {
-    if (!brandId) {
-      setSaveStatus({ ok: false, msg: "Nenhuma marca selecionada." });
-      return;
-    }
-    setSaving(true);
-    setSaveStatus(null);
-    try {
-      const res = await fetch(`/api/brands/${brandId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, cnpj, site, segment, boilerplate }),
-      });
-      const text = await res.text();
-      if (!res.ok) {
-        setSaveStatus({ ok: false, msg: `Erro ${res.status}: ${text}` });
-        return;
-      }
-      try {
-        const updated = JSON.parse(text) as Brand;
-        setBrands(prev => prev.map(b => b.id === brandId ? { ...b, ...updated } : b));
-      } catch { /* ignore parse error — data was saved */ }
-      setSaveStatus({ ok: true, msg: "Alterações salvas com sucesso." });
-      onToast("Marca atualizada");
-    } catch (e) {
-      setSaveStatus({ ok: false, msg: `Falha de conexão: ${String(e)}` });
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  async function handleDelete() {
-    if (!brandId || !confirm(`Excluir a marca "${brand?.name}"? Esta ação não pode ser desfeita.`)) return;
-    setDeleting(true);
-    try {
-      await fetch(`/api/brands/${brandId}`, { method: "DELETE" });
-      const remaining = brands.filter(b => b.id !== brandId);
-      setBrands(remaining);
-      setBrandId(remaining[0]?.id ?? "");
+  function handleSaved(b: Brand) {
+    if (b.id.startsWith("__deleted__")) {
+      setBrands(prev => prev.filter(x => x.id !== b.id.replace("__deleted__", "")));
       onToast("Marca excluída");
-    } catch {
-      onToast("Erro ao excluir marca");
-    } finally {
-      setDeleting(false);
+    } else if (brands.find(x => x.id === b.id)) {
+      setBrands(prev => prev.map(x => x.id === b.id ? b : x));
+      onToast("Marca atualizada");
+    } else {
+      setBrands(prev => [...prev, b]);
+      onToast(`Marca "${b.name}" criada`);
     }
   }
 
@@ -630,127 +678,48 @@ function MarcasPanel({ onToast }: { onToast: (m: string) => void }) {
 
   return (
     <div className="set-panel">
-      <PanelHead title="Configurações da <em>marca</em>" desc="Dados que abastecem os releases desta marca."
-        action={
-          <div className="row" style={{ gap: 10 }}>
-            {brands.length > 0 && (
-              <div className="select-wrap" style={{ width: 200 }}>
-                <select className="input" value={brandId} onChange={e => setBrandId(e.target.value)}>
-                  {brands.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-                </select>
-                <ChevronDown size={16} />
-              </div>
-            )}
-            <button className="btn btn-primary" onClick={() => setShowNew(true)}><Plus size={16} /> Nova marca</button>
-          </div>
-        } />
+      <PanelHead title="Suas <em>marcas</em>" desc="Clique em uma marca para editar seus dados."
+        action={<button className="btn btn-primary" onClick={() => setShowNew(true)}><Plus size={16} /> Nova marca</button>} />
 
-      {brands.length === 0 ? (
-        <div className="card card-pad">
-          <p className="muted" style={{ fontSize: 14 }}>Nenhuma marca cadastrada. Crie sua primeira marca para começar.</p>
-        </div>
-      ) : brand ? (
-        <>
-          <div className="card">
-            <div className="card-head"><h3>Identidade</h3></div>
-            <div className="card-pad">
-              <div className="profile-top">
-                <div style={{ width: 64, height: 64, borderRadius: 12, background: brand.color ?? "#1A1A1A", display: "grid", placeItems: "center", color: "#fff", fontFamily: "var(--mono)", fontWeight: 700, fontSize: 22, flexShrink: 0 }}>
-                  {getInitials(brand.name)}
-                </div>
-                <div>
-                  <div className="row" style={{ gap: 10 }}>
-                    <button className="btn btn-ghost btn-sm"><Upload size={15} /> Enviar logo</button>
-                    <button className="btn btn-quiet btn-sm">Remover</button>
-                  </div>
-                  <p className="muted" style={{ fontSize: 12.5, margin: "8px 0 0" }}>PNG ou SVG com fundo transparente, mín. 256×256.</p>
-                </div>
-              </div>
-            </div>
+      <div className="card">
+        {brands.length === 0 ? (
+          <div className="card-pad" style={{ textAlign: "center", padding: "40px 24px" }}>
+            <Building2 size={32} style={{ color: "var(--stone)", margin: "0 auto 12px" }} />
+            <p style={{ fontSize: 14, color: "var(--stone)", margin: 0 }}>Nenhuma marca cadastrada ainda.</p>
           </div>
+        ) : (
+          <table className="tbl">
+            <thead>
+              <tr>
+                <th style={{ width: "45%" }}>Marca</th>
+                <th>Segmento</th>
+                <th>Site</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {brands.map(b => (
+                <tr key={b.id} style={{ cursor: "pointer" }} onClick={() => setEditing(b)}>
+                  <td className="title-cell" style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <BrandAv name={b.name} color={b.color} logoUrl={b.logoUrl} size={32} />
+                    <span style={{ fontWeight: 600 }}>{b.name}</span>
+                  </td>
+                  <td className="muted">{b.segment ?? "—"}</td>
+                  <td className="muted" style={{ fontSize: 13 }}>{b.site ?? "—"}</td>
+                  <td style={{ textAlign: "right" }}>
+                    <button className="btn btn-quiet btn-sm" onClick={e => { e.stopPropagation(); setEditing(b); }}>
+                      Editar
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
 
-          <div className="card" key={`inst-${brandId}`} style={{ marginTop: 16 }}>
-            <div className="card-head"><h3>Dados institucionais</h3></div>
-            <div className="card-pad">
-              <div className="set-grid2">
-                <div className="field"><label>Nome da marca</label><input className="input" value={name} onChange={e => setName(e.target.value)} /></div>
-                <div className="field"><label>CNPJ</label><input className="input" value={cnpj} onChange={e => setCnpj(e.target.value)} placeholder="12.345.678/0001-90" /></div>
-                <div className="field"><label>Site</label><input className="input" value={site} onChange={e => setSite(e.target.value)} placeholder="www.exemplo.com.br" /></div>
-                <div className="field">
-                  <label>Setor</label>
-                  <div className="select-wrap">
-                    <select className="input" value={segment} onChange={e => setSegment(e.target.value)}>
-                      {BRAND_SEGMENTS.map(s => <option key={s}>{s}</option>)}
-                    </select>
-                    <ChevronDown size={16} />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="card" key={`boiler-${brandId}`} style={{ marginTop: 16 }}>
-            <div className="card-head"><h3>Boilerplate <span className="muted" style={{ fontWeight: 400, fontSize: 13 }}>&middot; &ldquo;sobre a empresa&rdquo;</span></h3></div>
-            <div className="card-pad">
-              <div className="field" style={{ margin: 0 }}>
-                <label>Texto padrão incluído ao final dos releases</label>
-                <textarea className="input" rows={4} value={boilerplate} onChange={e => setBoilerplate(e.target.value)}
-                  placeholder={`A ${brand.name} é referência no segmento de ${(brand.segment ?? "").toLowerCase()}, com atuação nacional.`} />
-                <p className="muted" style={{ fontSize: 12.5, margin: "8px 0 0" }}>Aparece automaticamente como último parágrafo de cada release desta marca.</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="card" style={{ marginTop: 16 }}>
-            <div className="card-pad set-inline-row" style={{ padding: 22 }}>
-              <div className="row" style={{ gap: 13 }}>
-                <div style={{ width: 40, height: 40, borderRadius: 10, background: "var(--amber-soft)", display: "grid", placeItems: "center", flexShrink: 0 }}>
-                  <Sparkles size={19} style={{ color: "var(--coral-ink)" }} />
-                </div>
-                <div>
-                  <div className="sir-title">Tom de voz{" "}
-                    <span className="role-badge" style={{ color: brand.toneConfig ? "var(--green)" : "var(--stone)", background: brand.toneConfig ? "var(--green-soft)" : "var(--cream)" }}>
-                      {brand.toneConfig ? "Configurado" : "Pendente"}
-                    </span>
-                  </div>
-                  <div className="sir-sub">Atributos, eixos e vocabulário que guiam a escrita da marca.</div>
-                </div>
-              </div>
-              <button className="btn btn-ghost btn-sm">{brand.toneConfig ? "Editar tom de voz" : "Configurar"} <ArrowRight size={15} /></button>
-            </div>
-          </div>
-
-          {saveStatus && (
-            <div style={{
-              padding: "10px 16px", borderRadius: 8, marginTop: 12, fontSize: 13, fontWeight: 500,
-              background: saveStatus.ok ? "#e3f2e9" : "#fde8e8",
-              color: saveStatus.ok ? "#2F8A5B" : "#c0392b",
-              border: `1px solid ${saveStatus.ok ? "#b8e0cb" : "#f5c6c6"}`,
-            }}>
-              {saveStatus.ok ? "✓ " : "✗ "}{saveStatus.msg}
-            </div>
-          )}
-          <div className="set-foot">
-            <button className="btn btn-quiet" style={{ color: "var(--red)" }} onClick={handleDelete} disabled={deleting}>
-              {deleting ? "Excluindo…" : "Excluir marca"}
-            </button>
-            <button className="btn btn-primary" onClick={handleSave} disabled={saving}>
-              {saving ? "Salvando…" : "Salvar alterações"}
-            </button>
-          </div>
-        </>
-      ) : null}
-
-      {showNew && (
-        <NewBrandModal
-          onClose={() => setShowNew(false)}
-          onCreate={b => {
-            setBrands(prev => [...prev, b]);
-            setBrandId(b.id);
-            onToast(`Marca "${b.name}" criada`);
-          }}
-        />
-      )}
+      {editing && <BrandFormModal brand={editing} onClose={() => setEditing(null)} onSaved={b => { handleSaved(b); setEditing(null); }} />}
+      {showNew  && <BrandFormModal onClose={() => setShowNew(false)} onSaved={b => { handleSaved(b); setShowNew(false); }} />}
     </div>
   );
 }
