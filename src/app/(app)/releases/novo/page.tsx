@@ -60,7 +60,7 @@ const STEPS = ["Marca", "Conteúdo", "Veículos & créditos", "Revisão"];
 
 // ── Passo 0: Marca ────────────────────────────────────────────────────────────
 
-type Brand = { id: string; name: string; segment: string | null; color: string | null; releases?: number; tone?: boolean };
+type Brand = { id: string; name: string; segment: string | null; color: string | null; logoUrl?: string | null; releases?: number; tone?: boolean };
 
 function NewBrandModal({ onClose, onCreate }: { onClose: () => void; onCreate: (b: Brand) => void }) {
   const [name, setName] = useState("");
@@ -181,7 +181,10 @@ function StepBrand({ selected, onSelect, brands, onAddBrand }: {
               onClick={() => onSelect(b)}
             >
               <div className="thumb" style={{ background: b.color ?? "#1A1A1A", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <span style={{ fontFamily: "var(--mono)", fontWeight: 700, fontSize: 32, color: "rgba(255,255,255,0.9)", letterSpacing: "-0.02em" }}>{initials(b.name)}</span>
+                {b.logoUrl
+                  ? <img src={b.logoUrl} alt={b.name} style={{ width: "60%", height: "60%", objectFit: "contain" }} />
+                  : <span style={{ fontFamily: "var(--mono)", fontWeight: 700, fontSize: 32, color: "rgba(255,255,255,0.9)", letterSpacing: "-0.02em" }}>{initials(b.name)}</span>
+                }
                 {selected?.id === b.id && (
                   <span style={{ position: "absolute", top: 10, right: 10, background: "var(--coral)", borderRadius: 99, width: 24, height: 24, display: "grid", placeItems: "center" }}>
                     <Check size={13} color="#fff" />
@@ -235,7 +238,9 @@ function StepBrand({ selected, onSelect, brands, onAddBrand }: {
                   onClick={() => onSelect(b)}
                 >
                   <td className="title-cell" style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <div style={{ width: 28, height: 28, borderRadius: 8, background: b.color ?? "#1A1A1A", display: "grid", placeItems: "center", fontFamily: "var(--mono)", fontWeight: 700, fontSize: 11, color: "#fff", flex: "none" }}>{initials(b.name)}</div>
+                    <div style={{ width: 28, height: 28, borderRadius: 8, background: b.color ?? "#1A1A1A", display: "grid", placeItems: "center", fontFamily: "var(--mono)", fontWeight: 700, fontSize: 11, color: "#fff", flex: "none", overflow: "hidden" }}>
+                      {b.logoUrl ? <img src={b.logoUrl} alt={b.name} style={{ width: "100%", height: "100%", objectFit: "contain" }} /> : initials(b.name)}
+                    </div>
                     {b.name}
                     {selected?.id === b.id && <Check size={14} color="var(--coral)" style={{ marginLeft: "auto" }} />}
                   </td>
@@ -647,7 +652,9 @@ function StepReview({ content, selected, when, setWhen, brand }: {
         <div className="card-pad">
           {brand && (
             <div className="review-brand">
-              <span className="bc-av" style={{ background: brand.color ?? "#1A1A1A" }}>{initials(brand.name)}</span>
+              <span className="bc-av" style={{ background: brand.color ?? "#1A1A1A", overflow: "hidden", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
+                {brand.logoUrl ? <img src={brand.logoUrl} alt={brand.name} style={{ width: "100%", height: "100%", objectFit: "contain" }} /> : initials(brand.name)}
+              </span>
               <div className="bc-meta">
                 <span className="bc-lbl">Marca</span>
                 <span className="bc-nm">{brand.name}</span>
