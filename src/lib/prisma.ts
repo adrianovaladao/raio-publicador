@@ -6,7 +6,9 @@ const g = globalThis as any;
 
 export function getPrisma() {
   if (!g._prisma) {
-    g._prisma = new PrismaClient().$extends(withAccelerate());
+    g._prisma = new PrismaClient({
+      datasourceUrl: process.env.DATABASE_URL,
+    }).$extends(withAccelerate());
   }
   return g._prisma;
 }
