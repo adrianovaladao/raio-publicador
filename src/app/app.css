@@ -776,7 +776,7 @@ select.input { appearance: none; -webkit-appearance: none; padding-right: 36px; 
    SELETOR DE MARCA — topbar (tema claro)
    ============================================================ */
 .tb-brandsel { position: relative; flex: none; }
-.tbb-btn { display: flex; align-items: center; gap: 9px; padding: 6px 10px 6px 7px; border-radius: 99px; background: var(--paper); border: 1px solid var(--line-2); color: var(--ink); transition: border-color .14s, background .14s; max-width: 240px; }
+.tbb-btn { display: flex; align-items: center; gap: 9px; padding: 6px 12px 6px 8px; border-radius: 10px; background: var(--paper); border: 1px solid var(--line-2); color: var(--ink); transition: border-color .14s, background .14s; max-width: 240px; }
 .tbb-btn:hover { border-color: var(--line-3); background: var(--cream); }
 .tbb-av { width: 30px; height: 30px; border-radius: 99px; flex: none; display: grid; place-items: center; font-family: var(--mono); font-weight: 700; font-size: 11px; color: #fff; }
 .tbb-meta { min-width: 0; line-height: 1.15; text-align: left; }
