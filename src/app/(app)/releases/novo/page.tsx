@@ -365,6 +365,20 @@ function MediaCard({ imageUrl, onChange }: { imageUrl?: string; onChange: (url: 
   async function handleFile(file: File) {
     if (!file.type.startsWith("image/")) { setErr("Apenas imagens JPG ou PNG."); return; }
     if (file.size > 5 * 1024 * 1024) { setErr("Arquivo muito grande (máx. 5 MB)."); return; }
+    // Valida dimensões antes de fazer upload
+    const dims = await new Promise<{ w: number; h: number }>(res => {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => { res({ w: img.naturalWidth, h: img.naturalHeight }); URL.revokeObjectURL(url); };
+      img.onerror = () => { res({ w: 0, h: 0 }); URL.revokeObjectURL(url); };
+      img.src = url;
+    });
+    if (dims.w < 1200 || dims.h < 630) {
+      setErr(`Imagem muito pequena (${dims.w}×${dims.h}px). Mínimo: 1200×630px.`); return;
+    }
+    if (dims.w > 3600 || dims.h > 1890) {
+      setErr(`Imagem muito grande (${dims.w}×${dims.h}px). Máximo: 3600×1890px.`); return;
+    }
     setErr(""); setUploading(true);
     try {
       const form = new FormData();
