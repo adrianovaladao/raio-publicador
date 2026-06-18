@@ -5,7 +5,7 @@ import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import {
   TrendingUp, TrendingDown, Send, Eye, Newspaper, Zap,
-  ChevronDown, Check, Building2, X, Plus, ImageIcon,
+  ChevronDown, Check, Building2, X, Plus, ImageIcon, Upload,
 } from "lucide-react";
 import Image from "next/image";
 import { extractDominantColor, extractDominantColorFromUrl } from "@/lib/color";
@@ -154,22 +154,20 @@ function EditBrandModal({ brand, onClose, onSave }: { brand: Brand; onClose: () 
           </div>
           <div className="field">
             <label>Logotipo</label>
-            <button type="button" className="btn btn-quiet btn-sm" onClick={() => fileRef.current?.click()} style={{ width: "100%", justifyContent: "flex-start", gap: 8 }}>
-              <ImageIcon size={15} />
-              {logoPreview ? "Trocar imagem" : "Adicionar logo (PNG, SVG, JPG)"}
-            </button>
-            {logoPreview && (
-              <button type="button" style={{ background: "none", border: "none", fontSize: 12, color: "var(--red, #c0392b)", cursor: "pointer", marginTop: 4, padding: 0 }}
-                onClick={() => { setLogoPreview(""); setLogoFile(null); setLogoUrl(""); }}>
-                Remover logo
+            <div className="row" style={{ gap: 8 }}>
+              <button type="button" className="btn btn-quiet btn-sm" onClick={() => fileRef.current?.click()} style={{ gap: 7 }}>
+                <Upload size={14} /> {logoPreview ? "Trocar imagem" : "Adicionar logo"}
               </button>
-            )}
-          </div>
-          <div className="field">
-            <label>Nome da marca / cliente</label>
-            <input className="input" value={name} onChange={e => setName(e.target.value)} autoFocus />
+              {logoPreview && (
+                <button type="button" className="btn btn-quiet btn-sm" style={{ color: "var(--red,#c0392b)" }}
+                  onClick={() => { setLogoPreview(""); setLogoFile(null); setLogoUrl(""); }}>
+                  Remover
+                </button>
+              )}
+            </div>
           </div>
           <div className="nb-grid2">
+            <div className="field"><label>Nome da marca / cliente</label><input className="input" value={name} onChange={e => setName(e.target.value)} autoFocus /></div>
             <div className="field">
               <label>Segmento / setor</label>
               <div className="select-wrap">
@@ -179,19 +177,10 @@ function EditBrandModal({ brand, onClose, onSave }: { brand: Brand; onClose: () 
                 <ChevronDown size={16} />
               </div>
             </div>
-            <div className="field">
-              <label>Site</label>
-              <input className="input" value={site} onChange={e => setSite(e.target.value)} placeholder="www.exemplo.com.br" />
-            </div>
+            <div className="field"><label>Site</label><input className="input" value={site} onChange={e => setSite(e.target.value)} placeholder="www.exemplo.com.br" /></div>
+            <div className="field"><label>Pessoa de contato</label><input className="input" value={contact} onChange={e => setContact(e.target.value)} placeholder="Nome do responsável" /></div>
           </div>
-          <div className="field">
-            <label>Pessoa de contato / responsável</label>
-            <input className="input" value={contact} onChange={e => setContact(e.target.value)} placeholder="Nome do contato" />
-          </div>
-          <div className="field">
-            <label>Descrição curta</label>
-            <textarea className="input" rows={2} value={desc} onChange={e => setDesc(e.target.value)} placeholder="Em uma frase, o que a marca faz." />
-          </div>
+          <div className="field"><label>Descrição curta</label><textarea className="input" rows={2} value={desc} onChange={e => setDesc(e.target.value)} placeholder="Em uma frase, o que a marca faz." /></div>
           <div className="field" style={{ marginBottom: 4 }}>
             <label>Cor de identificação</label>
             <div className="nb-colors">
