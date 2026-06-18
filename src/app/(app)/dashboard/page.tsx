@@ -507,7 +507,7 @@ export default function DashboardPage() {
             <div className="card" style={{ marginBottom: 32 }}>
               <div className="card-head">
                 <h3>Suas <em>marcas</em></h3>
-                <a href="/configuracoes" className="link">Gerenciar</a>
+                <a href="/configuracoes?tab=marcas" className="link">Gerenciar</a>
               </div>
               <table className="tbl">
                 <thead>
