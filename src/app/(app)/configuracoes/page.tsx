@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import Image from "next/image";
+import { extractDominantColor } from "@/lib/color";
 import {
   UserCircle, Settings2, Users, Building2, CreditCard,
   Plus, ChevronDown, Camera, Lock,
@@ -526,11 +527,13 @@ function BrandFormModal({ brand, onClose, onSaved }: {
     return () => window.removeEventListener("keydown", fn);
   }, [onClose]);
 
-  function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
     setLogoFile(file);
     setLogoPreview(URL.createObjectURL(file));
+    const dominant = await extractDominantColor(file);
+    setColor(dominant);
   }
 
   async function save() {

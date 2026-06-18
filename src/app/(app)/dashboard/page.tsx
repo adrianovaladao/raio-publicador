@@ -8,6 +8,7 @@ import {
   ChevronDown, Check, Building2, X, Plus, ImageIcon,
 } from "lucide-react";
 import Image from "next/image";
+import { extractDominantColor } from "@/lib/color";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -91,11 +92,13 @@ function EditBrandModal({ brand, onClose, onSave }: { brand: Brand; onClose: () 
     return () => window.removeEventListener("keydown", fn);
   }, [onClose]);
 
-  function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
     setLogoFile(file);
     setLogoPreview(URL.createObjectURL(file));
+    const dominant = await extractDominantColor(file);
+    setColor(dominant);
   }
 
   async function save() {
@@ -225,11 +228,13 @@ function NewBrandModal({ onClose, onSave }: { onClose: () => void; onSave: () =>
     return () => window.removeEventListener("keydown", fn);
   }, [onClose]);
 
-  function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
     setLogoFile(file);
     setLogoPreview(URL.createObjectURL(file));
+    const dominant = await extractDominantColor(file);
+    setColor(dominant);
   }
 
   async function submit() {
