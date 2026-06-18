@@ -10,7 +10,8 @@ interface Release {
   status: string;
   createdAt: string;
   authorId: string;
-  brand: { name: string; color: string } | null;
+  imageUrl?: string | null;
+  brand: { name: string; color: string | null } | null;
 }
 
 interface ReleaseRow {
@@ -20,6 +21,8 @@ interface ReleaseRow {
   author: string;
   status: string;
   date: string;
+  imageUrl?: string | null;
+  brandColor?: string | null;
 }
 
 const STATUS_FILTERS = [
@@ -66,6 +69,8 @@ export default function ReleasesPage() {
           author: "Você",
           status: r.status.toLowerCase(),
           date: r.createdAt,
+          imageUrl: r.imageUrl,
+          brandColor: r.brand?.color,
         }));
         setReleases(rows);
       })
@@ -159,11 +164,15 @@ export default function ReleasesPage() {
           <div className="lib-grid">
             {list.map(r => (
               <div className="card lib-card" key={r.id}>
-                <div className="thumb">
-                  <span className="cat">
+                <div className="thumb" style={r.imageUrl ? {} : { background: r.brandColor ?? undefined }}>
+                  {r.imageUrl && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={r.imageUrl} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+                  )}
+                  <span className="cat" style={{ position: "relative", zIndex: 1 }}>
                     <span className="pill" style={{ background: "var(--paper)", borderColor: "transparent" }}>{r.cat}</span>
                   </span>
-                  <span className="tag-ph">{r.cat.toLowerCase()}</span>
+                  {!r.imageUrl && <span className="tag-ph">{r.cat.toLowerCase()}</span>}
                 </div>
                 <div className="body">
                   <h4>{r.title.length > 80 ? r.title.slice(0, 80) + "…" : r.title}</h4>

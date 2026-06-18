@@ -354,7 +354,68 @@ function StepBrand({ selected, onSelect, brands, onAddBrand }: {
 
 // ── Passo 1: Conteúdo ────────────────────────────────────────────────────────
 
-interface Content { title: string; subtitle: string; body: string; cat: string; author: string }
+interface Content { title: string; subtitle: string; body: string; cat: string; author: string; imageUrl?: string }
+
+function MediaCard({ imageUrl, onChange }: { imageUrl?: string; onChange: (url: string | undefined) => void }) {
+  const [uploading, setUploading] = useState(false);
+  const [err, setErr] = useState("");
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [dragging, setDragging] = useState(false);
+
+  async function handleFile(file: File) {
+    if (!file.type.startsWith("image/")) { setErr("Apenas imagens JPG ou PNG."); return; }
+    if (file.size > 5 * 1024 * 1024) { setErr("Arquivo muito grande (máx. 5 MB)."); return; }
+    setErr(""); setUploading(true);
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      const res  = await fetch("/api/upload", { method: "POST", body: form });
+      const text = await res.text();
+      let data: { url?: string; error?: string } = {};
+      try { data = JSON.parse(text); } catch { /* ignore */ }
+      if (!res.ok || !data.url) { setErr(data.error ?? "Falha no upload."); return; }
+      onChange(data.url);
+    } catch { setErr("Falha de conexão."); }
+    finally { setUploading(false); }
+  }
+
+  return (
+    <div className="card side-card">
+      <div className="card-head"><h3>Mídia</h3></div>
+      <div className="sc-body">
+        <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" style={{ display: "none" }}
+          onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = ""; }} />
+        {imageUrl ? (
+          <div style={{ position: "relative" }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={imageUrl} alt="Capa do release" style={{ width: "100%", borderRadius: 8, display: "block", maxHeight: 180, objectFit: "cover" }} />
+            <button type="button" onClick={() => onChange(undefined)}
+              style={{ position: "absolute", top: 6, right: 6, background: "rgba(0,0,0,0.55)", border: "none", borderRadius: 6, color: "#fff", cursor: "pointer", padding: "4px 8px", fontSize: 12 }}>
+              Remover
+            </button>
+            <button type="button" className="btn btn-quiet btn-sm" style={{ marginTop: 8, width: "100%" }} onClick={() => fileRef.current?.click()}>
+              Trocar imagem
+            </button>
+          </div>
+        ) : (
+          <div
+            className={`attach${dragging ? " drag-over" : ""}`}
+            onClick={() => fileRef.current?.click()}
+            onDragOver={e => { e.preventDefault(); setDragging(true); }}
+            onDragLeave={() => setDragging(false)}
+            onDrop={e => { e.preventDefault(); setDragging(false); const f = e.dataTransfer.files[0]; if (f) handleFile(f); }}
+            style={{ cursor: "pointer" }}
+          >
+            {uploading
+              ? <><ImageIcon size={22} /><div className="t">Enviando…</div></>
+              : <><ImageIcon size={22} /><div className="t">Arraste imagens aqui</div><div className="h">JPG ou PNG · até 5 MB</div></>}
+          </div>
+        )}
+        {err && <p style={{ color: "var(--red,#c0392b)", fontSize: 12, margin: "6px 0 0" }}>{err}</p>}
+      </div>
+    </div>
+  );
+}
 
 function StepContent({ content, setContent }: { content: Content; setContent: (c: Content) => void }) {
   const up = (k: keyof Content, v: string) => setContent({ ...content, [k]: v });
@@ -420,16 +481,7 @@ function StepContent({ content, setContent }: { content: Content; setContent: (c
           </div>
         </div>
 
-        <div className="card side-card">
-          <div className="card-head"><h3>Mídia</h3></div>
-          <div className="sc-body">
-            <div className="attach">
-              <ImageIcon size={22} />
-              <div className="t">Arraste imagens aqui</div>
-              <div className="h">JPG ou PNG · até 5 MB cada</div>
-            </div>
-          </div>
-        </div>
+        <MediaCard imageUrl={content.imageUrl} onChange={url => up("imageUrl", url ?? "")} />
       </div>
     </div>
   );
@@ -950,6 +1002,7 @@ export default function NovoReleasePage() {
                       scheduledAt,
                       brandId: brand.id,
                       creditsUsed: 0,
+                      imageUrl: content.imageUrl || null,
                     }),
                   });
                   setDone(true);

@@ -39,6 +39,7 @@ model Release {
   scheduledAt DateTime?
   publishedAt DateTime?
   creditsUsed Int           @default(0)
+  imageUrl    String?
   brandId     String
   authorId    String
   createdAt   DateTime      @default(now())
