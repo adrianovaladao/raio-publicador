@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import {
   TrendingUp, TrendingDown, Send, Eye, Newspaper, Zap,
-  ChevronDown, Check, Building2, X, Plus,
+  ChevronDown, Check, Building2, X, Plus, ImageIcon,
 } from "lucide-react";
+import Image from "next/image";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -18,6 +19,7 @@ interface Brand {
   site: string | null;
   contact: string | null;
   description: string | null;
+  logoUrl: string | null;
   releases: number;
 }
 
@@ -38,17 +40,47 @@ function getInitials(name: string | null | undefined) {
   return name.split(" ").filter(Boolean).slice(0, 2).map(w => w[0]).join("").toUpperCase();
 }
 
+function BrandAvatar({ name, color, logoUrl, size = 28 }: { name: string | null | undefined; color: string | null | undefined; logoUrl?: string | null; size?: number }) {
+  const bg = color ?? "#1A1A1A";
+  const r  = Math.round(size * 0.286); // ~8px for 28px
+  if (logoUrl) {
+    return (
+      <span style={{ width: size, height: size, borderRadius: r, overflow: "hidden", display: "inline-flex", alignItems: "center", justifyContent: "center", background: bg, flex: "none" }}>
+        <Image src={logoUrl} alt={name ?? ""} width={size} height={size} style={{ objectFit: "contain", width: "100%", height: "100%" }} />
+      </span>
+    );
+  }
+  return (
+    <span style={{ width: size, height: size, borderRadius: r, background: bg, display: "inline-flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--mono)", fontWeight: 700, fontSize: Math.round(size * 0.39), color: "#fff", flex: "none" }}>
+      {getInitials(name)}
+    </span>
+  );
+}
+
+async function uploadLogo(file: File): Promise<string> {
+  const form = new FormData();
+  form.append("file", file);
+  const res = await fetch("/api/upload", { method: "POST", body: form });
+  const data = await res.json() as { url?: string; error?: string };
+  if (!res.ok) throw new Error(data.error ?? `Erro ${res.status}`);
+  return data.url!;
+}
+
 // ── EditBrandModal ────────────────────────────────────────────────────────────
 
 function EditBrandModal({ brand, onClose, onSave }: { brand: Brand; onClose: () => void; onSave: () => void }) {
-  const [name, setName]       = useState(brand.name);
-  const [segment, setSegment] = useState(brand.segment ?? "Franquias");
-  const [site, setSite]       = useState(brand.site ?? "");
-  const [contact, setContact] = useState(brand.contact ?? "");
-  const [desc, setDesc]       = useState(brand.description ?? "");
-  const [color, setColor]     = useState(brand.color ?? BRAND_COLORS[7]);
-  const [saving, setSaving]   = useState(false);
-  const [err, setErr]         = useState("");
+  const [name, setName]         = useState(brand.name);
+  const [segment, setSegment]   = useState(brand.segment ?? "Franquias");
+  const [site, setSite]         = useState(brand.site ?? "");
+  const [contact, setContact]   = useState(brand.contact ?? "");
+  const [desc, setDesc]         = useState(brand.description ?? "");
+  const [color, setColor]       = useState(brand.color ?? BRAND_COLORS[7]);
+  const [logoUrl, setLogoUrl]   = useState(brand.logoUrl ?? "");
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState(brand.logoUrl ?? "");
+  const [saving, setSaving]     = useState(false);
+  const [err, setErr]           = useState("");
+  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const fn = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
@@ -56,13 +88,22 @@ function EditBrandModal({ brand, onClose, onSave }: { brand: Brand; onClose: () 
     return () => window.removeEventListener("keydown", fn);
   }, [onClose]);
 
+  function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setLogoFile(file);
+    setLogoPreview(URL.createObjectURL(file));
+  }
+
   async function save() {
     setSaving(true); setErr("");
     try {
+      let finalLogoUrl = logoUrl;
+      if (logoFile) finalLogoUrl = await uploadLogo(logoFile);
       const res = await fetch(`/api/brands/${brand.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), segment, color, site: site.trim() || null, contact: contact.trim() || null, description: desc.trim() || null }),
+        body: JSON.stringify({ name: name.trim(), segment, color, site: site.trim() || null, contact: contact.trim() || null, description: desc.trim() || null, logoUrl: finalLogoUrl || null }),
       });
       const text = await res.text();
       if (!res.ok) {
@@ -71,7 +112,7 @@ function EditBrandModal({ brand, onClose, onSave }: { brand: Brand; onClose: () 
         setErr(msg); return;
       }
       onSave(); onClose();
-    } catch { setErr("Falha de conexão. Tente novamente."); }
+    } catch (e) { setErr(e instanceof Error ? e.message : "Falha de conexão."); }
     finally { setSaving(false); }
   }
 
@@ -84,11 +125,31 @@ function EditBrandModal({ brand, onClose, onSave }: { brand: Brand; onClose: () 
         </div>
         <div className="m-body">
           <div className="nb-preview">
-            <span className="nb-av" style={{ background: color }}>{getInitials(name)}</span>
+            <div style={{ position: "relative", cursor: "pointer" }} onClick={() => fileRef.current?.click()} title="Trocar logo">
+              <BrandAvatar name={name} color={color} logoUrl={logoPreview || null} size={40} />
+              <span style={{ position: "absolute", inset: 0, borderRadius: 6, background: "rgba(0,0,0,0.45)", display: "flex", alignItems: "center", justifyContent: "center", opacity: 0, transition: "opacity .15s" }}
+                onMouseEnter={e => (e.currentTarget.style.opacity = "1")} onMouseLeave={e => (e.currentTarget.style.opacity = "0")}>
+                <ImageIcon size={14} color="#fff" />
+              </span>
+            </div>
             <div>
               <div className="nb-pv-nm">{name.trim() || "Nome da marca"}</div>
               <div className="nb-pv-sg">{segment}{site.trim() ? ` · ${site.trim()}` : ""}</div>
             </div>
+            <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleLogoChange} />
+          </div>
+          <div className="field">
+            <label>Logotipo</label>
+            <button type="button" className="btn btn-quiet btn-sm" onClick={() => fileRef.current?.click()} style={{ width: "100%", justifyContent: "flex-start", gap: 8 }}>
+              <ImageIcon size={15} />
+              {logoPreview ? "Trocar imagem" : "Adicionar logo (PNG, SVG, JPG)"}
+            </button>
+            {logoPreview && (
+              <button type="button" style={{ background: "none", border: "none", fontSize: 12, color: "var(--red, #c0392b)", cursor: "pointer", marginTop: 4, padding: 0 }}
+                onClick={() => { setLogoPreview(""); setLogoFile(null); setLogoUrl(""); }}>
+                Remover logo
+              </button>
+            )}
           </div>
           <div className="field">
             <label>Nome da marca / cliente</label>
@@ -143,14 +204,17 @@ function EditBrandModal({ brand, onClose, onSave }: { brand: Brand; onClose: () 
 // ── NewBrandModal ─────────────────────────────────────────────────────────────
 
 function NewBrandModal({ onClose, onSave }: { onClose: () => void; onSave: () => void }) {
-  const [name, setName]       = useState("");
-  const [segment, setSegment] = useState("Franquias");
-  const [site, setSite]       = useState("");
-  const [contact, setContact] = useState("");
-  const [desc, setDesc]       = useState("");
-  const [color, setColor]     = useState(BRAND_COLORS[0]);
-  const [saving, setSaving]   = useState(false);
-  const [err, setErr]         = useState("");
+  const [name, setName]         = useState("");
+  const [segment, setSegment]   = useState("Franquias");
+  const [site, setSite]         = useState("");
+  const [contact, setContact]   = useState("");
+  const [desc, setDesc]         = useState("");
+  const [color, setColor]       = useState(BRAND_COLORS[0]);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState("");
+  const [saving, setSaving]     = useState(false);
+  const [err, setErr]           = useState("");
+  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const fn = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
@@ -158,13 +222,22 @@ function NewBrandModal({ onClose, onSave }: { onClose: () => void; onSave: () =>
     return () => window.removeEventListener("keydown", fn);
   }, [onClose]);
 
+  function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setLogoFile(file);
+    setLogoPreview(URL.createObjectURL(file));
+  }
+
   async function submit() {
     setSaving(true); setErr("");
     try {
+      let logoUrl: string | undefined;
+      if (logoFile) logoUrl = await uploadLogo(logoFile);
       const res = await fetch("/api/brands", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), segment, color, site: site.trim() || undefined, contact: contact.trim() || undefined, description: desc.trim() || undefined }),
+        body: JSON.stringify({ name: name.trim(), segment, color, site: site.trim() || undefined, contact: contact.trim() || undefined, description: desc.trim() || undefined, logoUrl }),
       });
       const text = await res.text();
       if (!res.ok) {
@@ -173,7 +246,7 @@ function NewBrandModal({ onClose, onSave }: { onClose: () => void; onSave: () =>
         setErr(msg); return;
       }
       onSave(); onClose();
-    } catch { setErr("Falha de conexão. Tente novamente."); }
+    } catch (e) { setErr(e instanceof Error ? e.message : "Falha de conexão."); }
     finally { setSaving(false); }
   }
 
@@ -185,11 +258,31 @@ function NewBrandModal({ onClose, onSave }: { onClose: () => void; onSave: () =>
         </div>
         <div className="m-body">
           <div className="nb-preview">
-            <span className="nb-av" style={{ background: color }}>{name.trim() ? getInitials(name) : "?"}</span>
+            <div style={{ position: "relative", cursor: "pointer" }} onClick={() => fileRef.current?.click()} title="Adicionar logo">
+              <BrandAvatar name={name || "?"} color={color} logoUrl={logoPreview || null} size={40} />
+              <span style={{ position: "absolute", inset: 0, borderRadius: 6, background: "rgba(0,0,0,0.45)", display: "flex", alignItems: "center", justifyContent: "center", opacity: 0, transition: "opacity .15s" }}
+                onMouseEnter={e => (e.currentTarget.style.opacity = "1")} onMouseLeave={e => (e.currentTarget.style.opacity = "0")}>
+                <ImageIcon size={14} color="#fff" />
+              </span>
+            </div>
             <div>
               <div className="nb-pv-nm">{name.trim() || "Nome da marca"}</div>
               <div className="nb-pv-sg">{segment}{site.trim() ? ` · ${site.trim()}` : ""}</div>
             </div>
+            <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleLogoChange} />
+          </div>
+          <div className="field">
+            <label>Logotipo</label>
+            <button type="button" className="btn btn-quiet btn-sm" onClick={() => fileRef.current?.click()} style={{ width: "100%", justifyContent: "flex-start", gap: 8 }}>
+              <ImageIcon size={15} />
+              {logoPreview ? "Trocar imagem" : "Adicionar logo (PNG, SVG, JPG)"}
+            </button>
+            {logoPreview && (
+              <button type="button" style={{ background: "none", border: "none", fontSize: 12, color: "var(--red, #c0392b)", cursor: "pointer", marginTop: 4, padding: 0 }}
+                onClick={() => { setLogoPreview(""); setLogoFile(null); }}>
+                Remover logo
+              </button>
+            )}
           </div>
           <div className="field">
             <label>Nome da marca / cliente</label>
@@ -253,7 +346,7 @@ function DashBrandSwitcher({ brands, onNewBrand }: { brands: Brand[]; onNewBrand
   return (
     <div className="tb-brandsel" style={{ position: "relative" }}>
       <button className="tbb-btn" onClick={() => setOpen(o => !o)}>
-        <span className="tbb-av" style={{ background: active.color ?? "#1A1A1A" }}>{getInitials(active.name)}</span>
+        <BrandAvatar name={active.name} color={active.color} logoUrl={active.logoUrl} size={26} />
         <span className="tbb-meta">
           <span className="tbb-lbl">Marca ativa</span>
           <span className="tbb-nm">{active.name}</span>
@@ -268,7 +361,7 @@ function DashBrandSwitcher({ brands, onNewBrand }: { brands: Brand[]; onNewBrand
             {brands.map((b, i) => (
               <button key={b.id} className={`tbb-opt${i === activeIdx ? " on" : ""}`}
                 onClick={() => { setActiveIdx(i); setOpen(false); }}>
-                <span className="tbb-av" style={{ background: b.color ?? "#1A1A1A" }}>{getInitials(b.name)}</span>
+                <BrandAvatar name={b.name} color={b.color} logoUrl={b.logoUrl} size={26} />
                 <span className="tbb-opt-meta">
                   <span className="tbb-nm">{b.name}</span>
                   <span className="tbb-sg">{b.segment ?? ""}</span>
@@ -416,9 +509,7 @@ export default function DashboardPage() {
                       style={{ cursor: "pointer" }}
                       className="tbl-row-hover">
                       <td className="title-cell" style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        <div style={{ width: 28, height: 28, borderRadius: 8, background: b.color ?? "#1A1A1A", display: "grid", placeItems: "center", fontFamily: "var(--mono)", fontWeight: 700, fontSize: 11, color: "#fff", flex: "none" }}>
-                          {getInitials(b.name)}
-                        </div>
+                        <BrandAvatar name={b.name} color={b.color} logoUrl={b.logoUrl} size={28} />
                         {b.name}
                       </td>
                       <td className="muted">{b.segment ?? "—"}</td>
