@@ -547,6 +547,7 @@ function MarcasPanel({ onToast }: { onToast: (m: string) => void }) {
   const [showNew, setShowNew] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<{ ok: boolean; msg: string } | null>(null);
 
   // form state
   const [name, setName] = useState("");
@@ -579,23 +580,31 @@ function MarcasPanel({ onToast }: { onToast: (m: string) => void }) {
   }, [brand]);
 
   async function handleSave() {
-    if (!brandId) return;
+    if (!brandId) {
+      setSaveStatus({ ok: false, msg: "Nenhuma marca selecionada." });
+      return;
+    }
     setSaving(true);
+    setSaveStatus(null);
     try {
       const res = await fetch(`/api/brands/${brandId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, cnpj, site, segment, boilerplate }),
       });
-      const data = await res.json();
+      const text = await res.text();
       if (!res.ok) {
-        onToast(`Erro ao salvar: ${data?.error ?? res.status}`);
+        setSaveStatus({ ok: false, msg: `Erro ${res.status}: ${text}` });
         return;
       }
-      setBrands(prev => prev.map(b => b.id === brandId ? { ...b, ...data } : b));
-      onToast("Marca atualizada com sucesso");
+      try {
+        const updated = JSON.parse(text) as Brand;
+        setBrands(prev => prev.map(b => b.id === brandId ? { ...b, ...updated } : b));
+      } catch { /* ignore parse error — data was saved */ }
+      setSaveStatus({ ok: true, msg: "Alterações salvas com sucesso." });
+      onToast("Marca atualizada");
     } catch (e) {
-      onToast(`Erro: ${String(e)}`);
+      setSaveStatus({ ok: false, msg: `Falha de conexão: ${String(e)}` });
     } finally {
       setSaving(false);
     }
@@ -711,6 +720,16 @@ function MarcasPanel({ onToast }: { onToast: (m: string) => void }) {
             </div>
           </div>
 
+          {saveStatus && (
+            <div style={{
+              padding: "10px 16px", borderRadius: 8, marginTop: 12, fontSize: 13, fontWeight: 500,
+              background: saveStatus.ok ? "#e3f2e9" : "#fde8e8",
+              color: saveStatus.ok ? "#2F8A5B" : "#c0392b",
+              border: `1px solid ${saveStatus.ok ? "#b8e0cb" : "#f5c6c6"}`,
+            }}>
+              {saveStatus.ok ? "✓ " : "✗ "}{saveStatus.msg}
+            </div>
+          )}
           <div className="set-foot">
             <button className="btn btn-quiet" style={{ color: "var(--red)" }} onClick={handleDelete} disabled={deleting}>
               {deleting ? "Excluindo…" : "Excluir marca"}
