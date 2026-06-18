@@ -279,22 +279,20 @@ function NewBrandModal({ onClose, onSave }: { onClose: () => void; onSave: () =>
           </div>
           <div className="field">
             <label>Logotipo</label>
-            <button type="button" className="btn btn-quiet btn-sm" onClick={() => fileRef.current?.click()} style={{ width: "100%", justifyContent: "flex-start", gap: 8 }}>
-              <ImageIcon size={15} />
-              {logoPreview ? "Trocar imagem" : "Adicionar logo (PNG, SVG, JPG)"}
-            </button>
-            {logoPreview && (
-              <button type="button" style={{ background: "none", border: "none", fontSize: 12, color: "var(--red, #c0392b)", cursor: "pointer", marginTop: 4, padding: 0 }}
-                onClick={() => { setLogoPreview(""); setLogoFile(null); }}>
-                Remover logo
+            <div className="row" style={{ gap: 8 }}>
+              <button type="button" className="btn btn-quiet btn-sm" onClick={() => fileRef.current?.click()} style={{ gap: 7 }}>
+                <Upload size={14} /> {logoPreview ? "Trocar imagem" : "Adicionar logo"}
               </button>
-            )}
+              {logoPreview && (
+                <button type="button" className="btn btn-quiet btn-sm" style={{ color: "var(--red,#c0392b)" }}
+                  onClick={() => { setLogoPreview(""); setLogoFile(null); }}>
+                  Remover
+                </button>
+              )}
+            </div>
           </div>
-          <div className="field">
-            <label>Nome da marca / cliente</label>
-            <input className="input" value={name} onChange={e => setName(e.target.value)} placeholder="Ex.: Franquia Sabor Brasil" autoFocus />
-          </div>
-          <div className="set-grid2">
+          <div className="nb-grid2">
+            <div className="field"><label>Nome da marca / cliente</label><input className="input" value={name} onChange={e => setName(e.target.value)} placeholder="Ex.: Franquia Sabor Brasil" autoFocus /></div>
             <div className="field">
               <label>Segmento / setor</label>
               <div className="select-wrap">
