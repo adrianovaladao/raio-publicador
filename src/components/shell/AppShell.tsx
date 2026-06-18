@@ -249,6 +249,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [showPlans, setShowPlans] = useState(false);
   const [showNewBrand, setShowNewBrand] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [hasBrands, setHasBrands] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/brands")
+      .then(r => r.json())
+      .then((data: unknown) => { if (Array.isArray(data)) setHasBrands(data.length > 0); })
+      .catch(() => {});
+  }, []);
 
   const firstName = user?.firstName ?? "";
   const lastName  = user?.lastName  ?? "";
@@ -273,9 +281,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
         <div className="sb-mid scroll">
           <div style={{ padding: "16px 12px 2px" }}>
-            <Link href="/releases/novo" className="btn btn-primary btn-block btn-lg">
-              <FileText size={17} /> Criar release
-            </Link>
+            {hasBrands ? (
+              <Link href="/releases/novo" className="btn btn-primary btn-block btn-lg">
+                <FileText size={17} /> Criar release
+              </Link>
+            ) : (
+              <button
+                className="btn btn-primary btn-block btn-lg"
+                disabled
+                title="Cadastre uma marca antes de criar releases"
+                style={{ opacity: 0.45, cursor: "not-allowed" }}
+              >
+                <FileText size={17} /> Criar release
+              </button>
+            )}
           </div>
 
           <div className="sb-section">Navegação</div>
