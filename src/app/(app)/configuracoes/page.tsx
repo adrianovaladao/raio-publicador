@@ -6,9 +6,9 @@ import { useUser } from "@clerk/nextjs";
 import Image from "next/image";
 import {
   UserCircle, Settings2, Users, Building2, CreditCard,
-  Plus, ChevronDown, ArrowRight, Camera, Lock,
+  Plus, ChevronDown, Camera, Lock,
   Mail, Download, Check, X, MoreHorizontal, Shield,
-  Tag, Ban, Trash2, Send, Sparkles, Upload, Zap,
+  Tag, Ban, Trash2, Send, Upload, Zap,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -616,7 +616,7 @@ function BrandFormModal({ brand, onClose, onSaved }: {
             <div className="field"><label>Pessoa de contato</label><input className="input" value={contact} onChange={e => setContact(e.target.value)} placeholder="Nome do responsável" /></div>
           </div>
           <div className="field"><label>Descrição curta</label><textarea className="input" rows={2} value={desc} onChange={e => setDesc(e.target.value)} placeholder="Em uma frase, o que a marca faz." /></div>
-          <div className="field"><label>Boilerplate <span className="muted" style={{ fontWeight: 400 }}>· "sobre a empresa"</span></label><textarea className="input" rows={3} value={boiler} onChange={e => setBoiler(e.target.value)} placeholder={`A ${name || "marca"} é referência em ${segment.toLowerCase()}.`} /></div>
+          <div className="field"><label>Boilerplate <span className="muted" style={{ fontWeight: 400 }}>· &ldquo;sobre a empresa&rdquo;</span></label><textarea className="input" rows={3} value={boiler} onChange={e => setBoiler(e.target.value)} placeholder={`A ${name || "marca"} é referência em ${segment.toLowerCase()}.`} /></div>
           <div className="field" style={{ marginBottom: 4 }}>
             <label>Cor de identificação</label>
             <div className="nb-colors">
