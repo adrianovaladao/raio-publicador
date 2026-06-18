@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import {
   ArrowLeft, ArrowRight, Check, ChevronDown,
   Image as ImageIcon, Rocket, Calendar, X, Search,
-  List, LayoutGrid, Plus, Download,
+  List, LayoutGrid, Plus, Download, Upload,
 } from "lucide-react";
+import { extractDominantColor } from "@/lib/color";
 import {
   Document, Packer, Paragraph, TextRun, HeadingLevel,
   AlignmentType, BorderStyle, Table, TableRow, TableCell,
@@ -63,61 +64,134 @@ const STEPS = ["Marca", "Conteúdo", "Veículos & créditos", "Revisão"];
 type Brand = { id: string; name: string; segment: string | null; color: string | null; logoUrl?: string | null; releases?: number; tone?: boolean };
 
 function NewBrandModal({ onClose, onCreate }: { onClose: () => void; onCreate: (b: Brand) => void }) {
-  const [name, setName] = useState("");
+  const [name,    setName]    = useState("");
   const [segment, setSegment] = useState(BRAND_SEGMENTS[0]);
-  const [color, setColor] = useState(BRAND_COLORS[0]);
-  const ini = initials(name || "NM");
+  const [color,   setColor]   = useState(BRAND_COLORS[0]);
+  const [site,    setSite]    = useState("");
+  const [cnpj,    setCnpj]    = useState("");
+  const [contact, setContact] = useState("");
+  const [desc,    setDesc]    = useState("");
+  const [boiler,  setBoiler]  = useState("");
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState("");
+  const [saving,  setSaving]  = useState(false);
+  const [err,     setErr]     = useState("");
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const fn = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", fn);
+    return () => window.removeEventListener("keydown", fn);
+  }, [onClose]);
+
+  async function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setLogoFile(file);
+    setLogoPreview(URL.createObjectURL(file));
+    const dominant = await extractDominantColor(file);
+    setColor(dominant);
+  }
+
+  async function submit() {
+    setSaving(true); setErr("");
+    try {
+      let logoUrl: string | null = null;
+      if (logoFile) {
+        const form = new FormData();
+        form.append("file", logoFile);
+        const res  = await fetch("/api/upload", { method: "POST", body: form });
+        const text = await res.text();
+        let data: { url?: string } = {};
+        try { data = JSON.parse(text); } catch { /* ignore */ }
+        logoUrl = data.url ?? null;
+      }
+      const res = await fetch("/api/brands", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: name.trim(), segment, color, site: site.trim() || null, cnpj: cnpj.trim() || null, contact: contact.trim() || null, description: desc.trim() || null, boilerplate: boiler.trim() || null, logoUrl }),
+      });
+      const text = await res.text();
+      if (!res.ok) { setErr(`Erro ${res.status}`); return; }
+      const nb: Brand = JSON.parse(text);
+      onCreate(nb);
+    } catch (e) { setErr(e instanceof Error ? e.message : "Falha de conexão."); }
+    finally { setSaving(false); }
+  }
+
   return (
     <div className="overlay" onClick={onClose}>
-      <div className="modal" style={{ maxWidth: 480 }} onClick={e => e.stopPropagation()}>
+      <div className="modal" style={{ maxWidth: 560 }} onClick={e => e.stopPropagation()}>
         <div className="m-head" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <h3>Nova <em>marca</em></h3>
+          <h3>Cadastrar nova <em>marca</em></h3>
           <button className="icon-btn" onClick={onClose}><X size={17} /></button>
         </div>
-        <div className="m-body" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <div className="m-body">
           {/* Preview */}
-          <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 16px", borderRadius: "var(--r)", background: "var(--cream)", border: "1px solid var(--line)" }}>
-            <div style={{ width: 44, height: 44, borderRadius: 11, background: color, display: "grid", placeItems: "center", fontFamily: "var(--mono)", fontWeight: 700, fontSize: 15, color: "#fff", flex: "none" }}>{ini}</div>
-            <div>
-              <div style={{ fontWeight: 700, fontSize: 15 }}>{name || "Nome da marca"}</div>
-              <div style={{ fontSize: 12, color: "var(--stone)", fontFamily: "var(--mono)", textTransform: "uppercase", letterSpacing: "0.1em" }}>{segment}</div>
+          <div className="nb-preview">
+            <div style={{ width: 40, height: 40, borderRadius: 8, background: color, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", flexShrink: 0, cursor: "pointer" }} onClick={() => fileRef.current?.click()}>
+              {logoPreview
+                ? <img src={logoPreview} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                : <span style={{ fontFamily: "var(--mono)", fontWeight: 700, fontSize: 14, color: "#fff" }}>{initials(name) || "?"}</span>}
+            </div>
+            <div style={{ flex: 1 }}>
+              <div className="nb-pv-nm">{name.trim() || "Nome da marca"}</div>
+              <div className="nb-pv-sg">{segment}{site.trim() ? ` · ${site.trim()}` : ""}</div>
+            </div>
+            <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleLogoChange} />
+          </div>
+          {/* Logo */}
+          <div className="field">
+            <label>Logotipo</label>
+            <div className="row" style={{ gap: 8 }}>
+              <button type="button" className="btn btn-quiet btn-sm" onClick={() => fileRef.current?.click()} style={{ gap: 7 }}>
+                <Upload size={14} /> {logoPreview ? "Trocar imagem" : "Adicionar logo"}
+              </button>
+              {logoPreview && (
+                <button type="button" className="btn btn-quiet btn-sm" style={{ color: "var(--red,#c0392b)" }}
+                  onClick={() => { setLogoPreview(""); setLogoFile(null); }}>
+                  Remover
+                </button>
+              )}
             </div>
           </div>
-          {/* Cor */}
-          <div style={{ display: "flex", gap: 8 }}>
-            {BRAND_COLORS.map(c => (
-              <button key={c} onClick={() => setColor(c)} style={{ width: 28, height: 28, borderRadius: 8, background: c, border: color === c ? "2px solid var(--ink)" : "2px solid transparent", outline: color === c ? "2px solid var(--coral)" : "none", cursor: "pointer" }} />
-            ))}
+          {/* Campos */}
+          <div className="set-grid2">
+            <div className="field"><label>Nome da marca / cliente</label><input className="input" value={name} onChange={e => setName(e.target.value)} placeholder="Ex.: Franquia Sabor Brasil" autoFocus /></div>
+            <div className="field"><label>CNPJ</label><input className="input" value={cnpj} onChange={e => setCnpj(e.target.value)} placeholder="12.345.678/0001-90" /></div>
+            <div className="field">
+              <label>Segmento / setor</label>
+              <div className="select-wrap">
+                <select className="input" value={segment} onChange={e => setSegment(e.target.value)}>
+                  {BRAND_SEGMENTS.map(s => <option key={s}>{s}</option>)}
+                </select>
+                <ChevronDown size={16} />
+              </div>
+            </div>
+            <div className="field"><label>Site</label><input className="input" value={site} onChange={e => setSite(e.target.value)} placeholder="www.exemplo.com.br" /></div>
+            <div className="field"><label>Pessoa de contato</label><input className="input" value={contact} onChange={e => setContact(e.target.value)} placeholder="Nome do responsável" /></div>
           </div>
-          <div className="field-row" style={{ marginBottom: 0 }}>
-            <label>Nome da marca</label>
-            <input className="input" placeholder="Ex.: Franquia Sabor Brasil" value={name} onChange={e => setName(e.target.value)} autoFocus />
-          </div>
-          <div className="field-row" style={{ marginBottom: 0 }}>
-            <label>Segmento</label>
-            <div className="select-wrap">
-              <select className="input" value={segment} onChange={e => setSegment(e.target.value)}>
-                {BRAND_SEGMENTS.map(s => <option key={s}>{s}</option>)}
-              </select>
-              <ChevronDown size={16} />
+          <div className="field"><label>Descrição curta</label><textarea className="input" rows={2} value={desc} onChange={e => setDesc(e.target.value)} placeholder="Em uma frase, o que a marca faz." /></div>
+          <div className="field"><label>Boilerplate · &ldquo;sobre a empresa&rdquo;</label><textarea className="input" rows={3} value={boiler} onChange={e => setBoiler(e.target.value)} placeholder={`A ${name || "marca"} é referência em ${segment.toLowerCase()}.`} /></div>
+          <div className="field" style={{ marginBottom: 4 }}>
+            <label>Cor de identificação</label>
+            <div className="nb-colors">
+              {BRAND_COLORS.map(c => (
+                <button key={c} className={`nb-color${color === c ? " on" : ""}`} style={{ background: c }} onClick={() => setColor(c)} type="button">
+                  {color === c && <Check size={14} />}
+                </button>
+              ))}
             </div>
           </div>
         </div>
-        <div className="m-foot" style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
-          <button className="btn btn-ghost" onClick={onClose}>Cancelar</button>
-          <button
-            className="btn btn-dark"
-            disabled={!name.trim()}
-            onClick={async () => {
-              const res = await fetch("/api/brands", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name: name.trim(), segment, color }),
-              });
-              const nb: Brand = await res.json();
-              onCreate(nb);
-            }}
-          >Cadastrar marca</button>
+        {err && <p style={{ color: "var(--red,#c0392b)", fontSize: 13, margin: "0 24px 12px", fontWeight: 500 }}>{err}</p>}
+        <div className="m-foot" style={{ justifyContent: "flex-end" }}>
+          <div className="row" style={{ gap: 8 }}>
+            <button className="btn btn-quiet btn-sm" onClick={onClose}>Cancelar</button>
+            <button className="btn btn-primary btn-sm" disabled={!name.trim() || saving} onClick={submit}>
+              <Check size={15} /> {saving ? "Criando…" : "Criar marca"}
+            </button>
+          </div>
         </div>
       </div>
     </div>
