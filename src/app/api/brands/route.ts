@@ -24,6 +24,6 @@ export async function POST(req: Request) {
     return NextResponse.json(brand, { status: 201 });
   } catch (e) {
     console.error("[POST /api/brands]", e);
-    return NextResponse.json({ error: "Erro ao salvar marca. Verifique a conexão com o banco." }, { status: 500 });
+    return NextResponse.json({ error: String(e) }, { status: 500 });
   }
 }
