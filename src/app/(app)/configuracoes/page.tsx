@@ -587,11 +587,15 @@ function MarcasPanel({ onToast }: { onToast: (m: string) => void }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, cnpj, site, segment, boilerplate }),
       });
-      const updated = await res.json();
-      setBrands(prev => prev.map(b => b.id === brandId ? { ...b, ...updated } : b));
-      onToast("Marca atualizada");
-    } catch {
-      onToast("Erro ao salvar marca");
+      const data = await res.json();
+      if (!res.ok) {
+        onToast(`Erro ao salvar: ${data?.error ?? res.status}`);
+        return;
+      }
+      setBrands(prev => prev.map(b => b.id === brandId ? { ...b, ...data } : b));
+      onToast("Marca atualizada com sucesso");
+    } catch (e) {
+      onToast(`Erro: ${String(e)}`);
     } finally {
       setSaving(false);
     }
