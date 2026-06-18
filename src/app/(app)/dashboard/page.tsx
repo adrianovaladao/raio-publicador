@@ -61,9 +61,12 @@ async function uploadLogo(file: File): Promise<string> {
   const form = new FormData();
   form.append("file", file);
   const res = await fetch("/api/upload", { method: "POST", body: form });
-  const data = await res.json() as { url?: string; error?: string };
-  if (!res.ok) throw new Error(data.error ?? `Erro ${res.status}`);
-  return data.url!;
+  const text = await res.text();
+  let data: { url?: string; error?: string } = {};
+  try { data = JSON.parse(text); } catch { /* ignore */ }
+  if (!res.ok) throw new Error(data.error ?? `Erro ${res.status} no upload`);
+  if (!data.url) throw new Error("Upload falhou: URL não retornada");
+  return data.url;
 }
 
 // ── EditBrandModal ────────────────────────────────────────────────────────────

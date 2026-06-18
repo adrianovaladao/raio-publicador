@@ -12,7 +12,11 @@ export async function POST(req: Request) {
   if (!file) return NextResponse.json({ error: "Nenhum arquivo enviado" }, { status: 400 });
 
   const ext = file.name.split(".").pop() ?? "png";
-  const blob = await put(`logos/${userId}/${Date.now()}.${ext}`, file, { access: "public" });
-
-  return NextResponse.json({ url: blob.url });
+  try {
+    const blob = await put(`logos/${userId}/${Date.now()}.${ext}`, file, { access: "public" });
+    return NextResponse.json({ url: blob.url });
+  } catch (e) {
+    console.error("[POST /api/upload]", e);
+    return NextResponse.json({ error: "Falha no upload. Verifique se o Vercel Blob está configurado (BLOB_READ_WRITE_TOKEN)." }, { status: 500 });
+  }
 }
