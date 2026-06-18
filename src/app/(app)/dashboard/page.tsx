@@ -218,12 +218,14 @@ function EditBrandModal({ brand, onClose, onSave }: { brand: Brand; onClose: () 
 // ── NewBrandModal ─────────────────────────────────────────────────────────────
 
 function NewBrandModal({ onClose, onSave }: { onClose: () => void; onSave: () => void }) {
-  const [name, setName]         = useState("");
-  const [segment, setSegment]   = useState("Franquias");
-  const [site, setSite]         = useState("");
-  const [contact, setContact]   = useState("");
-  const [desc, setDesc]         = useState("");
-  const [color, setColor]       = useState(BRAND_COLORS[0]);
+  const [name,    setName]    = useState("");
+  const [segment, setSegment] = useState("Franquias");
+  const [site,    setSite]    = useState("");
+  const [cnpj,    setCnpj]    = useState("");
+  const [contact, setContact] = useState("");
+  const [desc,    setDesc]    = useState("");
+  const [boiler,  setBoiler]  = useState("");
+  const [color,   setColor]   = useState(BRAND_COLORS[0]);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState("");
   const [saving, setSaving]     = useState(false);
@@ -253,7 +255,7 @@ function NewBrandModal({ onClose, onSave }: { onClose: () => void; onSave: () =>
       const res = await fetch("/api/brands", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), segment, color, site: site.trim() || undefined, contact: contact.trim() || undefined, description: desc.trim() || undefined, logoUrl }),
+        body: JSON.stringify({ name: name.trim(), segment, color, site: site.trim() || null, cnpj: cnpj.trim() || null, contact: contact.trim() || null, description: desc.trim() || null, boilerplate: boiler.trim() || null, logoUrl }),
       });
       const text = await res.text();
       if (!res.ok) {
@@ -304,7 +306,7 @@ function NewBrandModal({ onClose, onSave }: { onClose: () => void; onSave: () =>
             <label>Nome da marca / cliente</label>
             <input className="input" value={name} onChange={e => setName(e.target.value)} placeholder="Ex.: Franquia Sabor Brasil" autoFocus />
           </div>
-          <div className="nb-grid2">
+          <div className="set-grid2">
             <div className="field">
               <label>Segmento / setor</label>
               <div className="select-wrap">
@@ -314,19 +316,12 @@ function NewBrandModal({ onClose, onSave }: { onClose: () => void; onSave: () =>
                 <ChevronDown size={16} />
               </div>
             </div>
-            <div className="field">
-              <label>Site</label>
-              <input className="input" value={site} onChange={e => setSite(e.target.value)} placeholder="www.exemplo.com.br" />
-            </div>
+            <div className="field"><label>Site</label><input className="input" value={site} onChange={e => setSite(e.target.value)} placeholder="www.exemplo.com.br" /></div>
+            <div className="field"><label>CNPJ</label><input className="input" value={cnpj} onChange={e => setCnpj(e.target.value)} placeholder="12.345.678/0001-90" /></div>
+            <div className="field"><label>Pessoa de contato</label><input className="input" value={contact} onChange={e => setContact(e.target.value)} placeholder="Nome do responsável" /></div>
           </div>
-          <div className="field">
-            <label>Pessoa de contato / responsável</label>
-            <input className="input" value={contact} onChange={e => setContact(e.target.value)} placeholder="Nome do contato na marca" />
-          </div>
-          <div className="field">
-            <label>Descrição curta</label>
-            <textarea className="input" rows={2} value={desc} onChange={e => setDesc(e.target.value)} placeholder="Em uma frase, o que a marca faz." />
-          </div>
+          <div className="field"><label>Descrição curta</label><textarea className="input" rows={2} value={desc} onChange={e => setDesc(e.target.value)} placeholder="Em uma frase, o que a marca faz." /></div>
+          <div className="field"><label>Boilerplate · &ldquo;sobre a empresa&rdquo;</label><textarea className="input" rows={3} value={boiler} onChange={e => setBoiler(e.target.value)} placeholder={`A ${name || "marca"} é referência em ${segment.toLowerCase()}.`} /></div>
           <div className="field" style={{ marginBottom: 4 }}>
             <label>Cor de identificação</label>
             <div className="nb-colors">
