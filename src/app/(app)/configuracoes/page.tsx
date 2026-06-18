@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import Image from "next/image";
-import { extractDominantColor } from "@/lib/color";
+import { extractDominantColor, extractDominantColorFromUrl } from "@/lib/color";
 import {
   UserCircle, Settings2, Users, Building2, CreditCard,
   Plus, ChevronDown, Camera, Lock,
@@ -526,6 +526,14 @@ function BrandFormModal({ brand, onClose, onSaved }: {
     window.addEventListener("keydown", fn);
     return () => window.removeEventListener("keydown", fn);
   }, [onClose]);
+
+  // Ao abrir modal de edição com logo já salvo, extrai a cor dominante automaticamente
+  useEffect(() => {
+    if (brand?.logoUrl && brand.logoUrl === logoPreview) {
+      extractDominantColorFromUrl(brand.logoUrl).then(setColor);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];

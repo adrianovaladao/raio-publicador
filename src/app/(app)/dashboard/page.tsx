@@ -8,7 +8,7 @@ import {
   ChevronDown, Check, Building2, X, Plus, ImageIcon,
 } from "lucide-react";
 import Image from "next/image";
-import { extractDominantColor } from "@/lib/color";
+import { extractDominantColor, extractDominantColorFromUrl } from "@/lib/color";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -91,6 +91,14 @@ function EditBrandModal({ brand, onClose, onSave }: { brand: Brand; onClose: () 
     window.addEventListener("keydown", fn);
     return () => window.removeEventListener("keydown", fn);
   }, [onClose]);
+
+  // Ao abrir modal de edição com logo já salvo, extrai a cor dominante automaticamente
+  useEffect(() => {
+    if (brand.logoUrl) {
+      extractDominantColorFromUrl(brand.logoUrl).then(setColor);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -445,7 +453,25 @@ export default function DashboardPage() {
     setLoading(true);
     fetch("/api/dashboard")
       .then(r => r.json())
-      .then(setData)
+      .then(async (d: DashboardData) => {
+        setData(d);
+        // Sincroniza cores dos logos em segundo plano
+        for (const b of d.brands ?? []) {
+          if (!b.logoUrl) continue;
+          const dominant = await extractDominantColorFromUrl(b.logoUrl);
+          if (dominant === (b.color ?? "").toLowerCase()) continue;
+          fetch(`/api/brands/${b.id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ color: dominant }),
+          }).then(() => {
+            setData(prev => prev ? {
+              ...prev,
+              brands: prev.brands.map(x => x.id === b.id ? { ...x, color: dominant } : x),
+            } : prev);
+          }).catch(() => { /* silencioso */ });
+        }
+      })
       .finally(() => setLoading(false));
   }, []);
 
