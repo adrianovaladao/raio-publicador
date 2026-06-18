@@ -37,7 +37,8 @@ interface DashboardData {
 
 // ── BrandSwitcher local ──────────────────────────────────────────────────────
 
-function getInitials(name: string) {
+function getInitials(name: string | null | undefined) {
+  if (!name) return "?";
   return name.split(" ").filter(Boolean).slice(0, 2).map(w => w[0]).join("").toUpperCase();
 }
 
@@ -95,7 +96,8 @@ const TOP_VEHICLES = [
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-function initials(name: string) {
+function initials(name: string | null | undefined) {
+  if (!name) return "?";
   return name.split(" ").filter(Boolean).slice(0, 2).map(w => w[0]).join("").toUpperCase();
 }
 

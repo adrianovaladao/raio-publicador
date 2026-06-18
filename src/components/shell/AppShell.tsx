@@ -24,7 +24,8 @@ const APP_PLANS = [
 const BRAND_COLORS = ["#C25E00","#2A6FDB","#2F8A5B","#6D3BD9","#0E7C86","#B0322E","#8A6500","#1A1A1A"];
 const BRAND_SEGMENTS = ["Franquias","Tecnologia","Saúde","Economia","Varejo","Negócios","Educação","Serviços","Indústria","Outro"];
 
-function getInitials(name: string) {
+function getInitials(name: string | null | undefined) {
+  if (!name) return "?";
   return name.split(" ").filter(Boolean).slice(0, 2).map(w => w[0]).join("").toUpperCase();
 }
 
