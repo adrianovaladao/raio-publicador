@@ -235,7 +235,7 @@ function Toast({ msg, onDone }: { msg: string; onDone: () => void }) {
 
 const NAV_ITEMS = [
   { href: "/dashboard",   icon: LayoutDashboard, label: "Visão geral" },
-  { href: "/releases",    icon: FileText,         label: "Biblioteca",  badge: "9" },
+  { href: "/releases",    icon: FileText,         label: "Biblioteca" },
   { href: "/calendario",  icon: CalendarDays,     label: "Calendário" },
   { href: "/veiculos",    icon: Radio,            label: "Veículos" },
 ];
@@ -250,11 +250,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [showNewBrand, setShowNewBrand] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [hasBrands, setHasBrands] = useState(false);
+  const [releaseCount, setReleaseCount] = useState<number | null>(null);
 
   useEffect(() => {
     fetch("/api/brands")
       .then(r => r.json())
       .then((data: unknown) => { if (Array.isArray(data)) setHasBrands(data.length > 0); })
+      .catch(() => {});
+    fetch("/api/dashboard")
+      .then(r => r.json())
+      .then((d: { stats?: { total?: number } }) => { if (d?.stats?.total != null) setReleaseCount(d.stats.total); })
       .catch(() => {});
   }, []);
 
@@ -299,8 +304,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
           <div className="sb-section">Navegação</div>
           <nav className="sb-nav">
-            {NAV_ITEMS.map(({ href, icon: Icon, label, badge }) => {
+            {NAV_ITEMS.map(({ href, icon: Icon, label }) => {
               const active = pathname === href || pathname.startsWith(href + "/");
+              const badge = href === "/releases" && releaseCount ? String(releaseCount) : null;
               return (
                 <Link key={href} href={href} className={`sb-item${active ? " active" : ""}`}>
                   <Icon size={18} />
