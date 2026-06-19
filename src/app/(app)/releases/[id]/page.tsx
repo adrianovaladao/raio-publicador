@@ -508,8 +508,8 @@ export default function EditReleasePage() {
         <div className="composer-grid">
 
           {/* Left column: editor + media */}
-          <div>
-            <div className="card editor">
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <div className="card editor" style={{ flex: 1, display: "flex", flexDirection: "column" }}>
               <div className="toolbtns">
                 {["H", "B", "I", "|", "≡", "❝", "🔗"].map((b, i) =>
                   b === "|"
@@ -519,7 +519,7 @@ export default function EditReleasePage() {
                 <div style={{ flex: 1 }} />
                 <button className="tb" style={{ color: "var(--coral-ink)", fontSize: 13 }}>✦ IA</button>
               </div>
-              <div className="body-pad">
+              <div className="body-pad" style={{ flex: 1, display: "flex", flexDirection: "column" }}>
                 <input
                   className="title-input"
                   placeholder="Título do release"
@@ -537,7 +537,7 @@ export default function EditReleasePage() {
                   placeholder="Corpo do release…"
                   value={body}
                   onChange={e => setBody(e.target.value)}
-                  style={{ minHeight: 320 }}
+                  style={{ flex: 1, minHeight: 320, resize: "none" }}
                 />
               </div>
             </div>
