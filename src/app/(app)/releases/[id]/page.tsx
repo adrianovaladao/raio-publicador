@@ -3,10 +3,9 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import {
-  ArrowLeft, Check, ChevronDown, Image as ImageIcon,
+  ArrowLeft, ArrowRight, Check, ChevronDown, Image as ImageIcon,
   Rocket, Calendar, X, Search, Download, Trash2, Plus,
 } from "lucide-react";
-import { extractDominantColorFromUrl } from "@/lib/color";
 import {
   Document, Packer, Paragraph, TextRun, HeadingLevel,
   AlignmentType, BorderStyle, Table, TableRow, TableCell,
@@ -37,6 +36,7 @@ const VEH_CATS = ["Todos", "Economia", "Negócios", "Franquias", "Varejo", "Tecn
 const VEH_UFS  = ["Todas", "SP", "RJ", "MG", "RS", "PE", "DF", "GO", "AM"];
 const CONTENT_CATS = ["Economia", "Negócios", "Franquias", "Varejo", "Tecnologia", "Geral"];
 const PLAN = { total: 5000, used: 3200 };
+const STEPS = ["Conteúdo", "Veículos", "Agendamento"];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -75,13 +75,9 @@ interface ReleaseData {
   brand: Brand;
 }
 
-// ── MediaGallery ──────────────────────────────────────────────────────────────
+// ── Step 0: Conteúdo ──────────────────────────────────────────────────────────
 
-function MediaGallery({
-  images,
-  onAdd,
-  onRemove,
-}: {
+function MediaGallery({ images, onAdd, onRemove }: {
   images: string[];
   onAdd: (url: string) => void;
   onRemove: (url: string) => void;
@@ -100,8 +96,8 @@ function MediaGallery({
       img.onerror = () => { res({ w: 0, h: 0 }); URL.revokeObjectURL(url); };
       img.src = url;
     });
-    if (dims.w < 1200 || dims.h < 630) { setErr(`Imagem muito pequena (${dims.w}×${dims.h}px). Mínimo: 1200×630px.`); return; }
-    if (dims.w > 3600 || dims.h > 1890) { setErr(`Imagem muito grande (${dims.w}×${dims.h}px). Máximo: 3600×1890px.`); return; }
+    if (dims.w < 1200 || dims.h < 630) { setErr(`Mínimo: 1200×630px (atual: ${dims.w}×${dims.h}px).`); return; }
+    if (dims.w > 3600 || dims.h > 1890) { setErr(`Máximo: 3600×1890px (atual: ${dims.w}×${dims.h}px).`); return; }
     setErr(""); setUploading(true);
     try {
       const form = new FormData();
@@ -117,32 +113,27 @@ function MediaGallery({
   }
 
   return (
-    <div className="card" style={{ marginTop: 16 }}>
+    <div className="card side-card">
       <div className="card-head"><h3>Mídia</h3></div>
       <div style={{ padding: "12px 20px 20px", display: "flex", gap: 12, flexWrap: "wrap" }}>
         {images.map(url => (
-          <div key={url} style={{ position: "relative", width: 140, height: 90, borderRadius: 8, overflow: "hidden", flexShrink: 0, border: "1px solid var(--line)" }}>
+          <div key={url} style={{ position: "relative", width: 120, height: 76, borderRadius: 8, overflow: "hidden", flexShrink: 0, border: "1px solid var(--line)" }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-            <button
-              onClick={() => onRemove(url)}
-              style={{ position: "absolute", top: 5, right: 5, background: "rgba(0,0,0,0.55)", border: "none", borderRadius: 5, color: "#fff", cursor: "pointer", padding: "2px 7px", fontSize: 11, fontWeight: 600 }}
-            >
+            <button onClick={() => onRemove(url)}
+              style={{ position: "absolute", top: 5, right: 5, background: "rgba(0,0,0,0.55)", border: "none", borderRadius: 5, color: "#fff", cursor: "pointer", padding: "2px 7px", fontSize: 11, fontWeight: 600 }}>
               Remover
             </button>
           </div>
         ))}
-
-        {/* Add slot */}
         <div
           onClick={() => !uploading && fileRef.current?.click()}
-          style={{ width: 140, height: 90, borderRadius: 8, border: "1.5px dashed var(--sand)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6, cursor: uploading ? "default" : "pointer", color: "var(--stone)", flexShrink: 0 }}
+          style={{ width: 120, height: 76, borderRadius: 8, border: "1.5px dashed var(--sand)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4, cursor: uploading ? "default" : "pointer", color: "var(--stone)", flexShrink: 0 }}
         >
           {uploading
-            ? <><ImageIcon size={18} /><span style={{ fontSize: 11 }}>Enviando…</span></>
-            : <><Plus size={18} /><span style={{ fontSize: 11, fontWeight: 600 }}>Adicionar nova imagem</span></>}
+            ? <><ImageIcon size={16} /><span style={{ fontSize: 10 }}>Enviando…</span></>
+            : <><Plus size={16} /><span style={{ fontSize: 10, fontWeight: 600, textAlign: "center", lineHeight: 1.3 }}>Adicionar imagem</span></>}
         </div>
-
         <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" style={{ display: "none" }}
           onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = ""; }} />
       </div>
@@ -151,16 +142,101 @@ function MediaGallery({
   );
 }
 
-// ── VehiclesCard ──────────────────────────────────────────────────────────────
+function StepContent({
+  title, setTitle, subtitle, setSubtitle, body, setBody,
+  cat, setCat, author, setAuthor, images, onAddImage, onRemoveImage, brand,
+}: {
+  title: string; setTitle: (v: string) => void;
+  subtitle: string; setSubtitle: (v: string) => void;
+  body: string; setBody: (v: string) => void;
+  cat: string; setCat: (v: string) => void;
+  author: string; setAuthor: (v: string) => void;
+  images: string[]; onAddImage: (url: string) => void; onRemoveImage: (url: string) => void;
+  brand: Brand | null;
+}) {
+  return (
+    <div className="composer-grid">
+      {/* Editor */}
+      <div className="card editor">
+        <div className="toolbtns">
+          {["H", "B", "I", "|", "≡", "❝", "🔗"].map((b, i) =>
+            b === "|" ? <span key={i} className="div" /> : <button key={i} className="tb">{b}</button>
+          )}
+          <div style={{ flex: 1 }} />
+          <button className="tb" style={{ color: "var(--coral-ink)", fontSize: 13 }}>✦ IA</button>
+        </div>
+        <div className="body-pad">
+          <input className="title-input" placeholder="Título do release" value={title} onChange={e => setTitle(e.target.value)} />
+          <input className="sub-input" placeholder="Subtítulo / linha de apoio" value={subtitle} onChange={e => setSubtitle(e.target.value)} />
+          <textarea className="body-input" placeholder="Corpo do release…" value={body} onChange={e => setBody(e.target.value)} style={{ minHeight: 320 }} />
+        </div>
+      </div>
 
-function VehiclesCard({ selected, setSelected }: { selected: string[]; setSelected: (s: string[]) => void }) {
+      {/* Sidebar */}
+      <div>
+        {/* Marca (read-only) */}
+        {brand && (
+          <div className="card side-card" style={{ marginBottom: 16 }}>
+            <div className="card-head"><h3>Marca</h3></div>
+            <div className="sc-body">
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div style={{ width: 40, height: 40, borderRadius: 8, background: brand.color ?? "#1A1A1A", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", flexShrink: 0 }}>
+                  {brand.logoUrl
+                    // eslint-disable-next-line @next/next/no-img-element
+                    ? <img src={brand.logoUrl} alt={brand.name} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                    : <span style={{ fontFamily: "var(--mono)", fontWeight: 700, fontSize: 14, color: "#fff" }}>{initials(brand.name)}</span>}
+                </div>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 14 }}>{brand.name}</div>
+                  <div style={{ fontSize: 12, color: "var(--stone)" }}>{brand.segment}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Detalhes */}
+        <div className="card side-card" style={{ marginBottom: 16 }}>
+          <div className="card-head"><h3>Detalhes</h3></div>
+          <div className="sc-body">
+            <div className="field-row">
+              <label style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--stone)" }}>Categoria</label>
+              <div className="select-wrap">
+                <select className="input" value={cat} onChange={e => setCat(e.target.value)}>
+                  {CONTENT_CATS.map(c => <option key={c}>{c}</option>)}
+                </select>
+                <ChevronDown size={16} />
+              </div>
+            </div>
+            <div className="field-row">
+              <label style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--stone)" }}>Autor</label>
+              <div className="select-wrap">
+                <select className="input" value={author} onChange={e => setAuthor(e.target.value)}>
+                  {["Você", "Samara Perez", "Liliane Pires", "Analina Arouche", "Daiana Napoleão"].map(a => <option key={a}>{a}</option>)}
+                </select>
+                <ChevronDown size={16} />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Mídia */}
+        <MediaGallery images={images} onAdd={onAddImage} onRemove={onRemoveImage} />
+      </div>
+    </div>
+  );
+}
+
+// ── Step 1: Veículos ──────────────────────────────────────────────────────────
+
+function StepVehicles({ selected, setSelected }: { selected: string[]; setSelected: (s: string[]) => void }) {
   const [cat, setCat] = useState("Todos");
   const [uf,  setUf]  = useState("Todas");
   const [q,   setQ]   = useState("");
-  const [open, setOpen] = useState(true);
 
   const toggle = (id: string) =>
     setSelected(selected.includes(id) ? selected.filter(x => x !== id) : [...selected, id]);
+  const remove = (id: string) => setSelected(selected.filter(x => x !== id));
 
   const list = VEHICLES.filter(v =>
     (cat === "Todos" || v.cat === cat) &&
@@ -173,95 +249,234 @@ function VehiclesCard({ selected, setSelected }: { selected: string[]; setSelect
   const selReach    = selVehicles.reduce((s, v) => s + v.reach, 0);
   const left        = PLAN.total - PLAN.used;
   const over        = selTokens > left;
+  const usedPct     = (PLAN.used / PLAN.total) * 100;
+  const nowPct      = Math.min((selTokens / PLAN.total) * 100, 100 - usedPct);
 
   return (
-    <div className="card side-card" style={{ marginTop: 16 }}>
-      <div
-        className="card-head"
-        style={{ cursor: "pointer", userSelect: "none" }}
-        onClick={() => setOpen(o => !o)}
-      >
-        <h3>Veículos</h3>
-        <span style={{ fontSize: 13, color: "var(--stone)", flex: 1, textAlign: "right", marginRight: 8 }}>
-          {selVehicles.length > 0 ? `${selVehicles.length} selecionados` : "Nenhum selecionado"}
-        </span>
-        <ChevronDown size={16} style={{ transform: open ? "rotate(180deg)" : undefined, transition: "transform 0.18s", flexShrink: 0 }} />
+    <div className="veh-layout">
+      <div className="card veh-list">
+        <div className="vh-toolbar">
+          <div className="search" style={{ flex: "1 1 200px" }}>
+            <Search size={16} />
+            <input placeholder="Buscar veículo…" value={q} onChange={e => setQ(e.target.value)} />
+          </div>
+          <div className="select-wrap" style={{ width: 150 }}>
+            <select className="input" value={cat} onChange={e => setCat(e.target.value)} style={{ padding: "8px 32px 8px 12px", fontSize: 13 }}>
+              {VEH_CATS.map(c => <option key={c}>{c}</option>)}
+            </select>
+            <ChevronDown size={15} />
+          </div>
+          <div className="select-wrap" style={{ width: 100 }}>
+            <select className="input" value={uf} onChange={e => setUf(e.target.value)} style={{ padding: "8px 32px 8px 12px", fontSize: 13 }}>
+              {VEH_UFS.map(u => <option key={u}>{u}</option>)}
+            </select>
+            <ChevronDown size={15} />
+          </div>
+        </div>
+
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 20px", borderBottom: "1px solid var(--line)" }}>
+          <span className="eyebrow">{list.length} veículos</span>
+          <button className="link"
+            style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--stone)", background: "none", border: "none", cursor: "pointer" }}
+            onClick={() => {
+              const allIds = list.map(v => v.id);
+              const allSel = allIds.every(id => selected.includes(id));
+              setSelected(allSel ? selected.filter(id => !allIds.includes(id)) : [...new Set([...selected, ...allIds])]);
+            }}>
+            Selecionar todos
+          </button>
+        </div>
+
+        <div className="scroll" style={{ maxHeight: "calc(100vh - 380px)", overflowY: "auto" }}>
+          {list.map(v => (
+            <div key={v.id} className={`veh-row${selected.includes(v.id) ? " sel" : ""}`} onClick={() => toggle(v.id)}>
+              <div className="cbx">{selected.includes(v.id) && <Check size={13} />}</div>
+              <div className="logo" style={{ background: v.color }}>{initials(v.name)}</div>
+              <div>
+                <div className="nm">{v.name}</div>
+                <div className="meta">
+                  <span className={`tier t-${v.tier.toLowerCase()}`}>{v.tier}</span>
+                  <span className="dom">{v.domain}</span>
+                  <span className="dom">· {v.uf}</span>
+                </div>
+              </div>
+              <div className="reach"><div className="n">{fmtReach(v.reach)}</div><div className="u">alcance/mês</div></div>
+              <div className="cost"><span className="tk">{v.tokens}</span><span style={{ color: "var(--coral-ink)", fontSize: 16 }}>⚡</span></div>
+            </div>
+          ))}
+        </div>
       </div>
 
-      {open && (
-        <>
-          {/* Filters */}
-          <div style={{ display: "flex", gap: 8, padding: "10px 16px", borderBottom: "1px solid var(--line)" }}>
-            <div className="search" style={{ flex: 1, minWidth: 0 }}>
-              <Search size={14} />
-              <input placeholder="Buscar veículo…" value={q} onChange={e => setQ(e.target.value)} style={{ fontSize: 12 }} />
+      {/* Carrinho */}
+      <div className="card cart">
+        <div className="cart-head">
+          <span className="lbl">Seleção atual</span>
+          <div className="big">
+            <span className="tk" style={{ color: over ? "var(--red)" : "var(--ink)" }}>{selTokens}</span>
+            <span className="of">créditos</span>
+          </div>
+          <div className="muted" style={{ fontSize: 12, marginTop: 2 }}>{left.toLocaleString("pt-BR")} disponíveis no plano</div>
+          <div className="meter">
+            <i className="used" style={{ width: usedPct + "%" }} />
+            <i className="now"  style={{ width: nowPct  + "%" }} />
+          </div>
+          <div className="meter-legend">
+            <span><i style={{ background: "var(--ink)", display: "inline-block", width: 9, height: 9, borderRadius: 3, marginRight: 5 }} />Já usados {PLAN.used.toLocaleString("pt-BR")}</span>
+            <span><i style={{ background: "var(--coral)", display: "inline-block", width: 9, height: 9, borderRadius: 3, marginRight: 5 }} />Esta seleção {selTokens}</span>
+          </div>
+        </div>
+
+        {selVehicles.length === 0 ? (
+          <div className="cart-empty">Selecione veículos à esquerda para montar a distribuição.</div>
+        ) : (
+          <div className="sel-list scroll">
+            {selVehicles.map(v => (
+              <div className="sel-item" key={v.id}>
+                <div style={{ background: v.color, width: 22, height: 22, borderRadius: 6, display: "grid", placeItems: "center", fontSize: 9, fontFamily: "var(--mono)", fontWeight: 700, color: "#fff", flex: "none" }}>{initials(v.name)}</div>
+                <span className="nm">{v.name}</span>
+                <span className="tk">{v.tokens}</span>
+                <button className="rm" onClick={() => remove(v.id)} title="Remover"><X size={15} /></button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="cart-foot">
+          {over && (
+            <div className="savings" style={{ background: "var(--red-soft)", color: "var(--red)" }}>
+              <span>Faltam <b>{(selTokens - left).toLocaleString("pt-BR")} créditos</b>. Remova veículos ou faça upgrade.</span>
             </div>
-            <div className="select-wrap" style={{ width: 110 }}>
-              <select className="input" value={cat} onChange={e => setCat(e.target.value)} style={{ padding: "6px 26px 6px 9px", fontSize: 12 }}>
-                {VEH_CATS.map(c => <option key={c}>{c}</option>)}
-              </select>
-              <ChevronDown size={13} />
+          )}
+          {!over && selVehicles.length > 0 && (
+            <div className="savings">
+              <span>Tudo no seu plano. {selVehicles.length} veículo{selVehicles.length !== 1 ? "s" : ""} selecionado{selVehicles.length !== 1 ? "s" : ""}.</span>
             </div>
-            <div className="select-wrap" style={{ width: 80 }}>
-              <select className="input" value={uf} onChange={e => setUf(e.target.value)} style={{ padding: "6px 26px 6px 9px", fontSize: 12 }}>
-                {VEH_UFS.map(u => <option key={u}>{u}</option>)}
-              </select>
-              <ChevronDown size={13} />
+          )}
+          <div className="row" style={{ justifyContent: "space-between", marginBottom: 4 }}>
+            <span className="muted" style={{ fontSize: 13 }}>Alcance somado</span>
+            <span style={{ fontWeight: 700 }}>{fmtReach(selReach)}</span>
+          </div>
+          <div className="row" style={{ justifyContent: "space-between" }}>
+            <span className="muted" style={{ fontSize: 13 }}>Veículos</span>
+            <span style={{ fontWeight: 700 }}>{selVehicles.length}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Step 2: Agendamento ───────────────────────────────────────────────────────
+
+function StepSchedule({
+  status, setStatus, schedDate, setSchedDate, schedTime, setSchedTime,
+  title, body, subtitle, cat, selectedVeh, brand,
+}: {
+  status: string; setStatus: (v: string) => void;
+  schedDate: string; setSchedDate: (v: string) => void;
+  schedTime: string; setSchedTime: (v: string) => void;
+  title: string; body: string; subtitle: string; cat: string;
+  selectedVeh: string[]; brand: Brand | null;
+}) {
+  const selVehicles = selectedVeh.map(id => VEHICLES.find(v => v.id === id)).filter(Boolean) as typeof VEHICLES;
+  const selTokens   = selVehicles.reduce((s, v) => s + v.tokens, 0);
+  const selReach    = selVehicles.reduce((s, v) => s + v.reach, 0);
+
+  return (
+    <div className="composer-grid">
+      {/* Pré-visualização */}
+      <div className="card">
+        <div className="card-head">
+          <h3>Pré-visualização do <em>release</em></h3>
+          <span className={`badge-status ${status === "PUBLISHED" ? "published" : status === "SCHEDULED" ? "scheduled" : "draft"}`}>
+            {status === "PUBLISHED" ? "Publicado" : status === "SCHEDULED" ? "Agendado" : "Rascunho"}
+          </span>
+        </div>
+        <div className="card-pad">
+          {brand && (
+            <div className="review-brand">
+              <span className="bc-av" style={{ background: brand.color ?? "#1A1A1A", overflow: "hidden", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
+                {brand.logoUrl
+                  // eslint-disable-next-line @next/next/no-img-element
+                  ? <img src={brand.logoUrl} alt={brand.name} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                  : initials(brand.name)}
+              </span>
+              <div className="bc-meta">
+                <span className="bc-lbl">Marca</span>
+                <span className="bc-nm">{brand.name}</span>
+              </div>
+            </div>
+          )}
+          <p className="eyebrow" style={{ marginBottom: 14 }}>{cat}</p>
+          <h2 style={{ fontFamily: "var(--sans)", fontWeight: 700, fontSize: 26, letterSpacing: "-0.025em", lineHeight: 1.12, margin: "0 0 10px" }}>
+            {title || "Título do release"}
+          </h2>
+          <p className="serif-it" style={{ fontSize: 18, color: "var(--ink-soft)", margin: "0 0 18px" }}>
+            {subtitle || "Subtítulo do release."}
+          </p>
+          <p style={{ color: "var(--ink-soft)", fontSize: 15, lineHeight: 1.7, whiteSpace: "pre-line" }}>
+            {body || "O corpo do release aparece aqui."}
+          </p>
+        </div>
+      </div>
+
+      {/* Sidebar */}
+      <div>
+        {/* Distribuição */}
+        <div className="card side-card" style={{ marginBottom: 16 }}>
+          <div className="card-head"><h3>Distribuição</h3></div>
+          <div className="sc-body">
+            <div className="row" style={{ justifyContent: "space-between", marginBottom: 12 }}>
+              <span className="muted" style={{ fontSize: 13 }}>Veículos</span>
+              <span style={{ fontWeight: 700 }}>{selVehicles.length}</span>
+            </div>
+            <div className="row" style={{ justifyContent: "space-between", marginBottom: 12 }}>
+              <span className="muted" style={{ fontSize: 13 }}>Alcance estimado</span>
+              <span style={{ fontWeight: 700 }}>{fmtReach(selReach)}</span>
+            </div>
+            <div className="row" style={{ justifyContent: "space-between" }}>
+              <span className="muted" style={{ fontSize: 13 }}>Créditos</span>
+              <span style={{ fontWeight: 700, display: "inline-flex", alignItems: "center", gap: 5 }}>{selTokens} <span style={{ color: "var(--coral)", fontSize: 14 }}>⚡</span></span>
             </div>
           </div>
+        </div>
 
-          {/* Vehicle rows */}
-          <div style={{ maxHeight: 340, overflowY: "auto" }}>
-            {list.map(v => {
-              const sel = selected.includes(v.id);
-              return (
-                <div
-                  key={v.id}
-                  onClick={() => toggle(v.id)}
-                  style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 16px", cursor: "pointer", borderBottom: "1px solid var(--line)", background: sel ? "rgba(250,181,0,0.05)" : undefined }}
-                >
-                  {/* Checkbox */}
-                  <div style={{ width: 16, height: 16, borderRadius: 4, border: sel ? "none" : "1.5px solid var(--sand)", background: sel ? "var(--coral)" : undefined, display: "grid", placeItems: "center", flexShrink: 0 }}>
-                    {sel && <Check size={11} color="#fff" strokeWidth={3} />}
-                  </div>
-                  {/* Logo */}
-                  <div style={{ width: 28, height: 28, borderRadius: 7, background: v.color, display: "grid", placeItems: "center", fontFamily: "var(--mono)", fontWeight: 700, fontSize: 9, color: "#fff", flexShrink: 0 }}>
-                    {initials(v.name)}
-                  </div>
-                  {/* Name + meta */}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{v.name}</div>
-                    <div style={{ display: "flex", gap: 6, alignItems: "center", marginTop: 2 }}>
-                      <span className={`tier t-${v.tier.toLowerCase()}`}>{v.tier}</span>
-                      <span style={{ fontSize: 11, color: "var(--stone)" }}>{v.domain}</span>
-                      <span style={{ fontSize: 11, color: "var(--stone)" }}>· {v.uf}</span>
-                    </div>
-                  </div>
-                  {/* Tokens */}
-                  <span style={{ fontSize: 12, fontWeight: 700, color: "var(--coral-ink)", flexShrink: 0 }}>{v.tokens} ⚡</span>
+        {/* Quando publicar */}
+        <div className="card side-card">
+          <div className="card-head"><h3>Quando publicar</h3></div>
+          <div className="sc-body">
+            <div className="seg" style={{ width: "100%", marginBottom: 14 }}>
+              <button className={status === "DRAFT" ? "active" : ""} style={{ flex: 1, justifyContent: "center" }} onClick={() => setStatus("DRAFT")}>
+                Rascunho
+              </button>
+              <button className={status === "SCHEDULED" ? "active" : ""} style={{ flex: 1, justifyContent: "center" }} onClick={() => setStatus("SCHEDULED")}>
+                <Calendar size={14} /> Agendar
+              </button>
+              <button className={status === "PUBLISHED" ? "active" : ""} style={{ flex: 1, justifyContent: "center" }} onClick={() => setStatus("PUBLISHED")}>
+                <Rocket size={14} /> Publicar
+              </button>
+            </div>
+            {status === "SCHEDULED" && (
+              <div style={{ display: "flex", gap: 10 }}>
+                <div className="field-row" style={{ flex: 1, marginBottom: 0 }}>
+                  <label>Data</label>
+                  <input className="input" type="date" value={schedDate} onChange={e => setSchedDate(e.target.value)} />
                 </div>
-              );
-            })}
-          </div>
-
-          {/* Footer summary */}
-          <div style={{ padding: "12px 16px", borderTop: "1px solid var(--line)" }}>
-            {over && (
-              <p style={{ color: "var(--red,#c0392b)", fontSize: 12, margin: "0 0 8px", fontWeight: 600 }}>
-                Faltam {(selTokens - left).toLocaleString("pt-BR")} créditos.
-              </p>
+                <div className="field-row" style={{ width: 110, marginBottom: 0 }}>
+                  <label>Hora</label>
+                  <input className="input" type="time" value={schedTime} onChange={e => setSchedTime(e.target.value)} />
+                </div>
+              </div>
             )}
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "var(--stone)", marginBottom: 4 }}>
-              <span>Alcance somado</span>
-              <strong style={{ color: "var(--ink)" }}>{selReach > 0 ? fmtReach(selReach) : "—"}</strong>
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "var(--stone)" }}>
-              <span>Créditos</span>
-              <strong style={{ color: over ? "var(--red,#c0392b)" : "var(--ink)" }}>{selTokens} <span style={{ color: "var(--coral-ink)" }}>⚡</span></strong>
-            </div>
+            {status === "PUBLISHED" && (
+              <p className="muted" style={{ fontSize: 13, margin: 0 }}>O release entra na fila de envio ao salvar.</p>
+            )}
+            {status === "DRAFT" && (
+              <p className="muted" style={{ fontSize: 13, margin: 0 }}>Salvo como rascunho — não será distribuído.</p>
+            )}
           </div>
-        </>
-      )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -286,18 +501,12 @@ function DeleteModal({ title, onConfirm, onClose, deleting }: {
         </div>
         <div className="m-body">
           <p style={{ fontSize: 14, lineHeight: 1.6, color: "var(--ink-soft)" }}>
-            Tem certeza que deseja excluir <strong style={{ color: "var(--ink)" }}>&ldquo;{title}&rdquo;</strong>?
-            Esta ação não pode ser desfeita.
+            Tem certeza que deseja excluir <strong style={{ color: "var(--ink)" }}>&ldquo;{title}&rdquo;</strong>? Esta ação não pode ser desfeita.
           </p>
         </div>
         <div className="m-foot">
           <button className="btn btn-quiet btn-sm" onClick={onClose}>Cancelar</button>
-          <button
-            className="btn btn-sm"
-            style={{ background: "var(--red,#c0392b)", color: "#fff" }}
-            disabled={deleting}
-            onClick={onConfirm}
-          >
+          <button className="btn btn-sm" style={{ background: "var(--red,#c0392b)", color: "#fff" }} disabled={deleting} onClick={onConfirm}>
             <Trash2 size={14} /> {deleting ? "Excluindo…" : "Excluir release"}
           </button>
         </div>
@@ -306,7 +515,7 @@ function DeleteModal({ title, onConfirm, onClose, deleting }: {
   );
 }
 
-// ── Docx ─────────────────────────────────────────────────────────────────────
+// ── Docx ──────────────────────────────────────────────────────────────────────
 
 async function downloadDocx(title: string, subtitle: string, body: string, cat: string, selVehicles: typeof VEHICLES, brand: Brand | null) {
   const brandName = brand?.name ?? "Marca";
@@ -358,11 +567,11 @@ export default function EditReleasePage() {
   const router = useRouter();
   const { id } = useParams<{ id: string }>();
 
+  const [step,       setStep]       = useState(0);
   const [loading,    setLoading]    = useState(true);
   const [saving,     setSaving]     = useState(false);
   const [deleting,   setDeleting]   = useState(false);
   const [showDelete, setShowDelete] = useState(false);
-  const [saved,      setSaved]      = useState(false);
   const [err,        setErr]        = useState("");
 
   const [release,    setRelease]    = useState<ReleaseData | null>(null);
@@ -372,7 +581,7 @@ export default function EditReleasePage() {
   const [cat,        setCat]        = useState("Negócios");
   const [author,     setAuthor]     = useState("Você");
   const [images,     setImages]     = useState<string[]>([]);
-  const [status,     setStatus]     = useState("DRAFT");
+  const [status,     setStatus]     = useState("SCHEDULED");
   const [schedDate,  setSchedDate]  = useState("");
   const [schedTime,  setSchedTime]  = useState("09:00");
   const [selectedVeh, setSelectedVeh] = useState<string[]>([]);
@@ -386,7 +595,7 @@ export default function EditReleasePage() {
         setSubtitle(data.summary ?? "");
         setBody(data.body ?? "");
         if (data.imageUrl) setImages([data.imageUrl]);
-        setStatus(data.status ?? "DRAFT");
+        setStatus(data.status ?? "SCHEDULED");
         if (data.scheduledAt) {
           const d = new Date(data.scheduledAt);
           setSchedDate(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`);
@@ -396,13 +605,6 @@ export default function EditReleasePage() {
       .catch(() => setErr("Não foi possível carregar o release."))
       .finally(() => setLoading(false));
   }, [id]);
-
-  // Auto-extract brand color if missing
-  useEffect(() => {
-    if (release?.brand?.logoUrl && !release.brand.color) {
-      extractDominantColorFromUrl(release.brand.logoUrl).catch(() => {});
-    }
-  }, [release]);
 
   async function save() {
     if (!title.trim()) return;
@@ -424,8 +626,7 @@ export default function EditReleasePage() {
         }),
       });
       if (!res.ok) { setErr("Erro ao salvar. Tente novamente."); return; }
-      setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
+      router.push("/releases");
     } catch { setErr("Falha de conexão."); }
     finally { setSaving(false); }
   }
@@ -460,184 +661,87 @@ export default function EditReleasePage() {
 
   const brand = release?.brand ?? null;
   const selVehicles = selectedVeh.map(vid => VEHICLES.find(v => v.id === vid)).filter(Boolean) as typeof VEHICLES;
+  const selTokens   = selVehicles.reduce((s, v) => s + v.tokens, 0);
+  const over        = selTokens > (PLAN.total - PLAN.used);
+  const last        = STEPS.length - 1;
+
+  const canNext =
+    step === 0 ? title.trim().length > 0 :
+    step === 1 ? (selectedVeh.length > 0 && !over) :
+    true;
 
   return (
     <div className="content scroll">
       <div className="content-inner">
 
-        {/* Header */}
+        {/* Stepper + ações */}
         <div className="page-head" style={{ marginBottom: 28 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <button className="icon-btn" onClick={() => router.back()} title="Voltar">
-              <ArrowLeft size={18} />
-            </button>
-            <div>
-              <p className="eyebrow" style={{ margin: 0 }}>Editar release</p>
-              <h2 style={{ margin: 0, fontSize: 20, lineHeight: 1.2 }}>{title || "Sem título"}</h2>
-            </div>
+          <div className="steps">
+            {STEPS.map((s, i) => (
+              <span key={s} style={{ display: "contents" }}>
+                {i > 0 && <span className={`bar${i <= step ? " done" : ""}`} />}
+                <div
+                  className={`step${i === step ? " active" : i < step ? " done" : ""}`}
+                  onClick={() => i < step && setStep(i)}
+                  style={{ cursor: i < step ? "pointer" : "default" }}
+                >
+                  <span className="n">{i < step ? <Check size={13} /> : i + 1}</span>
+                  <span className="lbl">{s}</span>
+                </div>
+              </span>
+            ))}
           </div>
+
           <div className="actions">
-            <button
-              className="btn btn-quiet btn-sm"
-              style={{ color: "var(--red,#c0392b)" }}
-              onClick={() => setShowDelete(true)}
-            >
+            <button className="btn btn-quiet btn-sm" style={{ color: "var(--red,#c0392b)" }} onClick={() => setShowDelete(true)}>
               <Trash2 size={14} /> Excluir
             </button>
-            <button
-              className="btn btn-ghost btn-sm"
-              onClick={() => downloadDocx(title, subtitle, body, cat, selVehicles, brand)}
-            >
+            <button className="btn btn-ghost btn-sm" onClick={() => downloadDocx(title, subtitle, body, cat, selVehicles, brand)}>
               <Download size={14} /> Baixar .docx
             </button>
-            <button
-              className="btn btn-primary btn-sm"
-              disabled={!title.trim() || saving}
-              onClick={save}
-            >
-              {saved
-                ? <><Check size={15} /> Salvo!</>
-                : saving ? "Salvando…" : <><Check size={15} /> Salvar alterações</>}
-            </button>
+            <button className="btn btn-quiet btn-sm" onClick={() => router.back()}>Cancelar</button>
+            {step > 0 && (
+              <button className="btn btn-ghost btn-sm" onClick={() => setStep(s => s - 1)}>
+                <ArrowLeft size={16} /> Voltar
+              </button>
+            )}
+            {step < last ? (
+              <button className="btn btn-dark btn-sm" disabled={!canNext} onClick={() => setStep(s => s + 1)}>
+                Continuar <ArrowRight size={16} />
+              </button>
+            ) : (
+              <button className="btn btn-primary btn-sm" disabled={!title.trim() || saving} onClick={save}>
+                {saving ? "Salvando…" : <><Check size={15} /> Salvar alterações</>}
+              </button>
+            )}
           </div>
         </div>
 
         {err && <p style={{ color: "var(--red,#c0392b)", fontSize: 13, marginBottom: 16, fontWeight: 500 }}>{err}</p>}
 
-        {/* Top row: editor (left) + Marca/Detalhes/Publicação (right) */}
-        <div className="edit-layout-top">
-          <div className="editor-col">
-            <div className="card editor">
-              <div className="toolbtns">
-                {["H", "B", "I", "|", "≡", "❝", "🔗"].map((b, i) =>
-                  b === "|"
-                    ? <span key={i} className="div" />
-                    : <button key={i} className="tb" title={b}>{b}</button>
-                )}
-                <div style={{ flex: 1 }} />
-                <button className="tb" style={{ color: "var(--coral-ink)", fontSize: 13 }}>✦ IA</button>
-              </div>
-              <div className="body-pad">
-                <input
-                  className="title-input"
-                  placeholder="Título do release"
-                  value={title}
-                  onChange={e => setTitle(e.target.value)}
-                />
-                <input
-                  className="sub-input"
-                  placeholder="Subtítulo / linha de apoio"
-                  value={subtitle}
-                  onChange={e => setSubtitle(e.target.value)}
-                />
-                <textarea
-                  className="body-input"
-                  placeholder="Corpo do release…"
-                  value={body}
-                  onChange={e => setBody(e.target.value)}
-                  style={{ minHeight: 320 }}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Right column: Marca + Detalhes + Publicação */}
-          <div>
-
-            {/* Marca */}
-            {brand && (
-              <div className="card side-card">
-                <div className="card-head"><h3>Marca</h3></div>
-                <div className="sc-body">
-                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    <div style={{ width: 40, height: 40, borderRadius: 8, background: brand.color ?? "#1A1A1A", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", flexShrink: 0 }}>
-                      {brand.logoUrl
-                        ? <img src={brand.logoUrl} alt={brand.name} style={{ width: "100%", height: "100%", objectFit: "contain" }} /> // eslint-disable-line @next/next/no-img-element
-                        : <span style={{ fontFamily: "var(--mono)", fontWeight: 700, fontSize: 14, color: "#fff" }}>{initials(brand.name)}</span>}
-                    </div>
-                    <div>
-                      <div style={{ fontWeight: 700, fontSize: 14 }}>{brand.name}</div>
-                      <div style={{ fontSize: 12, color: "var(--stone)" }}>{brand.segment}</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Detalhes */}
-            <div className="card side-card" style={{ marginTop: 16 }}>
-              <div className="card-head"><h3>Detalhes</h3></div>
-              <div className="sc-body">
-                <div className="field-row">
-                  <label style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--stone)" }}>Categoria</label>
-                  <div className="select-wrap">
-                    <select className="input" value={cat} onChange={e => setCat(e.target.value)}>
-                      {CONTENT_CATS.map(c => <option key={c}>{c}</option>)}
-                    </select>
-                    <ChevronDown size={16} />
-                  </div>
-                </div>
-                <div className="field-row">
-                  <label style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--stone)" }}>Autor</label>
-                  <div className="select-wrap">
-                    <select className="input" value={author} onChange={e => setAuthor(e.target.value)}>
-                      {["Você","Samara Perez","Liliane Pires","Analina Arouche","Daiana Napoleão"].map(a => <option key={a}>{a}</option>)}
-                    </select>
-                    <ChevronDown size={16} />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Publicação */}
-            <div className="card side-card" style={{ marginTop: 16 }}>
-              <div className="card-head"><h3>Publicação</h3></div>
-              <div className="sc-body">
-                <div className="seg" style={{ width: "100%", marginBottom: 14 }}>
-                  <button className={status === "DRAFT" ? "active" : ""} style={{ flex: 1, justifyContent: "center" }} onClick={() => setStatus("DRAFT")}>
-                    Rascunho
-                  </button>
-                  <button className={status === "SCHEDULED" ? "active" : ""} style={{ flex: 1, justifyContent: "center" }} onClick={() => setStatus("SCHEDULED")}>
-                    <Calendar size={14} /> Agendar
-                  </button>
-                  <button className={status === "PUBLISHED" ? "active" : ""} style={{ flex: 1, justifyContent: "center" }} onClick={() => setStatus("PUBLISHED")}>
-                    <Rocket size={14} /> Publicar
-                  </button>
-                </div>
-
-                {status === "SCHEDULED" && (
-                  <div style={{ display: "flex", gap: 10 }}>
-                    <div className="field-row" style={{ flex: 1, marginBottom: 0 }}>
-                      <label>Data</label>
-                      <input className="input" type="date" value={schedDate} onChange={e => setSchedDate(e.target.value)} />
-                    </div>
-                    <div className="field-row" style={{ width: 110, marginBottom: 0 }}>
-                      <label>Hora</label>
-                      <input className="input" type="time" value={schedTime} onChange={e => setSchedTime(e.target.value)} />
-                    </div>
-                  </div>
-                )}
-                {status === "PUBLISHED" && (
-                  <p className="muted" style={{ fontSize: 13, margin: 0 }}>O release entra na fila de envio ao salvar.</p>
-                )}
-                {status === "DRAFT" && (
-                  <p className="muted" style={{ fontSize: 13, margin: 0 }}>Salvo como rascunho — não será distribuído.</p>
-                )}
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-        {/* Bottom row: Mídia (left) + Veículos (right) */}
-        <div className="edit-layout-bottom">
-          <MediaGallery
+        {step === 0 && (
+          <StepContent
+            title={title} setTitle={setTitle}
+            subtitle={subtitle} setSubtitle={setSubtitle}
+            body={body} setBody={setBody}
+            cat={cat} setCat={setCat}
+            author={author} setAuthor={setAuthor}
             images={images}
-            onAdd={url => setImages(prev => [...prev, url])}
-            onRemove={url => setImages(prev => prev.filter(u => u !== url))}
+            onAddImage={url => setImages(prev => [...prev, url])}
+            onRemoveImage={url => setImages(prev => prev.filter(u => u !== url))}
+            brand={brand}
           />
-          <VehiclesCard selected={selectedVeh} setSelected={setSelectedVeh} />
-        </div>
+        )}
+        {step === 1 && <StepVehicles selected={selectedVeh} setSelected={setSelectedVeh} />}
+        {step === 2 && (
+          <StepSchedule
+            status={status} setStatus={setStatus}
+            schedDate={schedDate} setSchedDate={setSchedDate}
+            schedTime={schedTime} setSchedTime={setSchedTime}
+            title={title} body={body} subtitle={subtitle} cat={cat}
+            selectedVeh={selectedVeh} brand={brand}
+          />
+        )}
       </div>
 
       {showDelete && (
