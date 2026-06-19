@@ -378,10 +378,13 @@ function InviteModal({ onClose, onSent }: { onClose: () => void; onSent: (inv: I
   );
 }
 
+interface MemberRow { id: string; name: string; email: string; role: string; status: string }
+
 function EquipePanel({ onToast }: { onToast: (m: string) => void }) {
   const { user } = useUser();
   const [showInvite, setShowInvite] = useState(false);
   const [invites, setInvites] = useState<InviteRow[]>([]);
+  const [members, setMembers] = useState<MemberRow[]>([]);
   const fullName = user ? [user.firstName, user.lastName].filter(Boolean).join(" ") : "";
   const email = user?.emailAddresses[0]?.emailAddress ?? "";
 
@@ -389,6 +392,10 @@ function EquipePanel({ onToast }: { onToast: (m: string) => void }) {
     fetch("/api/invites")
       .then(r => r.json())
       .then((data: InviteRow[]) => setInvites(data))
+      .catch(() => {});
+    fetch("/api/team/members")
+      .then(r => r.json())
+      .then((data: MemberRow[]) => setMembers(data))
       .catch(() => {});
   }, []);
 
@@ -422,10 +429,11 @@ function EquipePanel({ onToast }: { onToast: (m: string) => void }) {
       </div>
 
       <div className="card" style={{ marginTop: 16 }}>
-        <div className="card-head"><h3>Membros <span className="count-chip">1</span></h3></div>
+        <div className="card-head"><h3>Membros <span className="count-chip">{1 + members.length}</span></h3></div>
         <table className="tbl team-tbl">
           <thead><tr><th>Pessoa</th><th>Função</th><th>Marcas</th><th>Status</th><th></th></tr></thead>
           <tbody>
+            {/* Owner — always first */}
             <tr>
               <td>
                 <div className="row" style={{ gap: 11 }}>
@@ -441,6 +449,24 @@ function EquipePanel({ onToast }: { onToast: (m: string) => void }) {
               <td><span className="dot-status active">Ativo</span></td>
               <td />
             </tr>
+            {/* Team members from DB */}
+            {members.map(m => (
+              <tr key={m.id}>
+                <td>
+                  <div className="row" style={{ gap: 11 }}>
+                    <Av name={m.name} color="#2A6FDB" size={34} />
+                    <div>
+                      <div className="title-cell" style={{ fontSize: 14 }}>{m.name}</div>
+                      <div style={{ fontFamily: "var(--mono)", fontSize: 11.5, color: "var(--stone)" }}>{m.email}</div>
+                    </div>
+                  </div>
+                </td>
+                <td><RoleBadge role={m.role.toLowerCase()} /></td>
+                <td className="muted" style={{ fontSize: 13 }}>—</td>
+                <td>{m.status === "ACTIVE" ? <span className="dot-status active">Ativo</span> : <span className="dot-status suspended">Suspenso</span>}</td>
+                <td />
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>

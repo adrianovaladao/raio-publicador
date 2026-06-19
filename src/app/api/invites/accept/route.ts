@@ -1,5 +1,5 @@
 export const dynamic = "force-dynamic";
-import { auth } from "@clerk/nextjs/server";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 import { getPrisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
@@ -30,16 +30,21 @@ export async function POST(req: Request) {
   if (invite.accepted) return NextResponse.json({ error: "Este convite já foi utilizado." }, { status: 410 });
   if (new Date() > invite.expiresAt) return NextResponse.json({ error: "Este convite expirou." }, { status: 410 });
 
+  // Fetch real name from Clerk
+  const clerk = await clerkClient();
+  const clerkUser = await clerk.users.getUser(userId);
+  const name = [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(" ") || invite.email.split("@")[0];
+
   // Mark as accepted and create/update TeamMember
   await getPrisma().$transaction([
     getPrisma().invite.update({ where: { token }, data: { accepted: true } }),
     getPrisma().teamMember.upsert({
       where: { clerkId: userId },
-      update: { status: "ACTIVE" },
+      update: { status: "ACTIVE", name, ownerId: invite.ownerId },
       create: {
         clerkId: userId,
         email: invite.email,
-        name: invite.email.split("@")[0],
+        name,
         role: invite.role,
         status: "ACTIVE",
         ownerId: invite.ownerId,
