@@ -62,7 +62,7 @@ const STEPS = ["Marca", "Conteúdo", "Veículos & créditos", "Revisão"];
 
 // ── Passo 0: Marca ────────────────────────────────────────────────────────────
 
-type Brand = { id: string; name: string; segment: string | null; color: string | null; logoUrl?: string | null; releases?: number; tone?: boolean };
+type Brand = { id: string; name: string; segment: string | null; color: string | null; logoUrl?: string | null; authors?: string[]; releases?: number; tone?: boolean };
 
 function NewBrandModal({ onClose, onCreate }: { onClose: () => void; onCreate: (b: Brand) => void }) {
   const [name,    setName]    = useState("");
@@ -432,7 +432,8 @@ function MediaCard({ imageUrl, onChange }: { imageUrl?: string; onChange: (url: 
   );
 }
 
-function StepContent({ content, setContent, brand, authors }: { content: Content; setContent: (c: Content) => void; brand: Brand | null; authors: { id: string; name: string }[] }) {
+function StepContent({ content, setContent, brand }: { content: Content; setContent: (c: Content) => void; brand: Brand | null }) {
+  const authors = brand?.authors ?? [];
   const up = (k: keyof Content, v: string) => setContent({ ...content, [k]: v });
   const cats = VEH_CATS.filter(c => c !== "Todos");
 
@@ -465,7 +466,7 @@ function StepContent({ content, setContent, brand, authors }: { content: Content
               <label>Autor</label>
               <div className="select-wrap">
                 <select className="input" value={content.author} onChange={e => up("author", e.target.value)}>
-                  {authors.map(a => <option key={a.id} value={a.name}>{a.name}</option>)}
+                  {authors.map(a => <option key={a} value={a}>{a}</option>)}
                 </select>
                 <ChevronDown size={16} />
               </div>
@@ -851,18 +852,7 @@ export default function NovoReleasePage() {
   const [done, setDone] = useState(false);
   const [brand, setBrand] = useState<Brand | null>(null);
   const [brands, setBrands] = useState<Brand[]>([]);
-  const [authors, setAuthors] = useState<{ id: string; name: string }[]>([]);
   const [content, setContent] = useState<Content>({ title: "", subtitle: "", body: "", cat: "Negócios", author: "" });
-
-  useEffect(() => {
-    fetch("/api/team")
-      .then(r => r.json())
-      .then((data: { id: string; name: string }[]) => {
-        setAuthors(data);
-        setContent(c => c.author ? c : { ...c, author: data[0]?.name ?? "" });
-      })
-      .catch(() => {});
-  }, []);
   const [selected, setSelected] = useState<string[]>([]);
   const now = new Date();
   const defaultDate = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()+1).padStart(2,"0")}`;
@@ -1018,7 +1008,7 @@ export default function NovoReleasePage() {
         </div>
 
         {step === 0 && <StepBrand selected={brand} onSelect={setBrand} brands={brands} onAddBrand={b => setBrands(prev => [...prev, b])} />}
-        {step === 1 && <StepContent content={content} setContent={setContent} brand={brand} authors={authors} />}
+        {step === 1 && <StepContent content={content} setContent={setContent} brand={brand} />}
         {step === 2 && <StepVehicles selected={selected} setSelected={setSelected} />}
         {step === 3 && <StepReview content={content} selected={selected} when={when} setWhen={setWhen} brand={brand} />}
       </div>

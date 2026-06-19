@@ -18,6 +18,7 @@ model Brand {
   contact     String?
   description String?
   boilerplate String?
+  authors     String[]
   logoUrl     String?
   toneConfig  Json?
   ownerId     String

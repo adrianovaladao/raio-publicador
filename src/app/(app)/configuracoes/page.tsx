@@ -23,6 +23,7 @@ interface Brand {
   contact: string | null;
   description: string | null;
   boilerplate: string | null;
+  authors: string[];
   logoUrl: string | null;
   toneConfig: unknown;
 }
@@ -510,6 +511,8 @@ function BrandFormModal({ brand, onClose, onSaved }: {
   const [contact, setContact] = useState(brand?.contact ?? "");
   const [desc,    setDesc]    = useState(brand?.description ?? "");
   const [boiler,  setBoiler]  = useState(brand?.boilerplate ?? "");
+  const [authors, setAuthors] = useState<string[]>(brand?.authors ?? []);
+  const [authorInput, setAuthorInput] = useState("");
   const [color,   setColor]   = useState(brand?.color ?? BRAND_COLORS[0]);
   const [logoUrl, setLogoUrl] = useState(brand?.logoUrl ?? "");
   const [logoFile, setLogoFile] = useState<File | null>(null);
@@ -547,7 +550,7 @@ function BrandFormModal({ brand, onClose, onSaved }: {
     try {
       let finalLogo = logoUrl;
       if (logoFile) finalLogo = await uploadBrandLogo(logoFile);
-      const body = { name: name.trim(), segment, color, site: site.trim() || null, contact: contact.trim() || null, description: desc.trim() || null, boilerplate: boiler.trim() || null, logoUrl: finalLogo || null };
+      const body = { name: name.trim(), segment, color, site: site.trim() || null, contact: contact.trim() || null, description: desc.trim() || null, boilerplate: boiler.trim() || null, authors, logoUrl: finalLogo || null };
       const url = isEdit ? `/api/brands/${brand!.id}` : "/api/brands";
       const method = isEdit ? "PUT" : "POST";
       const res  = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
@@ -625,6 +628,49 @@ function BrandFormModal({ brand, onClose, onSaved }: {
           </div>
           <div className="field"><label>Descrição curta</label><textarea className="input" rows={2} value={desc} onChange={e => setDesc(e.target.value)} placeholder="Em uma frase, o que a marca faz." /></div>
           <div className="field"><label>Boilerplate <span className="muted" style={{ fontWeight: 400 }}>· &ldquo;sobre a empresa&rdquo;</span></label><textarea className="input" rows={3} value={boiler} onChange={e => setBoiler(e.target.value)} placeholder={`A ${name || "marca"} é referência em ${segment.toLowerCase()}.`} /></div>
+          <div className="field">
+            <label>Autores</label>
+            <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+              <input
+                className="input"
+                style={{ flex: 1 }}
+                placeholder="Nome do autor ou porta-voz"
+                value={authorInput}
+                onChange={e => setAuthorInput(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    const v = authorInput.trim();
+                    if (v && !authors.includes(v)) setAuthors(a => [...a, v]);
+                    setAuthorInput("");
+                  }
+                }}
+              />
+              <button
+                type="button"
+                className="btn btn-quiet btn-sm"
+                onClick={() => {
+                  const v = authorInput.trim();
+                  if (v && !authors.includes(v)) setAuthors(a => [...a, v]);
+                  setAuthorInput("");
+                }}
+              >
+                <Plus size={14} /> Adicionar
+              </button>
+            </div>
+            {authors.length > 0 && (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                {authors.map(a => (
+                  <span key={a} style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "var(--surface)", border: "1px solid var(--line)", borderRadius: 99, padding: "3px 10px 3px 12px", fontSize: 13 }}>
+                    {a}
+                    <button type="button" style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", color: "var(--stone)" }} onClick={() => setAuthors(prev => prev.filter(x => x !== a))}>
+                      <X size={12} />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
           <div className="field" style={{ marginBottom: 4 }}>
             <label>Cor de identificação</label>
             <div className="nb-colors">
