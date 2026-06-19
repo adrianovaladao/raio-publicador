@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import {
   ArrowLeft, Check, ChevronDown, Image as ImageIcon,
-  Rocket, Calendar, X, Search, Download, Upload, Trash2,
+  Rocket, Calendar, X, Search, Download, Trash2,
 } from "lucide-react";
 import { extractDominantColorFromUrl } from "@/lib/color";
 import {
@@ -37,14 +37,6 @@ const VEH_CATS = ["Todos", "Economia", "Negócios", "Franquias", "Varejo", "Tecn
 const VEH_UFS  = ["Todas", "SP", "RJ", "MG", "RS", "PE", "DF", "GO", "AM"];
 const CONTENT_CATS = ["Economia", "Negócios", "Franquias", "Varejo", "Tecnologia", "Geral"];
 const PLAN = { total: 5000, used: 3200 };
-
-const STATUS_LABEL: Record<string, string> = {
-  PUBLISHED:  "Publicado",
-  SCHEDULED:  "Agendado",
-  DRAFT:      "Rascunho",
-  REVIEW:     "Em revisão",
-  CANCELLED:  "Cancelado",
-};
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
