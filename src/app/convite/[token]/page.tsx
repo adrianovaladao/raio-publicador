@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useUser, SignIn } from "@clerk/nextjs";
+import { useUser, SignUp } from "@clerk/nextjs";
 
 interface InviteInfo {
   email: string;
@@ -90,8 +90,11 @@ export default function ConvitePage({ params }: { params: Promise<{ token: strin
 
             {!isLoaded ? null : !user ? (
               <div style={{ textAlign: "left" }}>
-                <p style={{ color: "#555", fontSize: 13, marginBottom: 16 }}>Faça login ou crie uma conta para continuar:</p>
-                <SignIn routing="hash" forceRedirectUrl={`/convite/${token}`} />
+                <SignUp routing="hash" forceRedirectUrl={`/convite/${token}`} initialValues={{ emailAddress: invite.email }} />
+                <p style={{ color: "#999", fontSize: 12, marginTop: 12, textAlign: "center" }}>
+                  Já tem uma conta?{" "}
+                  <a href={`/sign-in?redirect_url=/convite/${token}`} style={{ color: "var(--ink)", fontWeight: 600 }}>Entrar</a>
+                </p>
               </div>
             ) : (
               <button
