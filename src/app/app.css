@@ -548,6 +548,14 @@ textarea.input { resize: vertical; line-height: 1.55; }
 .composer-grid.stretch-cols .editor { flex: 1; display: flex; flex-direction: column; }
 .composer-grid.stretch-cols .editor .body-pad { flex: 1; display: flex; flex-direction: column; }
 .composer-grid.stretch-cols .editor .body-input { flex: 1; resize: none; }
+
+.edit-layout { display: grid; grid-template-columns: 1fr 320px; gap: 18px; }
+.edit-layout-top { display: grid; grid-template-columns: 1fr 320px; gap: 18px; align-items: stretch; margin-bottom: 18px; }
+.edit-layout-top > .editor-col { display: flex; flex-direction: column; }
+.edit-layout-top > .editor-col .editor { flex: 1; display: flex; flex-direction: column; }
+.edit-layout-top > .editor-col .editor .body-pad { flex: 1; display: flex; flex-direction: column; }
+.edit-layout-top > .editor-col .editor .body-input { flex: 1; resize: none; min-height: 200px; }
+.edit-layout-bottom { display: grid; grid-template-columns: 1fr 320px; gap: 18px; align-items: start; }
 @media (max-width: 1080px) { .composer-grid { grid-template-columns: 1fr; } }
 
 .editor { padding: 0; overflow: hidden; }

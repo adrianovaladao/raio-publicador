@@ -504,11 +504,9 @@ export default function EditReleasePage() {
 
         {err && <p style={{ color: "var(--red,#c0392b)", fontSize: 13, marginBottom: 16, fontWeight: 500 }}>{err}</p>}
 
-        {/* Two-column grid */}
-        <div className="composer-grid stretch-cols">
-
-          {/* Left column: editor + media */}
-          <div>
+        {/* Top row: editor (left) + Marca/Detalhes/Publicação (right) */}
+        <div className="edit-layout-top">
+          <div className="editor-col">
             <div className="card editor">
               <div className="toolbtns">
                 {["H", "B", "I", "|", "≡", "❝", "🔗"].map((b, i) =>
@@ -541,16 +539,9 @@ export default function EditReleasePage() {
                 />
               </div>
             </div>
-
-            {/* Media gallery */}
-            <MediaGallery
-              images={images}
-              onAdd={url => setImages(prev => [...prev, url])}
-              onRemove={url => setImages(prev => prev.filter(u => u !== url))}
-            />
           </div>
 
-          {/* Right column */}
+          {/* Right column: Marca + Detalhes + Publicação */}
           <div>
 
             {/* Marca */}
@@ -635,10 +626,17 @@ export default function EditReleasePage() {
               </div>
             </div>
 
-            {/* Veículos */}
-            <VehiclesCard selected={selectedVeh} setSelected={setSelectedVeh} />
-
           </div>
+        </div>
+
+        {/* Bottom row: Mídia (left) + Veículos (right) */}
+        <div className="edit-layout-bottom">
+          <MediaGallery
+            images={images}
+            onAdd={url => setImages(prev => [...prev, url])}
+            onRemove={url => setImages(prev => prev.filter(u => u !== url))}
+          />
+          <VehiclesCard selected={selectedVeh} setSelected={setSelectedVeh} />
         </div>
       </div>
 
