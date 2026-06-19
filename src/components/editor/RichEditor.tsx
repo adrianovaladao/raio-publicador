@@ -104,6 +104,15 @@ export function RichEditor({
     finally { setAiLoading(false); }
   }
 
+  const RECOMMENDED = 600;
+  const wordCount = editor
+    ? editor.getText().trim().split(/\s+/).filter(Boolean).length
+    : 0;
+  const wordPct   = Math.min(wordCount / RECOMMENDED, 1);
+  const wordOver  = wordCount > RECOMMENDED * 1.2;
+  const wordDone  = wordCount >= RECOMMENDED * 0.9 && !wordOver;
+  const wordColor = wordOver ? "var(--red,#c0392b)" : wordDone ? "var(--green,#2f8a5b)" : "var(--stone)";
+
   if (!editor) return null;
 
   const btn = (active: boolean, onClick: () => void, children: React.ReactNode, title?: string) => (
@@ -181,6 +190,30 @@ export function RichEditor({
           onChange={e => onSubtitleChange(e.target.value)}
         />
         <EditorContent editor={editor} />
+      </div>
+
+      {/* Word count bar */}
+      <div style={{ padding: "10px 26px 14px", borderTop: "1px solid var(--line)" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+          <span style={{ fontSize: 12, color: "var(--stone)" }}>Contagem de palavras</span>
+          <span style={{ fontSize: 12, fontWeight: 600, color: wordColor, fontFamily: "var(--mono)" }}>
+            {wordCount} <span style={{ fontWeight: 400, color: "var(--stone)" }}>/ {RECOMMENDED} recomendadas</span>
+          </span>
+        </div>
+        <div style={{ height: 4, borderRadius: 99, background: "var(--line)", overflow: "hidden" }}>
+          <div style={{
+            height: "100%",
+            width: `${wordPct * 100}%`,
+            borderRadius: 99,
+            background: wordOver ? "var(--red,#c0392b)" : wordDone ? "var(--green,#2f8a5b)" : "var(--coral)",
+            transition: "width 0.2s, background 0.3s",
+          }} />
+        </div>
+        {wordOver && (
+          <p style={{ fontSize: 11, color: "var(--red,#c0392b)", margin: "5px 0 0" }}>
+            {wordCount - RECOMMENDED} palavras acima do recomendado
+          </p>
+        )}
       </div>
     </div>
   );
