@@ -62,18 +62,44 @@ export function RichEditor({
   async function runAI() {
     if (!editor || aiLoading) return;
     setAiErr("");
+
+    const { from, to, empty } = editor.state.selection;
+    const fullText = editor.getText();
+    const hasContent = fullText.trim().length > 0;
+
+    // Has content but nothing selected → hint user to select text
+    if (hasContent && empty) {
+      setAiErr("Selecione um trecho para a IA editar, ou apague o conteúdo para gerar do zero.");
+      return;
+    }
+
     setAiLoading(true);
     try {
-      const currentBody = editor.getText();
-      const res = await fetch("/api/ai", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, subtitle, body: currentBody, brandName }),
-      });
-      const data = await res.json() as { text?: string; error?: string };
-      if (!res.ok || !data.text) { setAiErr(data.error ?? "Erro na IA."); return; }
-      editor.commands.setContent(data.text);
-      onContentChange(editor.getHTML());
+      if (!hasContent) {
+        // Empty editor → generate full release
+        const res = await fetch("/api/ai", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title, subtitle, body: "", brandName, mode: "generate" }),
+        });
+        const data = await res.json() as { text?: string; error?: string };
+        if (!res.ok || !data.text) { setAiErr(data.error ?? "Erro na IA."); return; }
+        editor.commands.setContent(data.text);
+        onContentChange(editor.getHTML());
+      } else {
+        // Selection exists → rewrite only the selected text
+        const selectedText = editor.state.doc.textBetween(from, to, " ");
+        const res = await fetch("/api/ai", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title, subtitle, body: selectedText, brandName, mode: "rewrite" }),
+        });
+        const data = await res.json() as { text?: string; error?: string };
+        if (!res.ok || !data.text) { setAiErr(data.error ?? "Erro na IA."); return; }
+        // Replace selection with rewritten text (plain text, preserving inline marks)
+        editor.chain().focus().deleteRange({ from, to }).insertContentAt(from, data.text).run();
+        onContentChange(editor.getHTML());
+      }
     } catch { setAiErr("Falha de conexão com a IA."); }
     finally { setAiLoading(false); }
   }

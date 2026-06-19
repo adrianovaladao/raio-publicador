@@ -9,31 +9,30 @@ export async function POST(req: Request) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { title, subtitle, body, brandName } = await req.json() as {
+  const { title, subtitle, body, brandName, mode } = await req.json() as {
     title?: string;
     subtitle?: string;
     body?: string;
     brandName?: string;
+    mode?: "generate" | "rewrite";
   };
 
-  const prompt = body?.trim()
-    ? `Você é um redator especialista em assessoria de imprensa. Reescreva e aprimore o seguinte texto de release, mantendo as informações essenciais mas tornando-o mais profissional, objetivo e atrativo para jornalistas.
+  const prompt = mode === "rewrite"
+    ? `Você é um redator especialista em assessoria de imprensa. Reescreva e aprimore APENAS o trecho abaixo, mantendo as informações essenciais mas tornando-o mais profissional, objetivo e atrativo para jornalistas. Não adicione informações que não estejam no trecho original.
 
-Marca: ${brandName ?? "não informada"}
-Título: ${title ?? "não informado"}
-Subtítulo: ${subtitle ?? "não informado"}
+Contexto — Marca: ${brandName ?? "não informada"} · Título: ${title ?? ""} · Subtítulo: ${subtitle ?? ""}
 
-Texto atual:
+Trecho a reescrever:
 ${body}
 
-Retorne apenas o texto melhorado, sem comentários ou explicações. Use parágrafos bem estruturados com quebras de linha entre eles. Não use markdown — apenas texto puro com parágrafos separados por linhas em branco.`
-    : `Você é um redator especialista em assessoria de imprensa. Escreva um release profissional para a seguinte informação:
+Retorne apenas o trecho reescrito, sem comentários, introdução ou explicações. Texto puro, sem markdown.`
+    : `Você é um redator especialista em assessoria de imprensa. Escreva um release profissional completo para a seguinte informação:
 
 Marca: ${brandName ?? "não informada"}
 Título: ${title ?? "não informado"}
 Subtítulo: ${subtitle ?? "não informado"}
 
-Escreva um release completo com lide (quem, o quê, quando, onde, por quê) seguido de 2-3 parágrafos de desenvolvimento. Use linguagem jornalística, objetiva e profissional. Não use markdown — apenas texto puro com parágrafos separados por linhas em branco.`;
+Escreva com lide (quem, o quê, quando, onde, por quê) seguido de 2-3 parágrafos de desenvolvimento. Use linguagem jornalística, objetiva e profissional. Texto puro com parágrafos separados por linhas em branco, sem markdown.`;
 
   try {
     const message = await client.messages.create({
