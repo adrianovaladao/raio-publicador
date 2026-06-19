@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import {
   ArrowLeft, Check, ChevronDown, Image as ImageIcon,
-  Rocket, Calendar, X, Search, Download, Trash2,
+  Rocket, Calendar, X, Search, Download, Trash2, Plus,
 } from "lucide-react";
 import { extractDominantColorFromUrl } from "@/lib/color";
 import {
@@ -14,7 +14,7 @@ import {
 } from "docx";
 import { saveAs } from "file-saver";
 
-// ── Mock vehicles (same as novo/page) ────────────────────────────────────────
+// ── Mock vehicles ─────────────────────────────────────────────────────────────
 
 const VEHICLES = [
   { id: "v1",  name: "Capital Econômica",      domain: "capitaleconomica.com.br",  cat: "Economia",   uf: "SP", reach: 8400000, tier: "AAA", tokens: 320, color: "#1A1A1A" },
@@ -75,13 +75,20 @@ interface ReleaseData {
   brand: Brand;
 }
 
-// ── MediaCard ─────────────────────────────────────────────────────────────────
+// ── MediaGallery ──────────────────────────────────────────────────────────────
 
-function MediaCard({ imageUrl, onChange }: { imageUrl?: string; onChange: (url: string | undefined) => void }) {
+function MediaGallery({
+  images,
+  onAdd,
+  onRemove,
+}: {
+  images: string[];
+  onAdd: (url: string) => void;
+  onRemove: (url: string) => void;
+}) {
   const [uploading, setUploading] = useState(false);
   const [err, setErr] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
-  const [dragging, setDragging] = useState(false);
 
   async function handleFile(file: File) {
     if (!file.type.startsWith("image/")) { setErr("Apenas imagens JPG ou PNG."); return; }
@@ -104,60 +111,56 @@ function MediaCard({ imageUrl, onChange }: { imageUrl?: string; onChange: (url: 
       let data: { url?: string; error?: string } = {};
       try { data = JSON.parse(text); } catch { /* ignore */ }
       if (!res.ok || !data.url) { setErr(data.error ?? "Falha no upload."); return; }
-      onChange(data.url);
+      onAdd(data.url);
     } catch { setErr("Falha de conexão."); }
     finally { setUploading(false); }
   }
 
   return (
-    <div className="card side-card">
+    <div className="card" style={{ marginTop: 16 }}>
       <div className="card-head"><h3>Mídia</h3></div>
-      <div className="sc-body">
-        <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" style={{ display: "none" }}
-          onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = ""; }} />
-        {imageUrl ? (
-          <div style={{ position: "relative" }}>
+      <div style={{ padding: "12px 20px 20px", display: "flex", gap: 12, flexWrap: "wrap" }}>
+        {images.map(url => (
+          <div key={url} style={{ position: "relative", width: 140, height: 90, borderRadius: 8, overflow: "hidden", flexShrink: 0, border: "1px solid var(--line)" }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={imageUrl} alt="Capa do release" style={{ width: "100%", borderRadius: 8, display: "block", maxHeight: 180, objectFit: "cover" }} />
-            <button type="button" onClick={() => onChange(undefined)}
-              style={{ position: "absolute", top: 6, right: 6, background: "rgba(0,0,0,0.55)", border: "none", borderRadius: 6, color: "#fff", cursor: "pointer", padding: "4px 8px", fontSize: 12 }}>
+            <img src={url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+            <button
+              onClick={() => onRemove(url)}
+              style={{ position: "absolute", top: 5, right: 5, background: "rgba(0,0,0,0.55)", border: "none", borderRadius: 5, color: "#fff", cursor: "pointer", padding: "2px 7px", fontSize: 11, fontWeight: 600 }}
+            >
               Remover
             </button>
-            <button type="button" className="btn btn-quiet btn-sm" style={{ marginTop: 8, width: "100%" }} onClick={() => fileRef.current?.click()}>
-              Trocar imagem
-            </button>
           </div>
-        ) : (
-          <div
-            className={`attach${dragging ? " drag-over" : ""}`}
-            onClick={() => fileRef.current?.click()}
-            onDragOver={e => { e.preventDefault(); setDragging(true); }}
-            onDragLeave={() => setDragging(false)}
-            onDrop={e => { e.preventDefault(); setDragging(false); const f = e.dataTransfer.files[0]; if (f) handleFile(f); }}
-            style={{ cursor: "pointer" }}
-          >
-            {uploading
-              ? <><ImageIcon size={22} /><div className="t">Enviando…</div></>
-              : <><ImageIcon size={22} /><div className="t">Arraste imagens aqui</div><div className="h">JPG ou PNG · até 5 MB</div></>}
-          </div>
-        )}
-        {err && <p style={{ color: "var(--red,#c0392b)", fontSize: 12, margin: "6px 0 0" }}>{err}</p>}
+        ))}
+
+        {/* Add slot */}
+        <div
+          onClick={() => !uploading && fileRef.current?.click()}
+          style={{ width: 140, height: 90, borderRadius: 8, border: "1.5px dashed var(--sand)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6, cursor: uploading ? "default" : "pointer", color: "var(--stone)", flexShrink: 0 }}
+        >
+          {uploading
+            ? <><ImageIcon size={18} /><span style={{ fontSize: 11 }}>Enviando…</span></>
+            : <><Plus size={18} /><span style={{ fontSize: 11, fontWeight: 600 }}>Adicionar nova imagem</span></>}
+        </div>
+
+        <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" style={{ display: "none" }}
+          onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = ""; }} />
       </div>
+      {err && <p style={{ color: "var(--red,#c0392b)", fontSize: 12, margin: "-8px 20px 12px", fontWeight: 500 }}>{err}</p>}
     </div>
   );
 }
 
-// ── VehiclesPanel ─────────────────────────────────────────────────────────────
+// ── VehiclesCard ──────────────────────────────────────────────────────────────
 
-function VehiclesPanel({ selected, setSelected }: { selected: string[]; setSelected: (s: string[]) => void }) {
+function VehiclesCard({ selected, setSelected }: { selected: string[]; setSelected: (s: string[]) => void }) {
   const [cat, setCat] = useState("Todos");
-  const [uf, setUf]   = useState("Todas");
-  const [q, setQ]     = useState("");
-  const [open, setOpen] = useState(false);
+  const [uf,  setUf]  = useState("Todas");
+  const [q,   setQ]   = useState("");
+  const [open, setOpen] = useState(true);
 
   const toggle = (id: string) =>
     setSelected(selected.includes(id) ? selected.filter(x => x !== id) : [...selected, id]);
-  const remove = (id: string) => setSelected(selected.filter(x => x !== id));
 
   const list = VEHICLES.filter(v =>
     (cat === "Todos" || v.cat === cat) &&
@@ -173,83 +176,91 @@ function VehiclesPanel({ selected, setSelected }: { selected: string[]; setSelec
 
   return (
     <div className="card side-card" style={{ marginTop: 16 }}>
-      <div className="card-head" style={{ cursor: "pointer" }} onClick={() => setOpen(o => !o)}>
+      <div
+        className="card-head"
+        style={{ cursor: "pointer", userSelect: "none" }}
+        onClick={() => setOpen(o => !o)}
+      >
         <h3>Veículos</h3>
-        <span style={{ fontSize: 13, color: "var(--stone)" }}>
-          {selVehicles.length > 0 ? `${selVehicles.length} selecionados · ${selTokens} créditos` : "Nenhum selecionado"}
+        <span style={{ fontSize: 13, color: "var(--stone)", flex: 1, textAlign: "right", marginRight: 8 }}>
+          {selVehicles.length > 0 ? `${selVehicles.length} selecionados` : "Nenhum selecionado"}
         </span>
-        <ChevronDown size={16} style={{ transform: open ? "rotate(180deg)" : undefined, transition: "transform 0.2s" }} />
+        <ChevronDown size={16} style={{ transform: open ? "rotate(180deg)" : undefined, transition: "transform 0.18s", flexShrink: 0 }} />
       </div>
 
-      {/* Selected chips */}
-      {selVehicles.length > 0 && !open && (
-        <div className="sc-body" style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-          {selVehicles.map(v => (
-            <span key={v.id} style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "var(--cream)", border: "1px solid var(--line)", borderRadius: 6, padding: "3px 8px 3px 6px", fontSize: 12 }}>
-              <span style={{ background: v.color, width: 14, height: 14, borderRadius: 3, display: "inline-block", flexShrink: 0 }} />
-              {v.name}
-              <button onClick={() => remove(v.id)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center" }}>
-                <X size={12} color="var(--stone)" />
-              </button>
-            </span>
-          ))}
-        </div>
-      )}
-
       {open && (
-        <div className="sc-body" style={{ padding: "0 0 16px" }}>
-          {/* Toolbar */}
-          <div style={{ display: "flex", gap: 8, padding: "10px 20px", borderBottom: "1px solid var(--line)" }}>
-            <div className="search" style={{ flex: 1 }}>
-              <Search size={15} />
-              <input placeholder="Buscar veículo…" value={q} onChange={e => setQ(e.target.value)} />
+        <>
+          {/* Filters */}
+          <div style={{ display: "flex", gap: 8, padding: "10px 16px", borderBottom: "1px solid var(--line)" }}>
+            <div className="search" style={{ flex: 1, minWidth: 0 }}>
+              <Search size={14} />
+              <input placeholder="Buscar veículo…" value={q} onChange={e => setQ(e.target.value)} style={{ fontSize: 12 }} />
             </div>
-            <div className="select-wrap" style={{ width: 130 }}>
-              <select className="input" value={cat} onChange={e => setCat(e.target.value)} style={{ padding: "7px 28px 7px 10px", fontSize: 12 }}>
+            <div className="select-wrap" style={{ width: 110 }}>
+              <select className="input" value={cat} onChange={e => setCat(e.target.value)} style={{ padding: "6px 26px 6px 9px", fontSize: 12 }}>
                 {VEH_CATS.map(c => <option key={c}>{c}</option>)}
               </select>
-              <ChevronDown size={14} />
+              <ChevronDown size={13} />
             </div>
-            <div className="select-wrap" style={{ width: 90 }}>
-              <select className="input" value={uf} onChange={e => setUf(e.target.value)} style={{ padding: "7px 28px 7px 10px", fontSize: 12 }}>
+            <div className="select-wrap" style={{ width: 80 }}>
+              <select className="input" value={uf} onChange={e => setUf(e.target.value)} style={{ padding: "6px 26px 6px 9px", fontSize: 12 }}>
                 {VEH_UFS.map(u => <option key={u}>{u}</option>)}
               </select>
-              <ChevronDown size={14} />
+              <ChevronDown size={13} />
             </div>
           </div>
 
-          {/* List */}
-          <div style={{ maxHeight: 320, overflowY: "auto" }}>
-            {list.map(v => (
-              <div key={v.id} className={`veh-row${selected.includes(v.id) ? " sel" : ""}`} onClick={() => toggle(v.id)}>
-                <div className="cbx">{selected.includes(v.id) && <Check size={13} />}</div>
-                <div className="logo" style={{ background: v.color }}>{initials(v.name)}</div>
-                <div>
-                  <div className="nm">{v.name}</div>
-                  <div className="meta">
-                    <span className={`tier t-${v.tier.toLowerCase()}`}>{v.tier}</span>
-                    <span className="dom">{v.domain}</span>
-                    <span className="dom">· {v.uf}</span>
+          {/* Vehicle rows */}
+          <div style={{ maxHeight: 340, overflowY: "auto" }}>
+            {list.map(v => {
+              const sel = selected.includes(v.id);
+              return (
+                <div
+                  key={v.id}
+                  onClick={() => toggle(v.id)}
+                  style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 16px", cursor: "pointer", borderBottom: "1px solid var(--line)", background: sel ? "rgba(250,181,0,0.05)" : undefined }}
+                >
+                  {/* Checkbox */}
+                  <div style={{ width: 16, height: 16, borderRadius: 4, border: sel ? "none" : "1.5px solid var(--sand)", background: sel ? "var(--coral)" : undefined, display: "grid", placeItems: "center", flexShrink: 0 }}>
+                    {sel && <Check size={11} color="#fff" strokeWidth={3} />}
                   </div>
+                  {/* Logo */}
+                  <div style={{ width: 28, height: 28, borderRadius: 7, background: v.color, display: "grid", placeItems: "center", fontFamily: "var(--mono)", fontWeight: 700, fontSize: 9, color: "#fff", flexShrink: 0 }}>
+                    {initials(v.name)}
+                  </div>
+                  {/* Name + meta */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{v.name}</div>
+                    <div style={{ display: "flex", gap: 6, alignItems: "center", marginTop: 2 }}>
+                      <span className={`tier t-${v.tier.toLowerCase()}`}>{v.tier}</span>
+                      <span style={{ fontSize: 11, color: "var(--stone)" }}>{v.domain}</span>
+                      <span style={{ fontSize: 11, color: "var(--stone)" }}>· {v.uf}</span>
+                    </div>
+                  </div>
+                  {/* Tokens */}
+                  <span style={{ fontSize: 12, fontWeight: 700, color: "var(--coral-ink)", flexShrink: 0 }}>{v.tokens} ⚡</span>
                 </div>
-                <div className="reach"><div className="n">{fmtReach(v.reach)}</div><div className="u">alcance/mês</div></div>
-                <div className="cost"><span className="tk">{v.tokens}</span><span style={{ color: "var(--coral-ink)", fontSize: 16 }}>⚡</span></div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
-          {/* Summary */}
-          <div style={{ padding: "12px 20px 0", borderTop: "1px solid var(--line)", marginTop: 8 }}>
-            {over && <p style={{ color: "var(--red,#c0392b)", fontSize: 12, margin: "0 0 8px", fontWeight: 600 }}>Faltam {(selTokens - left).toLocaleString("pt-BR")} créditos. Remova veículos ou faça upgrade.</p>}
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
-              <span className="muted">Alcance somado</span><strong>{fmtReach(selReach)}</strong>
+          {/* Footer summary */}
+          <div style={{ padding: "12px 16px", borderTop: "1px solid var(--line)" }}>
+            {over && (
+              <p style={{ color: "var(--red,#c0392b)", fontSize: 12, margin: "0 0 8px", fontWeight: 600 }}>
+                Faltam {(selTokens - left).toLocaleString("pt-BR")} créditos.
+              </p>
+            )}
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "var(--stone)", marginBottom: 4 }}>
+              <span>Alcance somado</span>
+              <strong style={{ color: "var(--ink)" }}>{selReach > 0 ? fmtReach(selReach) : "—"}</strong>
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginTop: 4 }}>
-              <span className="muted">Créditos</span>
-              <strong style={{ color: over ? "var(--red,#c0392b)" : undefined }}>{selTokens} ⚡</strong>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "var(--stone)" }}>
+              <span>Créditos</span>
+              <strong style={{ color: over ? "var(--red,#c0392b)" : "var(--ink)" }}>{selTokens} <span style={{ color: "var(--coral-ink)" }}>⚡</span></strong>
             </div>
           </div>
-        </div>
+        </>
       )}
     </div>
   );
@@ -257,7 +268,9 @@ function VehiclesPanel({ selected, setSelected }: { selected: string[]; setSelec
 
 // ── DeleteModal ───────────────────────────────────────────────────────────────
 
-function DeleteModal({ title, onConfirm, onClose, deleting }: { title: string; onConfirm: () => void; onClose: () => void; deleting: boolean }) {
+function DeleteModal({ title, onConfirm, onClose, deleting }: {
+  title: string; onConfirm: () => void; onClose: () => void; deleting: boolean;
+}) {
   useEffect(() => {
     const fn = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
     window.addEventListener("keydown", fn);
@@ -273,12 +286,18 @@ function DeleteModal({ title, onConfirm, onClose, deleting }: { title: string; o
         </div>
         <div className="m-body">
           <p style={{ fontSize: 14, lineHeight: 1.6, color: "var(--ink-soft)" }}>
-            Tem certeza que deseja excluir <strong style={{ color: "var(--ink)" }}>&ldquo;{title}&rdquo;</strong>? Esta ação não pode ser desfeita.
+            Tem certeza que deseja excluir <strong style={{ color: "var(--ink)" }}>&ldquo;{title}&rdquo;</strong>?
+            Esta ação não pode ser desfeita.
           </p>
         </div>
         <div className="m-foot">
           <button className="btn btn-quiet btn-sm" onClick={onClose}>Cancelar</button>
-          <button className="btn btn-sm" style={{ background: "var(--red,#c0392b)", color: "#fff" }} disabled={deleting} onClick={onConfirm}>
+          <button
+            className="btn btn-sm"
+            style={{ background: "var(--red,#c0392b)", color: "#fff" }}
+            disabled={deleting}
+            onClick={onConfirm}
+          >
             <Trash2 size={14} /> {deleting ? "Excluindo…" : "Excluir release"}
           </button>
         </div>
@@ -287,91 +306,48 @@ function DeleteModal({ title, onConfirm, onClose, deleting }: { title: string; o
   );
 }
 
-// ── Docx download ─────────────────────────────────────────────────────────────
+// ── Docx ─────────────────────────────────────────────────────────────────────
 
 async function downloadDocx(title: string, subtitle: string, body: string, cat: string, selVehicles: typeof VEHICLES, brand: Brand | null) {
   const brandName = brand?.name ?? "Marca";
   const slug = title.slice(0, 40).replace(/\s+/g, "-").toLowerCase() || "release";
-
   const doc = new Document({
     styles: { default: { document: { run: { font: "Calibri", size: 24 } } } },
     sections: [{
       properties: { page: { margin: { top: 1080, bottom: 1080, left: 1260, right: 1260 } } },
       children: [
-        new Paragraph({
-          spacing: { after: 80 },
-          children: [
-            new TextRun({ text: brandName.toUpperCase(), bold: true, size: 18, color: "848484", font: "Calibri" }),
-            new TextRun({ text: `  ·  ${cat}`, size: 18, color: "848484", font: "Calibri" }),
-          ],
-        }),
-        new Paragraph({
-          heading: HeadingLevel.HEADING_1,
-          spacing: { after: 160 },
-          children: [new TextRun({ text: title || "Título do release", bold: true, size: 52, font: "Calibri" })],
-        }),
-        ...(subtitle ? [new Paragraph({
-          spacing: { after: 320 },
-          children: [new TextRun({ text: subtitle, italics: true, size: 30, color: "555555", font: "Calibri" })],
-        })] : []),
-        new Paragraph({
-          border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: "E0DFDB" } },
-          spacing: { after: 320 },
-          children: [],
-        }),
+        new Paragraph({ spacing: { after: 80 }, children: [
+          new TextRun({ text: brandName.toUpperCase(), bold: true, size: 18, color: "848484", font: "Calibri" }),
+          new TextRun({ text: `  ·  ${cat}`, size: 18, color: "848484", font: "Calibri" }),
+        ]}),
+        new Paragraph({ heading: HeadingLevel.HEADING_1, spacing: { after: 160 }, children: [new TextRun({ text: title || "Título", bold: true, size: 52, font: "Calibri" })] }),
+        ...(subtitle ? [new Paragraph({ spacing: { after: 320 }, children: [new TextRun({ text: subtitle, italics: true, size: 30, color: "555555", font: "Calibri" })] })] : []),
+        new Paragraph({ border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: "E0DFDB" } }, spacing: { after: 320 }, children: [] }),
         ...body.split("\n").filter(Boolean).map(line =>
-          new Paragraph({
-            spacing: { after: 200 },
-            children: [new TextRun({ text: line, size: 24, font: "Calibri" })],
-            alignment: AlignmentType.JUSTIFIED,
-          })
+          new Paragraph({ spacing: { after: 200 }, children: [new TextRun({ text: line, size: 24, font: "Calibri" })], alignment: AlignmentType.JUSTIFIED })
         ),
         ...(brand ? [
           new Paragraph({ spacing: { after: 120, before: 400 }, children: [] }),
-          new Paragraph({
-            border: { top: { style: BorderStyle.SINGLE, size: 6, color: "E0DFDB" } },
-            spacing: { after: 200, before: 160 },
-            children: [new TextRun({ text: "SOBRE A EMPRESA", bold: true, size: 18, color: "848484", font: "Calibri" })],
-          }),
-          new Paragraph({
-            spacing: { after: 320 },
-            children: [new TextRun({ text: `Sobre ${brandName}: referência no segmento de ${(brand.segment ?? "").toLowerCase()}.`, size: 22, color: "555555", font: "Calibri" })],
-          }),
+          new Paragraph({ border: { top: { style: BorderStyle.SINGLE, size: 6, color: "E0DFDB" } }, spacing: { after: 200, before: 160 }, children: [new TextRun({ text: "SOBRE A EMPRESA", bold: true, size: 18, color: "848484", font: "Calibri" })] }),
+          new Paragraph({ spacing: { after: 320 }, children: [new TextRun({ text: `Sobre ${brandName}: referência no segmento de ${(brand.segment ?? "").toLowerCase()}.`, size: 22, color: "555555", font: "Calibri" })] }),
         ] : []),
         ...(selVehicles.length > 0 ? [
-          new Paragraph({
-            border: { top: { style: BorderStyle.SINGLE, size: 6, color: "E0DFDB" } },
-            spacing: { after: 200, before: 160 },
-            children: [new TextRun({ text: "VEÍCULOS SELECIONADOS", bold: true, size: 18, color: "848484", font: "Calibri" })],
-          }),
+          new Paragraph({ border: { top: { style: BorderStyle.SINGLE, size: 6, color: "E0DFDB" } }, spacing: { after: 200, before: 160 }, children: [new TextRun({ text: "VEÍCULOS SELECIONADOS", bold: true, size: 18, color: "848484", font: "Calibri" })] }),
           new Table({
             width: { size: 100, type: WidthType.PERCENTAGE },
             rows: [
-              new TableRow({
-                tableHeader: true,
-                children: ["Veículo", "Editoria", "UF", "Tier", "Alcance"].map(h =>
-                  new TableCell({
-                    shading: { type: ShadingType.SOLID, color: "F1F0EC" },
-                    children: [new Paragraph({ children: [new TextRun({ text: h, bold: true, size: 18, font: "Calibri" })] })],
-                  })
-                ),
-              }),
-              ...selVehicles.map(v =>
-                new TableRow({
-                  children: [v.name, v.cat, v.uf, v.tier, fmtReach(v.reach)].map(val =>
-                    new TableCell({
-                      children: [new Paragraph({ children: [new TextRun({ text: val, size: 18, font: "Calibri" })] })],
-                    })
-                  ),
-                })
-              ),
+              new TableRow({ tableHeader: true, children: ["Veículo","Editoria","UF","Tier","Alcance"].map(h =>
+                new TableCell({ shading: { type: ShadingType.SOLID, color: "F1F0EC" }, children: [new Paragraph({ children: [new TextRun({ text: h, bold: true, size: 18, font: "Calibri" })] })] })
+              )}),
+              ...selVehicles.map(v => new TableRow({ children: [v.name,v.cat,v.uf,v.tier,fmtReach(v.reach)].map(val =>
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: val, size: 18, font: "Calibri" })] })] })
+              )})),
             ],
           }),
         ] : []),
       ],
     }],
   });
-
   const blob = await Packer.toBlob(doc);
   saveAs(blob, `${slug}.docx`);
 }
@@ -382,25 +358,24 @@ export default function EditReleasePage() {
   const router = useRouter();
   const { id } = useParams<{ id: string }>();
 
-  const [loading,  setLoading]  = useState(true);
-  const [saving,   setSaving]   = useState(false);
-  const [deleting, setDeleting] = useState(false);
+  const [loading,    setLoading]    = useState(true);
+  const [saving,     setSaving]     = useState(false);
+  const [deleting,   setDeleting]   = useState(false);
   const [showDelete, setShowDelete] = useState(false);
-  const [saved,    setSaved]    = useState(false);
-  const [err,      setErr]      = useState("");
+  const [saved,      setSaved]      = useState(false);
+  const [err,        setErr]        = useState("");
 
-  const [release,  setRelease]  = useState<ReleaseData | null>(null);
-  const [title,    setTitle]    = useState("");
-  const [subtitle, setSubtitle] = useState("");
-  const [body,     setBody]     = useState("");
-  const [cat,      setCat]      = useState("Negócios");
-  const [author,   setAuthor]   = useState("Você");
-  const [imageUrl, setImageUrl] = useState<string | undefined>(undefined);
-  const [status,   setStatus]   = useState("DRAFT");
-  const [schedDate, setSchedDate] = useState("");
-  const [schedTime, setSchedTime] = useState("09:00");
+  const [release,    setRelease]    = useState<ReleaseData | null>(null);
+  const [title,      setTitle]      = useState("");
+  const [subtitle,   setSubtitle]   = useState("");
+  const [body,       setBody]       = useState("");
+  const [cat,        setCat]        = useState("Negócios");
+  const [author,     setAuthor]     = useState("Você");
+  const [images,     setImages]     = useState<string[]>([]);
+  const [status,     setStatus]     = useState("DRAFT");
+  const [schedDate,  setSchedDate]  = useState("");
+  const [schedTime,  setSchedTime]  = useState("09:00");
   const [selectedVeh, setSelectedVeh] = useState<string[]>([]);
-  const [brandColor,  setBrandColor]  = useState<string | null>(null);
 
   useEffect(() => {
     fetch(`/api/releases/${id}`)
@@ -410,28 +385,24 @@ export default function EditReleasePage() {
         setTitle(data.title ?? "");
         setSubtitle(data.summary ?? "");
         setBody(data.body ?? "");
-        setImageUrl(data.imageUrl ?? undefined);
+        if (data.imageUrl) setImages([data.imageUrl]);
         setStatus(data.status ?? "DRAFT");
-        setBrandColor(data.brand?.color ?? null);
         if (data.scheduledAt) {
           const d = new Date(data.scheduledAt);
           setSchedDate(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`);
           setSchedTime(`${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`);
-          if (data.status === "SCHEDULED") setStatus("SCHEDULED");
         }
       })
       .catch(() => setErr("Não foi possível carregar o release."))
       .finally(() => setLoading(false));
   }, [id]);
 
-  // Auto-extract brand color if logo exists but color is missing
+  // Auto-extract brand color if missing
   useEffect(() => {
-    if (release?.brand?.logoUrl && !brandColor) {
-      extractDominantColorFromUrl(release.brand.logoUrl)
-        .then(c => setBrandColor(c))
-        .catch(() => {});
+    if (release?.brand?.logoUrl && !release.brand.color) {
+      extractDominantColorFromUrl(release.brand.logoUrl).catch(() => {});
     }
-  }, [release, brandColor]);
+  }, [release]);
 
   async function save() {
     if (!title.trim()) return;
@@ -449,7 +420,7 @@ export default function EditReleasePage() {
           summary: subtitle.trim() || null,
           status,
           scheduledAt,
-          imageUrl: imageUrl ?? null,
+          imageUrl: images[0] ?? null,
         }),
       });
       if (!res.ok) { setErr("Erro ao salvar. Tente novamente."); return; }
@@ -502,15 +473,14 @@ export default function EditReleasePage() {
             </button>
             <div>
               <p className="eyebrow" style={{ margin: 0 }}>Editar release</p>
-              <h2 style={{ margin: 0, fontSize: 20 }}>{title || "Sem título"}</h2>
+              <h2 style={{ margin: 0, fontSize: 20, lineHeight: 1.2 }}>{title || "Sem título"}</h2>
             </div>
           </div>
           <div className="actions">
             <button
               className="btn btn-quiet btn-sm"
-              onClick={() => setShowDelete(true)}
-              title="Excluir release"
               style={{ color: "var(--red,#c0392b)" }}
+              onClick={() => setShowDelete(true)}
             >
               <Trash2 size={14} /> Excluir
             </button>
@@ -525,17 +495,19 @@ export default function EditReleasePage() {
               disabled={!title.trim() || saving}
               onClick={save}
             >
-              {saved ? <><Check size={15} /> Salvo!</> : saving ? "Salvando…" : <><Check size={15} /> Salvar alterações</>}
+              {saved
+                ? <><Check size={15} /> Salvo!</>
+                : saving ? "Salvando…" : <><Check size={15} /> Salvar alterações</>}
             </button>
           </div>
         </div>
 
         {err && <p style={{ color: "var(--red,#c0392b)", fontSize: 13, marginBottom: 16, fontWeight: 500 }}>{err}</p>}
 
-        {/* Body grid */}
+        {/* Two-column grid */}
         <div className="composer-grid">
 
-          {/* Left: editor */}
+          {/* Left column: editor + media */}
           <div>
             <div className="card editor">
               <div className="toolbtns">
@@ -569,20 +541,27 @@ export default function EditReleasePage() {
                 />
               </div>
             </div>
+
+            {/* Media gallery */}
+            <MediaGallery
+              images={images}
+              onAdd={url => setImages(prev => [...prev, url])}
+              onRemove={url => setImages(prev => prev.filter(u => u !== url))}
+            />
           </div>
 
-          {/* Right: sidebar cards */}
+          {/* Right column */}
           <div>
 
-            {/* Brand info */}
+            {/* Marca */}
             {brand && (
-              <div className="card side-card" style={{ marginBottom: 16 }}>
+              <div className="card side-card">
                 <div className="card-head"><h3>Marca</h3></div>
                 <div className="sc-body">
                   <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                     <div style={{ width: 40, height: 40, borderRadius: 8, background: brand.color ?? "#1A1A1A", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", flexShrink: 0 }}>
                       {brand.logoUrl
-                        ? <img src={brand.logoUrl} alt={brand.name} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                        ? <img src={brand.logoUrl} alt={brand.name} style={{ width: "100%", height: "100%", objectFit: "contain" }} /> // eslint-disable-line @next/next/no-img-element
                         : <span style={{ fontFamily: "var(--mono)", fontWeight: 700, fontSize: 14, color: "#fff" }}>{initials(brand.name)}</span>}
                     </div>
                     <div>
@@ -594,12 +573,12 @@ export default function EditReleasePage() {
               </div>
             )}
 
-            {/* Details */}
-            <div className="card side-card">
+            {/* Detalhes */}
+            <div className="card side-card" style={{ marginTop: 16 }}>
               <div className="card-head"><h3>Detalhes</h3></div>
               <div className="sc-body">
                 <div className="field-row">
-                  <label>Categoria</label>
+                  <label style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--stone)" }}>Categoria</label>
                   <div className="select-wrap">
                     <select className="input" value={cat} onChange={e => setCat(e.target.value)}>
                       {CONTENT_CATS.map(c => <option key={c}>{c}</option>)}
@@ -608,10 +587,10 @@ export default function EditReleasePage() {
                   </div>
                 </div>
                 <div className="field-row">
-                  <label>Autor</label>
+                  <label style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--stone)" }}>Autor</label>
                   <div className="select-wrap">
                     <select className="input" value={author} onChange={e => setAuthor(e.target.value)}>
-                      {["Você", "Samara Perez", "Liliane Pires", "Analina Arouche", "Daiana Napoleão"].map(a => <option key={a}>{a}</option>)}
+                      {["Você","Samara Perez","Liliane Pires","Analina Arouche","Daiana Napoleão"].map(a => <option key={a}>{a}</option>)}
                     </select>
                     <ChevronDown size={16} />
                   </div>
@@ -619,7 +598,7 @@ export default function EditReleasePage() {
               </div>
             </div>
 
-            {/* Scheduling */}
+            {/* Publicação */}
             <div className="card side-card" style={{ marginTop: 16 }}>
               <div className="card-head"><h3>Publicação</h3></div>
               <div className="sc-body">
@@ -634,6 +613,7 @@ export default function EditReleasePage() {
                     <Rocket size={14} /> Publicar
                   </button>
                 </div>
+
                 {status === "SCHEDULED" && (
                   <div style={{ display: "flex", gap: 10 }}>
                     <div className="field-row" style={{ flex: 1, marginBottom: 0 }}>
@@ -650,18 +630,13 @@ export default function EditReleasePage() {
                   <p className="muted" style={{ fontSize: 13, margin: 0 }}>O release entra na fila de envio ao salvar.</p>
                 )}
                 {status === "DRAFT" && (
-                  <p className="muted" style={{ fontSize: 13, margin: 0 }}>Salvo como rascunho, não será distribuído.</p>
+                  <p className="muted" style={{ fontSize: 13, margin: 0 }}>Salvo como rascunho — não será distribuído.</p>
                 )}
               </div>
             </div>
 
-            {/* Media */}
-            <div style={{ marginTop: 16 }}>
-              <MediaCard imageUrl={imageUrl} onChange={url => setImageUrl(url ?? undefined)} />
-            </div>
-
-            {/* Vehicles */}
-            <VehiclesPanel selected={selectedVeh} setSelected={setSelectedVeh} />
+            {/* Veículos */}
+            <VehiclesCard selected={selectedVeh} setSelected={setSelectedVeh} />
 
           </div>
         </div>
