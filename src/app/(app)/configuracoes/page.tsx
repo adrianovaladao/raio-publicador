@@ -8,8 +8,8 @@ import { extractDominantColor, extractDominantColorFromUrl } from "@/lib/color";
 import {
   UserCircle, Settings2, Users, Building2, CreditCard,
   Plus, ChevronDown, Camera, Lock,
-  Mail, Download, Check, X, MoreHorizontal, Shield,
-  Tag, Ban, Trash2, Send, Upload, Zap,
+  Mail, Download, Check, X,
+  Trash2, Send, Upload, Zap,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -38,19 +38,7 @@ const ROLES: Record<string, { label: string; desc: string; color: string; bg: st
   reviewer: { label: "Revisão",       desc: "Acessa a lista de releases da marca e adiciona comentários.",        color: "#2F8A5B", bg: "#E3F2E9" },
 };
 
-const TEAM = [
-  { id: "u1", name: "Samara Perez",    email: "samara@markable.com.br",    role: "admin",    status: "active",    brands: "all" as const,       color: "#C25E00", you: true  },
-  { id: "u2", name: "Liliane Pires",   email: "liliane@markable.com.br",   role: "editor",   status: "active",    brands: ["b1","b2"] as string[], color: "#2A6FDB" },
-  { id: "u3", name: "Analina Arouche", email: "analina@markable.com.br",   role: "editor",   status: "active",    brands: ["b3"] as string[],      color: "#6D3BD9" },
-  { id: "u4", name: "Daiana Napoleão", email: "daiana@markable.com.br",    role: "editor",   status: "suspended", brands: ["b1"] as string[],      color: "#0E7C86" },
-  { id: "u5", name: "Carlos Menezes",  email: "carlos@saborbrasil.com.br", role: "reviewer", status: "active",    brands: ["b1"] as string[],      color: "#2F8A5B" },
-  { id: "u6", name: "Renata Vidal",    email: "renata@technova.com.br",    role: "reviewer", status: "active",    brands: ["b2"] as string[],      color: "#B0322E" },
-];
-
-const INVITES = [
-  { id: "i1", email: "paulo@saborbrasil.com.br", role: "reviewer", brands: ["b1"], sentAt: "2026-06-08" },
-  { id: "i2", email: "marina@markable.com.br",   role: "editor",   brands: ["b2","b3"], sentAt: "2026-06-05" },
-];
+const INVITES: { id: string; email: string; role: string; brands: string[]; sentAt: string }[] = [];
 
 const INVOICES = [
   { id: "INV-2026-06", date: "2026-06-01", amount: "R$ 1.500,00", plan: "Plano Pro · Junho 2026",     status: "paid" },
@@ -377,8 +365,10 @@ function InviteModal({ onClose, onToast }: { onClose: () => void; onToast: (m: s
 }
 
 function EquipePanel({ onToast }: { onToast: (m: string) => void }) {
+  const { user } = useUser();
   const [showInvite, setShowInvite] = useState(false);
-  const [menu, setMenu] = useState<string | null>(null);
+  const fullName = user ? [user.firstName, user.lastName].filter(Boolean).join(" ") : "";
+  const email = user?.emailAddresses[0]?.emailAddress ?? "";
   return (
     <div className="set-panel">
       <PanelHead title="Equipe e <em>permissões</em>" desc="Convide pessoas e defina o que cada uma pode fazer."
@@ -394,46 +384,25 @@ function EquipePanel({ onToast }: { onToast: (m: string) => void }) {
       </div>
 
       <div className="card" style={{ marginTop: 16 }}>
-        <div className="card-head"><h3>Membros <span className="count-chip">{TEAM.length}</span></h3></div>
+        <div className="card-head"><h3>Membros <span className="count-chip">1</span></h3></div>
         <table className="tbl team-tbl">
           <thead><tr><th>Pessoa</th><th>Função</th><th>Marcas</th><th>Status</th><th></th></tr></thead>
           <tbody>
-            {TEAM.map(u => (
-              <tr key={u.id}>
-                <td>
-                  <div className="row" style={{ gap: 11 }}>
-                    <Av name={u.name} color={u.color} size={34} />
-                    <div>
-                      <div className="title-cell" style={{ fontSize: 14 }}>{u.name}{u.you && <span className="muted" style={{ fontWeight: 400 }}> · você</span>}</div>
-                      <div style={{ fontFamily: "var(--mono)", fontSize: 11.5, color: "var(--stone)" }}>{u.email}</div>
-                    </div>
+            <tr>
+              <td>
+                <div className="row" style={{ gap: 11 }}>
+                  <Av name={fullName || "?"} color="#C25E00" size={34} />
+                  <div>
+                    <div className="title-cell" style={{ fontSize: 14 }}>{fullName}<span className="muted" style={{ fontWeight: 400 }}> · você</span></div>
+                    <div style={{ fontFamily: "var(--mono)", fontSize: 11.5, color: "var(--stone)" }}>{email}</div>
                   </div>
-                </td>
-                <td><RoleBadge role={u.role} /></td>
-                <td className="muted" style={{ fontSize: 13 }}>{brandNames(u.brands)}</td>
-                <td>{u.status === "active" ? <span className="dot-status active">Ativo</span> : <span className="dot-status suspended">Suspenso</span>}</td>
-                <td style={{ textAlign: "right", position: "relative" }}>
-                  {!u.you && (
-                    <>
-                      <button className="row-menu-btn" onClick={() => setMenu(menu === u.id ? null : u.id)}><MoreHorizontal size={18} /></button>
-                      {menu === u.id && (
-                        <>
-                          <div className="menu-backdrop" onClick={() => setMenu(null)} />
-                          <div className="row-menu">
-                            <button onClick={() => { setMenu(null); onToast("Função alterada"); }}><Shield size={15} /> Alterar função</button>
-                            <button onClick={() => { setMenu(null); onToast("Marcas atualizadas"); }}><Tag size={15} /> Editar marcas</button>
-                            {u.status === "active"
-                              ? <button onClick={() => { setMenu(null); onToast(`${u.name} foi suspenso`); }}><Ban size={15} /> Suspender</button>
-                              : <button onClick={() => { setMenu(null); onToast(`${u.name} foi reativado`); }}><Check size={15} /> Reativar</button>}
-                            <button className="danger" onClick={() => { setMenu(null); onToast(`${u.name} foi removido`); }}><Trash2 size={15} /> Remover</button>
-                          </div>
-                        </>
-                      )}
-                    </>
-                  )}
-                </td>
-              </tr>
-            ))}
+                </div>
+              </td>
+              <td><RoleBadge role="admin" /></td>
+              <td className="muted" style={{ fontSize: 13 }}>Todas as marcas</td>
+              <td><span className="dot-status active">Ativo</span></td>
+              <td />
+            </tr>
           </tbody>
         </table>
       </div>
