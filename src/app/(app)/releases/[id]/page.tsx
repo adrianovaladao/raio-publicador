@@ -4,14 +4,8 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import {
   ArrowLeft, ArrowRight, Check, ChevronDown, Image as ImageIcon,
-  Rocket, Calendar, X, Search, Download, Trash2, Plus,
+  Rocket, Calendar, X, Search, Trash2, Plus,
 } from "lucide-react";
-import {
-  Document, Packer, Paragraph, TextRun, HeadingLevel,
-  AlignmentType, BorderStyle, Table, TableRow, TableCell,
-  WidthType, ShadingType,
-} from "docx";
-import { saveAs } from "file-saver";
 
 // ── Mock vehicles ─────────────────────────────────────────────────────────────
 
@@ -515,52 +509,6 @@ function DeleteModal({ title, onConfirm, onClose, deleting }: {
   );
 }
 
-// ── Docx ──────────────────────────────────────────────────────────────────────
-
-async function downloadDocx(title: string, subtitle: string, body: string, cat: string, selVehicles: typeof VEHICLES, brand: Brand | null) {
-  const brandName = brand?.name ?? "Marca";
-  const slug = title.slice(0, 40).replace(/\s+/g, "-").toLowerCase() || "release";
-  const doc = new Document({
-    styles: { default: { document: { run: { font: "Calibri", size: 24 } } } },
-    sections: [{
-      properties: { page: { margin: { top: 1080, bottom: 1080, left: 1260, right: 1260 } } },
-      children: [
-        new Paragraph({ spacing: { after: 80 }, children: [
-          new TextRun({ text: brandName.toUpperCase(), bold: true, size: 18, color: "848484", font: "Calibri" }),
-          new TextRun({ text: `  ·  ${cat}`, size: 18, color: "848484", font: "Calibri" }),
-        ]}),
-        new Paragraph({ heading: HeadingLevel.HEADING_1, spacing: { after: 160 }, children: [new TextRun({ text: title || "Título", bold: true, size: 52, font: "Calibri" })] }),
-        ...(subtitle ? [new Paragraph({ spacing: { after: 320 }, children: [new TextRun({ text: subtitle, italics: true, size: 30, color: "555555", font: "Calibri" })] })] : []),
-        new Paragraph({ border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: "E0DFDB" } }, spacing: { after: 320 }, children: [] }),
-        ...body.split("\n").filter(Boolean).map(line =>
-          new Paragraph({ spacing: { after: 200 }, children: [new TextRun({ text: line, size: 24, font: "Calibri" })], alignment: AlignmentType.JUSTIFIED })
-        ),
-        ...(brand ? [
-          new Paragraph({ spacing: { after: 120, before: 400 }, children: [] }),
-          new Paragraph({ border: { top: { style: BorderStyle.SINGLE, size: 6, color: "E0DFDB" } }, spacing: { after: 200, before: 160 }, children: [new TextRun({ text: "SOBRE A EMPRESA", bold: true, size: 18, color: "848484", font: "Calibri" })] }),
-          new Paragraph({ spacing: { after: 320 }, children: [new TextRun({ text: `Sobre ${brandName}: referência no segmento de ${(brand.segment ?? "").toLowerCase()}.`, size: 22, color: "555555", font: "Calibri" })] }),
-        ] : []),
-        ...(selVehicles.length > 0 ? [
-          new Paragraph({ border: { top: { style: BorderStyle.SINGLE, size: 6, color: "E0DFDB" } }, spacing: { after: 200, before: 160 }, children: [new TextRun({ text: "VEÍCULOS SELECIONADOS", bold: true, size: 18, color: "848484", font: "Calibri" })] }),
-          new Table({
-            width: { size: 100, type: WidthType.PERCENTAGE },
-            rows: [
-              new TableRow({ tableHeader: true, children: ["Veículo","Editoria","UF","Tier","Alcance"].map(h =>
-                new TableCell({ shading: { type: ShadingType.SOLID, color: "F1F0EC" }, children: [new Paragraph({ children: [new TextRun({ text: h, bold: true, size: 18, font: "Calibri" })] })] })
-              )}),
-              ...selVehicles.map(v => new TableRow({ children: [v.name,v.cat,v.uf,v.tier,fmtReach(v.reach)].map(val =>
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: val, size: 18, font: "Calibri" })] })] })
-              )})),
-            ],
-          }),
-        ] : []),
-      ],
-    }],
-  });
-  const blob = await Packer.toBlob(doc);
-  saveAs(blob, `${slug}.docx`);
-}
-
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function EditReleasePage() {
@@ -693,12 +641,6 @@ export default function EditReleasePage() {
           </div>
 
           <div className="actions">
-            <button className="btn btn-quiet btn-sm" style={{ color: "var(--red,#c0392b)" }} onClick={() => setShowDelete(true)}>
-              <Trash2 size={14} /> Excluir
-            </button>
-            <button className="btn btn-ghost btn-sm" onClick={() => downloadDocx(title, subtitle, body, cat, selVehicles, brand)}>
-              <Download size={14} /> Baixar .docx
-            </button>
             <button className="btn btn-quiet btn-sm" onClick={() => router.back()}>Cancelar</button>
             {step > 0 && (
               <button className="btn btn-ghost btn-sm" onClick={() => setStep(s => s - 1)}>
