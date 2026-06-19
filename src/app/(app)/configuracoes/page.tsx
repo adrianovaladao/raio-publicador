@@ -377,6 +377,22 @@ function InviteModal({ onClose, onSent }: { onClose: () => void; onSent: (inv: I
   );
 }
 
+function ConfirmModal({ message, onConfirm, onCancel }: { message: string; onConfirm: () => void; onCancel: () => void }) {
+  return (
+    <div className="overlay" onClick={onCancel}>
+      <div className="modal" style={{ maxWidth: 400 }} onClick={e => e.stopPropagation()}>
+        <div className="m-body" style={{ paddingTop: 28 }}>
+          <p style={{ margin: 0, fontSize: 15, fontWeight: 500, color: "var(--ink)" }}>{message}</p>
+        </div>
+        <div className="m-foot">
+          <button className="btn btn-quiet btn-sm" onClick={onCancel}>Cancelar</button>
+          <button className="btn btn-sm" style={{ background: "var(--red,#c0392b)", color: "#fff", border: "none" }} onClick={onConfirm}>Remover</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 interface MemberRow { id: string; name: string; email: string; role: string; status: string }
 
 function EquipePanel({ onToast }: { onToast: (m: string) => void }) {
@@ -385,6 +401,7 @@ function EquipePanel({ onToast }: { onToast: (m: string) => void }) {
   const [invites, setInvites] = useState<InviteRow[]>([]);
   const [members, setMembers] = useState<MemberRow[]>([]);
   const [menu, setMenu] = useState<string | null>(null);
+  const [confirmRemove, setConfirmRemove] = useState<{ id: string; name: string } | null>(null);
   const fullName = user ? [user.firstName, user.lastName].filter(Boolean).join(" ") : "";
   const email = user?.emailAddresses[0]?.emailAddress ?? "";
 
@@ -409,7 +426,6 @@ function EquipePanel({ onToast }: { onToast: (m: string) => void }) {
   }
 
   async function removeMember(id: string, name: string) {
-    if (!confirm(`Remover ${name} da equipe?`)) return;
     await fetch(`/api/team/members/${id}`, { method: "DELETE" });
     setMembers(prev => prev.filter(m => m.id !== id));
     onToast(`${name} foi removido`);
@@ -497,7 +513,7 @@ function EquipePanel({ onToast }: { onToast: (m: string) => void }) {
                         {m.status === "ACTIVE"
                           ? <button onClick={() => { updateMember(m.id, { status: "suspended" }); setMenu(null); onToast(`${m.name} foi suspenso`); }}><Ban size={14} /> Suspender</button>
                           : <button onClick={() => { updateMember(m.id, { status: "active" }); setMenu(null); onToast(`${m.name} foi reativado`); }}><Check size={14} /> Reativar</button>}
-                        <button className="danger" onClick={() => { setMenu(null); removeMember(m.id, m.name); }}><Trash2 size={14} /> Remover</button>
+                        <button className="danger" onClick={() => { setMenu(null); setConfirmRemove({ id: m.id, name: m.name }); }}><Trash2 size={14} /> Remover</button>
                       </div>
                     </>
                   )}
@@ -531,6 +547,13 @@ function EquipePanel({ onToast }: { onToast: (m: string) => void }) {
       )}
 
       {showInvite && <InviteModal onClose={() => setShowInvite(false)} onSent={inv => { setInvites(prev => [inv, ...prev]); onToast("Convite enviado!"); }} />}
+      {confirmRemove && (
+        <ConfirmModal
+          message={`Remover ${confirmRemove.name} da equipe?`}
+          onConfirm={() => { removeMember(confirmRemove.id, confirmRemove.name); setConfirmRemove(null); }}
+          onCancel={() => setConfirmRemove(null)}
+        />
+      )}
     </div>
   );
 }
