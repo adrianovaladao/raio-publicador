@@ -543,6 +543,11 @@ textarea.input { resize: vertical; line-height: 1.55; }
 .steps .bar.done { background: var(--ink); }
 
 .composer-grid { display: grid; grid-template-columns: 1fr 320px; gap: 18px; align-items: start; }
+.composer-grid.stretch-cols { align-items: stretch; }
+.composer-grid.stretch-cols > div:first-child { display: flex; flex-direction: column; }
+.composer-grid.stretch-cols .editor { flex: 1; display: flex; flex-direction: column; }
+.composer-grid.stretch-cols .editor .body-pad { flex: 1; display: flex; flex-direction: column; }
+.composer-grid.stretch-cols .editor .body-input { flex: 1; resize: none; }
 @media (max-width: 1080px) { .composer-grid { grid-template-columns: 1fr; } }
 
 .editor { padding: 0; overflow: hidden; }

@@ -505,11 +505,11 @@ export default function EditReleasePage() {
         {err && <p style={{ color: "var(--red,#c0392b)", fontSize: 13, marginBottom: 16, fontWeight: 500 }}>{err}</p>}
 
         {/* Two-column grid */}
-        <div className="composer-grid">
+        <div className="composer-grid stretch-cols">
 
           {/* Left column: editor + media */}
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            <div className="card editor" style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+          <div>
+            <div className="card editor">
               <div className="toolbtns">
                 {["H", "B", "I", "|", "≡", "❝", "🔗"].map((b, i) =>
                   b === "|"
@@ -519,7 +519,7 @@ export default function EditReleasePage() {
                 <div style={{ flex: 1 }} />
                 <button className="tb" style={{ color: "var(--coral-ink)", fontSize: 13 }}>✦ IA</button>
               </div>
-              <div className="body-pad" style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+              <div className="body-pad">
                 <input
                   className="title-input"
                   placeholder="Título do release"
@@ -537,7 +537,7 @@ export default function EditReleasePage() {
                   placeholder="Corpo do release…"
                   value={body}
                   onChange={e => setBody(e.target.value)}
-                  style={{ flex: 1, minHeight: 320, resize: "none" }}
+                  style={{ minHeight: 320 }}
                 />
               </div>
             </div>
