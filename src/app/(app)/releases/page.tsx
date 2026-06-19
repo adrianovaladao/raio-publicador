@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { List, LayoutGrid, Plus, Inbox } from "lucide-react";
 
 interface Release {
@@ -52,6 +53,7 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 export default function ReleasesPage() {
+  const router = useRouter();
   const [mode, setMode]     = useState<"list" | "grid">("list");
   const [filter, setFilter] = useState("all");
   const [q, setQ]           = useState("");
@@ -146,7 +148,7 @@ export default function ReleasesPage() {
               </thead>
               <tbody>
                 {list.map(r => (
-                  <tr key={r.id}>
+                  <tr key={r.id} style={{ cursor: "pointer" }} onClick={() => router.push(`/releases/${r.id}`)}>
                     <td className="title-cell">
                       {r.title.length > 70 ? r.title.slice(0, 70) + "…" : r.title}
                       <span className="ph">{r.cat}</span>
@@ -163,7 +165,7 @@ export default function ReleasesPage() {
         ) : (
           <div className="lib-grid">
             {list.map(r => (
-              <div className="card lib-card" key={r.id}>
+              <div className="card lib-card" key={r.id} style={{ cursor: "pointer" }} onClick={() => router.push(`/releases/${r.id}`)}>
                 <div className="thumb" style={r.imageUrl ? {} : { background: r.brandColor ?? undefined }}>
                   {r.imageUrl && (
                     // eslint-disable-next-line @next/next/no-img-element
