@@ -486,7 +486,7 @@ function EquipePanel({ onToast }: { onToast: (m: string) => void }) {
                     <>
                       <div className="menu-backdrop" onClick={() => setMenu(null)} />
                       <div className="row-menu">
-                        <div style={{ padding: "6px 14px 4px", fontSize: 11, color: "var(--stone)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Função</div>
+                        <div style={{ padding: "6px 14px 4px", fontSize: 11, color: "var(--stone)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", textAlign: "left" }}>Função</div>
                         {["admin","editor","reviewer"].map(r => (
                           <button key={r} onClick={() => { updateMember(m.id, { role: r }); setMenu(null); onToast("Função atualizada"); }} style={{ display: "flex", alignItems: "center", gap: 8 }}>
                             {m.role.toLowerCase() === r && <Check size={13} />}
