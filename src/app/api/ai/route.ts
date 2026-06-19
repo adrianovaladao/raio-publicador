@@ -32,7 +32,7 @@ Marca: ${brandName ?? "não informada"}
 Título: ${title ?? "não informado"}
 Subtítulo: ${subtitle ?? "não informado"}
 
-Escreva com lide (quem, o quê, quando, onde, por quê) seguido de 2-3 parágrafos de desenvolvimento. Use linguagem jornalística, objetiva e profissional. Texto puro com parágrafos separados por linhas em branco, sem markdown.`;
+Escreva com lide (quem, o quê, quando, onde, por quê) seguido de 3-4 parágrafos de desenvolvimento. O texto deve ter entre 500 e 600 palavras. Use linguagem jornalística, objetiva e profissional. Texto puro com parágrafos separados por linhas em branco, sem markdown.`;
 
   try {
     const message = await client.messages.create({
