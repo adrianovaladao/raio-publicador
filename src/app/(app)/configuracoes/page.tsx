@@ -54,9 +54,10 @@ const CONSUMPTION = [
 
 function fmtDate(iso: string | null | undefined) {
   if (!iso) return "—";
-  const [y, m, d] = iso.split("-").map(Number);
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return "—";
   const meses = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
-  return `${String(d).padStart(2,"0")} ${meses[m-1]} ${y}`;
+  return `${String(d.getDate()).padStart(2,"0")} ${meses[d.getMonth()]} ${d.getFullYear()}`;
 }
 
 function getInitials(name: string | null | undefined) {
