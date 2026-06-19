@@ -584,6 +584,25 @@ textarea.input { resize: vertical; line-height: 1.55; }
 }
 .body-input::placeholder { color: var(--stone-soft); }
 
+/* ── Tiptap rich editor ───────────────────────────────────────────────────── */
+.tiptap-body { outline: none; font-family: var(--sans); font-size: 15.5px; line-height: 1.7; color: var(--ink-soft); min-height: 320px; }
+.tiptap-body p { margin: 0 0 1em; }
+.tiptap-body p.is-editor-empty:first-child::before { content: attr(data-placeholder); color: var(--stone-soft); pointer-events: none; float: left; height: 0; }
+.tiptap-body h2 { font-family: var(--sans); font-size: 20px; font-weight: 700; letter-spacing: -0.02em; color: var(--ink); margin: 1.2em 0 0.5em; }
+.tiptap-body h3 { font-family: var(--sans); font-size: 16px; font-weight: 700; color: var(--ink); margin: 1em 0 0.4em; }
+.tiptap-body strong { font-weight: 700; color: var(--ink); }
+.tiptap-body em { font-style: italic; }
+.tiptap-body u { text-decoration: underline; }
+.tiptap-body ul, .tiptap-body ol { padding-left: 1.5em; margin: 0 0 1em; }
+.tiptap-body li { margin-bottom: 0.3em; }
+.tiptap-body blockquote { border-left: 3px solid var(--sand); margin: 1em 0; padding: 4px 0 4px 16px; color: var(--stone); font-style: italic; }
+.tiptap-body a.editor-link { color: var(--coral-ink); text-decoration: underline; cursor: pointer; }
+.tiptap-body *::selection { background: var(--amber-soft, #fef9e7); }
+.editor .toolbtns .tb.on { background: var(--cream); color: var(--ink); }
+.editor .toolbtns .tb:disabled { opacity: 0.35; cursor: default; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.spin { animation: spin 0.8s linear infinite; }
+
 .side-card { margin-bottom: 16px; }
 .side-card .sc-body { padding: 16px 18px 18px; }
 .field-row { margin-bottom: 14px; }

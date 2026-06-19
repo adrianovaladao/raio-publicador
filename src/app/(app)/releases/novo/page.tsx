@@ -9,6 +9,7 @@ import {
   List, LayoutGrid, Plus, Download, Upload,
 } from "lucide-react";
 import { extractDominantColor } from "@/lib/color";
+import { RichEditor } from "@/components/editor/RichEditor";
 import {
   Document, Packer, Paragraph, TextRun, HeadingLevel,
   AlignmentType, BorderStyle, Table, TableRow, TableCell,
@@ -431,44 +432,21 @@ function MediaCard({ imageUrl, onChange }: { imageUrl?: string; onChange: (url: 
   );
 }
 
-function StepContent({ content, setContent }: { content: Content; setContent: (c: Content) => void }) {
+function StepContent({ content, setContent, brand }: { content: Content; setContent: (c: Content) => void; brand: Brand | null }) {
   const up = (k: keyof Content, v: string) => setContent({ ...content, [k]: v });
   const cats = VEH_CATS.filter(c => c !== "Todos");
 
   return (
     <div className="composer-grid">
-      <div className="card editor">
-        <div className="toolbtns">
-          {["H", "B", "I", "|", "≡", "❝", "🔗", "|", "🖼"].map((b, i) =>
-            b === "|"
-              ? <span key={i} className="div" />
-              : <button key={i} className="tb" title={b}>{b}</button>
-          )}
-          <div style={{ flex: 1 }} />
-          <button className="tb" title="Gerar com IA" style={{ color: "var(--coral-ink)", fontSize: 13 }}>✦ IA</button>
-        </div>
-        <div className="body-pad">
-          <input
-            className="title-input"
-            placeholder="Título do release"
-            value={content.title}
-            onChange={e => up("title", e.target.value)}
-          />
-          <input
-            className="sub-input"
-            placeholder="Subtítulo / linha de apoio"
-            value={content.subtitle}
-            onChange={e => up("subtitle", e.target.value)}
-          />
-          <textarea
-            className="body-input"
-            placeholder="Escreva o corpo do release… Comece com o lide: o quê, quem, quando, onde e por quê. O Raio distribui exatamente este texto aos veículos selecionados."
-            value={content.body}
-            onChange={e => up("body", e.target.value)}
-            style={{ minHeight: 320 }}
-          />
-        </div>
-      </div>
+      <RichEditor
+        title={content.title}
+        onTitleChange={v => up("title", v)}
+        subtitle={content.subtitle}
+        onSubtitleChange={v => up("subtitle", v)}
+        content={content.body}
+        onContentChange={v => up("body", v)}
+        brandName={brand?.name}
+      />
 
       <div>
         <div className="card side-card">
@@ -1037,7 +1015,7 @@ export default function NovoReleasePage() {
         </div>
 
         {step === 0 && <StepBrand selected={brand} onSelect={setBrand} brands={brands} onAddBrand={b => setBrands(prev => [...prev, b])} />}
-        {step === 1 && <StepContent content={content} setContent={setContent} />}
+        {step === 1 && <StepContent content={content} setContent={setContent} brand={brand} />}
         {step === 2 && <StepVehicles selected={selected} setSelected={setSelected} />}
         {step === 3 && <StepReview content={content} selected={selected} when={when} setWhen={setWhen} brand={brand} />}
       </div>

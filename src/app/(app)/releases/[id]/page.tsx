@@ -6,6 +6,7 @@ import {
   ArrowLeft, ArrowRight, Check, ChevronDown, Image as ImageIcon,
   Rocket, Calendar, X, Search, Trash2, Plus,
 } from "lucide-react";
+import { RichEditor } from "@/components/editor/RichEditor";
 
 // ── Mock vehicles ─────────────────────────────────────────────────────────────
 
@@ -151,20 +152,12 @@ function StepContent({
   return (
     <div className="composer-grid">
       {/* Editor */}
-      <div className="card editor">
-        <div className="toolbtns">
-          {["H", "B", "I", "|", "≡", "❝", "🔗"].map((b, i) =>
-            b === "|" ? <span key={i} className="div" /> : <button key={i} className="tb">{b}</button>
-          )}
-          <div style={{ flex: 1 }} />
-          <button className="tb" style={{ color: "var(--coral-ink)", fontSize: 13 }}>✦ IA</button>
-        </div>
-        <div className="body-pad">
-          <input className="title-input" placeholder="Título do release" value={title} onChange={e => setTitle(e.target.value)} />
-          <input className="sub-input" placeholder="Subtítulo / linha de apoio" value={subtitle} onChange={e => setSubtitle(e.target.value)} />
-          <textarea className="body-input" placeholder="Corpo do release…" value={body} onChange={e => setBody(e.target.value)} style={{ minHeight: 320 }} />
-        </div>
-      </div>
+      <RichEditor
+        title={title} onTitleChange={setTitle}
+        subtitle={subtitle} onSubtitleChange={setSubtitle}
+        content={body} onContentChange={setBody}
+        brandName={brand?.name}
+      />
 
       {/* Sidebar */}
       <div>
