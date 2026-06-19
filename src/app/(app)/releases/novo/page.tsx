@@ -250,7 +250,7 @@ function StepBrand({ selected, onSelect, brands, onAddBrand }: {
             <div
               key={b.id}
               className={`card lib-card${selected?.id === b.id ? " selected" : ""}`}
-              style={{ cursor: "pointer", outline: selected?.id === b.id ? "2px solid #000" : "none" }}
+              style={{ cursor: "pointer", outline: selected?.id === b.id ? "2px solid #212121" : "none" }}
               onClick={() => onSelect(b)}
             >
               <div className="thumb" style={{ background: b.color ?? "#1A1A1A", display: "flex", alignItems: "center", justifyContent: "center" }}>
