@@ -8,8 +8,7 @@ import { extractDominantColor, extractDominantColorFromUrl } from "@/lib/color";
 import {
   UserCircle, Settings2, Users, Building2, CreditCard,
   Plus, ChevronDown, Camera, Lock,
-  Mail, Download, Check, X,
-  Trash2, Send, Upload, Zap,
+  Mail, Download, Check, X, MoreHorizontal, Ban, Trash2, Send, Upload, Zap,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -385,6 +384,7 @@ function EquipePanel({ onToast }: { onToast: (m: string) => void }) {
   const [showInvite, setShowInvite] = useState(false);
   const [invites, setInvites] = useState<InviteRow[]>([]);
   const [members, setMembers] = useState<MemberRow[]>([]);
+  const [menu, setMenu] = useState<string | null>(null);
   const fullName = user ? [user.firstName, user.lastName].filter(Boolean).join(" ") : "";
   const email = user?.emailAddresses[0]?.emailAddress ?? "";
 
@@ -398,6 +398,22 @@ function EquipePanel({ onToast }: { onToast: (m: string) => void }) {
       .then((data: MemberRow[]) => setMembers(data))
       .catch(() => {});
   }, []);
+
+  async function updateMember(id: string, data: { role?: string; status?: string }) {
+    await fetch(`/api/team/members/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    setMembers(prev => prev.map(m => m.id === id ? { ...m, ...data, role: (data.role ?? m.role).toUpperCase(), status: (data.status ?? m.status).toUpperCase() } : m));
+  }
+
+  async function removeMember(id: string, name: string) {
+    if (!confirm(`Remover ${name} da equipe?`)) return;
+    await fetch(`/api/team/members/${id}`, { method: "DELETE" });
+    setMembers(prev => prev.filter(m => m.id !== id));
+    onToast(`${name} foi removido`);
+  }
 
   async function cancelInvite(id: string) {
     await fetch(`/api/invites/${id}`, { method: "DELETE" }).catch(() => {});
@@ -464,7 +480,28 @@ function EquipePanel({ onToast }: { onToast: (m: string) => void }) {
                 <td><RoleBadge role={m.role.toLowerCase()} /></td>
                 <td className="muted" style={{ fontSize: 13 }}>—</td>
                 <td>{m.status === "ACTIVE" ? <span className="dot-status active">Ativo</span> : <span className="dot-status suspended">Suspenso</span>}</td>
-                <td />
+                <td style={{ textAlign: "right", position: "relative" }}>
+                  <button className="row-menu-btn" onClick={() => setMenu(menu === m.id ? null : m.id)}><MoreHorizontal size={18} /></button>
+                  {menu === m.id && (
+                    <>
+                      <div className="menu-backdrop" onClick={() => setMenu(null)} />
+                      <div className="row-menu">
+                        <div style={{ padding: "6px 14px 4px", fontSize: 11, color: "var(--stone)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Função</div>
+                        {["admin","editor","reviewer"].map(r => (
+                          <button key={r} onClick={() => { updateMember(m.id, { role: r }); setMenu(null); onToast("Função atualizada"); }} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            {m.role.toLowerCase() === r && <Check size={13} />}
+                            <span style={{ marginLeft: m.role.toLowerCase() === r ? 0 : 21 }}>{ROLES[r]?.label ?? r}</span>
+                          </button>
+                        ))}
+                        <div style={{ height: 1, background: "var(--line)", margin: "6px 0" }} />
+                        {m.status === "ACTIVE"
+                          ? <button onClick={() => { updateMember(m.id, { status: "suspended" }); setMenu(null); onToast(`${m.name} foi suspenso`); }}><Ban size={14} /> Suspender</button>
+                          : <button onClick={() => { updateMember(m.id, { status: "active" }); setMenu(null); onToast(`${m.name} foi reativado`); }}><Check size={14} /> Reativar</button>}
+                        <button className="danger" onClick={() => { setMenu(null); removeMember(m.id, m.name); }}><Trash2 size={14} /> Remover</button>
+                      </div>
+                    </>
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>
