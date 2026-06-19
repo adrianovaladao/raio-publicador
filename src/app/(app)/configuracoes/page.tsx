@@ -38,7 +38,6 @@ const ROLES: Record<string, { label: string; desc: string; color: string; bg: st
   reviewer: { label: "Revisão",       desc: "Acessa a lista de releases da marca e adiciona comentários.",        color: "#2F8A5B", bg: "#E3F2E9" },
 };
 
-const INVITES: { id: string; email: string; role: string; brands: string[]; sentAt: string }[] = [];
 
 const INVOICES = [
   { id: "INV-2026-06", date: "2026-06-01", amount: "R$ 1.500,00", plan: "Plano Pro · Junho 2026",     status: "paid" },
@@ -65,10 +64,7 @@ function getInitials(name: string | null | undefined) {
   return name.split(" ").filter(Boolean).slice(0,2).map(w => w[0]).join("").toUpperCase();
 }
 
-function brandNames(brands: string[] | "all") {
-  if (brands === "all") return "Todas as marcas";
-  return brands.join(", ");
-}
+
 
 // ─── Shared ───────────────────────────────────────────────────────────────────
 
@@ -327,14 +323,37 @@ function ContaPanel({ onToast }: { onToast: (m: string) => void }) {
 
 // ─── Equipe ───────────────────────────────────────────────────────────────────
 
-function InviteModal({ onClose, onToast }: { onClose: () => void; onToast: (m: string) => void }) {
-  const [role, setRole] = useState("editor");
+interface InviteRow { id: string; email: string; role: string; brandIds: string[]; sentAt: string }
+
+function InviteModal({ onClose, onSent }: { onClose: () => void; onSent: (inv: InviteRow) => void }) {
+  const [email, setEmail] = useState("");
+  const [role, setRole]   = useState("editor");
+  const [sending, setSending] = useState(false);
+  const [err, setErr]     = useState("");
+
+  async function send() {
+    if (!email.trim()) { setErr("Informe o e-mail."); return; }
+    setSending(true); setErr("");
+    try {
+      const res  = await fetch("/api/invites", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), role, brandIds: [] }),
+      });
+      const data = await res.json() as InviteRow & { error?: string };
+      if (!res.ok) { setErr(data.error ?? `Erro ${res.status}`); return; }
+      onSent(data);
+      onClose();
+    } catch { setErr("Falha de conexão."); }
+    finally { setSending(false); }
+  }
+
   return (
     <div className="overlay" onClick={onClose}>
       <div className="modal" onClick={e => e.stopPropagation()}>
         <div className="m-head"><h3>Convidar para a <em>equipe</em></h3></div>
         <div className="m-body">
-          <div className="field"><label>E-mail</label><input className="input" type="email" placeholder="nome@empresa.com.br" autoFocus /></div>
+          <div className="field"><label>E-mail</label><input className="input" type="email" placeholder="nome@empresa.com.br" autoFocus value={email} onChange={e => setEmail(e.target.value)} onKeyDown={e => e.key === "Enter" && send()} /></div>
           <div className="field">
             <label>Função</label>
             <div className="role-pick">
@@ -346,18 +365,12 @@ function InviteModal({ onClose, onToast }: { onClose: () => void; onToast: (m: s
               ))}
             </div>
           </div>
-          <div className="field" style={{ marginBottom: 4 }}>
-            <label>Marcas com acesso</label>
-            <div className="select-wrap">
-              <select className="input"><option>Todas as marcas</option></select>
-              <ChevronDown size={16} />
-            </div>
-            {role === "reviewer" && <p className="muted" style={{ fontSize: 12, margin: "7px 0 0" }}>Revisão acessa apenas a marca atribuída.</p>}
-          </div>
+          {role === "reviewer" && <p className="muted" style={{ fontSize: 12, margin: "-8px 0 12px" }}>Revisão acessa apenas a marca atribuída.</p>}
+          {err && <p style={{ color: "var(--red,#c0392b)", fontSize: 13, margin: "0 0 12px", fontWeight: 500 }}>{err}</p>}
         </div>
         <div className="m-foot">
           <button className="btn btn-quiet btn-sm" onClick={onClose}>Cancelar</button>
-          <button className="btn btn-primary btn-sm" onClick={() => { onClose(); onToast("Convite enviado"); }}><Send size={15} /> Enviar convite</button>
+          <button className="btn btn-primary btn-sm" onClick={send} disabled={sending}><Send size={15} /> {sending ? "Enviando…" : "Enviar convite"}</button>
         </div>
       </div>
     </div>
@@ -367,8 +380,32 @@ function InviteModal({ onClose, onToast }: { onClose: () => void; onToast: (m: s
 function EquipePanel({ onToast }: { onToast: (m: string) => void }) {
   const { user } = useUser();
   const [showInvite, setShowInvite] = useState(false);
+  const [invites, setInvites] = useState<InviteRow[]>([]);
   const fullName = user ? [user.firstName, user.lastName].filter(Boolean).join(" ") : "";
   const email = user?.emailAddresses[0]?.emailAddress ?? "";
+
+  useEffect(() => {
+    fetch("/api/invites")
+      .then(r => r.json())
+      .then((data: InviteRow[]) => setInvites(data))
+      .catch(() => {});
+  }, []);
+
+  async function cancelInvite(id: string) {
+    await fetch(`/api/invites/${id}`, { method: "DELETE" }).catch(() => {});
+    setInvites(prev => prev.filter(i => i.id !== id));
+    onToast("Convite cancelado");
+  }
+
+  async function resendInvite(inv: InviteRow) {
+    await fetch("/api/invites", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: inv.email, role: inv.role.toLowerCase(), brandIds: inv.brandIds }),
+    }).catch(() => {});
+    onToast("Convite reenviado");
+  }
+
   return (
     <div className="set-panel">
       <PanelHead title="Equipe e <em>permissões</em>" desc="Convide pessoas e defina o que cada uma pode fazer."
@@ -407,29 +444,29 @@ function EquipePanel({ onToast }: { onToast: (m: string) => void }) {
         </table>
       </div>
 
-      {INVITES.length > 0 && (
+      {invites.length > 0 && (
         <div className="card" style={{ marginTop: 16 }}>
-          <div className="card-head"><h3>Convites pendentes <span className="count-chip">{INVITES.length}</span></h3></div>
-          {INVITES.map(inv => (
+          <div className="card-head"><h3>Convites pendentes <span className="count-chip">{invites.length}</span></h3></div>
+          {invites.map(inv => (
             <div key={inv.id} style={{ display: "flex", alignItems: "center", gap: 13, padding: "13px 22px", borderTop: "1px solid var(--line)" }}>
               <div style={{ width: 34, height: 34, borderRadius: 8, background: "var(--cream)", display: "grid", placeItems: "center", flexShrink: 0 }}>
                 <Mail size={17} style={{ color: "var(--stone)" }} />
               </div>
               <div style={{ minWidth: 0 }}>
                 <div className="sir-title" style={{ fontSize: 14 }}>{inv.email}</div>
-                <div className="sir-sub">Enviado em {fmtDate(inv.sentAt)} · {brandNames(inv.brands)}</div>
+                <div className="sir-sub">Enviado em {fmtDate(inv.sentAt)}</div>
               </div>
               <div className="row" style={{ marginLeft: "auto", gap: 8, flexShrink: 0 }}>
-                <RoleBadge role={inv.role} />
-                <button className="btn btn-quiet btn-sm" onClick={() => onToast("Convite reenviado")}>Reenviar</button>
-                <button className="icon-btn" style={{ width: 32, height: 32 }} onClick={() => onToast("Convite cancelado")}><X size={15} /></button>
+                <RoleBadge role={inv.role.toLowerCase()} />
+                <button className="btn btn-quiet btn-sm" onClick={() => resendInvite(inv)}>Reenviar</button>
+                <button className="icon-btn" style={{ width: 32, height: 32 }} onClick={() => cancelInvite(inv.id)}><X size={15} /></button>
               </div>
             </div>
           ))}
         </div>
       )}
 
-      {showInvite && <InviteModal onClose={() => setShowInvite(false)} onToast={onToast} />}
+      {showInvite && <InviteModal onClose={() => setShowInvite(false)} onSent={inv => { setInvites(prev => [inv, ...prev]); onToast("Convite enviado!"); }} />}
     </div>
   );
 }
