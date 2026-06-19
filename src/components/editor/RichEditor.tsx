@@ -28,8 +28,9 @@ export function RichEditor({
   content, onContentChange,
   brandName,
 }: RichEditorProps) {
-  const [aiLoading, setAiLoading] = useState(false);
-  const [aiErr,     setAiErr]     = useState("");
+  const [aiLoading,  setAiLoading]  = useState(false);
+  const [aiErr,      setAiErr]      = useState("");
+  const [wordCount,  setWordCount]  = useState(0);
 
   const editor = useEditor({
     extensions: [
@@ -43,7 +44,11 @@ export function RichEditor({
       Link.configure({ openOnClick: false, HTMLAttributes: { class: "editor-link" } }),
     ],
     content: content || "",
-    onUpdate: ({ editor }) => onContentChange(editor.getHTML()),
+    onUpdate: ({ editor }) => {
+      onContentChange(editor.getHTML());
+      const words = editor.getText().trim().split(/\s+/).filter(Boolean).length;
+      setWordCount(words);
+    },
     editorProps: {
       attributes: { class: "tiptap-body" },
     },
@@ -105,9 +110,6 @@ export function RichEditor({
   }
 
   const RECOMMENDED = 600;
-  const wordCount = editor
-    ? editor.getText().trim().split(/\s+/).filter(Boolean).length
-    : 0;
   const wordPct   = Math.min(wordCount / RECOMMENDED, 1);
   const wordOver  = wordCount > RECOMMENDED * 1.2;
   const wordDone  = wordCount >= RECOMMENDED * 0.9 && !wordOver;
