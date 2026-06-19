@@ -139,7 +139,7 @@ function MediaGallery({ images, onAdd, onRemove }: {
 
 function StepContent({
   title, setTitle, subtitle, setSubtitle, body, setBody,
-  cat, setCat, author, setAuthor, images, onAddImage, onRemoveImage, brand,
+  cat, setCat, author, setAuthor, images, onAddImage, onRemoveImage, brand, authors,
 }: {
   title: string; setTitle: (v: string) => void;
   subtitle: string; setSubtitle: (v: string) => void;
@@ -148,6 +148,7 @@ function StepContent({
   author: string; setAuthor: (v: string) => void;
   images: string[]; onAddImage: (url: string) => void; onRemoveImage: (url: string) => void;
   brand: Brand | null;
+  authors: { id: string; name: string }[];
 }) {
   return (
     <div className="composer-grid">
@@ -199,7 +200,7 @@ function StepContent({
               <label style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--stone)" }}>Autor</label>
               <div className="select-wrap">
                 <select className="input" value={author} onChange={e => setAuthor(e.target.value)}>
-                  {["Você", "Samara Perez", "Liliane Pires", "Analina Arouche", "Daiana Napoleão"].map(a => <option key={a}>{a}</option>)}
+                  {authors.map(a => <option key={a.id} value={a.name}>{a.name}</option>)}
                 </select>
                 <ChevronDown size={16} />
               </div>
@@ -520,12 +521,23 @@ export default function EditReleasePage() {
   const [subtitle,   setSubtitle]   = useState("");
   const [body,       setBody]       = useState("");
   const [cat,        setCat]        = useState("Negócios");
-  const [author,     setAuthor]     = useState("Você");
+  const [authors,    setAuthors]    = useState<{ id: string; name: string }[]>([]);
+  const [author,     setAuthor]     = useState("");
   const [images,     setImages]     = useState<string[]>([]);
   const [status,     setStatus]     = useState("SCHEDULED");
   const [schedDate,  setSchedDate]  = useState("");
   const [schedTime,  setSchedTime]  = useState("09:00");
   const [selectedVeh, setSelectedVeh] = useState<string[]>([]);
+
+  useEffect(() => {
+    fetch("/api/team")
+      .then(r => r.json())
+      .then((data: { id: string; name: string }[]) => {
+        setAuthors(data);
+        setAuthor(a => a || data[0]?.name || "");
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     fetch(`/api/releases/${id}`)
@@ -665,6 +677,7 @@ export default function EditReleasePage() {
             onAddImage={url => setImages(prev => [...prev, url])}
             onRemoveImage={url => setImages(prev => prev.filter(u => u !== url))}
             brand={brand}
+            authors={authors}
           />
         )}
         {step === 1 && <StepVehicles selected={selectedVeh} setSelected={setSelectedVeh} />}

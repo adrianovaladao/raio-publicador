@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { useUser } from "@clerk/nextjs";
+
 import {
   ArrowLeft, ArrowRight, Check, ChevronDown,
   Image as ImageIcon, Rocket, Calendar, X, Search,
@@ -432,7 +432,7 @@ function MediaCard({ imageUrl, onChange }: { imageUrl?: string; onChange: (url: 
   );
 }
 
-function StepContent({ content, setContent, brand }: { content: Content; setContent: (c: Content) => void; brand: Brand | null }) {
+function StepContent({ content, setContent, brand, authors }: { content: Content; setContent: (c: Content) => void; brand: Brand | null; authors: { id: string; name: string }[] }) {
   const up = (k: keyof Content, v: string) => setContent({ ...content, [k]: v });
   const cats = VEH_CATS.filter(c => c !== "Todos");
 
@@ -465,7 +465,7 @@ function StepContent({ content, setContent, brand }: { content: Content; setCont
               <label>Autor</label>
               <div className="select-wrap">
                 <select className="input" value={content.author} onChange={e => up("author", e.target.value)}>
-                  {["Samara Perez","Liliane Pires","Analina Arouche","Daiana Napoleão"].map(a => <option key={a}>{a}</option>)}
+                  {authors.map(a => <option key={a.id} value={a.name}>{a.name}</option>)}
                 </select>
                 <ChevronDown size={16} />
               </div>
@@ -846,20 +846,23 @@ function StepReview({ content, selected, when, setWhen, brand }: {
 
 export default function NovoReleasePage() {
   const router  = useRouter();
-  const { user } = useUser();
+
   const [step, setStep] = useState(0);
   const [done, setDone] = useState(false);
   const [brand, setBrand] = useState<Brand | null>(null);
   const [brands, setBrands] = useState<Brand[]>([]);
+  const [authors, setAuthors] = useState<{ id: string; name: string }[]>([]);
   const [content, setContent] = useState<Content>({ title: "", subtitle: "", body: "", cat: "Negócios", author: "" });
 
   useEffect(() => {
-    if (user && !content.author) {
-      const name = [user.firstName, user.lastName].filter(Boolean).join(" ");
-      if (name) setContent(c => ({ ...c, author: name }));
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+    fetch("/api/team")
+      .then(r => r.json())
+      .then((data: { id: string; name: string }[]) => {
+        setAuthors(data);
+        setContent(c => c.author ? c : { ...c, author: data[0]?.name ?? "" });
+      })
+      .catch(() => {});
+  }, []);
   const [selected, setSelected] = useState<string[]>([]);
   const now = new Date();
   const defaultDate = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()+1).padStart(2,"0")}`;
@@ -1015,7 +1018,7 @@ export default function NovoReleasePage() {
         </div>
 
         {step === 0 && <StepBrand selected={brand} onSelect={setBrand} brands={brands} onAddBrand={b => setBrands(prev => [...prev, b])} />}
-        {step === 1 && <StepContent content={content} setContent={setContent} brand={brand} />}
+        {step === 1 && <StepContent content={content} setContent={setContent} brand={brand} authors={authors} />}
         {step === 2 && <StepVehicles selected={selected} setSelected={setSelected} />}
         {step === 3 && <StepReview content={content} selected={selected} when={when} setWhen={setWhen} brand={brand} />}
       </div>
