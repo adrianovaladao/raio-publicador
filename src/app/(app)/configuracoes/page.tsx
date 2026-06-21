@@ -612,6 +612,7 @@ function BrandFormModal({ brand, onClose, onSaved }: {
   const [logoPreview, setLogoPreview] = useState(brand?.logoUrl ?? "");
   const [saving,  setSaving]  = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [err, setErr] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -661,7 +662,7 @@ function BrandFormModal({ brand, onClose, onSaved }: {
   }
 
   async function deleteBrand() {
-    if (!brand || !confirm(`Excluir a marca "${brand.name}"? Esta ação não pode ser desfeita.`)) return;
+    if (!brand) return;
     setDeleting(true);
     try {
       await fetch(`/api/brands/${brand.id}`, { method: "DELETE" });
@@ -778,7 +779,7 @@ function BrandFormModal({ brand, onClose, onSaved }: {
         {err && <p style={{ color: "var(--red,#c0392b)", fontSize: 13, margin: "0 24px 12px", fontWeight: 500 }}>{err}</p>}
         <div className="m-foot" style={{ justifyContent: isEdit ? "space-between" : "flex-end" }}>
           {isEdit && (
-            <button className="btn btn-quiet btn-sm" style={{ color: "var(--red,#c0392b)" }} onClick={deleteBrand} disabled={deleting}>
+            <button className="btn btn-quiet btn-sm" style={{ color: "var(--red,#c0392b)" }} onClick={() => setConfirmDelete(true)} disabled={deleting}>
               {deleting ? "Excluindo…" : <><Trash2 size={14} /> Excluir marca</>}
             </button>
           )}
@@ -790,6 +791,13 @@ function BrandFormModal({ brand, onClose, onSaved }: {
           </div>
         </div>
       </div>
+      {confirmDelete && brand && (
+        <ConfirmModal
+          message={`Excluir a marca "${brand.name}"? Esta ação não pode ser desfeita.`}
+          onConfirm={() => { setConfirmDelete(false); deleteBrand(); }}
+          onCancel={() => setConfirmDelete(false)}
+        />
+      )}
     </div>
   );
 }
