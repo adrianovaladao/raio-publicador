@@ -432,8 +432,9 @@ function MediaCard({ imageUrl, onChange }: { imageUrl?: string; onChange: (url: 
   );
 }
 
-function StepContent({ content, setContent, brand }: { content: Content; setContent: (c: Content) => void; brand: Brand | null }) {
-  const authors = brand?.authors ?? [];
+function StepContent({ content, setContent, brand, ownerName }: { content: Content; setContent: (c: Content) => void; brand: Brand | null; ownerName: string }) {
+  const brandAuthors = brand?.authors ?? [];
+  const authors = brandAuthors.length > 0 ? brandAuthors : [ownerName].filter(Boolean);
   const up = (k: keyof Content, v: string) => setContent({ ...content, [k]: v });
   const cats = VEH_CATS.filter(c => c !== "Todos");
 
@@ -847,6 +848,14 @@ function StepReview({ content, selected, when, setWhen, brand }: {
 
 export default function NovoReleasePage() {
   const router  = useRouter();
+  const [ownerName, setOwnerName] = useState("");
+
+  useEffect(() => {
+    fetch("/api/team")
+      .then(r => r.json())
+      .then((data: { id: string; name: string }[]) => { if (data[0]) setOwnerName(data[0].name); })
+      .catch(() => {});
+  }, []);
 
   const [step, setStep] = useState(0);
   const [done, setDone] = useState(false);
@@ -1008,7 +1017,7 @@ export default function NovoReleasePage() {
         </div>
 
         {step === 0 && <StepBrand selected={brand} onSelect={setBrand} brands={brands} onAddBrand={b => setBrands(prev => [...prev, b])} />}
-        {step === 1 && <StepContent content={content} setContent={setContent} brand={brand} />}
+        {step === 1 && <StepContent content={content} setContent={setContent} brand={brand} ownerName={ownerName} />}
         {step === 2 && <StepVehicles selected={selected} setSelected={setSelected} />}
         {step === 3 && <StepReview content={content} selected={selected} when={when} setWhen={setWhen} brand={brand} />}
       </div>
