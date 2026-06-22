@@ -1,12 +1,115 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import {
   ArrowLeft, ArrowRight, Check, ChevronDown, Image as ImageIcon,
   Rocket, Calendar, X, Search, Trash2, Plus,
 } from "lucide-react";
 import { RichEditor } from "@/components/editor/RichEditor";
+
+// ── DatePicker customizado ────────────────────────────────────────────────────
+
+const MESES_FULL = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+const DOW_SHORT  = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
+
+function getBrHolidays(year: number): Set<string> {
+  const a = year % 19, b = Math.floor(year / 100), c = year % 100;
+  const d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7;
+  const m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const month = Math.floor((h + l - 7 * m + 114) / 31);
+  const day   = ((h + l - 7 * m + 114) % 31) + 1;
+  const easter = new Date(year, month - 1, day);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const fmt = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  const add = (d: Date, days: number) => { const r = new Date(d); r.setDate(r.getDate() + days); return r; };
+  return new Set<string>([
+    `${year}-01-01`, `${year}-04-21`, `${year}-05-01`, `${year}-09-07`,
+    `${year}-10-12`, `${year}-11-02`, `${year}-11-15`, `${year}-11-20`, `${year}-12-25`,
+    fmt(add(easter, -48)), fmt(add(easter, -47)), fmt(add(easter, -2)),
+    fmt(easter), fmt(add(easter, 60)),
+  ]);
+}
+
+function isBlockedDate(key: string): boolean {
+  const d = new Date(key + "T12:00:00");
+  const dow = d.getDay();
+  if (dow === 0 || dow === 6) return true;
+  return getBrHolidays(d.getFullYear()).has(key);
+}
+
+function DatePicker({ value, onChange, minDate, maxDate }: {
+  value: string; onChange: (d: string) => void; minDate: string; maxDate: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const toKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  const parsed = value ? new Date(value + "T12:00:00") : new Date();
+  const [viewY, setViewY] = useState(parsed.getFullYear());
+  const [viewM, setViewM] = useState(parsed.getMonth());
+  const fmtDisplay = (iso: string) => {
+    const d = new Date(iso + "T12:00:00");
+    return `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`;
+  };
+  const closeOnOutside = useCallback((e: MouseEvent) => {
+    if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+  }, []);
+  useEffect(() => {
+    if (open) document.addEventListener("mousedown", closeOnOutside);
+    return () => document.removeEventListener("mousedown", closeOnOutside);
+  }, [open, closeOnOutside]);
+  const firstDay = new Date(viewY, viewM, 1);
+  const lead = firstDay.getDay();
+  const dim = new Date(viewY, viewM + 1, 0).getDate();
+  const prevDim = new Date(viewY, viewM, 0).getDate();
+  const cells: { d: number; out: boolean; key: string }[] = [];
+  for (let i = 0; i < lead; i++) { const d = new Date(viewY, viewM - 1, prevDim - lead + 1 + i); cells.push({ d: d.getDate(), out: true, key: toKey(d) }); }
+  for (let d = 1; d <= dim; d++) cells.push({ d, out: false, key: toKey(new Date(viewY, viewM, d)) });
+  while (cells.length % 7 !== 0) { const d = new Date(viewY, viewM + 1, cells.length - (lead + dim) + 1); cells.push({ d: d.getDate(), out: true, key: toKey(d) }); }
+  function shiftMonth(dir: number) {
+    let nm = viewM + dir, ny = viewY;
+    if (nm < 0) { nm = 11; ny--; } if (nm > 11) { nm = 0; ny++; }
+    setViewM(nm); setViewY(ny);
+  }
+  return (
+    <div ref={ref} style={{ position: "relative" }}>
+      <button type="button" onClick={() => setOpen(o => !o)} className="input"
+        style={{ width: "100%", textAlign: "left", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", background: "#fff" }}>
+        <span style={{ color: value ? "var(--ink)" : "var(--stone)" }}>{value ? fmtDisplay(value) : "Selecione uma data"}</span>
+        <Calendar size={15} style={{ color: "var(--stone)", flexShrink: 0 }} />
+      </button>
+      {open && (
+        <div style={{ position: "absolute", top: "calc(100% + 8px)", left: 0, zIndex: 999, background: "#fff", border: "1px solid var(--line)", borderRadius: 12, boxShadow: "0 8px 32px rgba(0,0,0,0.10)", padding: 16, width: 280 }}>
+          <div style={{ display: "flex", alignItems: "center", marginBottom: 12 }}>
+            <button type="button" onClick={() => shiftMonth(-1)} style={{ background: "none", border: "none", cursor: "pointer", padding: "4px 6px", borderRadius: 6, color: "var(--stone)" }}>‹</button>
+            <span style={{ flex: 1, textAlign: "center", fontWeight: 700, fontSize: 13, color: "var(--ink)" }}>{MESES_FULL[viewM]} {viewY}</span>
+            <button type="button" onClick={() => shiftMonth(1)} style={{ background: "none", border: "none", cursor: "pointer", padding: "4px 6px", borderRadius: 6, color: "var(--stone)" }}>›</button>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", marginBottom: 4 }}>
+            {DOW_SHORT.map((d, i) => <div key={d} style={{ textAlign: "center", fontSize: 11, fontWeight: 600, paddingBottom: 6, color: i === 0 || i === 6 ? "#E0B0A0" : "var(--stone)" }}>{d}</div>)}
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 2 }}>
+            {cells.map((c, i) => {
+              const blocked = !c.out && isBlockedDate(c.key);
+              const disabled = c.out || c.key < minDate || c.key > maxDate || blocked;
+              const selected = c.key === value;
+              const isToday = c.key === toKey(new Date());
+              return (
+                <button key={i} type="button" disabled={disabled}
+                  onClick={() => { onChange(c.key); setOpen(false); }}
+                  style={{ border: isToday && !selected ? "1.5px solid var(--ink)" : "1.5px solid transparent", borderRadius: 8, background: selected ? "var(--ink)" : "none", color: selected ? "#fff" : (c.out || disabled) ? "var(--line)" : "var(--ink)", fontSize: 12, fontWeight: selected ? 700 : 400, padding: "6px 0", cursor: disabled ? "default" : "pointer", textAlign: "center", opacity: blocked && !c.out ? 0.35 : 1 }}>
+                  {c.d}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 // ── Mock vehicles ─────────────────────────────────────────────────────────────
 
@@ -150,7 +253,16 @@ function StepContent({
   images: string[]; onAddImage: (url: string) => void; onRemoveImage: (url: string) => void;
   brand: Brand | null;
 }) {
-  const authors = brand?.authors ?? [];
+  const [teamMembers, setTeamMembers] = useState<{ id: string; name: string }[]>([]);
+  useEffect(() => {
+    fetch("/api/team").then(r => r.json()).then((data: { id: string; name?: string; firstName?: string; lastName?: string }[]) => {
+      const members = data.map(m => ({ id: m.id, name: m.name ?? ([m.firstName, m.lastName].filter(Boolean).join(" ") || m.id) }));
+      setTeamMembers(members);
+      if (!author && members.length > 0) setAuthor(members[0].id);
+    }).catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const authors = teamMembers.length > 0 ? teamMembers : (brand?.authors ?? []).map(a => ({ id: a, name: a }));
   return (
     <div className="composer-grid">
       {/* Editor */}
@@ -201,7 +313,7 @@ function StepContent({
               <label style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--stone)" }}>Autor</label>
               <div className="select-wrap">
                 <select className="input" value={author} onChange={e => setAuthor(e.target.value)}>
-                  {authors.map(a => <option key={a} value={a}>{a}</option>)}
+                  {authors.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
                 </select>
                 <ChevronDown size={16} />
               </div>
@@ -358,12 +470,11 @@ function StepVehicles({ selected, setSelected }: { selected: string[]; setSelect
 // ── Step 2: Agendamento ───────────────────────────────────────────────────────
 
 function StepSchedule({
-  status, setStatus, schedDate, setSchedDate, schedTime, setSchedTime,
+  status, setStatus, schedDate, setSchedDate,
   title, body, subtitle, cat, selectedVeh, brand,
 }: {
   status: string; setStatus: (v: string) => void;
   schedDate: string; setSchedDate: (v: string) => void;
-  schedTime: string; setSchedTime: (v: string) => void;
   title: string; body: string; subtitle: string; cat: string;
   selectedVeh: string[]; brand: Brand | null;
 }) {
@@ -377,9 +488,6 @@ function StepSchedule({
       <div className="card">
         <div className="card-head">
           <h3>Pré-visualização do <em>release</em></h3>
-          <span className={`badge-status ${status === "PUBLISHED" ? "published" : status === "SCHEDULED" ? "scheduled" : "draft"}`}>
-            {status === "PUBLISHED" ? "Publicado" : status === "SCHEDULED" ? "Agendado" : "Rascunho"}
-          </span>
         </div>
         <div className="card-pad">
           {brand && (
@@ -444,13 +552,14 @@ function StepSchedule({
             </div>
             {status === "SCHEDULED" && (() => {
               const today = new Date();
-              const minDate = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
+              const pad = (n: number) => String(n).padStart(2, "0");
+              const minDate = `${today.getFullYear()}-${pad(today.getMonth()+1)}-${pad(today.getDate())}`;
               const lastDay = new Date(today.getFullYear(), today.getMonth()+1, 0).getDate();
-              const maxDate = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(lastDay).padStart(2,"0")}`;
+              const maxDate = `${today.getFullYear()}-${pad(today.getMonth()+1)}-${pad(lastDay)}`;
               return (
                 <div className="field-row" style={{ marginBottom: 0 }}>
-                  <label>Data</label>
-                  <input className="input" type="date" value={schedDate} min={minDate} max={maxDate} onChange={e => setSchedDate(e.target.value)} />
+                  <label style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--stone)" }}>Data</label>
+                  <DatePicker value={schedDate} onChange={setSchedDate} minDate={minDate} maxDate={maxDate} />
                 </div>
               );
             })()}
@@ -520,7 +629,6 @@ export default function EditReleasePage() {
   const [images,     setImages]     = useState<string[]>([]);
   const [status,     setStatus]     = useState("SCHEDULED");
   const [schedDate,  setSchedDate]  = useState("");
-  const [schedTime,  setSchedTime]  = useState("09:00");
   const [selectedVeh, setSelectedVeh] = useState<string[]>([]);
 
   useEffect(() => {
@@ -537,7 +645,6 @@ export default function EditReleasePage() {
         if (data.scheduledAt) {
           const d = new Date(data.scheduledAt);
           setSchedDate(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`);
-          setSchedTime(`${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`);
         }
       })
       .catch(() => setErr("Não foi possível carregar o release."))
@@ -549,7 +656,7 @@ export default function EditReleasePage() {
     setSaving(true); setErr("");
     try {
       const scheduledAt = status === "SCHEDULED" && schedDate
-        ? new Date(`${schedDate}T${schedTime || "09:00"}:00`).toISOString()
+        ? new Date(`${schedDate}T09:00:00`).toISOString()
         : null;
       const res = await fetch(`/api/releases/${id}`, {
         method: "PUT",
@@ -669,7 +776,6 @@ export default function EditReleasePage() {
           <StepSchedule
             status={status} setStatus={setStatus}
             schedDate={schedDate} setSchedDate={setSchedDate}
-            schedTime={schedTime} setSchedTime={setSchedTime}
             title={title} body={body} subtitle={subtitle} cat={cat}
             selectedVeh={selectedVeh} brand={brand}
           />
