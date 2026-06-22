@@ -144,11 +144,13 @@ function PerfilPanel({ onToast }: { onToast: (m: string) => void }) {
     setPhotoLoading(true);
     try {
       await user.setProfileImage({ file });
+      await user.reload();
       onToast("Foto atualizada");
     } catch {
       onToast("Erro ao enviar foto");
     } finally {
       setPhotoLoading(false);
+      if (fileRef.current) fileRef.current.value = "";
     }
   }
 
