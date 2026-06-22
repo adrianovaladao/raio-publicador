@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { List, LayoutGrid, Plus, Inbox } from "lucide-react";
+import { List, LayoutGrid, Plus, Inbox, Trash2 } from "lucide-react";
 
 interface Release {
   id: string;
@@ -52,6 +52,21 @@ function StatusBadge({ status }: { status: string }) {
   return <span className={`badge-status ${status}`}>{STATUS_LABEL[status] ?? status}</span>;
 }
 
+function ConfirmModal({ title, desc, onConfirm, onCancel }: { title: string; desc: string; onConfirm: () => void; onCancel: () => void }) {
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 9999, display: "grid", placeItems: "center" }}>
+      <div style={{ background: "#fff", borderRadius: 16, padding: "32px 28px", maxWidth: 400, width: "90%", boxShadow: "0 8px 40px rgba(0,0,0,0.15)" }}>
+        <h3 style={{ margin: "0 0 8px", fontSize: 18, fontWeight: 700 }}>{title}</h3>
+        <p style={{ margin: "0 0 28px", fontSize: 14, color: "var(--stone)", lineHeight: 1.5 }}>{desc}</p>
+        <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+          <button className="btn btn-ghost btn-sm" onClick={onCancel}>Cancelar</button>
+          <button className="btn btn-sm" style={{ background: "#D94F4F", color: "#fff", border: "none" }} onClick={onConfirm}>Excluir</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ReleasesPage() {
   const router = useRouter();
   const [mode, setMode]     = useState<"list" | "grid">("list");
@@ -59,6 +74,13 @@ export default function ReleasesPage() {
   const [q, setQ]           = useState("");
   const [releases, setReleases] = useState<ReleaseRow[]>([]);
   const [loading, setLoading]   = useState(true);
+  const [confirmId, setConfirmId] = useState<string | null>(null);
+
+  async function deleteRelease(id: string) {
+    await fetch(`/api/releases/${id}`, { method: "DELETE" });
+    setReleases(prev => prev.filter(r => r.id !== id));
+    setConfirmId(null);
+  }
 
   useEffect(() => {
     fetch("/api/releases")
@@ -144,6 +166,7 @@ export default function ReleasesPage() {
                   <th>Data</th>
                   <th>Autor</th>
                   <th style={{ textAlign: "right" }}>Marca</th>
+                  <th style={{ width: 40 }} />
                 </tr>
               </thead>
               <tbody>
@@ -157,6 +180,15 @@ export default function ReleasesPage() {
                     <td className="muted num">{fmtDate(r.date)}</td>
                     <td className="muted">{r.author}</td>
                     <td className="num" style={{ textAlign: "right", fontWeight: 600 }}>{r.cat}</td>
+                    <td onClick={e => e.stopPropagation()}>
+                      <button
+                        onClick={() => setConfirmId(r.id)}
+                        style={{ background: "none", border: "none", cursor: "pointer", padding: "4px 6px", color: "var(--stone)", borderRadius: 6, display: "flex", alignItems: "center" }}
+                        title="Excluir release"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -165,7 +197,14 @@ export default function ReleasesPage() {
         ) : (
           <div className="lib-grid">
             {list.map(r => (
-              <div className="card lib-card" key={r.id} style={{ cursor: "pointer" }} onClick={() => router.push(`/releases/${r.id}`)}>
+              <div className="card lib-card" key={r.id} style={{ cursor: "pointer", position: "relative" }} onClick={() => router.push(`/releases/${r.id}`)}>
+                <button
+                  onClick={e => { e.stopPropagation(); setConfirmId(r.id); }}
+                  style={{ position: "absolute", top: 10, right: 10, zIndex: 2, background: "rgba(0,0,0,0.45)", border: "none", borderRadius: 8, padding: "5px 7px", cursor: "pointer", color: "#fff", display: "flex", alignItems: "center" }}
+                  title="Excluir release"
+                >
+                  <Trash2 size={14} />
+                </button>
                 <div className="thumb" style={r.imageUrl ? {} : { background: r.brandColor ?? undefined }}>
                   {r.imageUrl && (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -189,5 +228,13 @@ export default function ReleasesPage() {
         )}
       </div>
     </div>
+    {confirmId && (
+      <ConfirmModal
+        title="Excluir release"
+        desc="Tem certeza que deseja excluir este release? Esta ação não pode ser desfeita."
+        onConfirm={() => deleteRelease(confirmId)}
+        onCancel={() => setConfirmId(null)}
+      />
+    )}
   );
 }
