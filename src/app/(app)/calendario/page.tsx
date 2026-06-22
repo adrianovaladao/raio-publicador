@@ -14,6 +14,12 @@ const STATUS_LABEL: Record<string, string> = {
   DRAFT:     "Rascunho",  draft:     "Rascunho",
 };
 
+const STATUS_DOT_COLOR: Record<string, string> = {
+  published: "var(--green)",
+  scheduled: "var(--blue)",
+  draft:     "var(--coral)",
+};
+
 function statusClass(s: string) {
   const l = s.toLowerCase();
   if (l === "published") return "published";
@@ -140,7 +146,7 @@ function DayModal({ date, evs, onClose }: { date: string; evs: CalEvent[]; onClo
         onClick={e => e.stopPropagation()}>
 
         {/* Header */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 24px 16px", borderBottom: "1px solid var(--line)" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 20px 14px", borderBottom: "1px solid var(--line)" }}>
           <div>
             <p style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--stone)", margin: "0 0 2px" }}>
               {mesNome} {ano}
@@ -181,8 +187,8 @@ function DayModal({ date, evs, onClose }: { date: string; evs: CalEvent[]; onClo
                   <div style={{ fontWeight: 600, fontSize: 13, color: "var(--ink)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                     {ev.title}
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 2 }}>
-                    <span className={`badge-status ${statusClass(ev.status)}`}>{STATUS_LABEL[ev.status] ?? ev.status}</span>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 3 }}>
+                    <span style={{ width: 7, height: 7, borderRadius: "50%", flexShrink: 0, background: STATUS_DOT_COLOR[statusClass(ev.status)] ?? "var(--stone)" }} />
                     {ev.brand && <span style={{ fontSize: 11, color: "var(--stone)" }}>{ev.brand.name}</span>}
                     {ev.authorName && <span style={{ fontSize: 11, color: "var(--stone)" }}>· {ev.authorName}</span>}
                   </div>
@@ -195,7 +201,15 @@ function DayModal({ date, evs, onClose }: { date: string; evs: CalEvent[]; onClo
         </div>
 
         {/* Footer */}
-        <div style={{ padding: "12px 24px 16px", borderTop: "1px solid var(--line)", display: "flex", justifyContent: "flex-end" }}>
+        <div style={{ padding: "10px 16px 14px", borderTop: "1px solid var(--line)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ display: "flex", gap: 14 }}>
+            {[["scheduled","var(--blue)","Agendado"],["published","var(--green)","Publicado"],["draft","var(--coral)","Rascunho"]].map(([,color,label]) => (
+              <span key={label} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: "var(--stone)" }}>
+                <span style={{ width: 7, height: 7, borderRadius: "50%", background: color, flexShrink: 0 }} />
+                {label}
+              </span>
+            ))}
+          </div>
           <Link href="/releases/novo" className="btn btn-primary btn-sm" onClick={onClose}>
             <Plus size={14} /> Agendar para este dia
           </Link>
