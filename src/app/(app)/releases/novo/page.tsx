@@ -632,6 +632,49 @@ function StepVehicles({ selected, setSelected }: { selected: string[]; setSelect
 const MESES_FULL = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 const DOW_SHORT  = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
 
+// Feriados nacionais fixos (MM-DD) e variáveis por ano
+function getBrHolidays(year: number): Set<string> {
+  // Cálculo da Páscoa (algoritmo de Meeus/Jones/Butcher)
+  const a = year % 19, b = Math.floor(year / 100), c = year % 100;
+  const d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7;
+  const m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const month = Math.floor((h + l - 7 * m + 114) / 31);
+  const day   = ((h + l - 7 * m + 114) % 31) + 1;
+  const easter = new Date(year, month - 1, day);
+
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const fmt = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  const add = (d: Date, days: number) => { const r = new Date(d); r.setDate(r.getDate() + days); return r; };
+
+  const holidays = new Set<string>([
+    `${year}-01-01`, // Confraternização Universal
+    `${year}-04-21`, // Tiradentes
+    `${year}-05-01`, // Dia do Trabalho
+    `${year}-09-07`, // Independência do Brasil
+    `${year}-10-12`, // Nossa Senhora Aparecida
+    `${year}-11-02`, // Finados
+    `${year}-11-15`, // Proclamação da República
+    `${year}-11-20`, // Consciência Negra
+    `${year}-12-25`, // Natal
+    fmt(add(easter, -48)), // Segunda de Carnaval
+    fmt(add(easter, -47)), // Terça de Carnaval
+    fmt(add(easter, -2)),  // Sexta-feira Santa
+    fmt(easter),            // Páscoa
+    fmt(add(easter, 60)),  // Corpus Christi
+  ]);
+  return holidays;
+}
+
+function isBlockedDate(key: string): boolean {
+  const d = new Date(key + "T12:00:00");
+  const dow = d.getDay();
+  if (dow === 0 || dow === 6) return true; // domingo ou sábado
+  const holidays = getBrHolidays(d.getFullYear());
+  return holidays.has(key);
+}
+
 function DatePicker({ value, onChange, minDate, maxDate }: {
   value: string;
   onChange: (d: string) => void;
@@ -720,33 +763,37 @@ function DatePicker({ value, onChange, minDate, maxDate }: {
 
           {/* dias da semana */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", marginBottom: 4 }}>
-            {DOW_SHORT.map(d => (
-              <div key={d} style={{ textAlign: "center", fontSize: 11, fontWeight: 600, color: "var(--stone)", paddingBottom: 6 }}>{d}</div>
+            {DOW_SHORT.map((d, i) => (
+              <div key={d} style={{ textAlign: "center", fontSize: 11, fontWeight: 600, paddingBottom: 6, color: i === 0 || i === 6 ? "#E0B0A0" : "var(--stone)" }}>{d}</div>
             ))}
           </div>
 
           {/* células */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 2 }}>
             {cells.map((c, i) => {
-              const disabled = c.out || c.key < minDate || c.key > maxDate;
+              const blocked  = !c.out && isBlockedDate(c.key);
+              const disabled = c.out || c.key < minDate || c.key > maxDate || blocked;
               const selected = c.key === value;
               const isToday  = c.key === toKey(new Date());
+              const isWeekend = !c.out && (() => { const dow = new Date(c.key + "T12:00:00").getDay(); return dow === 0 || dow === 6; })();
               return (
                 <button
                   key={i}
                   type="button"
                   disabled={disabled}
                   onClick={() => { onChange(c.key); setOpen(false); }}
+                  title={blocked && !isWeekend ? "Feriado nacional" : isWeekend ? "Fim de semana" : undefined}
                   style={{
                     border: isToday && !selected ? "1.5px solid var(--ink)" : "1.5px solid transparent",
                     borderRadius: 8,
                     background: selected ? "var(--ink)" : "none",
-                    color: selected ? "#fff" : disabled ? "var(--line)" : "var(--ink)",
+                    color: selected ? "#fff" : (c.out || disabled) ? "var(--line)" : "var(--ink)",
                     fontSize: 12,
                     fontWeight: selected ? 700 : 400,
                     padding: "6px 0",
                     cursor: disabled ? "default" : "pointer",
                     textAlign: "center",
+                    opacity: blocked && !c.out ? 0.35 : 1,
                   }}
                 >
                   {c.d}
