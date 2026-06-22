@@ -1167,6 +1167,9 @@ export default function NovoReleasePage() {
               <button className="btn btn-ghost" onClick={() => router.push("/releases")}>
                 Ver biblioteca
               </button>
+              <button className="btn btn-ghost" onClick={() => router.push("/calendario")}>
+                <Calendar size={15} /> Ver calendário
+              </button>
               <button className="btn btn-dark" onClick={() => router.push("/dashboard")}>
                 Ir para o dashboard
               </button>
