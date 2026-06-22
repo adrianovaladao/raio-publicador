@@ -340,7 +340,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {/* Usuário — clicável → Configurações */}
         <div className="sb-user">
           <button className="sb-user-main" onClick={() => router.push("/configuracoes")} title="Perfil e configurações">
-            <div className="av">{initials}</div>
+            {user?.imageUrl
+              // eslint-disable-next-line @next/next/no-img-element
+              ? <img src={user.imageUrl} alt={fullName} className="av" style={{ objectFit: "cover" }} />
+              : <div className="av">{initials}</div>
+            }
             <div className="who">
               <div className="nm">{fullName}</div>
               <div className="rl">Administração</div>
