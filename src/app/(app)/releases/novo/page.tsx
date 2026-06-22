@@ -629,7 +629,7 @@ function StepVehicles({ selected, setSelected }: { selected: string[]; setSelect
 
 // ── Passo 3: Revisão ─────────────────────────────────────────────────────────
 
-interface When { mode: "now" | "schedule"; date: string; time: string }
+interface When { mode: "now" | "schedule"; date: string }
 
 const BOILERPLATE = (brand: Brand | null) =>
   brand
@@ -820,18 +820,18 @@ function StepReview({ content, selected, when, setWhen, brand }: {
                 <Calendar size={15} /> Agendar
               </button>
             </div>
-            {when.mode === "schedule" && (
-              <div className="row" style={{ gap: 10 }}>
-                <div className="field-row" style={{ flex: 1, marginBottom: 0 }}>
+            {when.mode === "schedule" && (() => {
+              const today = new Date();
+              const minDate = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
+              const lastDay = new Date(today.getFullYear(), today.getMonth()+1, 0).getDate();
+              const maxDate = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(lastDay).padStart(2,"0")}`;
+              return (
+                <div className="field-row" style={{ marginBottom: 0 }}>
                   <label>Data</label>
-                  <input className="input" type="date" value={when.date} onChange={e => setWhen({ ...when, date: e.target.value })} />
+                  <input className="input" type="date" value={when.date} min={minDate} max={maxDate} onChange={e => setWhen({ ...when, date: e.target.value })} />
                 </div>
-                <div className="field-row" style={{ width: 110, marginBottom: 0 }}>
-                  <label>Hora</label>
-                  <input className="input" type="time" value={when.time} onChange={e => setWhen({ ...when, time: e.target.value })} />
-                </div>
-              </div>
-            )}
+              );
+            })()}
             {when.mode === "now" && (
               <p className="muted" style={{ fontSize: 13, margin: 0 }}>
                 O release entra na fila de envio e começa a ser distribuído em poucos minutos.
@@ -865,7 +865,7 @@ export default function NovoReleasePage() {
   const [selected, setSelected] = useState<string[]>([]);
   const now = new Date();
   const defaultDate = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()+1).padStart(2,"0")}`;
-  const [when, setWhen] = useState<When>({ mode: "schedule", date: defaultDate, time: "09:00" });
+  const [when, setWhen] = useState<When>({ mode: "schedule", date: defaultDate });
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -911,7 +911,7 @@ export default function NovoReleasePage() {
             </h2>
             <p className="muted" style={{ fontSize: 16, lineHeight: 1.6, margin: "0 0 32px" }}>
               {scheduled
-                ? <>O release <strong style={{ color: "var(--ink)" }}>&ldquo;{content.title}&rdquo;</strong> será enviado em {when.date.split("-").reverse().join("/")} às {when.time} para <strong style={{ color: "var(--ink)" }}>{selVehicles.length} veículos</strong>.</>
+                ? <>O release <strong style={{ color: "var(--ink)" }}>&ldquo;{content.title}&rdquo;</strong> será enviado em {when.date.split("-").reverse().join("/")} para <strong style={{ color: "var(--ink)" }}>{selVehicles.length} veículos</strong>.</>
                 : <>O release <strong style={{ color: "var(--ink)" }}>&ldquo;{content.title}&rdquo;</strong> está sendo distribuído agora para <strong style={{ color: "var(--ink)" }}>{selVehicles.length} veículos</strong>, com alcance estimado de <strong style={{ color: "var(--ink)" }}>{fmtReach(selReach)}</strong>.</>}
             </p>
 
@@ -983,7 +983,7 @@ export default function NovoReleasePage() {
                 setSubmitting(true);
                 try {
                   const scheduledAt = when.mode === "schedule" && when.date
-                    ? new Date(`${when.date}T${when.time || "09:00"}:00`).toISOString()
+                    ? new Date(`${when.date}T12:00:00`).toISOString()
                     : null;
                   await fetch("/api/releases", {
                     method: "POST",
