@@ -270,11 +270,7 @@ function StepBrand({ selected, onSelect, brands, onAddBrand }: {
                   <span style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--stone)" }}>{b.segment}</span>
                   {" · "}{b.releases} releases
                 </p>
-                <div className="foot" style={{ marginTop: 10 }}>
-                  {b.tone
-                    ? <span className="badge-status published">tom configurado</span>
-                    : <span className="badge-status review">tom pendente</span>}
-                </div>
+                <div className="foot" style={{ marginTop: 10 }} />
               </div>
             </div>
           ))}
@@ -319,11 +315,7 @@ function StepBrand({ selected, onSelect, brands, onAddBrand }: {
                   </td>
                   <td className="muted">{b.segment}</td>
                   <td className="num">{b.releases}</td>
-                  <td>
-                    {b.tone
-                      ? <span className="badge-status published">configurado</span>
-                      : <span className="badge-status review">pendente</span>}
-                  </td>
+                  <td />
                 </tr>
               ))}
               {/* Linha "Nova marca" */}
