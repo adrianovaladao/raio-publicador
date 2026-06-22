@@ -242,8 +242,11 @@ export default function CalendarioPage() {
               const k = c.out ? null : calKey(y, m, c.d);
               const evs = k ? (events[k] ?? []) : [];
               const isToday = k === TODAY;
+              const col = i % 7;
+              const isWeekend = col === 0 || col === 6;
               return (
-                <div key={i} className={`cal-cell${c.out ? " out" : ""}${isToday ? " today" : ""}`}>
+                <div key={i} className={`cal-cell${c.out ? " out" : ""}${isToday ? " today" : ""}`}
+                  style={isWeekend ? { background: "var(--cream, #F4F3F0)" } : undefined}>
                   <div className="dn">{c.d}</div>
                   {evs.slice(0, 2).map(e => (
                     <CalEventChip key={e.id} ev={e} />
