@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import {
   ArrowLeft, ArrowRight, Check, ChevronDown,
   Image as ImageIcon, Rocket, Calendar, X, Search,
-  List, LayoutGrid, Plus, Download, Upload, BookOpen,
+  List, LayoutGrid, Plus, Download, Upload, Cloud, CloudOff,
 } from "lucide-react";
 import { extractDominantColor } from "@/lib/color";
 import { RichEditor } from "@/components/editor/RichEditor";
@@ -1048,6 +1048,60 @@ export default function NovoReleasePage() {
   const [when, setWhen] = useState<When>({ mode: "schedule", date: defaultDate });
   const [submitting, setSubmitting] = useState(false);
 
+  // ── Autosave ─────────────────────────────────────────────────────────────
+  const draftIdRef  = useRef<string | null>(null);
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [lastSaved,  setLastSaved]  = useState<Date | null>(null);
+
+  const contentRef  = useRef(content);
+  const brandRef    = useRef(brand);
+  useEffect(() => { contentRef.current = content; }, [content]);
+  useEffect(() => { brandRef.current   = brand;   }, [brand]);
+
+  async function autosave() {
+    const c = contentRef.current;
+    const b = brandRef.current;
+    if (!b || !c.title.trim()) return;
+    setSaveStatus("saving");
+    try {
+      const payload = {
+        title:   c.title,
+        body:    c.body,
+        summary: c.subtitle,
+        status:  "DRAFT",
+        scheduledAt: null,
+        brandId: b.id,
+        creditsUsed: 0,
+        imageUrl: c.imageUrl || null,
+      };
+      if (draftIdRef.current) {
+        await fetch(`/api/releases/${draftIdRef.current}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+      } else {
+        const res  = await fetch("/api/releases", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json() as { id: string };
+        draftIdRef.current = data.id;
+      }
+      setSaveStatus("saved");
+      setLastSaved(new Date());
+    } catch {
+      setSaveStatus("error");
+    }
+  }
+
+  useEffect(() => {
+    const id = setInterval(autosave, 2 * 60 * 1000);
+    return () => clearInterval(id);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     fetch("/api/brands")
       .then(r => r.json())
@@ -1148,33 +1202,13 @@ export default function NovoReleasePage() {
           </div>
           <div className="actions">
             <button className="btn btn-quiet btn-sm" onClick={() => router.back()}>Cancelar</button>
-            {step > 0 && brand && content.title.trim() && (
-              <button className="btn btn-ghost btn-sm" disabled={submitting} onClick={async () => {
-                setSubmitting(true);
-                try {
-                  await fetch("/api/releases", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      title: content.title,
-                      body: content.body,
-                      summary: content.subtitle,
-                      status: "DRAFT",
-                      scheduledAt: null,
-                      brandId: brand.id,
-                      creditsUsed: 0,
-                      imageUrl: content.imageUrl || null,
-                    }),
-                  });
-                  router.push("/releases");
-                } catch {
-                  alert("Erro ao salvar rascunho.");
-                } finally {
-                  setSubmitting(false);
-                }
-              }}>
-                <BookOpen size={15} /> Salvar rascunho
-              </button>
+            {/* Indicador de autosave */}
+            {saveStatus !== "idle" && (
+              <span style={{ fontSize: 12, color: saveStatus === "error" ? "var(--coral)" : "var(--stone)", display: "flex", alignItems: "center", gap: 5 }}>
+                {saveStatus === "saving" && <><Cloud size={13} style={{ opacity: 0.6 }} /> Salvando…</>}
+                {saveStatus === "saved"  && <><Cloud size={13} /> Salvo {lastSaved ? `às ${String(lastSaved.getHours()).padStart(2,"0")}:${String(lastSaved.getMinutes()).padStart(2,"0")}` : ""}</>}
+                {saveStatus === "error"  && <><CloudOff size={13} /> Erro ao salvar</>}
+              </span>
             )}
             {step > 0 && (
               <button className="btn btn-ghost" onClick={() => setStep(s => s - 1)}>
@@ -1194,20 +1228,29 @@ export default function NovoReleasePage() {
                     ? new Date(`${when.date}T12:00:00`).toISOString()
                     : null;
                   const status = when.mode === "now" ? "PUBLISHED" : "SCHEDULED";
-                  await fetch("/api/releases", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      title: content.title,
-                      body: content.body,
-                      summary: content.subtitle,
-                      status,
-                      scheduledAt,
-                      brandId: brand.id,
-                      creditsUsed: 0,
-                      imageUrl: content.imageUrl || null,
-                    }),
-                  });
+                  const payload = {
+                    title: content.title,
+                    body: content.body,
+                    summary: content.subtitle,
+                    status,
+                    scheduledAt,
+                    brandId: brand.id,
+                    creditsUsed: 0,
+                    imageUrl: content.imageUrl || null,
+                  };
+                  if (draftIdRef.current) {
+                    await fetch(`/api/releases/${draftIdRef.current}`, {
+                      method: "PUT",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify(payload),
+                    });
+                  } else {
+                    await fetch("/api/releases", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify(payload),
+                    });
+                  }
                   setDone(true);
                 } catch {
                   alert("Erro ao salvar release. Tente novamente.");
