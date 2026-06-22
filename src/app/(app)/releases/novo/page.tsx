@@ -989,14 +989,6 @@ function StepReview({ content, selected, when, setWhen, brand }: {
         <div className="card side-card">
           <div className="card-head"><h3>Quando publicar</h3></div>
           <div className="sc-body">
-            <div className="seg" style={{ width: "100%", marginBottom: 14 }}>
-              <button className={when.mode === "now" ? "active" : ""} style={{ flex: 1, justifyContent: "center" }} onClick={() => setWhen({ ...when, mode: "now" })}>
-                <Rocket size={15} /> Agora
-              </button>
-              <button className={when.mode === "schedule" ? "active" : ""} style={{ flex: 1, justifyContent: "center" }} onClick={() => setWhen({ ...when, mode: "schedule" })}>
-                <Calendar size={15} /> Agendar
-              </button>
-            </div>
             {when.mode === "schedule" && (() => {
               const today = new Date();
               const minDate = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
@@ -1009,11 +1001,6 @@ function StepReview({ content, selected, when, setWhen, brand }: {
                 </div>
               );
             })()}
-            {when.mode === "now" && (
-              <p className="muted" style={{ fontSize: 13, margin: 0 }}>
-                O release entra na fila de envio e começa a ser distribuído em poucos minutos.
-              </p>
-            )}
           </div>
         </div>
       </div>
@@ -1224,10 +1211,10 @@ export default function NovoReleasePage() {
                 if (!brand) return;
                 setSubmitting(true);
                 try {
-                  const scheduledAt = when.mode === "schedule" && when.date
-                    ? new Date(`${when.date}T12:00:00`).toISOString()
+                  const scheduledAt = when.date
+                    ? new Date(`${when.date}T09:00:00`).toISOString()
                     : null;
-                  const status = when.mode === "now" ? "PUBLISHED" : "SCHEDULED";
+                  const status = "SCHEDULED";
                   const payload = {
                     title: content.title,
                     body: content.body,
@@ -1258,11 +1245,7 @@ export default function NovoReleasePage() {
                   setSubmitting(false);
                 }
               }}>
-                {submitting
-                  ? "Salvando…"
-                  : when.mode === "now"
-                    ? <><Rocket size={16} /> Publicar agora</>
-                    : <><Calendar size={16} /> Agendar release</>}
+                {submitting ? "Salvando…" : <><Calendar size={16} /> Agendar release</>}
               </button>
             )}
           </div>

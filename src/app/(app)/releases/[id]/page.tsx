@@ -542,15 +542,7 @@ function StepSchedule({
         <div className="card side-card">
           <div className="card-head"><h3>Quando publicar</h3></div>
           <div className="sc-body">
-            <div className="seg" style={{ width: "100%", marginBottom: 14 }}>
-              <button className={status === "SCHEDULED" ? "active" : ""} style={{ flex: 1, justifyContent: "center" }} onClick={() => setStatus("SCHEDULED")}>
-                <Calendar size={14} /> Agendar
-              </button>
-              <button className={status === "PUBLISHED" ? "active" : ""} style={{ flex: 1, justifyContent: "center" }} onClick={() => setStatus("PUBLISHED")}>
-                <Rocket size={14} /> Publicar
-              </button>
-            </div>
-            {status === "SCHEDULED" && (() => {
+            {(() => {
               const today = new Date();
               const pad = (n: number) => String(n).padStart(2, "0");
               const minDate = `${today.getFullYear()}-${pad(today.getMonth()+1)}-${pad(today.getDate())}`;
@@ -563,9 +555,6 @@ function StepSchedule({
                 </div>
               );
             })()}
-            {status === "PUBLISHED" && (
-              <p className="muted" style={{ fontSize: 13, margin: 0 }}>O release entra na fila de envio ao salvar.</p>
-            )}
           </div>
         </div>
       </div>
@@ -655,7 +644,7 @@ export default function EditReleasePage() {
     if (!title.trim()) return;
     setSaving(true); setErr("");
     try {
-      const scheduledAt = status === "SCHEDULED" && schedDate
+      const scheduledAt = schedDate
         ? new Date(`${schedDate}T09:00:00`).toISOString()
         : null;
       const res = await fetch(`/api/releases/${id}`, {
@@ -665,7 +654,7 @@ export default function EditReleasePage() {
           title: title.trim(),
           body,
           summary: subtitle.trim() || null,
-          status,
+          status: "SCHEDULED",
           scheduledAt,
           imageUrl: images[0] ?? null,
         }),
