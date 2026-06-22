@@ -762,7 +762,7 @@ function DatePicker({ value, onChange, minDate, maxDate }: {
 
 // ── Passo 3: Revisão ─────────────────────────────────────────────────────────
 
-interface When { mode: "now" | "schedule" | "draft"; date: string }
+interface When { mode: "now" | "schedule"; date: string }
 
 const BOILERPLATE = (brand: Brand | null) =>
   brand
@@ -952,9 +952,6 @@ function StepReview({ content, selected, when, setWhen, brand }: {
               <button className={when.mode === "schedule" ? "active" : ""} style={{ flex: 1, justifyContent: "center" }} onClick={() => setWhen({ ...when, mode: "schedule" })}>
                 <Calendar size={15} /> Agendar
               </button>
-              <button className={when.mode === "draft" ? "active" : ""} style={{ flex: 1, justifyContent: "center" }} onClick={() => setWhen({ ...when, mode: "draft" })}>
-                <BookOpen size={15} /> Rascunho
-              </button>
             </div>
             {when.mode === "schedule" && (() => {
               const today = new Date();
@@ -971,11 +968,6 @@ function StepReview({ content, selected, when, setWhen, brand }: {
             {when.mode === "now" && (
               <p className="muted" style={{ fontSize: 13, margin: 0 }}>
                 O release entra na fila de envio e começa a ser distribuído em poucos minutos.
-              </p>
-            )}
-            {when.mode === "draft" && (
-              <p className="muted" style={{ fontSize: 13, margin: 0 }}>
-                O release será salvo como rascunho e poderá ser editado e publicado depois.
               </p>
             )}
           </div>
@@ -1033,7 +1025,6 @@ export default function NovoReleasePage() {
   // ── Tela de sucesso ───────────────────────────────────────────────────────
   if (done) {
     const scheduled = when.mode === "schedule";
-    const draft     = when.mode === "draft";
     const selVehicles = selected.map(id => VEHICLES.find(v => v.id === id)).filter(Boolean) as typeof VEHICLES;
     const selReach    = selVehicles.reduce((s, v) => s + v.reach, 0);
     return (
@@ -1041,22 +1032,18 @@ export default function NovoReleasePage() {
         <div className="content-inner" style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "80vh" }}>
           <div style={{ maxWidth: 540, width: "100%", textAlign: "center" }}>
             {/* Ícone */}
-            <div style={{ width: 72, height: 72, borderRadius: "50%", background: draft ? "var(--cream)" : scheduled ? "var(--amber-soft)" : "var(--green-soft)", display: "grid", placeItems: "center", margin: "0 auto 28px", border: draft ? "1.5px solid var(--line)" : "none" }}>
-              {draft
-                ? <BookOpen size={32} color="var(--stone)" />
-                : scheduled
-                  ? <Calendar size={32} color="var(--coral-ink)" />
-                  : <Rocket size={32} color="var(--green)" />}
+            <div style={{ width: 72, height: 72, borderRadius: "50%", background: scheduled ? "var(--amber-soft)" : "var(--green-soft)", display: "grid", placeItems: "center", margin: "0 auto 28px" }}>
+              {scheduled
+                ? <Calendar size={32} color="var(--coral-ink)" />
+                : <Rocket size={32} color="var(--green)" />}
             </div>
 
             {/* Título */}
             <h2 style={{ fontFamily: "var(--sans)", fontWeight: 800, fontSize: 32, letterSpacing: "-0.03em", margin: "0 0 12px" }}>
-              {draft ? "Rascunho salvo!" : scheduled ? "Release agendado!" : "Release publicado!"}
+              {scheduled ? "Release agendado!" : "Release publicado!"}
             </h2>
             <p className="muted" style={{ fontSize: 16, lineHeight: 1.6, margin: "0 0 32px" }}>
-              {draft
-                ? <>O rascunho <strong style={{ color: "var(--ink)" }}>&ldquo;{content.title}&rdquo;</strong> foi salvo e pode ser editado e publicado a qualquer momento.</>
-                : scheduled
+              {scheduled
                 ? <>O release <strong style={{ color: "var(--ink)" }}>&ldquo;{content.title}&rdquo;</strong> será enviado em {when.date.split("-").reverse().join("/")} para <strong style={{ color: "var(--ink)" }}>{selVehicles.length} veículos</strong>.</>
                 : <>O release <strong style={{ color: "var(--ink)" }}>&ldquo;{content.title}&rdquo;</strong> está sendo distribuído agora para <strong style={{ color: "var(--ink)" }}>{selVehicles.length} veículos</strong>, com alcance estimado de <strong style={{ color: "var(--ink)" }}>{fmtReach(selReach)}</strong>.</>}
             </p>
@@ -1114,6 +1101,34 @@ export default function NovoReleasePage() {
           </div>
           <div className="actions">
             <button className="btn btn-quiet btn-sm" onClick={() => router.back()}>Cancelar</button>
+            {step > 0 && brand && content.title.trim() && (
+              <button className="btn btn-ghost btn-sm" disabled={submitting} onClick={async () => {
+                setSubmitting(true);
+                try {
+                  await fetch("/api/releases", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      title: content.title,
+                      body: content.body,
+                      summary: content.subtitle,
+                      status: "DRAFT",
+                      scheduledAt: null,
+                      brandId: brand.id,
+                      creditsUsed: 0,
+                      imageUrl: content.imageUrl || null,
+                    }),
+                  });
+                  router.push("/releases");
+                } catch {
+                  alert("Erro ao salvar rascunho.");
+                } finally {
+                  setSubmitting(false);
+                }
+              }}>
+                <BookOpen size={15} /> Salvar rascunho
+              </button>
+            )}
             {step > 0 && (
               <button className="btn btn-ghost" onClick={() => setStep(s => s - 1)}>
                 <ArrowLeft size={16} /> Voltar
@@ -1131,7 +1146,7 @@ export default function NovoReleasePage() {
                   const scheduledAt = when.mode === "schedule" && when.date
                     ? new Date(`${when.date}T12:00:00`).toISOString()
                     : null;
-                  const status = when.mode === "now" ? "PUBLISHED" : when.mode === "draft" ? "DRAFT" : "SCHEDULED";
+                  const status = when.mode === "now" ? "PUBLISHED" : "SCHEDULED";
                   await fetch("/api/releases", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -1157,9 +1172,7 @@ export default function NovoReleasePage() {
                   ? "Salvando…"
                   : when.mode === "now"
                     ? <><Rocket size={16} /> Publicar agora</>
-                    : when.mode === "draft"
-                      ? <><BookOpen size={16} /> Salvar rascunho</>
-                      : <><Calendar size={16} /> Agendar release</>}
+                    : <><Calendar size={16} /> Agendar release</>}
               </button>
             )}
           </div>
