@@ -170,6 +170,7 @@ interface ReleaseData {
   scheduledAt: string | null;
   imageUrl: string | null;
   creditsUsed: number;
+  vehicles: string[];
   brandId: string;
   brand: Brand;
 }
@@ -629,6 +630,7 @@ export default function EditReleasePage() {
         setSubtitle(data.summary ?? "");
         setBody(data.body ?? "");
         if (data.imageUrl) setImages([data.imageUrl]);
+        if (data.vehicles?.length) setSelectedVeh(data.vehicles);
         setAuthor(a => a || data.brand?.authors?.[0] || "");
         setStatus(data.status ?? "SCHEDULED");
         if (data.scheduledAt) {
@@ -657,6 +659,7 @@ export default function EditReleasePage() {
           status: "SCHEDULED",
           scheduledAt,
           imageUrl: images[0] ?? null,
+          vehicles: selectedVeh,
         }),
       });
       if (!res.ok) { setErr("Erro ao salvar. Tente novamente."); return; }

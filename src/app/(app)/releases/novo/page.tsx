@@ -1224,6 +1224,7 @@ export default function NovoReleasePage() {
                     brandId: brand.id,
                     creditsUsed: 0,
                     imageUrl: content.imageUrl || null,
+                    vehicles: selected,
                   };
                   if (draftIdRef.current) {
                     await fetch(`/api/releases/${draftIdRef.current}`, {
