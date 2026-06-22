@@ -895,7 +895,7 @@ function CobrancaPanel({ onToast }: { onToast: (m: string) => void }) {
         <div className="bp-left">
           <div className="bp-label">Plano atual</div>
           <div className="bp-name">Plano Pro</div>
-          <div className="bp-price">R$ 1.500 <span>/mês · renova em 12 dias</span></div>
+          <div className="bp-price">R$ 1.500 <span>/mês · renova em {(() => { const d = new Date(); const r = new Date(d.getFullYear(), d.getMonth()+1, 1); return `${String(r.getDate()).padStart(2,"0")}/${String(r.getMonth()+1).padStart(2,"0")}/${r.getFullYear()}`; })()}</span></div>
           <div className="row" style={{ gap: 10, marginTop: 16 }}>
             <button className="btn btn-primary btn-sm">Mudar de plano</button>
             <button className="btn btn-ghost btn-sm"><Zap size={15} /> Comprar créditos</button>

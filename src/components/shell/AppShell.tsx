@@ -333,7 +333,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <small> / {PLAN.total.toLocaleString("pt-BR")}</small>
           </div>
           <div className="bar"><i style={{ width: `${pct}%` }} /></div>
-          <div className="hint">{pct}% usados · renova em 12 dias</div>
+          <div className="hint">{pct}% usados · renova em {(() => { const d = new Date(); const r = new Date(d.getFullYear(), d.getMonth()+1, 1); return `${String(r.getDate()).padStart(2,"0")}/${String(r.getMonth()+1).padStart(2,"0")}/${r.getFullYear()}`; })()}</div>
           <div className="credits-cta">Ver planos <ArrowRight size={12} /></div>
         </button>
 
