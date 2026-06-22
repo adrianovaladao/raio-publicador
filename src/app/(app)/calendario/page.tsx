@@ -142,7 +142,7 @@ export default function CalendarioPage() {
     setLoading(true);
     fetch("/api/releases")
       .then(r => r.json())
-      .then((releases: CalEvent & { scheduledAt?: string | null; publishedAt?: string | null; createdAt: string }[]) => {
+      .then((releases: (CalEvent & { scheduledAt?: string | null; publishedAt?: string | null; createdAt: string })[]) => {
         const map: Record<string, CalEvent[]> = {};
         for (const r of releases) {
           const dateStr = r.scheduledAt ?? r.publishedAt ?? r.createdAt;
