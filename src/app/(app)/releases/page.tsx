@@ -227,14 +227,14 @@ export default function ReleasesPage() {
           </div>
         )}
       </div>
+      {confirmId && (
+        <ConfirmModal
+          title="Excluir release"
+          desc="Tem certeza que deseja excluir este release? Esta ação não pode ser desfeita."
+          onConfirm={() => deleteRelease(confirmId)}
+          onCancel={() => setConfirmId(null)}
+        />
+      )}
     </div>
-    {confirmId && (
-      <ConfirmModal
-        title="Excluir release"
-        desc="Tem certeza que deseja excluir este release? Esta ação não pode ser desfeita."
-        onConfirm={() => deleteRelease(confirmId)}
-        onCancel={() => setConfirmId(null)}
-      />
-    )}
   );
 }
