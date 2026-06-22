@@ -33,6 +33,7 @@ interface CalEvent {
   publishedAt?: string | null;
   createdAt?: string;
   summary?: string | null;
+  brand?: { name: string; color: string; logoUrl?: string | null } | null;
 }
 
 function calKey(y: number, m: number, d: number) {
@@ -83,6 +84,16 @@ function EventTooltip({ ev, anchorRef }: { ev: CalEvent; anchorRef: React.RefObj
       boxShadow: "0 8px 32px rgba(0,0,0,0.12)", padding: "16px 18px", width: 260,
       pointerEvents: "none",
     }}>
+      {ev.brand && (
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10, padding: "8px 10px", background: "var(--cream, #FAF9F7)", borderRadius: 8 }}>
+          {ev.brand.logoUrl ? (
+            <img src={ev.brand.logoUrl} alt="" style={{ width: 28, height: 28, borderRadius: 6, objectFit: "cover", flexShrink: 0 }} />
+          ) : (
+            <div style={{ width: 28, height: 28, borderRadius: 6, background: ev.brand.color ?? "#212121", flexShrink: 0 }} />
+          )}
+          <span style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)" }}>{ev.brand.name}</span>
+        </div>
+      )}
       <div style={{ fontWeight: 700, fontSize: 13, color: "var(--ink)", marginBottom: 10, lineHeight: 1.3 }}>{ev.title}</div>
       <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
         {dateStr && (

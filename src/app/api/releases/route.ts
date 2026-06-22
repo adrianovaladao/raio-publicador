@@ -8,7 +8,7 @@ export async function GET() {
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const releases = await getPrisma().release.findMany({
     where: { brand: { ownerId: userId } },
-    include: { brand: { select: { name: true, color: true } } },
+    include: { brand: { select: { name: true, color: true, logoUrl: true } } },
     orderBy: { createdAt: "desc" },
   });
   return NextResponse.json(releases);
