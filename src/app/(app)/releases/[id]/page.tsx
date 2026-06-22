@@ -435,9 +435,6 @@ function StepSchedule({
           <div className="card-head"><h3>Quando publicar</h3></div>
           <div className="sc-body">
             <div className="seg" style={{ width: "100%", marginBottom: 14 }}>
-              <button className={status === "DRAFT" ? "active" : ""} style={{ flex: 1, justifyContent: "center" }} onClick={() => setStatus("DRAFT")}>
-                Rascunho
-              </button>
               <button className={status === "SCHEDULED" ? "active" : ""} style={{ flex: 1, justifyContent: "center" }} onClick={() => setStatus("SCHEDULED")}>
                 <Calendar size={14} /> Agendar
               </button>
@@ -445,23 +442,20 @@ function StepSchedule({
                 <Rocket size={14} /> Publicar
               </button>
             </div>
-            {status === "SCHEDULED" && (
-              <div style={{ display: "flex", gap: 10 }}>
-                <div className="field-row" style={{ flex: 1, marginBottom: 0 }}>
+            {status === "SCHEDULED" && (() => {
+              const today = new Date();
+              const minDate = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
+              const lastDay = new Date(today.getFullYear(), today.getMonth()+1, 0).getDate();
+              const maxDate = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(lastDay).padStart(2,"0")}`;
+              return (
+                <div className="field-row" style={{ marginBottom: 0 }}>
                   <label>Data</label>
-                  <input className="input" type="date" value={schedDate} onChange={e => setSchedDate(e.target.value)} />
+                  <input className="input" type="date" value={schedDate} min={minDate} max={maxDate} onChange={e => setSchedDate(e.target.value)} />
                 </div>
-                <div className="field-row" style={{ width: 110, marginBottom: 0 }}>
-                  <label>Hora</label>
-                  <input className="input" type="time" value={schedTime} onChange={e => setSchedTime(e.target.value)} />
-                </div>
-              </div>
-            )}
+              );
+            })()}
             {status === "PUBLISHED" && (
               <p className="muted" style={{ fontSize: 13, margin: 0 }}>O release entra na fila de envio ao salvar.</p>
-            )}
-            {status === "DRAFT" && (
-              <p className="muted" style={{ fontSize: 13, margin: 0 }}>Salvo como rascunho — não será distribuído.</p>
             )}
           </div>
         </div>
