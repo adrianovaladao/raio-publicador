@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 
 import {
@@ -627,6 +627,139 @@ function StepVehicles({ selected, setSelected }: { selected: string[]; setSelect
   );
 }
 
+// ── DatePicker customizado ───────────────────────────────────────────────────
+
+const MESES_FULL = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+const DOW_SHORT  = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
+
+function DatePicker({ value, onChange, minDate, maxDate }: {
+  value: string;
+  onChange: (d: string) => void;
+  minDate: string;
+  maxDate: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  const toKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+
+  const parsed = value ? new Date(value + "T12:00:00") : new Date();
+  const [viewY, setViewY] = useState(parsed.getFullYear());
+  const [viewM, setViewM] = useState(parsed.getMonth());
+
+  const fmtDisplay = (iso: string) => {
+    const d = new Date(iso + "T12:00:00");
+    return `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`;
+  };
+
+  const closeOnOutside = useCallback((e: MouseEvent) => {
+    if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+  }, []);
+
+  useEffect(() => {
+    if (open) document.addEventListener("mousedown", closeOnOutside);
+    return () => document.removeEventListener("mousedown", closeOnOutside);
+  }, [open, closeOnOutside]);
+
+  const firstDay = new Date(viewY, viewM, 1);
+  const lead = firstDay.getDay();
+  const dim = new Date(viewY, viewM + 1, 0).getDate();
+  const prevDim = new Date(viewY, viewM, 0).getDate();
+  const cells: { d: number; out: boolean; key: string }[] = [];
+  for (let i = 0; i < lead; i++) {
+    const d = new Date(viewY, viewM - 1, prevDim - lead + 1 + i);
+    cells.push({ d: d.getDate(), out: true, key: toKey(d) });
+  }
+  for (let d = 1; d <= dim; d++) {
+    cells.push({ d, out: false, key: toKey(new Date(viewY, viewM, d)) });
+  }
+  while (cells.length % 7 !== 0) {
+    const d = new Date(viewY, viewM + 1, cells.length - (lead + dim) + 1);
+    cells.push({ d: d.getDate(), out: true, key: toKey(d) });
+  }
+
+  function shiftMonth(dir: number) {
+    let nm = viewM + dir, ny = viewY;
+    if (nm < 0) { nm = 11; ny--; }
+    if (nm > 11) { nm = 0; ny++; }
+    setViewM(nm); setViewY(ny);
+  }
+
+  return (
+    <div ref={ref} style={{ position: "relative" }}>
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        className="input"
+        style={{ width: "100%", textAlign: "left", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", background: "#fff" }}
+      >
+        <span style={{ color: value ? "var(--ink)" : "var(--stone)" }}>
+          {value ? fmtDisplay(value) : "Selecione uma data"}
+        </span>
+        <Calendar size={15} style={{ color: "var(--stone)", flexShrink: 0 }} />
+      </button>
+
+      {open && (
+        <div style={{
+          position: "absolute", top: "calc(100% + 8px)", left: 0, zIndex: 999,
+          background: "#fff", border: "1px solid var(--line)", borderRadius: 12,
+          boxShadow: "0 8px 32px rgba(0,0,0,0.10)", padding: 16, width: 280,
+        }}>
+          {/* cabeçalho mês/ano */}
+          <div style={{ display: "flex", alignItems: "center", marginBottom: 12 }}>
+            <button type="button" onClick={() => shiftMonth(-1)} style={{ background: "none", border: "none", cursor: "pointer", padding: "4px 6px", borderRadius: 6, color: "var(--stone)" }}>
+              <ArrowLeft size={14} />
+            </button>
+            <span style={{ flex: 1, textAlign: "center", fontWeight: 700, fontSize: 13, color: "var(--ink)" }}>
+              {MESES_FULL[viewM]} {viewY}
+            </span>
+            <button type="button" onClick={() => shiftMonth(1)} style={{ background: "none", border: "none", cursor: "pointer", padding: "4px 6px", borderRadius: 6, color: "var(--stone)" }}>
+              <ArrowRight size={14} />
+            </button>
+          </div>
+
+          {/* dias da semana */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", marginBottom: 4 }}>
+            {DOW_SHORT.map(d => (
+              <div key={d} style={{ textAlign: "center", fontSize: 11, fontWeight: 600, color: "var(--stone)", paddingBottom: 6 }}>{d}</div>
+            ))}
+          </div>
+
+          {/* células */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 2 }}>
+            {cells.map((c, i) => {
+              const disabled = c.out || c.key < minDate || c.key > maxDate;
+              const selected = c.key === value;
+              const isToday  = c.key === toKey(new Date());
+              return (
+                <button
+                  key={i}
+                  type="button"
+                  disabled={disabled}
+                  onClick={() => { onChange(c.key); setOpen(false); }}
+                  style={{
+                    border: isToday && !selected ? "1.5px solid var(--ink)" : "1.5px solid transparent",
+                    borderRadius: 8,
+                    background: selected ? "var(--ink)" : "none",
+                    color: selected ? "#fff" : disabled ? "var(--line)" : "var(--ink)",
+                    fontSize: 12,
+                    fontWeight: selected ? 700 : 400,
+                    padding: "6px 0",
+                    cursor: disabled ? "default" : "pointer",
+                    textAlign: "center",
+                  }}
+                >
+                  {c.d}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Passo 3: Revisão ─────────────────────────────────────────────────────────
 
 interface When { mode: "now" | "schedule"; date: string }
@@ -828,7 +961,7 @@ function StepReview({ content, selected, when, setWhen, brand }: {
               return (
                 <div className="field-row" style={{ marginBottom: 0 }}>
                   <label>Data</label>
-                  <input className="input" type="date" value={when.date} min={minDate} max={maxDate} onChange={e => setWhen({ ...when, date: e.target.value })} />
+                  <DatePicker value={when.date} onChange={d => setWhen({ ...when, date: d })} minDate={minDate} maxDate={maxDate} />
                 </div>
               );
             })()}
