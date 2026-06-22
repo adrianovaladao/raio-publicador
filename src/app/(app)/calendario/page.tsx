@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Calendar, User, Tag, Image as ImageIcon, FileText, Tv, Zap } from "lucide-react";
 
 const MESES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 const DOW   = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
@@ -20,10 +20,113 @@ function statusClass(s: string) {
   return "draft";
 }
 
-interface CalEvent { id: string; title: string; status: string }
+interface CalEvent {
+  id: string;
+  title: string;
+  status: string;
+  authorId?: string;
+  imageUrl?: string | null;
+  body?: string;
+  creditsUsed?: number;
+  scheduledAt?: string | null;
+  publishedAt?: string | null;
+  createdAt?: string;
+  summary?: string | null;
+}
 
 function calKey(y: number, m: number, d: number) {
   return `${y}-${String(m + 1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+}
+
+function wordCount(html: string) {
+  return html.replace(/<[^>]+>/g, " ").trim().split(/\s+/).filter(Boolean).length;
+}
+
+function fmtDateTime(iso: string) {
+  const d = new Date(iso);
+  const meses = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+  return `${String(d.getDate()).padStart(2,"0")} ${meses[d.getMonth()]} ${d.getFullYear()} às ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+}
+
+function EventTooltip({ ev, anchorRef }: { ev: CalEvent; anchorRef: React.RefObject<HTMLSpanElement | null> }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState({ top: 0, left: 0 });
+
+  useEffect(() => {
+    if (!anchorRef.current || !ref.current) return;
+    const a = anchorRef.current.getBoundingClientRect();
+    const t = ref.current;
+    const tw = t.offsetWidth;
+    const th = t.offsetHeight;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    let left = a.left + a.width / 2 - tw / 2;
+    let top  = a.bottom + 8;
+
+    if (left + tw > vw - 12) left = vw - tw - 12;
+    if (left < 12) left = 12;
+    if (top + th > vh - 12) top = a.top - th - 8;
+
+    setPos({ top, left });
+  }, [anchorRef]);
+
+  const dateStr = ev.scheduledAt ?? ev.publishedAt ?? ev.createdAt ?? "";
+  const words   = ev.body ? wordCount(ev.body) : 0;
+  const images  = ev.imageUrl ? 1 : 0;
+
+  return (
+    <div ref={ref} style={{
+      position: "fixed", top: pos.top, left: pos.left, zIndex: 9999,
+      background: "#fff", border: "1px solid var(--line)", borderRadius: 12,
+      boxShadow: "0 8px 32px rgba(0,0,0,0.12)", padding: "16px 18px", width: 260,
+      pointerEvents: "none",
+    }}>
+      <div style={{ fontWeight: 700, fontSize: 13, color: "var(--ink)", marginBottom: 10, lineHeight: 1.3 }}>{ev.title}</div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+        {dateStr && (
+          <Row icon={<Calendar size={13} />} label="Agendado para" value={fmtDateTime(dateStr)} />
+        )}
+        {ev.authorId && (
+          <Row icon={<User size={13} />} label="Autor" value={ev.authorId} />
+        )}
+        <Row icon={<FileText size={13} />} label="Palavras" value={`${words}`} />
+        <Row icon={<ImageIcon size={13} />} label="Imagens" value={`${images}`} />
+        <Row icon={<Zap size={13} />} label="Créditos usados" value={`${ev.creditsUsed ?? 0}`} />
+        <Row icon={<Tv size={13} />} label="Veículos" value="—" />
+        <Row icon={<Tag size={13} />} label="Status" value={STATUS_LABEL[ev.status] ?? ev.status} />
+      </div>
+    </div>
+  );
+}
+
+function Row({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+  return (
+    <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+      <span style={{ color: "var(--stone)", marginTop: 1, flexShrink: 0 }}>{icon}</span>
+      <span style={{ fontSize: 12, color: "var(--stone)", flexShrink: 0, minWidth: 90 }}>{label}</span>
+      <span style={{ fontSize: 12, color: "var(--ink)", fontWeight: 500, textAlign: "right", flex: 1 }}>{value}</span>
+    </div>
+  );
+}
+
+function CalEventChip({ ev }: { ev: CalEvent }) {
+  const [hovered, setHovered] = useState(false);
+  const ref = useRef<HTMLSpanElement>(null);
+
+  return (
+    <>
+      <span
+        ref={ref}
+        className={`cal-event ${statusClass(ev.status)}`}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+      >
+        {ev.title}
+      </span>
+      {hovered && <EventTooltip ev={ev} anchorRef={ref} />}
+    </>
+  );
 }
 
 export default function CalendarioPage() {
@@ -39,14 +142,14 @@ export default function CalendarioPage() {
     setLoading(true);
     fetch("/api/releases")
       .then(r => r.json())
-      .then((releases: { id: string; title: string; status: string; scheduledAt?: string | null; publishedAt?: string | null; createdAt: string }[]) => {
+      .then((releases: CalEvent & { scheduledAt?: string | null; publishedAt?: string | null; createdAt: string }[]) => {
         const map: Record<string, CalEvent[]> = {};
         for (const r of releases) {
           const dateStr = r.scheduledAt ?? r.publishedAt ?? r.createdAt;
           const d = new Date(dateStr);
           const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
           if (!map[key]) map[key] = [];
-          map[key].push({ id: r.id, title: r.title, status: r.status });
+          map[key].push(r);
         }
         setEvents(map);
       })
@@ -124,9 +227,7 @@ export default function CalendarioPage() {
                 <div key={i} className={`cal-cell${c.out ? " out" : ""}${isToday ? " today" : ""}`}>
                   <div className="dn">{c.d}</div>
                   {evs.slice(0, 2).map(e => (
-                    <span key={e.id} className={`cal-event ${statusClass(e.status)}`} title={`${STATUS_LABEL[e.status] ?? e.status}: ${e.title}`}>
-                      {e.title}
-                    </span>
+                    <CalEventChip key={e.id} ev={e} />
                   ))}
                   {evs.length > 2 && <div className="cal-more">+{evs.length - 2} mais</div>}
                 </div>
