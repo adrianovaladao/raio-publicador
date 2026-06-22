@@ -154,33 +154,41 @@ function DayModal({ date, evs, onClose }: { date: string; evs: CalEvent[]; onClo
           </button>
         </div>
 
-        {/* Lista */}
-        <div style={{ overflowY: "auto", padding: "12px 16px 20px" }}>
+        {/* Lista com rolagem */}
+        <div style={{ overflowY: "auto", padding: "8px 12px 12px", maxHeight: "calc(80vh - 140px)" }}>
           {evs.length === 0 ? (
             <p style={{ textAlign: "center", color: "var(--stone)", fontSize: 14, padding: "32px 0" }}>Nenhum release neste dia.</p>
           ) : (
             evs.map(ev => (
               <div key={ev.id}
                 onClick={() => { router.push(`/releases/${ev.id}`); onClose(); }}
-                style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 10px", borderRadius: 10, cursor: "pointer", transition: "background 0.1s" }}
+                style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px", borderRadius: 10, cursor: "pointer", transition: "background 0.1s" }}
                 onMouseEnter={e => (e.currentTarget.style.background = "var(--cream)")}
                 onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
               >
-                {/* Cor da marca */}
-                <div style={{ width: 10, height: 36, borderRadius: 4, background: ev.brand?.color ?? "var(--line)", flexShrink: 0 }} />
+                {/* Logo da marca */}
+                <div style={{ width: 32, height: 32, borderRadius: 8, background: ev.brand?.color ?? "var(--line)", flexShrink: 0, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  {ev.brand?.logoUrl
+                    // eslint-disable-next-line @next/next/no-img-element
+                    ? <img src={ev.brand.logoUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                    : <span style={{ fontFamily: "var(--mono)", fontSize: 10, fontWeight: 700, color: "#fff" }}>
+                        {ev.brand?.name?.slice(0, 2).toUpperCase() ?? "—"}
+                      </span>
+                  }
+                </div>
 
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 700, fontSize: 14, color: "var(--ink)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  <div style={{ fontWeight: 600, fontSize: 13, color: "var(--ink)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                     {ev.title}
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 3 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 2 }}>
                     <span className={`badge-status ${statusClass(ev.status)}`}>{STATUS_LABEL[ev.status] ?? ev.status}</span>
-                    {ev.brand && <span style={{ fontSize: 12, color: "var(--stone)" }}>{ev.brand.name}</span>}
-                    {ev.authorName && <span style={{ fontSize: 12, color: "var(--stone)" }}>· {ev.authorName}</span>}
+                    {ev.brand && <span style={{ fontSize: 11, color: "var(--stone)" }}>{ev.brand.name}</span>}
+                    {ev.authorName && <span style={{ fontSize: 11, color: "var(--stone)" }}>· {ev.authorName}</span>}
                   </div>
                 </div>
 
-                <ArrowRight size={15} color="var(--stone)" style={{ flexShrink: 0 }} />
+                <ArrowRight size={14} color="var(--stone)" style={{ flexShrink: 0 }} />
               </div>
             ))
           )}
@@ -324,8 +332,8 @@ export default function CalendarioPage() {
               return (
                 <div key={i}
                   className={`cal-cell${c.out ? " out" : ""}${isToday ? " today" : ""}`}
-                  style={{ backgroundColor: isWeekend ? "#ECEAE5" : undefined, cursor: c.out ? "default" : "pointer" }}
-                  onClick={() => { if (!c.out && k) setSelectedDay({ key: k, evs }); }}
+                  style={{ backgroundColor: isWeekend ? "#ECEAE5" : undefined, cursor: (c.out || isWeekend) ? "default" : "pointer" }}
+                  onClick={() => { if (!c.out && !isWeekend && k) setSelectedDay({ key: k, evs }); }}
                 >
                   <div className="dn">{c.d}</div>
                   {evs.slice(0, 2).map(e => (
