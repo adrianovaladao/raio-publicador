@@ -25,6 +25,7 @@ interface CalEvent {
   title: string;
   status: string;
   authorId?: string;
+  authorName?: string;
   imageUrl?: string | null;
   body?: string;
   creditsUsed?: number;
@@ -87,8 +88,8 @@ function EventTooltip({ ev, anchorRef }: { ev: CalEvent; anchorRef: React.RefObj
         {dateStr && (
           <Row icon={<Calendar size={13} />} label="Agendado para" value={fmtDateTime(dateStr)} />
         )}
-        {ev.authorId && (
-          <Row icon={<User size={13} />} label="Autor" value={ev.authorId} />
+        {ev.authorName && (
+          <Row icon={<User size={13} />} label="Autor" value={ev.authorName} />
         )}
         <Row icon={<FileText size={13} />} label="Palavras" value={`${words}`} />
         <Row icon={<ImageIcon size={13} />} label="Imagens" value={`${images}`} />
@@ -140,16 +141,24 @@ export default function CalendarioPage() {
 
   useEffect(() => {
     setLoading(true);
-    fetch("/api/releases")
-      .then(r => r.json())
-      .then((releases: (CalEvent & { scheduledAt?: string | null; publishedAt?: string | null; createdAt: string })[]) => {
+    Promise.all([
+      fetch("/api/releases").then(r => r.json()),
+      fetch("/api/team").then(r => r.json()),
+    ])
+      .then(([releases, team]: [
+        (CalEvent & { scheduledAt?: string | null; publishedAt?: string | null; createdAt: string })[],
+        { id: string; name: string }[]
+      ]) => {
+        const nameById: Record<string, string> = {};
+        for (const m of team) nameById[m.id] = m.name;
+
         const map: Record<string, CalEvent[]> = {};
         for (const r of releases) {
           const dateStr = r.scheduledAt ?? r.publishedAt ?? r.createdAt;
           const d = new Date(dateStr);
           const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
           if (!map[key]) map[key] = [];
-          map[key].push(r);
+          map[key].push({ ...r, authorName: r.authorId ? (nameById[r.authorId] ?? r.authorId) : "—" });
         }
         setEvents(map);
       })
