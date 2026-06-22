@@ -693,9 +693,11 @@ select.input { appearance: none; -webkit-appearance: none; padding-right: 36px; 
 .cal-dow { display: grid; grid-template-columns: repeat(7, 1fr); border-bottom: 1px solid var(--line); }
 .cal-dow div { padding: 10px 14px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--stone); text-align: left; }
 .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); grid-auto-rows: 116px; }
-.cal-cell { border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 8px 9px; overflow: hidden; position: relative; }
+.cal-cell { border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 8px 9px; overflow: hidden; position: relative; background: #fff; }
 .cal-cell:nth-child(7n) { border-right: none; }
 .cal-cell.out { background: var(--cream); }
+.cal-cell.weekend { background: #ECEAE5; }
+.cal-cell.weekend.out { background: #E5E3DC; }
 .cal-cell .dn { font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--ink-soft); }
 .cal-cell.out .dn { color: var(--stone-soft); }
 .cal-cell.today .dn { background: var(--coral); color: var(--ink); width: 22px; height: 22px; border-radius: 99px; display: grid; place-items: center; }
