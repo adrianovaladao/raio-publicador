@@ -46,8 +46,7 @@ function wordCount(html: string) {
 
 function fmtDateTime(iso: string) {
   const d = new Date(iso);
-  const meses = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
-  return `${String(d.getDate()).padStart(2,"0")} ${meses[d.getMonth()]} ${d.getFullYear()} às ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+  return `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`;
 }
 
 function EventTooltip({ ev, anchorRef }: { ev: CalEvent; anchorRef: React.RefObject<HTMLSpanElement | null> }) {
