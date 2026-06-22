@@ -935,9 +935,6 @@ function StepReview({ content, selected, when, setWhen, brand }: {
         <div className="card-head">
           <h3>Pré-visualização do <em>release</em></h3>
           <div className="row" style={{ gap: 10 }}>
-            <span className="badge-status review">
-              Rascunho
-            </span>
             <button
               className="btn btn-ghost btn-sm"
               onClick={() => downloadDocx(content, selVehicles, brand)}
@@ -1200,10 +1197,10 @@ export default function NovoReleasePage() {
               </span>
             ))}
           </div>
-          {content.title.trim() && content.subtitle.trim() && (
-            <span className="badge-status review" style={{ marginLeft: 16 }}>Rascunho</span>
-          )}
-          <div className="actions">
+          <div className="actions" style={{ alignItems: "center" }}>
+            {content.title.trim() && content.subtitle.trim() && (
+              <span className="badge-status review">Rascunho</span>
+            )}
             <button className="btn btn-quiet btn-sm" onClick={() => router.back()}>Cancelar</button>
             {/* Indicador de autosave */}
             {saveStatus !== "idle" && (
