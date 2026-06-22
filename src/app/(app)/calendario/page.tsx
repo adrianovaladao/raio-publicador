@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, Plus, Calendar, User, Tag, Image as ImageIcon, FileText, Tv, Zap } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ChevronLeft, ChevronRight, Plus, Calendar, User, Tag, Image as ImageIcon, FileText, Tv, Zap, X, ArrowRight } from "lucide-react";
 
 const MESES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 const DOW   = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
@@ -121,6 +122,81 @@ function Row({ icon, label, value }: { icon: React.ReactNode; label: string; val
   );
 }
 
+function DayModal({ date, evs, onClose }: { date: string; evs: CalEvent[]; onClose: () => void }) {
+  const router = useRouter();
+  const [d, mes, ano] = date.split("-").reverse().map(Number);
+  const mesNome = MESES[mes - 1];
+
+  useEffect(() => {
+    const fn = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", fn);
+    return () => window.removeEventListener("keydown", fn);
+  }, [onClose]);
+
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.35)", zIndex: 9998, display: "grid", placeItems: "center" }}
+      onClick={onClose}>
+      <div style={{ background: "#fff", borderRadius: 16, width: 480, maxWidth: "calc(100vw - 32px)", maxHeight: "80vh", display: "flex", flexDirection: "column", boxShadow: "0 24px 64px rgba(0,0,0,0.18)" }}
+        onClick={e => e.stopPropagation()}>
+
+        {/* Header */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 24px 16px", borderBottom: "1px solid var(--line)" }}>
+          <div>
+            <p style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--stone)", margin: "0 0 2px" }}>
+              {mesNome} {ano}
+            </p>
+            <h3 style={{ margin: 0, fontFamily: "var(--sans)", fontWeight: 800, fontSize: 22, letterSpacing: "-0.02em" }}>
+              {d} de {mesNome}
+            </h3>
+          </div>
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--stone)", padding: 6, borderRadius: 8, display: "flex" }}>
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* Lista */}
+        <div style={{ overflowY: "auto", padding: "12px 16px 20px" }}>
+          {evs.length === 0 ? (
+            <p style={{ textAlign: "center", color: "var(--stone)", fontSize: 14, padding: "32px 0" }}>Nenhum release neste dia.</p>
+          ) : (
+            evs.map(ev => (
+              <div key={ev.id}
+                onClick={() => { router.push(`/releases/${ev.id}`); onClose(); }}
+                style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 10px", borderRadius: 10, cursor: "pointer", transition: "background 0.1s" }}
+                onMouseEnter={e => (e.currentTarget.style.background = "var(--cream)")}
+                onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+              >
+                {/* Cor da marca */}
+                <div style={{ width: 10, height: 36, borderRadius: 4, background: ev.brand?.color ?? "var(--line)", flexShrink: 0 }} />
+
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 700, fontSize: 14, color: "var(--ink)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    {ev.title}
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 3 }}>
+                    <span className={`badge-status ${statusClass(ev.status)}`}>{STATUS_LABEL[ev.status] ?? ev.status}</span>
+                    {ev.brand && <span style={{ fontSize: 12, color: "var(--stone)" }}>{ev.brand.name}</span>}
+                    {ev.authorName && <span style={{ fontSize: 12, color: "var(--stone)" }}>· {ev.authorName}</span>}
+                  </div>
+                </div>
+
+                <ArrowRight size={15} color="var(--stone)" style={{ flexShrink: 0 }} />
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Footer */}
+        <div style={{ padding: "12px 24px 16px", borderTop: "1px solid var(--line)", display: "flex", justifyContent: "flex-end" }}>
+          <Link href="/releases/novo" className="btn btn-primary btn-sm" onClick={onClose}>
+            <Plus size={14} /> Agendar para este dia
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function CalEventChip({ ev }: { ev: CalEvent }) {
   const [hovered, setHovered] = useState(false);
   const ref = useRef<HTMLSpanElement>(null);
@@ -148,6 +224,7 @@ export default function CalendarioPage() {
 
   const [events, setEvents] = useState<Record<string, CalEvent[]>>({});
   const [loading, setLoading] = useState(true);
+  const [selectedDay, setSelectedDay] = useState<{ key: string; evs: CalEvent[] } | null>(null);
 
   useEffect(() => {
     setLoading(true);
@@ -245,8 +322,11 @@ export default function CalendarioPage() {
               const col = i % 7;
               const isWeekend = col === 0 || col === 6;
               return (
-                <div key={i} className={`cal-cell${c.out ? " out" : ""}${isToday ? " today" : ""}`}
-                  style={{ backgroundColor: isWeekend ? "#ECEAE5" : undefined }}>
+                <div key={i}
+                  className={`cal-cell${c.out ? " out" : ""}${isToday ? " today" : ""}`}
+                  style={{ backgroundColor: isWeekend ? "#ECEAE5" : undefined, cursor: c.out ? "default" : "pointer" }}
+                  onClick={() => { if (!c.out && k) setSelectedDay({ key: k, evs }); }}
+                >
                   <div className="dn">{c.d}</div>
                   {evs.slice(0, 2).map(e => (
                     <CalEventChip key={e.id} ev={e} />
@@ -258,6 +338,14 @@ export default function CalendarioPage() {
           </div>
         </div>
       </div>
+
+      {selectedDay && (
+        <DayModal
+          date={selectedDay.key}
+          evs={selectedDay.evs}
+          onClose={() => setSelectedDay(null)}
+        />
+      )}
     </div>
   );
 }
