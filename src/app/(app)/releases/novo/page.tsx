@@ -922,8 +922,9 @@ async function downloadDocx(content: Content, selVehicles: typeof VEHICLES, bran
   saveAs(blob, `${slug}.docx`);
 }
 
-function StepReview({ content, selected, when, setWhen, brand }: {
+function StepReview({ content, selected, when, setWhen, brand, onSaveDraft }: {
   content: Content; selected: string[]; when: When; setWhen: (w: When) => void; brand: Brand | null;
+  onSaveDraft: () => Promise<void>;
 }) {
   const selVehicles = selected.map(id => VEHICLES.find(v => v.id === id)).filter(Boolean) as typeof VEHICLES;
   const selTokens   = selVehicles.reduce((s, v) => s + v.tokens, 0);
@@ -1003,8 +1004,29 @@ function StepReview({ content, selected, when, setWhen, brand }: {
             })()}
           </div>
         </div>
+
+        <SaveDraftButton onSave={onSaveDraft} />
       </div>
     </div>
+  );
+}
+
+function SaveDraftButton({ onSave }: { onSave: () => Promise<void> }) {
+  const router = useRouter();
+  const [saving, setSaving] = useState(false);
+  return (
+    <button
+      className="btn btn-ghost btn-sm"
+      style={{ width: "100%", justifyContent: "center", marginTop: 4 }}
+      disabled={saving}
+      onClick={async () => {
+        setSaving(true);
+        await onSave();
+        router.push("/releases");
+      }}
+    >
+      {saving ? "Salvando…" : "Salvar rascunho e fechar"}
+    </button>
   );
 }
 
@@ -1254,7 +1276,7 @@ export default function NovoReleasePage() {
         {step === 0 && <StepBrand selected={brand} onSelect={setBrand} brands={brands} onAddBrand={b => setBrands(prev => [...prev, b])} />}
         {step === 1 && <StepContent content={content} setContent={setContent} brand={brand} ownerName={ownerName} />}
         {step === 2 && <StepVehicles selected={selected} setSelected={setSelected} />}
-        {step === 3 && <StepReview content={content} selected={selected} when={when} setWhen={setWhen} brand={brand} />}
+        {step === 3 && <StepReview content={content} selected={selected} when={when} setWhen={setWhen} brand={brand} onSaveDraft={autosave} />}
       </div>
     </div>
   );
