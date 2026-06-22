@@ -5,11 +5,11 @@ import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import Link from "@tiptap/extension-link";
 import Underline from "@tiptap/extension-underline";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import {
   Bold, Italic, Underline as UnderlineIcon, Heading2,
   List, ListOrdered, Quote, Link as LinkIcon, Undo, Redo,
-  Sparkles, Loader,
+  Sparkles, Loader, X,
 } from "lucide-react";
 
 interface RichEditorProps {
@@ -31,6 +31,7 @@ export function RichEditor({
   const [aiLoading,  setAiLoading]  = useState(false);
   const [aiErr,      setAiErr]      = useState("");
   const [wordCount,  setWordCount]  = useState(0);
+  const [linkModal,  setLinkModal]  = useState<{ open: boolean; initial: string }>({ open: false, initial: "" });
 
   const editor = useEditor({
     extensions: [
@@ -58,11 +59,15 @@ export function RichEditor({
   const setLink = useCallback(() => {
     if (!editor) return;
     const prev = editor.getAttributes("link").href as string | undefined;
-    const url = window.prompt("URL do link:", prev ?? "https://");
-    if (url === null) return;
-    if (url === "") { editor.chain().focus().unsetLink().run(); return; }
-    editor.chain().focus().setLink({ href: url }).run();
+    setLinkModal({ open: true, initial: prev ?? "https://" });
   }, [editor]);
+
+  function applyLink(url: string) {
+    if (!editor) return;
+    setLinkModal({ open: false, initial: "" });
+    if (!url.trim()) { editor.chain().focus().unsetLink().run(); return; }
+    editor.chain().focus().setLink({ href: url.trim() }).run();
+  }
 
   async function runAI() {
     if (!editor || aiLoading) return;
@@ -130,6 +135,7 @@ export function RichEditor({
   );
 
   return (
+    <>
     <div className="card editor">
       <div className="toolbtns">
         {/* Text style */}
@@ -216,6 +222,86 @@ export function RichEditor({
             {wordCount - RECOMMENDED} palavras acima do recomendado
           </p>
         )}
+      </div>
+    </div>
+
+    {linkModal.open && (
+      <LinkModal
+        initial={linkModal.initial}
+        onConfirm={applyLink}
+        onClose={() => setLinkModal({ open: false, initial: "" })}
+      />
+    )}
+    </>
+  );
+}
+
+function LinkModal({ initial, onConfirm, onClose }: {
+  initial: string;
+  onConfirm: (url: string) => void;
+  onClose: () => void;
+}) {
+  const [url, setUrl] = useState(initial);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    inputRef.current?.focus();
+    inputRef.current?.select();
+  }, []);
+
+  useEffect(() => {
+    const fn = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", fn);
+    return () => window.removeEventListener("keydown", fn);
+  }, [onClose]);
+
+  return (
+    <div
+      style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.35)", zIndex: 9999, display: "grid", placeItems: "center" }}
+      onClick={onClose}
+    >
+      <div
+        style={{ background: "#fff", borderRadius: 16, width: 420, maxWidth: "calc(100vw - 32px)", boxShadow: "0 24px 64px rgba(0,0,0,0.18)", overflow: "hidden" }}
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 20px 14px", borderBottom: "1px solid var(--line)" }}>
+          <h3 style={{ margin: 0, fontFamily: "var(--sans)", fontWeight: 700, fontSize: 16, letterSpacing: "-0.01em" }}>
+            Inserir link
+          </h3>
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--stone)", padding: 4, borderRadius: 6, display: "flex" }}>
+            <X size={17} />
+          </button>
+        </div>
+
+        {/* Body */}
+        <div style={{ padding: "18px 20px" }}>
+          <label style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--stone)", display: "block", marginBottom: 8 }}>
+            URL
+          </label>
+          <input
+            ref={inputRef}
+            className="input"
+            style={{ width: "100%", boxSizing: "border-box" }}
+            placeholder="https://exemplo.com.br"
+            value={url}
+            onChange={e => setUrl(e.target.value)}
+            onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); onConfirm(url); } }}
+          />
+        </div>
+
+        {/* Footer */}
+        <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", padding: "0 20px 18px" }}>
+          {url && url !== "https://" && (
+            <button className="btn btn-ghost btn-sm" onClick={() => onConfirm("")}>
+              Remover link
+            </button>
+          )}
+          <button className="btn btn-ghost btn-sm" onClick={onClose}>Cancelar</button>
+          <button className="btn btn-primary btn-sm" onClick={() => onConfirm(url)}>
+            Aplicar
+          </button>
+        </div>
       </div>
     </div>
   );
