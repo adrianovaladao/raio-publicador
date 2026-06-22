@@ -1083,8 +1083,7 @@ export default function NovoReleasePage() {
   useEffect(() => {
     const id = setInterval(autosave, 2 * 60 * 1000);
     return () => clearInterval(id);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     fetch("/api/brands")

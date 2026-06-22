@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import {
   ArrowLeft, ArrowRight, Check, ChevronDown, Image as ImageIcon,
-  Rocket, Calendar, X, Search, Trash2, Plus,
+  Calendar, X, Search, Trash2, Plus,
 } from "lucide-react";
 import { RichEditor } from "@/components/editor/RichEditor";
 
@@ -471,10 +471,9 @@ function StepVehicles({ selected, setSelected }: { selected: string[]; setSelect
 // ── Step 2: Agendamento ───────────────────────────────────────────────────────
 
 function StepSchedule({
-  status, setStatus, schedDate, setSchedDate,
+  schedDate, setSchedDate,
   title, body, subtitle, cat, selectedVeh, brand,
 }: {
-  status: string; setStatus: (v: string) => void;
   schedDate: string; setSchedDate: (v: string) => void;
   title: string; body: string; subtitle: string; cat: string;
   selectedVeh: string[]; brand: Brand | null;
@@ -617,7 +616,6 @@ export default function EditReleasePage() {
   const [cat,        setCat]        = useState("Negócios");
   const [author,     setAuthor]     = useState("");
   const [images,     setImages]     = useState<string[]>([]);
-  const [status,     setStatus]     = useState("SCHEDULED");
   const [schedDate,  setSchedDate]  = useState("");
   const [selectedVeh, setSelectedVeh] = useState<string[]>([]);
 
@@ -632,7 +630,6 @@ export default function EditReleasePage() {
         if (data.imageUrl) setImages([data.imageUrl]);
         if (data.vehicles?.length) setSelectedVeh(data.vehicles);
         setAuthor(a => a || data.brand?.authors?.[0] || "");
-        setStatus(data.status ?? "SCHEDULED");
         if (data.scheduledAt) {
           const d = new Date(data.scheduledAt);
           setSchedDate(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`);
@@ -766,7 +763,6 @@ export default function EditReleasePage() {
         {step === 1 && <StepVehicles selected={selectedVeh} setSelected={setSelectedVeh} />}
         {step === 2 && (
           <StepSchedule
-            status={status} setStatus={setStatus}
             schedDate={schedDate} setSchedDate={setSchedDate}
             title={title} body={body} subtitle={subtitle} cat={cat}
             selectedVeh={selectedVeh} brand={brand}
