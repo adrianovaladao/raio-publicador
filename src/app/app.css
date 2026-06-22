@@ -696,8 +696,8 @@ select.input { appearance: none; -webkit-appearance: none; padding-right: 36px; 
 .cal-cell { border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 8px 9px; overflow: hidden; position: relative; background: #fff; }
 .cal-cell:nth-child(7n) { border-right: none; }
 .cal-cell.out { background: var(--cream); }
-.cal-cell.weekend { background: #ECEAE5; }
-.cal-cell.weekend.out { background: #E5E3DC; }
+.cal-grid .cal-cell.weekend { background: #ECEAE5 !important; }
+.cal-grid .cal-cell.weekend.out { background: #E5E3DC !important; }
 .cal-cell .dn { font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--ink-soft); }
 .cal-cell.out .dn { color: var(--stone-soft); }
 .cal-cell.today .dn { background: var(--coral); color: var(--ink); width: 22px; height: 22px; border-radius: 99px; display: grid; place-items: center; }
