@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 
 const MESES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
-const DOW   = ["Seg","Ter","Qua","Qui","Sex","Sáb","Dom"];
+const DOW   = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
 
 const STATUS_LABEL: Record<string, string> = {
   PUBLISHED: "Publicado", published: "Publicado",
@@ -55,7 +55,7 @@ export default function CalendarioPage() {
   }, []);
 
   const first   = new Date(y, m, 1);
-  const lead    = (first.getDay() + 6) % 7;
+  const lead    = first.getDay();
   const dim     = new Date(y, m + 1, 0).getDate();
   const prevDim = new Date(y, m, 0).getDate();
 
