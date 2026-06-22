@@ -935,8 +935,8 @@ function StepReview({ content, selected, when, setWhen, brand }: {
         <div className="card-head">
           <h3>Pré-visualização do <em>release</em></h3>
           <div className="row" style={{ gap: 10 }}>
-            <span className={`badge-status ${when.mode === "now" ? "review" : "scheduled"}`}>
-              {when.mode === "now" ? "Em revisão" : "Agendado"}
+            <span className="badge-status review">
+              Rascunho
             </span>
             <button
               className="btn btn-ghost btn-sm"
