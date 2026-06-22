@@ -511,9 +511,10 @@ function StepSchedule({
           <p className="serif-it" style={{ fontSize: 18, color: "var(--ink-soft)", margin: "0 0 18px" }}>
             {subtitle || "Subtítulo do release."}
           </p>
-          <p style={{ color: "var(--ink-soft)", fontSize: 15, lineHeight: 1.7, whiteSpace: "pre-line" }}>
-            {body || "O corpo do release aparece aqui."}
-          </p>
+          {body
+            ? <div className="tiptap-preview" style={{ color: "var(--ink-soft)", fontSize: 15, lineHeight: 1.7 }} dangerouslySetInnerHTML={{ __html: body }} />
+            : <p style={{ color: "var(--ink-soft)", fontSize: 15, lineHeight: 1.7 }}>O corpo do release aparece aqui.</p>
+          }
         </div>
       </div>
 

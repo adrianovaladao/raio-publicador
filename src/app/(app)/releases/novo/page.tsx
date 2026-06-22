@@ -956,9 +956,10 @@ function StepReview({ content, selected, when, setWhen, brand, onSaveDraft }: {
           <p className="serif-it" style={{ fontSize: 18, color: "var(--ink-soft)", margin: "0 0 18px" }}>
             {content.subtitle || "Subtítulo / linha de apoio do release."}
           </p>
-          <p style={{ color: "var(--ink-soft)", fontSize: 15, lineHeight: 1.7, whiteSpace: "pre-line" }}>
-            {content.body || "O corpo do release aparece aqui exatamente como será distribuído aos veículos selecionados."}
-          </p>
+          {content.body
+            ? <div className="tiptap-preview" style={{ color: "var(--ink-soft)", fontSize: 15, lineHeight: 1.7 }} dangerouslySetInnerHTML={{ __html: content.body }} />
+            : <p style={{ color: "var(--ink-soft)", fontSize: 15, lineHeight: 1.7 }}>O corpo do release aparece aqui exatamente como será distribuído aos veículos selecionados.</p>
+          }
         </div>
       </div>
 
