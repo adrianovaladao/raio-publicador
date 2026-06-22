@@ -1240,21 +1240,22 @@ export default function NovoReleasePage() {
                     brandId: brand.id,
                     creditsUsed: 0,
                     imageUrl: content.imageUrl || null,
-                    vehicles: selected,
                   };
+                  let res: Response;
                   if (draftIdRef.current) {
-                    await fetch(`/api/releases/${draftIdRef.current}`, {
+                    res = await fetch(`/api/releases/${draftIdRef.current}`, {
                       method: "PUT",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify(payload),
                     });
                   } else {
-                    await fetch("/api/releases", {
+                    res = await fetch("/api/releases", {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify(payload),
                     });
                   }
+                  if (!res.ok) throw new Error("Falha ao salvar");
                   setDone(true);
                 } catch {
                   alert("Erro ao salvar release. Tente novamente.");
