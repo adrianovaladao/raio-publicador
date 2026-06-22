@@ -1200,6 +1200,9 @@ export default function NovoReleasePage() {
               </span>
             ))}
           </div>
+          {content.title.trim() && content.subtitle.trim() && (
+            <span className="badge-status review" style={{ marginLeft: 16 }}>Rascunho</span>
+          )}
           <div className="actions">
             <button className="btn btn-quiet btn-sm" onClick={() => router.back()}>Cancelar</button>
             {/* Indicador de autosave */}
