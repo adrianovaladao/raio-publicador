@@ -559,18 +559,18 @@ function StepSchedule({
               );
             })()}
           </div>
+        </div>
 
         {releaseStatus === "SCHEDULED" && (
           <button
             className="btn btn-ghost btn-sm"
-            style={{ width: "100%", justifyContent: "center", marginTop: 8 }}
+            style={{ width: "100%", justifyContent: "center", marginTop: 16 }}
             disabled={saving}
             onClick={onSaveDraft}
           >
             {saving ? "Salvando…" : "Cancelar agendamento e salvar rascunho"}
           </button>
         )}
-        </div>
       </div>
     </div>
   );
