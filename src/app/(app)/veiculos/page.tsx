@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ChevronDown, Send } from "lucide-react";
+import { Send, ArrowUpDown, ArrowUp, ArrowDown, SlidersHorizontal, X } from "lucide-react";
 
 const VEHICLES = [
   { id: "v1", name: "Ge globo", domain: "ge.globo.com", cat: "Geral", uf: "—", tier: "A", reach: 203000000, tokens: 0, color: "#1A1A1A" },
@@ -509,15 +509,21 @@ const VEHICLES = [
   { id: "v502", name: "Catacralibre", domain: "catacralibre.com.br", cat: "Geral", uf: "—", tier: "F", reach: 1, tokens: 0, color: "#C2452E" }
 ];
 
-const VEH_CATS = ["Todos","Geral","Negócios","Tecnologia","Esportes","Economia","Saúde","Entretenimento","Política","Jurídico","Agronegócio"];
+const VEH_CATS  = ["Geral","Negócios","Tecnologia","Esportes","Economia","Saúde","Entretenimento","Política","Jurídico","Agronegócio"];
+const VEH_TIERS = ["A","B","C","D","F"];
+
+const TIER_TOKENS: Record<string, number> = { A: 250, B: 150, C: 100, D: 50, F: 0 };
 
 const TIER_INFO = [
-  { t: "A", label: "Grande portal nacional", range: "10 mi+ leitores/mês",  cls: "t-a" },
-  { t: "B", label: "Portal regional forte",  range: "100 mil–10 mi/mês",    cls: "t-b" },
-  { t: "C", label: "Portal médio / nicho",   range: "10 mil–100 mil/mês",   cls: "t-c" },
-  { t: "D", label: "Blog / portal local",    range: "1 mil–10 mil/mês",     cls: "t-d" },
-  { t: "F", label: "Site emergente",         range: "Até 1 mil/mês",        cls: "t-f" },
+  { t: "A", label: "Grande portal nacional", range: "10 mi+ leitores/mês",  tokens: 250, cls: "t-a" },
+  { t: "B", label: "Portal regional forte",  range: "100 mil–10 mi/mês",    tokens: 150, cls: "t-b" },
+  { t: "C", label: "Portal médio / nicho",   range: "10 mil–100 mil/mês",   tokens: 100, cls: "t-c" },
+  { t: "D", label: "Blog / portal local",    range: "1 mil–10 mil/mês",     tokens: 50,  cls: "t-d" },
+  { t: "F", label: "Site emergente",         range: "Até 1 mil/mês",        tokens: 0,   cls: "t-f" },
 ];
+
+type SortCol = "name" | "cat" | "tier" | "reach" | "tokens";
+type SortDir = "asc" | "desc";
 
 function fmtReach(n: number) {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(n >= 10_000_000 ? 0 : 1).replace(".", ",") + " mi";
@@ -530,17 +536,115 @@ function initials(name: string | null | undefined) {
   return name.split(" ").filter(Boolean).slice(0, 2).map(w => w[0]).join("").toUpperCase();
 }
 
-export default function VeiculosPage() {
-  const [cat, setCat]   = useState("Todos");
-  const [tier, setTier] = useState("Todos");
-  const [q, setQ]       = useState("");
+const TIER_ORDER: Record<string, number> = { A: 0, B: 1, C: 2, D: 3, F: 4 };
 
-  const list = VEHICLES.filter(v =>
-    (cat  === "Todos" || v.cat  === cat)  &&
-    (tier === "Todos" || v.tier === tier) &&
+function sortVehicles(arr: typeof VEHICLES, col: SortCol, dir: SortDir) {
+  return [...arr].sort((a, b) => {
+    let va: string | number, vb: string | number;
+    if (col === "tokens") { va = TIER_TOKENS[a.tier] ?? 0; vb = TIER_TOKENS[b.tier] ?? 0; }
+    else if (col === "tier") { va = TIER_ORDER[a.tier] ?? 99; vb = TIER_ORDER[b.tier] ?? 99; }
+    else if (col === "reach") { va = a.reach; vb = b.reach; }
+    else { va = (a[col] as string).toLowerCase(); vb = (b[col] as string).toLowerCase(); }
+    if (va < vb) return dir === "asc" ? -1 : 1;
+    if (va > vb) return dir === "asc" ? 1 : -1;
+    return 0;
+  });
+}
+
+function SortIcon({ col, active, dir }: { col: string; active: string; dir: SortDir }) {
+  if (col !== active) return <ArrowUpDown size={13} style={{ opacity: 0.3, marginLeft: 4 }} />;
+  return dir === "asc"
+    ? <ArrowUp size={13} style={{ marginLeft: 4, color: "var(--coral-ink)" }} />
+    : <ArrowDown size={13} style={{ marginLeft: 4, color: "var(--coral-ink)" }} />;
+}
+
+function FilterModal({ cats, tiers, onApply, onClose }: {
+  cats: string[]; tiers: string[];
+  onApply: (cats: string[], tiers: string[]) => void;
+  onClose: () => void;
+}) {
+  const [selCats,  setSelCats]  = useState<string[]>(cats);
+  const [selTiers, setSelTiers] = useState<string[]>(tiers);
+
+  const toggleCat  = (c: string) => setSelCats(prev  => prev.includes(c)  ? prev.filter(x => x !== c)  : [...prev, c]);
+  const toggleTier = (t: string) => setSelTiers(prev => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t]);
+
+  const activeCount = selCats.length + selTiers.length;
+
+  return (
+    <div className="overlay" onClick={onClose}>
+      <div className="modal" style={{ maxWidth: 440 }} onClick={e => e.stopPropagation()}>
+        <div className="m-head">
+          <h3>Filtrar veículos</h3>
+          <button className="icon-btn" onClick={onClose}><X size={17} /></button>
+        </div>
+        <div className="m-body" style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          <div>
+            <p style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 10 }}>Categoria</p>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {VEH_CATS.map(c => (
+                <button key={c} onClick={() => toggleCat(c)}
+                  className={`chip${selCats.includes(c) ? " active" : ""}`}>
+                  {c}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 10 }}>Tier</p>
+            <div style={{ display: "flex", gap: 8 }}>
+              {VEH_TIERS.map(t => (
+                <button key={t} onClick={() => toggleTier(t)}
+                  className={`chip${selTiers.includes(t) ? " active" : ""}`}>
+                  Tier {t}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+        <div className="m-foot" style={{ justifyContent: "space-between" }}>
+          <button className="btn btn-ghost btn-sm" onClick={() => { setSelCats([]); setSelTiers([]); }}>
+            Limpar filtros
+          </button>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button className="btn btn-ghost btn-sm" onClick={onClose}>Cancelar</button>
+            <button className="btn btn-primary btn-sm" onClick={() => { onApply(selCats, selTiers); onClose(); }}>
+              Aplicar {activeCount > 0 ? `(${activeCount})` : ""}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function VeiculosPage() {
+  const [q,           setQ]          = useState("");
+  const [filterCats,  setFilterCats] = useState<string[]>([]);
+  const [filterTiers, setFilterTiers] = useState<string[]>([]);
+  const [sortCol,     setSortCol]    = useState<SortCol>("reach");
+  const [sortDir,     setSortDir]    = useState<SortDir>("desc");
+  const [showFilter,  setShowFilter] = useState(false);
+
+  const activeFilters = filterCats.length + filterTiers.length;
+
+  function handleSort(col: SortCol) {
+    if (sortCol === col) setSortDir(d => d === "asc" ? "desc" : "asc");
+    else { setSortCol(col); setSortDir("asc"); }
+  }
+
+  const thStyle = (col: SortCol): React.CSSProperties => ({
+    cursor: "pointer", userSelect: "none", whiteSpace: "nowrap",
+    color: sortCol === col ? "var(--coral-ink)" : undefined,
+  });
+
+  const filtered = VEHICLES.filter(v =>
+    (filterCats.length  === 0 || filterCats.includes(v.cat))  &&
+    (filterTiers.length === 0 || filterTiers.includes(v.tier)) &&
     (!q.trim() || (v.name + v.domain).toLowerCase().includes(q.toLowerCase()))
   );
 
+  const list = sortVehicles(filtered, sortCol, sortDir);
   const totalReach = list.reduce((s, v) => s + v.reach, 0);
 
   return (
@@ -565,32 +669,41 @@ export default function VeiculosPage() {
             <div className="card kpi" key={ti.t} style={{ padding: 20 }}>
               <span className={`tier ${ti.cls}`} style={{ fontSize: 11, padding: "4px 10px", marginBottom: 14, display: "inline-block" }}>{ti.t}</span>
               <div className="lbl">{ti.label}</div>
-              <div className="val" style={{ fontSize: 13, marginTop: 6, fontWeight: 500 }}>{ti.range}</div>
+              <div className="val" style={{ fontSize: 13, marginTop: 4, fontWeight: 500 }}>{ti.range}</div>
+              <div style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--stone)", marginTop: 4 }}>
+                {ti.tokens > 0 ? `${ti.tokens} créditos` : "Gratuito"}
+              </div>
             </div>
           ))}
         </div>
 
-        {/* Filtros */}
-        <div className="toolbar" style={{ marginBottom: 18, flexWrap: "wrap", gap: 10 }}>
-          <div className="chips" style={{ flexWrap: "wrap" }}>
-            {VEH_CATS.map(c => (
-              <button key={c} className={`chip${cat === c ? " active" : ""}`} onClick={() => setCat(c)}>{c}</button>
-            ))}
-          </div>
+        {/* Toolbar */}
+        <div className="toolbar" style={{ marginBottom: 18, gap: 8 }}>
+          <button
+            className={`btn btn-ghost btn-sm${activeFilters > 0 ? " active" : ""}`}
+            onClick={() => setShowFilter(true)}
+            style={{ gap: 6 }}
+          >
+            <SlidersHorizontal size={14} />
+            Filtrar
+            {activeFilters > 0 && (
+              <span style={{ background: "var(--coral)", color: "#fff", borderRadius: 99, fontSize: 10, fontWeight: 700, padding: "1px 6px", marginLeft: 2 }}>
+                {activeFilters}
+              </span>
+            )}
+          </button>
+          {activeFilters > 0 && (
+            <button className="btn btn-ghost btn-sm" style={{ color: "var(--stone)" }} onClick={() => { setFilterCats([]); setFilterTiers([]); }}>
+              <X size={13} /> Limpar
+            </button>
+          )}
           <div style={{ flex: 1 }} />
-          <div className="select-wrap" style={{ width: 120 }}>
-            <select className="input" value={tier} onChange={e => setTier(e.target.value)} style={{ padding: "8px 32px 8px 12px", fontSize: 13 }}>
-              <option value="Todos">Todos os tiers</option>
-              {["A","B","C","D","F"].map(t => <option key={t} value={t}>Tier {t}</option>)}
-            </select>
-            <ChevronDown size={15} />
-          </div>
           <input
             className="input"
             placeholder="Buscar veículo…"
             value={q}
             onChange={e => setQ(e.target.value)}
-            style={{ width: 200, padding: "8px 14px", fontSize: 13 }}
+            style={{ width: 220, padding: "8px 14px", fontSize: 13 }}
           />
         </div>
 
@@ -599,31 +712,51 @@ export default function VeiculosPage() {
           <table className="tbl">
             <thead>
               <tr>
-                <th style={{ width: "40%" }}>Veículo</th>
-                <th>Categoria</th>
-                <th>Tier</th>
-                <th style={{ textAlign: "right" }}>Alcance/mês</th>
+                <th style={{ ...thStyle("name"), width: "36%" }} onClick={() => handleSort("name")}>
+                  Veículo <SortIcon col="name" active={sortCol} dir={sortDir} />
+                </th>
+                <th style={thStyle("cat")} onClick={() => handleSort("cat")}>
+                  Categoria <SortIcon col="cat" active={sortCol} dir={sortDir} />
+                </th>
+                <th style={thStyle("tier")} onClick={() => handleSort("tier")}>
+                  Tier <SortIcon col="tier" active={sortCol} dir={sortDir} />
+                </th>
+                <th style={{ ...thStyle("reach"), textAlign: "right" }} onClick={() => handleSort("reach")}>
+                  Alcance/mês <SortIcon col="reach" active={sortCol} dir={sortDir} />
+                </th>
+                <th style={{ ...thStyle("tokens"), textAlign: "right" }} onClick={() => handleSort("tokens")}>
+                  Créditos <SortIcon col="tokens" active={sortCol} dir={sortDir} />
+                </th>
               </tr>
             </thead>
             <tbody>
-              {list.map(v => (
-                <tr key={v.id}>
-                  <td>
-                    <div className="row" style={{ gap: 12 }}>
-                      <div style={{ background: v.color, width: 32, height: 32, borderRadius: 8, display: "grid", placeItems: "center", fontFamily: "var(--mono)", fontWeight: 700, fontSize: 11, color: "#fff", flex: "none" }}>
-                        {initials(v.name)}
+              {list.map(v => {
+                const tkn = TIER_TOKENS[v.tier] ?? 0;
+                return (
+                  <tr key={v.id}>
+                    <td>
+                      <div className="row" style={{ gap: 12 }}>
+                        <div style={{ background: v.color, width: 32, height: 32, borderRadius: 8, display: "grid", placeItems: "center", fontFamily: "var(--mono)", fontWeight: 700, fontSize: 11, color: "#fff", flex: "none" }}>
+                          {initials(v.name)}
+                        </div>
+                        <div>
+                          <div style={{ fontSize: 14, fontWeight: 600, letterSpacing: "-0.01em" }}>{v.name}</div>
+                          <div style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--stone)" }}>{v.domain}</div>
+                        </div>
                       </div>
-                      <div>
-                        <div style={{ fontSize: 14, fontWeight: 600, letterSpacing: "-0.01em" }}>{v.name}</div>
-                        <div style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--stone)" }}>{v.domain}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="muted">{v.cat}</td>
-                  <td><span className={`tier t-${v.tier.toLowerCase()}`}>{v.tier}</span></td>
-                  <td className="num" style={{ textAlign: "right", fontWeight: 600 }}>{fmtReach(v.reach)}</td>
-                </tr>
-              ))}
+                    </td>
+                    <td className="muted">{v.cat}</td>
+                    <td><span className={`tier t-${v.tier.toLowerCase()}`}>{v.tier}</span></td>
+                    <td className="num" style={{ textAlign: "right", fontWeight: 600 }}>{fmtReach(v.reach)}</td>
+                    <td className="num" style={{ textAlign: "right" }}>
+                      {tkn > 0
+                        ? <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontWeight: 700 }}>{tkn} <span style={{ color: "var(--coral)", fontSize: 13 }}>⚡</span></span>
+                        : <span className="muted">—</span>
+                      }
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -632,6 +765,14 @@ export default function VeiculosPage() {
           Mostrando {list.length} de {VEHICLES.length} veículos · alcance combinado: {fmtReach(totalReach)}
         </p>
       </div>
+
+      {showFilter && (
+        <FilterModal
+          cats={filterCats} tiers={filterTiers}
+          onApply={(c, t) => { setFilterCats(c); setFilterTiers(t); }}
+          onClose={() => setShowFilter(false)}
+        />
+      )}
     </div>
   );
 }

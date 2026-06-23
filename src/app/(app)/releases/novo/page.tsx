@@ -7,6 +7,7 @@ import {
   ArrowLeft, ArrowRight, Check, ChevronDown,
   Image as ImageIcon, Rocket, Calendar, X, Search,
   List, LayoutGrid, Plus, Download, Upload, Cloud, CloudOff,
+  SlidersHorizontal, ArrowUpDown, ArrowUp, ArrowDown,
 } from "lucide-react";
 import { extractDominantColor } from "@/lib/color";
 import { RichEditor } from "@/components/editor/RichEditor";
@@ -525,9 +526,14 @@ const VEHICLES = [
 ];
 
 
-const VEH_CATS  = ["Todos","Geral","Negócios","Tecnologia","Esportes","Economia","Saúde","Entretenimento","Política","Jurídico","Agronegócio"];
-const VEH_TIERS = ["Todos","A","B","C","D","F"];
-const PAGE_SIZE  = 25;
+const VEH_CATS_ALL  = ["Geral","Negócios","Tecnologia","Esportes","Economia","Saúde","Entretenimento","Política","Jurídico","Agronegócio"];
+const VEH_TIERS_ALL = ["A","B","C","D","F"];
+const PAGE_SIZE      = 25;
+const TIER_TOKENS_MAP: Record<string, number> = { A: 250, B: 150, C: 100, D: 50, F: 0 };
+const TIER_ORDER_MAP: Record<string, number>  = { A: 0, B: 1, C: 2, D: 3, F: 4 };
+
+type VehSortCol = "name" | "tier" | "reach" | "tokens";
+type VehSortDir = "asc" | "desc";
 const PLAN = { total: 5000, used: 3200 };
 
 
@@ -918,7 +924,7 @@ function StepContent({ content, setContent, brand, ownerName }: { content: Conte
   const brandAuthors = brand?.authors ?? [];
   const authors = brandAuthors.length > 0 ? brandAuthors : [ownerName].filter(Boolean);
   const up = (k: keyof Content, v: string) => setContent({ ...content, [k]: v });
-  const cats = VEH_CATS.filter(c => c !== "Todos");
+  const cats = VEH_CATS_ALL;
 
   return (
     <div className="composer-grid">
@@ -965,59 +971,169 @@ function StepContent({ content, setContent, brand, ownerName }: { content: Conte
 
 // ── Passo 2: Veículos ────────────────────────────────────────────────────────
 
+function VehFilterModal({ cats, tiers, onApply, onClose }: {
+  cats: string[]; tiers: string[];
+  onApply: (cats: string[], tiers: string[]) => void;
+  onClose: () => void;
+}) {
+  const [selCats,  setSelCats]  = useState<string[]>(cats);
+  const [selTiers, setSelTiers] = useState<string[]>(tiers);
+  const toggleCat  = (c: string) => setSelCats(prev  => prev.includes(c)  ? prev.filter(x => x !== c)  : [...prev, c]);
+  const toggleTier = (t: string) => setSelTiers(prev => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t]);
+  const activeCount = selCats.length + selTiers.length;
+  return (
+    <div className="overlay" onClick={onClose}>
+      <div className="modal" style={{ maxWidth: 440 }} onClick={e => e.stopPropagation()}>
+        <div className="m-head">
+          <h3>Filtrar veículos</h3>
+          <button className="icon-btn" onClick={onClose}><X size={17} /></button>
+        </div>
+        <div className="m-body" style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          <div>
+            <p style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 10 }}>Categoria</p>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {VEH_CATS_ALL.map(c => (
+                <button key={c} onClick={() => toggleCat(c)} className={`chip${selCats.includes(c) ? " active" : ""}`}>{c}</button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 10 }}>Tier</p>
+            <div style={{ display: "flex", gap: 8 }}>
+              {VEH_TIERS_ALL.map(t => (
+                <button key={t} onClick={() => toggleTier(t)} className={`chip${selTiers.includes(t) ? " active" : ""}`}>Tier {t}</button>
+              ))}
+            </div>
+          </div>
+        </div>
+        <div className="m-foot" style={{ justifyContent: "space-between" }}>
+          <button className="btn btn-ghost btn-sm" onClick={() => { setSelCats([]); setSelTiers([]); }}>Limpar filtros</button>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button className="btn btn-ghost btn-sm" onClick={onClose}>Cancelar</button>
+            <button className="btn btn-primary btn-sm" onClick={() => { onApply(selCats, selTiers); onClose(); }}>
+              Aplicar {activeCount > 0 ? `(${activeCount})` : ""}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function VehSortIcon({ col, active, dir }: { col: string; active: string; dir: VehSortDir }) {
+  if (col !== active) return <ArrowUpDown size={12} style={{ opacity: 0.3, marginLeft: 3 }} />;
+  return dir === "asc"
+    ? <ArrowUp size={12} style={{ marginLeft: 3, color: "var(--coral-ink)" }} />
+    : <ArrowDown size={12} style={{ marginLeft: 3, color: "var(--coral-ink)" }} />;
+}
+
+function sortVeh(arr: typeof VEHICLES, col: VehSortCol, dir: VehSortDir) {
+  return [...arr].sort((a, b) => {
+    let va: string | number, vb: string | number;
+    if (col === "tokens") { va = TIER_TOKENS_MAP[a.tier] ?? 0; vb = TIER_TOKENS_MAP[b.tier] ?? 0; }
+    else if (col === "tier") { va = TIER_ORDER_MAP[a.tier] ?? 99; vb = TIER_ORDER_MAP[b.tier] ?? 99; }
+    else if (col === "reach") { va = a.reach; vb = b.reach; }
+    else { va = (a.name ?? "").toLowerCase(); vb = (b.name ?? "").toLowerCase(); }
+    if (va < vb) return dir === "asc" ? -1 : 1;
+    if (va > vb) return dir === "asc" ? 1 : -1;
+    return 0;
+  });
+}
+
 function StepVehicles({ selected, setSelected }: { selected: string[]; setSelected: (s: string[]) => void }) {
-  const [cat,  setCat]  = useState("Todos");
-  const [tier, setTier] = useState("Todos");
-  const [q,    setQ]    = useState("");
-  const [page, setPage] = useState(1);
+  const [filterCats,  setFilterCats]  = useState<string[]>([]);
+  const [filterTiers, setFilterTiers] = useState<string[]>([]);
+  const [q,           setQ]           = useState("");
+  const [page,        setPage]        = useState(1);
+  const [sortCol,     setSortCol]     = useState<VehSortCol>("reach");
+  const [sortDir,     setSortDir]     = useState<VehSortDir>("desc");
+  const [showFilter,  setShowFilter]  = useState(false);
 
   const resetPage = () => setPage(1);
+
+  function handleSort(col: VehSortCol) {
+    if (sortCol === col) setSortDir(d => d === "asc" ? "desc" : "asc");
+    else { setSortCol(col); setSortDir("asc"); }
+    resetPage();
+  }
+
+  const activeFilters = filterCats.length + filterTiers.length;
 
   const toggle = (id: string) =>
     setSelected(selected.includes(id) ? selected.filter(x => x !== id) : [...selected, id]);
   const remove = (id: string) => setSelected(selected.filter(x => x !== id));
 
-  const filtered = VEHICLES.filter(v =>
-    (cat  === "Todos" || v.cat  === cat)  &&
-    (tier === "Todos" || v.tier === tier) &&
+  const baseFiltered = VEHICLES.filter(v =>
+    (filterCats.length  === 0 || filterCats.includes(v.cat))  &&
+    (filterTiers.length === 0 || filterTiers.includes(v.tier)) &&
     (!q.trim() || (v.name + v.domain).toLowerCase().includes(q.toLowerCase()))
   );
+  const filtered   = sortVeh(baseFiltered, sortCol, sortDir);
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
-  const list = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const list       = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const selVehicles = selected.map(id => VEHICLES.find(v => v.id === id)).filter(Boolean) as typeof VEHICLES;
-  const selTokens   = selVehicles.reduce((s, v) => s + v.tokens, 0);
+  const selTokens   = selVehicles.reduce((s, v) => s + (TIER_TOKENS_MAP[v.tier] ?? 0), 0);
   const selReach    = selVehicles.reduce((s, v) => s + v.reach, 0);
   const left        = PLAN.total - PLAN.used;
   const over        = selTokens > left;
   const usedPct     = (PLAN.used / PLAN.total) * 100;
   const nowPct      = Math.min((selTokens / PLAN.total) * 100, 100 - usedPct);
 
+  const sortBtnStyle = (col: VehSortCol): React.CSSProperties => ({
+    display: "inline-flex", alignItems: "center", background: "none", border: "none",
+    cursor: "pointer", padding: "2px 4px", borderRadius: 4, fontSize: 11,
+    fontFamily: "var(--mono)", letterSpacing: "0.08em", textTransform: "uppercase",
+    color: sortCol === col ? "var(--coral-ink)" : "var(--stone)", fontWeight: sortCol === col ? 700 : 400,
+  });
+
   return (
+    <>
     <div className="veh-layout">
       {/* Lista */}
       <div className="card veh-list">
         <div className="vh-toolbar">
-          <div className="search" style={{ flex: "1 1 200px" }}>
+          <button
+            className={`btn btn-ghost btn-sm${activeFilters > 0 ? " active" : ""}`}
+            onClick={() => setShowFilter(true)}
+            style={{ gap: 6 }}
+          >
+            <SlidersHorizontal size={14} />
+            Filtrar
+            {activeFilters > 0 && (
+              <span style={{ background: "var(--coral)", color: "#fff", borderRadius: 99, fontSize: 10, fontWeight: 700, padding: "1px 6px", marginLeft: 2 }}>
+                {activeFilters}
+              </span>
+            )}
+          </button>
+          {activeFilters > 0 && (
+            <button className="btn btn-ghost btn-sm" style={{ color: "var(--stone)" }} onClick={() => { setFilterCats([]); setFilterTiers([]); resetPage(); }}>
+              <X size={13} /> Limpar
+            </button>
+          )}
+          <div style={{ flex: 1 }} />
+          <div className="search">
             <Search size={16} />
             <input placeholder="Buscar veículo…" value={q} onChange={e => { setQ(e.target.value); resetPage(); }} />
           </div>
-          <div className="select-wrap" style={{ width: 150 }}>
-            <select className="input" value={cat} onChange={e => { setCat(e.target.value); resetPage(); }} style={{ padding: "8px 32px 8px 12px", fontSize: 13 }}>
-              {VEH_CATS.map(c => <option key={c}>{c}</option>)}
-            </select>
-            <ChevronDown size={15} />
-          </div>
-          <div className="select-wrap" style={{ width: 120 }}>
-            <select className="input" value={tier} onChange={e => { setTier(e.target.value); resetPage(); }} style={{ padding: "8px 32px 8px 12px", fontSize: 13 }}>
-              {VEH_TIERS.map(t => <option key={t} value={t}>{t === "Todos" ? "Todos os tiers" : `Tier ${t}`}</option>)}
-            </select>
-            <ChevronDown size={15} />
-          </div>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 20px", borderBottom: "1px solid var(--line)" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 20px", borderBottom: "1px solid var(--line)" }}>
           <span className="eyebrow">{filtered.length} veículos</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <button style={sortBtnStyle("name")} onClick={() => handleSort("name")}>
+              Nome <VehSortIcon col="name" active={sortCol} dir={sortDir} />
+            </button>
+            <button style={sortBtnStyle("tier")} onClick={() => handleSort("tier")}>
+              Tier <VehSortIcon col="tier" active={sortCol} dir={sortDir} />
+            </button>
+            <button style={sortBtnStyle("reach")} onClick={() => handleSort("reach")}>
+              Alcance <VehSortIcon col="reach" active={sortCol} dir={sortDir} />
+            </button>
+            <button style={sortBtnStyle("tokens")} onClick={() => handleSort("tokens")}>
+              Créditos <VehSortIcon col="tokens" active={sortCol} dir={sortDir} />
+            </button>
+          </div>
           <button
             className="link"
             style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--stone)", background: "none", border: "none", cursor: "pointer" }}
@@ -1026,31 +1142,34 @@ function StepVehicles({ selected, setSelected }: { selected: string[]; setSelect
               const allSel = allIds.every(id => selected.includes(id));
               setSelected(allSel ? selected.filter(id => !allIds.includes(id)) : [...new Set([...selected, ...allIds])]);
             }}
-          >Selecionar todos</button>
+          >Sel. todos</button>
         </div>
 
         <div>
-          {list.map(v => (
-            <div key={v.id} className={`veh-row${selected.includes(v.id) ? " sel" : ""}`} onClick={() => toggle(v.id)}>
-              <div className="cbx">{selected.includes(v.id) && <Check size={13} />}</div>
-              <div className="logo" style={{ background: v.color }}>{initials(v.name)}</div>
-              <div>
-                <div className="nm">{v.name}</div>
-                <div className="meta">
-                  <span className={`tier t-${v.tier.toLowerCase()}`}>{v.tier}</span>
-                  <span className="dom">{v.domain}</span>
+          {list.map(v => {
+            const tkn = TIER_TOKENS_MAP[v.tier] ?? 0;
+            return (
+              <div key={v.id} className={`veh-row${selected.includes(v.id) ? " sel" : ""}`} onClick={() => toggle(v.id)}>
+                <div className="cbx">{selected.includes(v.id) && <Check size={13} />}</div>
+                <div className="logo" style={{ background: v.color }}>{initials(v.name)}</div>
+                <div>
+                  <div className="nm">{v.name}</div>
+                  <div className="meta">
+                    <span className={`tier t-${v.tier.toLowerCase()}`}>{v.tier}</span>
+                    <span className="dom">{v.domain}</span>
+                  </div>
+                </div>
+                <div className="reach">
+                  <div className="n">{fmtReach(v.reach)}</div>
+                  <div className="u">alcance/mês</div>
+                </div>
+                <div className="cost">
+                  <span className="tk">{tkn}</span>
+                  <span style={{ color: "var(--coral-ink)", fontSize: 16 }}>⚡</span>
                 </div>
               </div>
-              <div className="reach">
-                <div className="n">{fmtReach(v.reach)}</div>
-                <div className="u">alcance/mês</div>
-              </div>
-              <div className="cost">
-                <span className="tk">{v.tokens}</span>
-                <span style={{ color: "var(--coral-ink)", fontSize: 16 }}>⚡</span>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {totalPages > 1 && (
@@ -1091,7 +1210,7 @@ function StepVehicles({ selected, setSelected }: { selected: string[]; setSelect
               <div className="sel-item" key={v.id}>
                 <div style={{ background: v.color, width: 22, height: 22, borderRadius: 6, display: "grid", placeItems: "center", fontSize: 9, fontFamily: "var(--mono)", fontWeight: 700, color: "#fff", flex: "none" }}>{initials(v.name)}</div>
                 <span className="nm">{v.name}</span>
-                <span className="tk">{v.tokens}</span>
+                <span className="tk">{TIER_TOKENS_MAP[v.tier] ?? 0}</span>
                 <button className="rm" onClick={() => remove(v.id)} title="Remover"><X size={15} /></button>
               </div>
             ))}
@@ -1120,6 +1239,15 @@ function StepVehicles({ selected, setSelected }: { selected: string[]; setSelect
         </div>
       </div>
     </div>
+
+    {showFilter && (
+      <VehFilterModal
+        cats={filterCats} tiers={filterTiers}
+        onApply={(c, t) => { setFilterCats(c); setFilterTiers(t); resetPage(); }}
+        onClose={() => setShowFilter(false)}
+      />
+    )}
+    </>
   );
 }
 
