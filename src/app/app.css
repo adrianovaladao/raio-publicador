@@ -660,8 +660,12 @@ select.input { appearance: none; -webkit-appearance: none; padding-right: 36px; 
   padding: 2px 7px; border-radius: 4px;
 }
 .tier.t-aaa { background: var(--ink); color: var(--coral-soft); }
-.tier.t-aa { background: var(--amber-soft); color: var(--coral-ink); }
-.tier.t-a { background: var(--cream); color: var(--stone); }
+.tier.t-aa  { background: var(--amber-soft); color: var(--coral-ink); }
+.tier.t-a   { background: var(--ink); color: #fff; }
+.tier.t-b   { background: #2A6FDB; color: #fff; }
+.tier.t-c   { background: #2F8A5B; color: #fff; }
+.tier.t-d   { background: var(--amber-soft); color: var(--coral-ink); }
+.tier.t-f   { background: var(--cream); color: var(--stone); }
 
 /* carrinho de seleção */
 .cart { position: sticky; top: 0; }

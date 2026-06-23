@@ -1,38 +1,522 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { ChevronDown, Send, Plus, X, Upload, Zap } from "lucide-react";
+import { ChevronDown, Send } from "lucide-react";
 
 const VEHICLES = [
-  { id: "v1",  name: "Capital Econômica",      domain: "capitaleconomica.com.br",  cat: "Economia",   uf: "SP", reach: 8400000, tier: "AAA", tokens: 320, color: "#1A1A1A" },
-  { id: "v2",  name: "Portal Mercado Hoje",    domain: "mercadohoje.com.br",       cat: "Negócios",   uf: "SP", reach: 6100000, tier: "AAA", tokens: 280, color: "#2A6FDB" },
-  { id: "v3",  name: "Diário Nacional",        domain: "diarionacional.com.br",    cat: "Geral",      uf: "DF", reach: 5200000, tier: "AAA", tokens: 260, color: "#C2452E" },
-  { id: "v4",  name: "TechBrasil",             domain: "techbrasil.com.br",        cat: "Tecnologia", uf: "SP", reach: 3900000, tier: "AA",  tokens: 180, color: "#2F8A5B" },
-  { id: "v5",  name: "Franquia & Negócio",     domain: "franquianegocio.com.br",   cat: "Franquias",  uf: "SP", reach: 1450000, tier: "AA",  tokens: 150, color: "#8A6500" },
-  { id: "v6",  name: "Varejo em Foco",         domain: "varejoemfoco.com.br",      cat: "Varejo",     uf: "RJ", reach: 2200000, tier: "AA",  tokens: 160, color: "#6D3BD9" },
-  { id: "v7",  name: "Gazeta do Investidor",   domain: "gazetainvestidor.com.br",  cat: "Economia",   uf: "RJ", reach: 2800000, tier: "AA",  tokens: 190, color: "#0E7C86" },
-  { id: "v8",  name: "Tribuna Empreendedora",  domain: "tribunaemp.com.br",        cat: "Negócios",   uf: "MG", reach: 1100000, tier: "A",   tokens: 90,  color: "#C25E00" },
-  { id: "v9",  name: "InfoNegócios Sul",       domain: "infonegociossul.com.br",   cat: "Negócios",   uf: "RS", reach: 980000,  tier: "A",   tokens: 80,  color: "#1F6FB2" },
-  { id: "v10", name: "Nordeste Econômico",     domain: "nordesteeconomico.com.br", cat: "Economia",   uf: "PE", reach: 1300000, tier: "A",   tokens: 95,  color: "#B0322E" },
-  { id: "v11", name: "Diário do Comércio",     domain: "diariodocomercio.com.br",  cat: "Varejo",     uf: "MG", reach: 760000,  tier: "A",   tokens: 70,  color: "#3A3A3A" },
-  { id: "v12", name: "Capital Norte",          domain: "capitalnorte.com.br",      cat: "Geral",      uf: "AM", reach: 540000,  tier: "A",   tokens: 60,  color: "#16794E" },
-  { id: "v13", name: "Tecnologia & Cia",       domain: "tecnologiaecia.com.br",    cat: "Tecnologia", uf: "SP", reach: 1650000, tier: "AA",  tokens: 140, color: "#5B53D9" },
-  { id: "v14", name: "O Liberal Centro-Oeste", domain: "liberalco.com.br",         cat: "Geral",      uf: "GO", reach: 690000,  tier: "A",   tokens: 65,  color: "#946100" },
-  { id: "v15", name: "Panorama Franquias",     domain: "panoramafranquias.com.br", cat: "Franquias",  uf: "SP", reach: 870000,  tier: "A",   tokens: 85,  color: "#8A6500" },
-  { id: "v16", name: "Jornal Metrópole",       domain: "jornalmetropole.com.br",   cat: "Geral",      uf: "RJ", reach: 4300000, tier: "AAA", tokens: 240, color: "#0E1A2B" },
+  { id: "v1", name: "Ge globo", domain: "ge.globo.com", cat: "Geral", uf: "—", tier: "A", reach: 203000000, tokens: 0, color: "#1A1A1A" },
+  { id: "v2", name: "G1 globo", domain: "g1.globo.com", cat: "Geral", uf: "—", tier: "A", reach: 70000000, tokens: 0, color: "#1A1A1A" },
+  { id: "v3", name: "Terra", domain: "terra.com.br", cat: "Geral", uf: "—", tier: "A", reach: 61000000, tokens: 0, color: "#1A1A1A" },
+  { id: "v4", name: "Oglobo globo", domain: "oglobo.globo.com", cat: "Geral", uf: "—", tier: "A", reach: 19000000, tokens: 0, color: "#1A1A1A" },
+  { id: "v5", name: "Ig", domain: "ig.com.br", cat: "Geral", uf: "—", tier: "A", reach: 8400000, tokens: 0, color: "#1A1A1A" },
+  { id: "v6", name: "Revistakdea360", domain: "revistakdea360.com.br", cat: "Negócios", uf: "—", tier: "D", reach: 5614333, tokens: 0, color: "#946100" },
+  { id: "v7", name: "Gazetadopovo", domain: "gazetadopovo.com.br", cat: "Geral", uf: "—", tier: "A", reach: 5500000, tokens: 0, color: "#1A1A1A" },
+  { id: "v8", name: "Correiobraziliense", domain: "correiobraziliense.com.br", cat: "Negócios", uf: "—", tier: "A", reach: 5400000, tokens: 0, color: "#1A1A1A" },
+  { id: "v9", name: "Band", domain: "band.com.br", cat: "Geral", uf: "—", tier: "A", reach: 5000000, tokens: 0, color: "#1A1A1A" },
+  { id: "v10", name: "Valor globo", domain: "valor.globo.com", cat: "Geral", uf: "—", tier: "A", reach: 4200000, tokens: 0, color: "#1A1A1A" },
+  { id: "v11", name: "Mixvale", domain: "mixvale.com.br", cat: "Geral", uf: "—", tier: "C", reach: 3700000, tokens: 0, color: "#2F8A5B" },
+  { id: "v12", name: "Uai", domain: "uai.com.br", cat: "Geral", uf: "—", tier: "A", reach: 3600000, tokens: 0, color: "#1A1A1A" },
+  { id: "v13", name: "Rollingstone", domain: "rollingstone.com.br", cat: "Geral", uf: "—", tier: "B", reach: 2700000, tokens: 0, color: "#2A6FDB" },
+  { id: "v14", name: "Odia ig", domain: "odia.ig.com.br", cat: "Geral", uf: "—", tier: "A", reach: 2500000, tokens: 0, color: "#1A1A1A" },
+  { id: "v15", name: "Em", domain: "em.com.br", cat: "Geral", uf: "—", tier: "A", reach: 2400000, tokens: 0, color: "#1A1A1A" },
+  { id: "v16", name: "Brasil247", domain: "brasil247.com", cat: "Geral", uf: "—", tier: "A", reach: 1700000, tokens: 0, color: "#1A1A1A" },
+  { id: "v17", name: "Egobrazil", domain: "egobrazil.com.br", cat: "Geral", uf: "—", tier: "A", reach: 1254000, tokens: 0, color: "#1A1A1A" },
+  { id: "v18", name: "Recreio", domain: "recreio.com.br", cat: "Geral", uf: "—", tier: "C", reach: 1200000, tokens: 0, color: "#2F8A5B" },
+  { id: "v19", name: "Folhavitoria", domain: "folhavitoria.com.br", cat: "Geral", uf: "—", tier: "B", reach: 1000000, tokens: 0, color: "#2A6FDB" },
+  { id: "v20", name: "Futebolinterior", domain: "futebolinterior.com.br", cat: "Esportes", uf: "—", tier: "B", reach: 956000, tokens: 0, color: "#2A6FDB" },
+  { id: "v21", name: "Gizmodo uol", domain: "gizmodo.uol.com.br", cat: "Geral", uf: "—", tier: "A", reach: 900000, tokens: 0, color: "#1A1A1A" },
+  { id: "v22", name: "Diariodocentrodomundo", domain: "diariodocentrodomundo.com.br", cat: "Geral", uf: "—", tier: "A", reach: 835000, tokens: 0, color: "#1A1A1A" },
+  { id: "v23", name: "Tribunapr", domain: "tribunapr.com.br", cat: "Geral", uf: "—", tier: "B", reach: 834000, tokens: 0, color: "#2A6FDB" },
+  { id: "v24", name: "Midiamax", domain: "midiamax.com.br", cat: "Geral", uf: "—", tier: "B", reach: 800000, tokens: 0, color: "#2A6FDB" },
+  { id: "v25", name: "Folhape", domain: "folhape.com.br", cat: "Geral", uf: "—", tier: "B", reach: 722000, tokens: 0, color: "#2A6FDB" },
+  { id: "v26", name: "Globorural globo", domain: "globorural.globo.com", cat: "Geral", uf: "—", tier: "A", reach: 696100, tokens: 0, color: "#1A1A1A" },
+  { id: "v27", name: "Sportbuzz", domain: "sportbuzz.com.br", cat: "Esportes", uf: "—", tier: "C", reach: 597500, tokens: 0, color: "#2F8A5B" },
+  { id: "v28", name: "Jornaldebrasilia", domain: "jornaldebrasilia.com.br", cat: "Geral", uf: "—", tier: "B", reach: 578000, tokens: 0, color: "#2A6FDB" },
+  { id: "v29", name: "Gazetaweb", domain: "gazetaweb.com", cat: "Geral", uf: "—", tier: "B", reach: 536000, tokens: 0, color: "#2A6FDB" },
+  { id: "v30", name: "Observatoriodosfamosos", domain: "observatoriodosfamosos.com.br", cat: "Geral", uf: "—", tier: "D", reach: 504200, tokens: 0, color: "#946100" },
+  { id: "v31", name: "Bahianoticias", domain: "bahianoticias.com.br", cat: "Geral", uf: "—", tier: "A", reach: 463000, tokens: 0, color: "#1A1A1A" },
+  { id: "v32", name: "Spacemoney", domain: "spacemoney.com.br", cat: "Geral", uf: "—", tier: "C", reach: 436000, tokens: 0, color: "#2F8A5B" },
+  { id: "v33", name: "Istoe", domain: "istoe.com.br", cat: "Geral", uf: "—", tier: "A", reach: 412200, tokens: 0, color: "#1A1A1A" },
+  { id: "v34", name: "Todaynews", domain: "todaynews.com.br", cat: "Geral", uf: "—", tier: "C", reach: 335043, tokens: 0, color: "#2F8A5B" },
+  { id: "v35", name: "Cidadeverde", domain: "cidadeverde.com", cat: "Geral", uf: "—", tier: "B", reach: 333000, tokens: 0, color: "#2A6FDB" },
+  { id: "v36", name: "Folhadecuritiba", domain: "folhadecuritiba.com.br", cat: "Geral", uf: "—", tier: "D", reach: 331100, tokens: 0, color: "#946100" },
+  { id: "v37", name: "Lorena ig", domain: "lorena.ig.com.br", cat: "Geral", uf: "—", tier: "A", reach: 309000, tokens: 0, color: "#1A1A1A" },
+  { id: "v38", name: "D24am", domain: "d24am.com", cat: "Geral", uf: "—", tier: "B", reach: 287100, tokens: 0, color: "#2A6FDB" },
+  { id: "v39", name: "Torcedores", domain: "torcedores.com", cat: "Esportes", uf: "—", tier: "A", reach: 275000, tokens: 0, color: "#1A1A1A" },
+  { id: "v40", name: "Imprensaemidia", domain: "imprensaemidia.com.br", cat: "Geral", uf: "—", tier: "D", reach: 250000, tokens: 0, color: "#946100" },
+  { id: "v41", name: "Fnonline uol", domain: "fnonline.uol.com.br", cat: "Geral", uf: "—", tier: "A", reach: 238600, tokens: 0, color: "#1A1A1A" },
+  { id: "v42", name: "Entrete1", domain: "entrete1.com.br", cat: "Geral", uf: "—", tier: "A", reach: 222722, tokens: 0, color: "#1A1A1A" },
+  { id: "v43", name: "Observatoriodatv", domain: "observatoriodatv.com.br", cat: "Geral", uf: "—", tier: "C", reach: 219000, tokens: 0, color: "#2F8A5B" },
+  { id: "v44", name: "Revistapegn globo", domain: "revistapegn.globo.com", cat: "Geral", uf: "—", tier: "A", reach: 217000, tokens: 0, color: "#1A1A1A" },
+  { id: "v45", name: "Assiscity", domain: "assiscity.com", cat: "Geral", uf: "—", tier: "D", reach: 187500, tokens: 0, color: "#946100" },
+  { id: "v46", name: "Contigo", domain: "contigo.com.br", cat: "Geral", uf: "—", tier: "C", reach: 184700, tokens: 0, color: "#2F8A5B" },
+  { id: "v47", name: "Revistaanamaria", domain: "revistaanamaria.com.br", cat: "Geral", uf: "—", tier: "C", reach: 175300, tokens: 0, color: "#2F8A5B" },
+  { id: "v48", name: "Bemparana", domain: "bemparana.com.br", cat: "Geral", uf: "—", tier: "A", reach: 162000, tokens: 0, color: "#1A1A1A" },
+  { id: "v49", name: "Dropsdejogos Uai", domain: "dropsdejogos.uai.com.br", cat: "Geral", uf: "—", tier: "B", reach: 161100, tokens: 0, color: "#2A6FDB" },
+  { id: "v50", name: "Arrobanews", domain: "arrobanews.com.br", cat: "Geral", uf: "—", tier: "B", reach: 150003, tokens: 0, color: "#2A6FDB" },
+  { id: "v51", name: "Jb", domain: "jb.com.br", cat: "Geral", uf: "—", tier: "B", reach: 137900, tokens: 0, color: "#2A6FDB" },
+  { id: "v52", name: "Tvprime correiobraziliense", domain: "tvprime.correiobraziliense.com.br", cat: "Geral", uf: "—", tier: "A", reach: 123400, tokens: 0, color: "#1A1A1A" },
+  { id: "v53", name: "Tudofeed", domain: "tudofeed.com.br", cat: "Geral", uf: "—", tier: "A", reach: 122502, tokens: 0, color: "#1A1A1A" },
+  { id: "v54", name: "Glamurama", domain: "glamurama.com.br", cat: "Geral", uf: "—", tier: "C", reach: 120000, tokens: 0, color: "#2F8A5B" },
+  { id: "v55", name: "Acritica", domain: "acritica.com", cat: "Geral", uf: "—", tier: "B", reach: 119700, tokens: 0, color: "#2A6FDB" },
+  { id: "v56", name: "Cinebuzz", domain: "cinebuzz.com.br", cat: "Geral", uf: "—", tier: "C", reach: 112200, tokens: 0, color: "#2F8A5B" },
+  { id: "v57", name: "Brasil perfil", domain: "brasil.perfil.com", cat: "Geral", uf: "—", tier: "A", reach: 106400, tokens: 0, color: "#1A1A1A" },
+  { id: "v58", name: "Omunicipio", domain: "omunicipio.com.br", cat: "Geral", uf: "—", tier: "C", reach: 102600, tokens: 0, color: "#2F8A5B" },
+  { id: "v59", name: "Bonde", domain: "bonde.com.br", cat: "Geral", uf: "—", tier: "B", reach: 102000, tokens: 0, color: "#2A6FDB" },
+  { id: "v60", name: "Dm", domain: "dm.com.br", cat: "Geral", uf: "—", tier: "B", reach: 97900, tokens: 0, color: "#2A6FDB" },
+  { id: "v61", name: "Confinetnoticias", domain: "confinetnoticias.com.br", cat: "Geral", uf: "—", tier: "C", reach: 93000, tokens: 0, color: "#2F8A5B" },
+  { id: "v62", name: "Giroemipiau1", domain: "giroemipiau1.com.br", cat: "Geral", uf: "—", tier: "C", reach: 92400, tokens: 0, color: "#2F8A5B" },
+  { id: "v63", name: "Cosmopolitam", domain: "cosmopolitam.com.br", cat: "Entretenimento", uf: "—", tier: "A", reach: 84000, tokens: 0, color: "#1A1A1A" },
+  { id: "v64", name: "Diariodoaco", domain: "diariodoaco.com.br", cat: "Geral", uf: "—", tier: "C", reach: 82900, tokens: 0, color: "#2F8A5B" },
+  { id: "v65", name: "Paracatunews", domain: "paracatunews.com.br", cat: "Geral", uf: "—", tier: "D", reach: 80000, tokens: 0, color: "#946100" },
+  { id: "v66", name: "Rd1", domain: "rd1.com.br", cat: "Entretenimento", uf: "—", tier: "B", reach: 71000, tokens: 0, color: "#2A6FDB" },
+  { id: "v67", name: "Oobservador", domain: "oobservador.com", cat: "Geral", uf: "—", tier: "D", reach: 66200, tokens: 0, color: "#946100" },
+  { id: "v68", name: "Portalcorreio", domain: "portalcorreio.com.br", cat: "Geral", uf: "—", tier: "B", reach: 63000, tokens: 0, color: "#2A6FDB" },
+  { id: "v69", name: "Folhadelondrina", domain: "folhadelondrina.com.br", cat: "Geral", uf: "—", tier: "B", reach: 60000, tokens: 0, color: "#2A6FDB" },
+  { id: "v70", name: "Seucreditodigital", domain: "seucreditodigital.com.br", cat: "Geral", uf: "—", tier: "C", reach: 60000, tokens: 0, color: "#2F8A5B" },
+  { id: "v71", name: "Noticiasdotimao", domain: "noticiasdotimao.com.br", cat: "Geral", uf: "—", tier: "D", reach: 59400, tokens: 0, color: "#946100" },
+  { id: "v72", name: "Oimparcial", domain: "oimparcial.com.br", cat: "Geral", uf: "—", tier: "B", reach: 59000, tokens: 0, color: "#2A6FDB" },
+  { id: "v73", name: "Portogente", domain: "portogente.com.br", cat: "Geral", uf: "—", tier: "C", reach: 59000, tokens: 0, color: "#2F8A5B" },
+  { id: "v74", name: "Ppnewsfb", domain: "ppnewsfb.com.br", cat: "Geral", uf: "—", tier: "D", reach: 56000, tokens: 0, color: "#946100" },
+  { id: "v75", name: "Toledonews", domain: "toledonews.com.br", cat: "Geral", uf: "—", tier: "D", reach: 55400, tokens: 0, color: "#946100" },
+  { id: "v76", name: "Surgiu", domain: "surgiu.com.br", cat: "Geral", uf: "—", tier: "C", reach: 54000, tokens: 0, color: "#2F8A5B" },
+  { id: "v77", name: "Via41", domain: "via41.com.br", cat: "Geral", uf: "—", tier: "D", reach: 53800, tokens: 0, color: "#946100" },
+  { id: "v78", name: "Inmagazine ig", domain: "inmagazine.ig.com.br", cat: "Entretenimento", uf: "—", tier: "B", reach: 53000, tokens: 0, color: "#2A6FDB" },
+  { id: "v79", name: "Tonafolha", domain: "tonafolha.com.br", cat: "Geral", uf: "—", tier: "A", reach: 50444, tokens: 0, color: "#1A1A1A" },
+  { id: "v80", name: "Tvcampinas", domain: "tvcampinas.com.br", cat: "Geral", uf: "—", tier: "A", reach: 50432, tokens: 0, color: "#1A1A1A" },
+  { id: "v81", name: "Portalpaporeto", domain: "portalpaporeto.com.br", cat: "Geral", uf: "—", tier: "A", reach: 50342, tokens: 0, color: "#1A1A1A" },
+  { id: "v82", name: "Onepop", domain: "onepop.com.br", cat: "Geral", uf: "—", tier: "A", reach: 50222, tokens: 0, color: "#1A1A1A" },
+  { id: "v83", name: "Meon", domain: "meon.com.br", cat: "Geral", uf: "—", tier: "C", reach: 50000, tokens: 0, color: "#2F8A5B" },
+  { id: "v84", name: "Omunicipioblumenau", domain: "omunicipioblumenau.com.br", cat: "Geral", uf: "—", tier: "C", reach: 47800, tokens: 0, color: "#2F8A5B" },
+  { id: "v85", name: "Jornalcontabil ig", domain: "jornalcontabil.ig.com.br", cat: "Geral", uf: "—", tier: "B", reach: 46000, tokens: 0, color: "#2A6FDB" },
+  { id: "v86", name: "Observatoriog", domain: "observatoriog.com.br", cat: "Geral", uf: "—", tier: "C", reach: 45500, tokens: 0, color: "#2F8A5B" },
+  { id: "v87", name: "Extraderondonia", domain: "extraderondonia.com.br", cat: "Geral", uf: "—", tier: "D", reach: 39900, tokens: 0, color: "#946100" },
+  { id: "v88", name: "Obuxixo", domain: "obuxixo.com.br", cat: "Geral", uf: "—", tier: "A", reach: 39339, tokens: 0, color: "#1A1A1A" },
+  { id: "v89", name: "Ubatanoticias", domain: "ubatanoticias.com.br", cat: "Geral", uf: "—", tier: "D", reach: 37300, tokens: 0, color: "#946100" },
+  { id: "v90", name: "Correiodolago", domain: "correiodolago.com.br", cat: "Geral", uf: "—", tier: "C", reach: 36400, tokens: 0, color: "#2F8A5B" },
+  { id: "v91", name: "Revistacolorada", domain: "revistacolorada.com.br", cat: "Geral", uf: "—", tier: "C", reach: 36400, tokens: 0, color: "#2F8A5B" },
+  { id: "v92", name: "Maispb", domain: "maispb.com.br", cat: "Geral", uf: "—", tier: "C", reach: 34700, tokens: 0, color: "#2F8A5B" },
+  { id: "v93", name: "Portalpalotina", domain: "portalpalotina.com.br", cat: "Geral", uf: "—", tier: "D", reach: 33800, tokens: 0, color: "#946100" },
+  { id: "v94", name: "Ubiratãonline", domain: "ubiratãonline.com.br", cat: "Geral", uf: "—", tier: "D", reach: 33700, tokens: 0, color: "#946100" },
+  { id: "v95", name: "Timmax", domain: "timmax.com.br", cat: "Geral", uf: "—", tier: "B", reach: 33503, tokens: 0, color: "#2A6FDB" },
+  { id: "v96", name: "Valabah", domain: "valabah.com.br", cat: "Geral", uf: "—", tier: "B", reach: 33322, tokens: 0, color: "#2A6FDB" },
+  { id: "v97", name: "Comando190", domain: "comando190.com.br", cat: "Geral", uf: "—", tier: "D", reach: 32200, tokens: 0, color: "#946100" },
+  { id: "v98", name: "Jornaldebeltrao", domain: "jornaldebeltrao.com.br", cat: "Geral", uf: "—", tier: "C", reach: 30400, tokens: 0, color: "#2F8A5B" },
+  { id: "v99", name: "Tudorondonia", domain: "tudorondonia.com", cat: "Geral", uf: "—", tier: "C", reach: 30200, tokens: 0, color: "#2F8A5B" },
+  { id: "v100", name: "Blogdomarcosilva", domain: "blogdomarcosilva.com.br", cat: "Geral", uf: "—", tier: "C", reach: 30000, tokens: 0, color: "#2F8A5B" },
+  { id: "v101", name: "Guiafloripa", domain: "guiafloripa.com.br", cat: "Geral", uf: "—", tier: "C", reach: 30000, tokens: 0, color: "#2F8A5B" },
+  { id: "v102", name: "Portalcripto", domain: "portalcripto.com.br", cat: "Economia", uf: "—", tier: "C", reach: 30000, tokens: 0, color: "#2F8A5B" },
+  { id: "v103", name: "Cbzoo", domain: "cbzoo.com.br", cat: "Geral", uf: "—", tier: "C", reach: 29500, tokens: 0, color: "#2F8A5B" },
+  { id: "v104", name: "Jornalrazao", domain: "jornalrazao.com", cat: "Geral", uf: "—", tier: "D", reach: 29500, tokens: 0, color: "#946100" },
+  { id: "v105", name: "Guiamedianeira", domain: "guiamedianeira.com.br", cat: "Geral", uf: "—", tier: "D", reach: 28700, tokens: 0, color: "#946100" },
+  { id: "v106", name: "Folhapatoense", domain: "folhapatoense.com", cat: "Geral", uf: "—", tier: "D", reach: 28400, tokens: 0, color: "#946100" },
+  { id: "v107", name: "Caisdosertao", domain: "caisdosertao.com.br", cat: "Geral", uf: "—", tier: "D", reach: 27500, tokens: 0, color: "#946100" },
+  { id: "v108", name: "Jornaldobras", domain: "jornaldobras.com.br", cat: "Geral", uf: "—", tier: "D", reach: 27000, tokens: 0, color: "#946100" },
+  { id: "v109", name: "Amazonasatual", domain: "amazonasatual.com.br", cat: "Geral", uf: "—", tier: "B", reach: 26000, tokens: 0, color: "#2A6FDB" },
+  { id: "v110", name: "Lavras24horas", domain: "lavras24horas.com.br", cat: "Geral", uf: "—", tier: "D", reach: 25700, tokens: 0, color: "#946100" },
+  { id: "v111", name: "Sbemrevista", domain: "sbemrevista.com.br", cat: "Geral", uf: "—", tier: "D", reach: 25200, tokens: 0, color: "#946100" },
+  { id: "v112", name: "Folhadovale", domain: "folhadovale.net", cat: "Geral", uf: "—", tier: "D", reach: 25200, tokens: 0, color: "#946100" },
+  { id: "v113", name: "Diariodonegocio", domain: "diariodonegocio.com.br", cat: "Geral", uf: "—", tier: "B", reach: 23451, tokens: 0, color: "#2A6FDB" },
+  { id: "v114", name: "Conectadocomvoce", domain: "conectadocomvoce.com.br", cat: "Geral", uf: "—", tier: "B", reach: 22502, tokens: 0, color: "#2A6FDB" },
+  { id: "v115", name: "Reporternaressi", domain: "reporternaressi.com.br", cat: "Geral", uf: "—", tier: "D", reach: 22400, tokens: 0, color: "#946100" },
+  { id: "v116", name: "Primeirahora", domain: "primeirahora.com.br", cat: "Geral", uf: "—", tier: "C", reach: 22000, tokens: 0, color: "#2F8A5B" },
+  { id: "v117", name: "Revistadetetive", domain: "revistadetetive.com.br", cat: "Geral", uf: "—", tier: "F", reach: 22000, tokens: 0, color: "#C2452E" },
+  { id: "v118", name: "Portalaz", domain: "portalaz.com.br", cat: "Geral", uf: "—", tier: "C", reach: 21800, tokens: 0, color: "#2F8A5B" },
+  { id: "v119", name: "Cacodarosa", domain: "cacodarosa.com", cat: "Geral", uf: "—", tier: "D", reach: 21800, tokens: 0, color: "#946100" },
+  { id: "v120", name: "Qgdanoticia", domain: "qgdanoticia.com.br", cat: "Geral", uf: "—", tier: "B", reach: 21501, tokens: 0, color: "#2A6FDB" },
+  { id: "v121", name: "Pontaporainforma", domain: "pontaporainforma.com.br", cat: "Geral", uf: "—", tier: "C", reach: 20600, tokens: 0, color: "#2F8A5B" },
+  { id: "v122", name: "Douradosagora", domain: "douradosagora.com.br", cat: "Geral", uf: "—", tier: "C", reach: 20300, tokens: 0, color: "#2F8A5B" },
+  { id: "v123", name: "Senhoresporte", domain: "senhoresporte.com", cat: "Geral", uf: "—", tier: "C", reach: 20000, tokens: 0, color: "#2F8A5B" },
+  { id: "v124", name: "Celebs", domain: "celebs.com.br", cat: "Entretenimento", uf: "—", tier: "F", reach: 19500, tokens: 0, color: "#C2452E" },
+  { id: "v125", name: "Ne9", domain: "ne9.com.br", cat: "Geral", uf: "—", tier: "D", reach: 19300, tokens: 0, color: "#946100" },
+  { id: "v126", name: "Revistamaxima", domain: "revistamaxima.com.br", cat: "Geral", uf: "—", tier: "C", reach: 19200, tokens: 0, color: "#2F8A5B" },
+  { id: "v127", name: "Tribunadointerior", domain: "tribunadointerior.com.br", cat: "Geral", uf: "—", tier: "C", reach: 18600, tokens: 0, color: "#2F8A5B" },
+  { id: "v128", name: "Portalr3", domain: "portalr3.com.br", cat: "Geral", uf: "—", tier: "C", reach: 18400, tokens: 0, color: "#2F8A5B" },
+  { id: "v129", name: "G37", domain: "g37.com.br", cat: "Geral", uf: "—", tier: "D", reach: 18400, tokens: 0, color: "#946100" },
+  { id: "v130", name: "Baguete", domain: "baguete.com.br", cat: "Tecnologia", uf: "—", tier: "B", reach: 17800, tokens: 0, color: "#2A6FDB" },
+  { id: "v131", name: "Anoticiamais", domain: "anoticiamais.com.br", cat: "Geral", uf: "—", tier: "D", reach: 17700, tokens: 0, color: "#946100" },
+  { id: "v132", name: "Propagandashistoricas", domain: "propagandashistoricas.com.br", cat: "Geral", uf: "—", tier: "C", reach: 17300, tokens: 0, color: "#2F8A5B" },
+  { id: "v133", name: "Leianoticias", domain: "leianoticias.com.br", cat: "Geral", uf: "—", tier: "C", reach: 17300, tokens: 0, color: "#2F8A5B" },
+  { id: "v134", name: "Rcwtv", domain: "rcwtv.com.br", cat: "Geral", uf: "—", tier: "D", reach: 17000, tokens: 0, color: "#946100" },
+  { id: "v135", name: "Gazetadetaubate", domain: "gazetadetaubate.com.br", cat: "Geral", uf: "—", tier: "D", reach: 16200, tokens: 0, color: "#946100" },
+  { id: "v136", name: "Saojoaquimonline", domain: "saojoaquimonline.com.br", cat: "Geral", uf: "—", tier: "C", reach: 15500, tokens: 0, color: "#2F8A5B" },
+  { id: "v137", name: "Portalcruzeirense", domain: "portalcruzeirense.com.br", cat: "Geral", uf: "—", tier: "D", reach: 15500, tokens: 0, color: "#946100" },
+  { id: "v138", name: "Bonsfluidos", domain: "bonsfluidos.com.br", cat: "Geral", uf: "—", tier: "C", reach: 15200, tokens: 0, color: "#2F8A5B" },
+  { id: "v139", name: "Giro matanorte", domain: "giro.matanorte.com", cat: "Geral", uf: "—", tier: "D", reach: 15000, tokens: 0, color: "#946100" },
+  { id: "v140", name: "Sobralonline", domain: "sobralonline.com.br", cat: "Geral", uf: "—", tier: "D", reach: 14800, tokens: 0, color: "#946100" },
+  { id: "v141", name: "Gmaisnoticias", domain: "gmaisnoticias.com", cat: "Geral", uf: "—", tier: "D", reach: 13500, tokens: 0, color: "#946100" },
+  { id: "v142", name: "Mogiguacuacontece", domain: "mogiguacuacontece.com.br", cat: "Geral", uf: "—", tier: "D", reach: 13300, tokens: 0, color: "#946100" },
+  { id: "v143", name: "Cartaodevisita r7", domain: "cartaodevisita.r7.com", cat: "Geral", uf: "—", tier: "B", reach: 13000, tokens: 0, color: "#2A6FDB" },
+  { id: "v144", name: "Saoroquenoticias", domain: "saoroquenoticias.com.br", cat: "Geral", uf: "—", tier: "D", reach: 12500, tokens: 0, color: "#946100" },
+  { id: "v145", name: "Omunicipiojoinville", domain: "omunicipiojoinville.com", cat: "Geral", uf: "—", tier: "D", reach: 12300, tokens: 0, color: "#946100" },
+  { id: "v146", name: "Gazetadoagreste", domain: "gazetadoagreste.com.br", cat: "Geral", uf: "—", tier: "D", reach: 11900, tokens: 0, color: "#946100" },
+  { id: "v147", name: "Pragmatismopolitico", domain: "pragmatismopolitico.com.br", cat: "Geral", uf: "—", tier: "A", reach: 11700, tokens: 0, color: "#1A1A1A" },
+  { id: "v148", name: "Correionoticia", domain: "correionoticia.com.br", cat: "Geral", uf: "—", tier: "D", reach: 10800, tokens: 0, color: "#946100" },
+  { id: "v149", name: "Correionoticia", domain: "correionoticia.com.br", cat: "Geral", uf: "—", tier: "D", reach: 10800, tokens: 0, color: "#946100" },
+  { id: "v150", name: "Meganesia", domain: "meganesia.com.br", cat: "Geral", uf: "—", tier: "D", reach: 10644, tokens: 0, color: "#946100" },
+  { id: "v151", name: "Cucadecrente", domain: "cucadecrente.com.br", cat: "Geral", uf: "—", tier: "D", reach: 10500, tokens: 0, color: "#946100" },
+  { id: "v152", name: "Observatoriodegames", domain: "observatoriodegames.com.br", cat: "Geral", uf: "—", tier: "D", reach: 10400, tokens: 0, color: "#946100" },
+  { id: "v153", name: "Riachaonet", domain: "riachaonet.com.br", cat: "Geral", uf: "—", tier: "D", reach: 10100, tokens: 0, color: "#946100" },
+  { id: "v154", name: "Piauihoje", domain: "piauihoje.com", cat: "Geral", uf: "—", tier: "C", reach: 10000, tokens: 0, color: "#2F8A5B" },
+  { id: "v155", name: "Revista tec", domain: "revista.tec.br", cat: "Geral", uf: "—", tier: "C", reach: 10000, tokens: 0, color: "#2F8A5B" },
+  { id: "v156", name: "Gazetadasemana", domain: "gazetadasemana.com.br", cat: "Geral", uf: "—", tier: "D", reach: 10000, tokens: 0, color: "#946100" },
+  { id: "v157", name: "Radiosampaio", domain: "radiosampaio.com.br", cat: "Geral", uf: "—", tier: "D", reach: 10000, tokens: 0, color: "#946100" },
+  { id: "v158", name: "Itamarajunoticias", domain: "itamarajunoticias.com.br", cat: "Geral", uf: "—", tier: "D", reach: 10000, tokens: 0, color: "#946100" },
+  { id: "v159", name: "Gazetadevotorantim", domain: "gazetadevotorantim.com.br", cat: "Geral", uf: "—", tier: "D", reach: 9800, tokens: 0, color: "#946100" },
+  { id: "v160", name: "Fatosdesconhecidos", domain: "fatosdesconhecidos.com.br", cat: "Geral", uf: "—", tier: "B", reach: 9700, tokens: 0, color: "#2A6FDB" },
+  { id: "v161", name: "Rolnews", domain: "rolnews.com.br", cat: "Geral", uf: "—", tier: "D", reach: 9400, tokens: 0, color: "#946100" },
+  { id: "v162", name: "Pordentrodeminas", domain: "pordentrodeminas.com.br", cat: "Geral", uf: "—", tier: "D", reach: 8900, tokens: 0, color: "#946100" },
+  { id: "v163", name: "Montesclaros", domain: "montesclaros.com", cat: "Geral", uf: "—", tier: "C", reach: 8500, tokens: 0, color: "#2F8A5B" },
+  { id: "v164", name: "Olivre", domain: "olivre.com.br", cat: "Geral", uf: "—", tier: "C", reach: 8200, tokens: 0, color: "#2F8A5B" },
+  { id: "v165", name: "Rondoniadinamica", domain: "rondoniadinamica.com", cat: "Geral", uf: "—", tier: "C", reach: 8100, tokens: 0, color: "#2F8A5B" },
+  { id: "v166", name: "Alexferraz", domain: "alexferraz.com.br", cat: "Geral", uf: "—", tier: "D", reach: 8000, tokens: 0, color: "#946100" },
+  { id: "v167", name: "Obaianao", domain: "obaianao.com.br", cat: "Geral", uf: "—", tier: "D", reach: 7934, tokens: 0, color: "#946100" },
+  { id: "v168", name: "Letage", domain: "letage.com.br", cat: "Geral", uf: "—", tier: "D", reach: 7800, tokens: 0, color: "#946100" },
+  { id: "v169", name: "Sitebarra", domain: "sitebarra.com.br", cat: "Geral", uf: "—", tier: "D", reach: 7700, tokens: 0, color: "#946100" },
+  { id: "v170", name: "Revistafatorbrasil", domain: "revistafatorbrasil.com.br", cat: "Geral", uf: "—", tier: "C", reach: 7600, tokens: 0, color: "#2F8A5B" },
+  { id: "v171", name: "Vitoriadaconquistanoticias", domain: "vitoriadaconquistanoticias.com.br", cat: "Geral", uf: "—", tier: "D", reach: 7600, tokens: 0, color: "#946100" },
+  { id: "v172", name: "Epopnaweb", domain: "epopnaweb.com.br", cat: "Geral", uf: "—", tier: "D", reach: 7500, tokens: 0, color: "#946100" },
+  { id: "v173", name: "Newsrondonia", domain: "newsrondonia.com.br", cat: "Geral", uf: "—", tier: "C", reach: 7400, tokens: 0, color: "#2F8A5B" },
+  { id: "v174", name: "Mercadohoje Uai", domain: "mercadohoje.uai.com.br", cat: "Geral", uf: "—", tier: "A", reach: 7300, tokens: 0, color: "#1A1A1A" },
+  { id: "v175", name: "Atualizabahia", domain: "atualizabahia.com.br", cat: "Geral", uf: "—", tier: "D", reach: 7100, tokens: 0, color: "#946100" },
+  { id: "v176", name: "Colunaboraviajar", domain: "colunaboraviajar.com.br", cat: "Geral", uf: "—", tier: "F", reach: 7000, tokens: 0, color: "#C2452E" },
+  { id: "v177", name: "Manausonline", domain: "manausonline.com", cat: "Geral", uf: "—", tier: "D", reach: 6900, tokens: 0, color: "#946100" },
+  { id: "v178", name: "Tvconcordia", domain: "tvconcordia.com.br", cat: "Geral", uf: "—", tier: "F", reach: 6900, tokens: 0, color: "#C2452E" },
+  { id: "v179", name: "Revistacentral", domain: "revistacentral.com.br", cat: "Geral", uf: "—", tier: "C", reach: 6500, tokens: 0, color: "#2F8A5B" },
+  { id: "v180", name: "Criativaonline", domain: "criativaonline.com.br", cat: "Geral", uf: "—", tier: "C", reach: 6400, tokens: 0, color: "#2F8A5B" },
+  { id: "v181", name: "Jornalocapixaba", domain: "jornalocapixaba.com.br", cat: "Geral", uf: "—", tier: "D", reach: 6400, tokens: 0, color: "#946100" },
+  { id: "v182", name: "Es1", domain: "es1.com.br", cat: "Geral", uf: "—", tier: "D", reach: 6000, tokens: 0, color: "#946100" },
+  { id: "v183", name: "Jornaldocorpo", domain: "jornaldocorpo.com.br", cat: "Saúde", uf: "—", tier: "F", reach: 6000, tokens: 0, color: "#C2452E" },
+  { id: "v184", name: "Portaldopalmeirense", domain: "portaldopalmeirense.com.br", cat: "Geral", uf: "—", tier: "D", reach: 5900, tokens: 0, color: "#946100" },
+  { id: "v185", name: "Planetafolha", domain: "planetafolha.com.br", cat: "Geral", uf: "—", tier: "D", reach: 5900, tokens: 0, color: "#946100" },
+  { id: "v186", name: "Tosabendomais", domain: "tosabendomais.com.br", cat: "Geral", uf: "—", tier: "F", reach: 5700, tokens: 0, color: "#C2452E" },
+  { id: "v187", name: "Tonafama ig", domain: "tonafama.ig.com.br", cat: "Geral", uf: "—", tier: "A", reach: 5600, tokens: 0, color: "#1A1A1A" },
+  { id: "v188", name: "Petrolandianoticias", domain: "petrolandianoticias.com.br", cat: "Geral", uf: "—", tier: "D", reach: 5600, tokens: 0, color: "#946100" },
+  { id: "v189", name: "Mfpdigital", domain: "mfpdigital.com.br", cat: "Geral", uf: "—", tier: "B", reach: 5400, tokens: 0, color: "#2A6FDB" },
+  { id: "v190", name: "Folhadevilhena", domain: "folhadevilhena.com.br", cat: "Geral", uf: "—", tier: "D", reach: 5400, tokens: 0, color: "#946100" },
+  { id: "v191", name: "Diariodeprofissoes", domain: "diariodeprofissoes.com.br", cat: "Geral", uf: "—", tier: "D", reach: 5200, tokens: 0, color: "#946100" },
+  { id: "v192", name: "Tribunadecianorte", domain: "tribunadecianorte.com.br", cat: "Geral", uf: "—", tier: "D", reach: 5100, tokens: 0, color: "#946100" },
+  { id: "v193", name: "Didigalvao", domain: "didigalvao.com.br", cat: "Geral", uf: "—", tier: "C", reach: 5000, tokens: 0, color: "#2F8A5B" },
+  { id: "v194", name: "Tribunadomoxoto", domain: "tribunadomoxoto.com", cat: "Geral", uf: "—", tier: "D", reach: 5000, tokens: 0, color: "#946100" },
+  { id: "v195", name: "Cellebriway", domain: "cellebriway.com.br", cat: "Entretenimento", uf: "—", tier: "F", reach: 5000, tokens: 0, color: "#C2452E" },
+  { id: "v196", name: "Amambainoticias", domain: "amambainoticias.com.br", cat: "Geral", uf: "—", tier: "C", reach: 4800, tokens: 0, color: "#2F8A5B" },
+  { id: "v197", name: "Oitomeia", domain: "oitomeia.com.br", cat: "Geral", uf: "—", tier: "C", reach: 4600, tokens: 0, color: "#2F8A5B" },
+  { id: "v198", name: "Networkflow", domain: "networkflow.com.br", cat: "Geral", uf: "—", tier: "D", reach: 4587, tokens: 0, color: "#946100" },
+  { id: "v199", name: "Todosegundo", domain: "todosegundo.com.br", cat: "Geral", uf: "—", tier: "D", reach: 4527, tokens: 0, color: "#946100" },
+  { id: "v200", name: "Oqueassistir", domain: "oqueassistir.com.br", cat: "Geral", uf: "—", tier: "D", reach: 4300, tokens: 0, color: "#946100" },
+  { id: "v201", name: "Portalmidia", domain: "portalmidia.net", cat: "Geral", uf: "—", tier: "D", reach: 4000, tokens: 0, color: "#946100" },
+  { id: "v202", name: "Materialivre", domain: "materialivre.com", cat: "Geral", uf: "—", tier: "F", reach: 4000, tokens: 0, color: "#C2452E" },
+  { id: "v203", name: "Portaldocolorado", domain: "portaldocolorado.com.br", cat: "Geral", uf: "—", tier: "C", reach: 3900, tokens: 0, color: "#2F8A5B" },
+  { id: "v204", name: "Portaldecamaqua", domain: "portaldecamaqua.com.br", cat: "Geral", uf: "—", tier: "D", reach: 3900, tokens: 0, color: "#946100" },
+  { id: "v205", name: "Agencianyx", domain: "agencianyx.com.br", cat: "Geral", uf: "—", tier: "C", reach: 3400, tokens: 0, color: "#2F8A5B" },
+  { id: "v206", name: "Bzcapital", domain: "bzcapital.com.br", cat: "Geral", uf: "—", tier: "D", reach: 3400, tokens: 0, color: "#946100" },
+  { id: "v207", name: "Brasilagoraonline", domain: "brasilagoraonline.com.br", cat: "Geral", uf: "—", tier: "D", reach: 3400, tokens: 0, color: "#946100" },
+  { id: "v208", name: "Portaldosaopaulino", domain: "portaldosaopaulino.com.br", cat: "Geral", uf: "—", tier: "D", reach: 3300, tokens: 0, color: "#946100" },
+  { id: "v209", name: "Nativanews", domain: "nativanews.com.br", cat: "Geral", uf: "—", tier: "D", reach: 3300, tokens: 0, color: "#946100" },
+  { id: "v210", name: "Fleety", domain: "fleety.com.br", cat: "Geral", uf: "—", tier: "C", reach: 3200, tokens: 0, color: "#2F8A5B" },
+  { id: "v211", name: "Manequim", domain: "manequim.com.br", cat: "Geral", uf: "—", tier: "C", reach: 3200, tokens: 0, color: "#2F8A5B" },
+  { id: "v212", name: "Ciberlex", domain: "ciberlex.adv.br", cat: "Geral", uf: "—", tier: "D", reach: 3200, tokens: 0, color: "#946100" },
+  { id: "v213", name: "Contatados", domain: "contatados.com.br", cat: "Geral", uf: "—", tier: "D", reach: 3100, tokens: 0, color: "#946100" },
+  { id: "v214", name: "Techblog", domain: "techblog.app.br", cat: "Geral", uf: "—", tier: "B", reach: 3000, tokens: 0, color: "#2A6FDB" },
+  { id: "v215", name: "Webcitizen", domain: "webcitizen.com.br", cat: "Geral", uf: "—", tier: "B", reach: 3000, tokens: 0, color: "#2A6FDB" },
+  { id: "v216", name: "Folhadepiedade", domain: "folhadepiedade.com.br", cat: "Geral", uf: "—", tier: "B", reach: 3000, tokens: 0, color: "#2A6FDB" },
+  { id: "v217", name: "Alagoas200", domain: "alagoas200.com.br", cat: "Geral", uf: "—", tier: "B", reach: 3000, tokens: 0, color: "#2A6FDB" },
+  { id: "v218", name: "Vivofutebol", domain: "vivofutebol.com.br", cat: "Geral", uf: "—", tier: "C", reach: 3000, tokens: 0, color: "#2F8A5B" },
+  { id: "v219", name: "Professortrabalhista", domain: "professortrabalhista.adv.br", cat: "Geral", uf: "—", tier: "D", reach: 2900, tokens: 0, color: "#946100" },
+  { id: "v220", name: "Idade", domain: "idade.org", cat: "Geral", uf: "—", tier: "C", reach: 2700, tokens: 0, color: "#2F8A5B" },
+  { id: "v221", name: "Virgula", domain: "virgula", cat: "Geral", uf: "—", tier: "D", reach: 2508, tokens: 0, color: "#946100" },
+  { id: "v222", name: "Ebookcult", domain: "ebookcult.com.br", cat: "Geral", uf: "—", tier: "C", reach: 2500, tokens: 0, color: "#2F8A5B" },
+  { id: "v223", name: "Cnrt", domain: "cnrt.com.br", cat: "Geral", uf: "—", tier: "C", reach: 2500, tokens: 0, color: "#2F8A5B" },
+  { id: "v224", name: "Adonline", domain: "adonline.com.br", cat: "Geral", uf: "—", tier: "D", reach: 2500, tokens: 0, color: "#946100" },
+  { id: "v225", name: "Lucamoreira", domain: "lucamoreira.com.br", cat: "Geral", uf: "—", tier: "D", reach: 2500, tokens: 0, color: "#946100" },
+  { id: "v226", name: "4maos", domain: "4maos.com.br", cat: "Geral", uf: "—", tier: "C", reach: 2400, tokens: 0, color: "#2F8A5B" },
+  { id: "v227", name: "Passportnet", domain: "passportnet.com.br", cat: "Geral", uf: "—", tier: "D", reach: 2400, tokens: 0, color: "#946100" },
+  { id: "v228", name: "Portalct", domain: "portalct.com.br", cat: "Geral", uf: "—", tier: "D", reach: 2400, tokens: 0, color: "#946100" },
+  { id: "v229", name: "Inmais", domain: "inmais.com.br", cat: "Geral", uf: "—", tier: "C", reach: 2358, tokens: 0, color: "#2F8A5B" },
+  { id: "v230", name: "Sopacultural", domain: "sopacultural.com", cat: "Geral", uf: "—", tier: "C", reach: 2300, tokens: 0, color: "#2F8A5B" },
+  { id: "v231", name: "Agiletesters", domain: "agiletesters.com.br", cat: "Geral", uf: "—", tier: "C", reach: 2300, tokens: 0, color: "#2F8A5B" },
+  { id: "v232", name: "Designertours", domain: "designertours.com.br", cat: "Geral", uf: "—", tier: "C", reach: 2200, tokens: 0, color: "#2F8A5B" },
+  { id: "v233", name: "Affinibox", domain: "affinibox.com.br", cat: "Geral", uf: "—", tier: "D", reach: 2200, tokens: 0, color: "#946100" },
+  { id: "v234", name: "Correiodolitoral", domain: "correiodolitoral.com", cat: "Geral", uf: "—", tier: "C", reach: 2100, tokens: 0, color: "#2F8A5B" },
+  { id: "v235", name: "Gamebang", domain: "gamebang.com.br", cat: "Geral", uf: "—", tier: "C", reach: 2000, tokens: 0, color: "#2F8A5B" },
+  { id: "v236", name: "Jornalmontesclaros", domain: "jornalmontesclaros.com.br", cat: "Geral", uf: "—", tier: "C", reach: 2000, tokens: 0, color: "#2F8A5B" },
+  { id: "v237", name: "Vrsaopaulo", domain: "vrsaopaulo.com.br", cat: "Geral", uf: "—", tier: "D", reach: 2000, tokens: 0, color: "#946100" },
+  { id: "v238", name: "Frissononline", domain: "frissononline.com.br", cat: "Geral", uf: "—", tier: "D", reach: 2000, tokens: 0, color: "#946100" },
+  { id: "v239", name: "Amdjus", domain: "amdjus.com.br", cat: "Negócios", uf: "—", tier: "D", reach: 2000, tokens: 0, color: "#946100" },
+  { id: "v240", name: "Hpg", domain: "hpg.com.br", cat: "Geral", uf: "—", tier: "B", reach: 1900, tokens: 0, color: "#2A6FDB" },
+  { id: "v241", name: "Gentedeopiniao", domain: "gentedeopiniao.com.br", cat: "Geral", uf: "—", tier: "C", reach: 1900, tokens: 0, color: "#2F8A5B" },
+  { id: "v242", name: "Miniposts", domain: "miniposts.com.br", cat: "Geral", uf: "—", tier: "D", reach: 1900, tokens: 0, color: "#946100" },
+  { id: "v243", name: "Valenews", domain: "valenews.com.br", cat: "Geral", uf: "—", tier: "D", reach: 1900, tokens: 0, color: "#946100" },
+  { id: "v244", name: "Portonoticias", domain: "portonoticias.com.br", cat: "Geral", uf: "—", tier: "D", reach: 1900, tokens: 0, color: "#946100" },
+  { id: "v245", name: "Correiodointerior", domain: "correiodointerior.com.br", cat: "Geral", uf: "—", tier: "D", reach: 1800, tokens: 0, color: "#946100" },
+  { id: "v246", name: "Jornaldachapada", domain: "jornaldachapada.com.br", cat: "Geral", uf: "—", tier: "D", reach: 1800, tokens: 0, color: "#946100" },
+  { id: "v247", name: "Adital", domain: "adital.com.br", cat: "Geral", uf: "—", tier: "B", reach: 1700, tokens: 0, color: "#2A6FDB" },
+  { id: "v248", name: "Caras", domain: "caras.com.br", cat: "Geral", uf: "—", tier: "A", reach: 1600, tokens: 0, color: "#1A1A1A" },
+  { id: "v249", name: "Maranhaoesportes", domain: "maranhaoesportes.com", cat: "Geral", uf: "—", tier: "D", reach: 1600, tokens: 0, color: "#946100" },
+  { id: "v250", name: "Jornal seg", domain: "jornal.seg.br", cat: "Geral", uf: "—", tier: "C", reach: 1520, tokens: 0, color: "#2F8A5B" },
+  { id: "v251", name: "Prepbrasil", domain: "prepbrasil.com.br", cat: "Geral", uf: "—", tier: "D", reach: 1500, tokens: 0, color: "#946100" },
+  { id: "v252", name: "Somosnoticia", domain: "somosnoticia.com.br", cat: "Geral", uf: "—", tier: "D", reach: 1500, tokens: 0, color: "#946100" },
+  { id: "v253", name: "Observatoriodanoticia", domain: "observatoriodanoticia.com.br", cat: "Geral", uf: "—", tier: "B", reach: 1450, tokens: 0, color: "#2A6FDB" },
+  { id: "v254", name: "Cameracotidiana", domain: "cameracotidiana.com.br", cat: "Geral", uf: "—", tier: "B", reach: 1400, tokens: 0, color: "#2A6FDB" },
+  { id: "v255", name: "Trecobox", domain: "trecobox.com.br", cat: "Geral", uf: "—", tier: "C", reach: 1400, tokens: 0, color: "#2F8A5B" },
+  { id: "v256", name: "Sobreviveemsaopaulo", domain: "sobreviveemsaopaulo.com.br", cat: "Geral", uf: "—", tier: "D", reach: 1400, tokens: 0, color: "#946100" },
+  { id: "v257", name: "Lagosul", domain: "lagosul.com.br", cat: "Geral", uf: "—", tier: "D", reach: 1400, tokens: 0, color: "#946100" },
+  { id: "v258", name: "Barrasvirtual", domain: "barrasvirtual.com.br", cat: "Geral", uf: "—", tier: "D", reach: 1400, tokens: 0, color: "#946100" },
+  { id: "v259", name: "Pacoimperial", domain: "pacoimperial.com.br", cat: "Geral", uf: "—", tier: "B", reach: 1300, tokens: 0, color: "#2A6FDB" },
+  { id: "v260", name: "Celular1", domain: "celular1.com.br", cat: "Tecnologia", uf: "—", tier: "B", reach: 1300, tokens: 0, color: "#2A6FDB" },
+  { id: "v261", name: "F5online", domain: "f5online.com.br", cat: "Geral", uf: "—", tier: "D", reach: 1300, tokens: 0, color: "#946100" },
+  { id: "v262", name: "Canaljustica", domain: "canaljustica.jor.br", cat: "Geral", uf: "—", tier: "D", reach: 1300, tokens: 0, color: "#946100" },
+  { id: "v263", name: "Omaranhense", domain: "omaranhense.com", cat: "Geral", uf: "—", tier: "D", reach: 1300, tokens: 0, color: "#946100" },
+  { id: "v264", name: "Jogosdebola", domain: "jogosdebola.com", cat: "Geral", uf: "—", tier: "B", reach: 1200, tokens: 0, color: "#2A6FDB" },
+  { id: "v265", name: "Previdenciasimples", domain: "previdenciasimples.com", cat: "Geral", uf: "—", tier: "C", reach: 1200, tokens: 0, color: "#2F8A5B" },
+  { id: "v266", name: "Itrabalhistas", domain: "itrabalhistas.com.br", cat: "Geral", uf: "—", tier: "C", reach: 1200, tokens: 0, color: "#2F8A5B" },
+  { id: "v267", name: "Sp2040", domain: "sp2040.net.br", cat: "Geral", uf: "—", tier: "B", reach: 1187, tokens: 0, color: "#2A6FDB" },
+  { id: "v268", name: "Tcfoco", domain: "tcfoco.com.br", cat: "Geral", uf: "—", tier: "C", reach: 1159, tokens: 0, color: "#2F8A5B" },
+  { id: "v269", name: "Setorneinvestidor", domain: "setorneinvestidor.net", cat: "Geral", uf: "—", tier: "F", reach: 1149, tokens: 0, color: "#C2452E" },
+  { id: "v270", name: "Phpconf", domain: "phpconf.com.br", cat: "Geral", uf: "—", tier: "C", reach: 1100, tokens: 0, color: "#2F8A5B" },
+  { id: "v271", name: "Revistarumo", domain: "revistarumo.com.br", cat: "Geral", uf: "—", tier: "C", reach: 1100, tokens: 0, color: "#2F8A5B" },
+  { id: "v272", name: "News tec", domain: "news.tec.br", cat: "Geral", uf: "—", tier: "C", reach: 1100, tokens: 0, color: "#2F8A5B" },
+  { id: "v273", name: "Jornaldobelem", domain: "jornaldobelem.com.br", cat: "Geral", uf: "—", tier: "D", reach: 1100, tokens: 0, color: "#946100" },
+  { id: "v274", name: "Andrezzabarros", domain: "andrezzabarros.com", cat: "Geral", uf: "—", tier: "D", reach: 1100, tokens: 0, color: "#946100" },
+  { id: "v275", name: "Dicasdeniteroi", domain: "dicasdeniteroi.com.br", cat: "Geral", uf: "—", tier: "F", reach: 1100, tokens: 0, color: "#C2452E" },
+  { id: "v276", name: "Cidadenoar", domain: "cidadenoar.com", cat: "Geral", uf: "—", tier: "C", reach: 1002, tokens: 0, color: "#2F8A5B" },
+  { id: "v277", name: "Carteiradetrabalho", domain: "carteiradetrabalho.digital", cat: "Geral", uf: "—", tier: "C", reach: 1000, tokens: 0, color: "#2F8A5B" },
+  { id: "v278", name: "Portalolhardinamico", domain: "portalolhardinamico.com.br", cat: "Geral", uf: "—", tier: "D", reach: 1000, tokens: 0, color: "#946100" },
+  { id: "v279", name: "Financaspessoais", domain: "financaspessoais.blog.br", cat: "Economia", uf: "—", tier: "D", reach: 1000, tokens: 0, color: "#946100" },
+  { id: "v280", name: "Revistamind an9", domain: "revistamind.an9.com.br", cat: "Geral", uf: "—", tier: "D", reach: 1000, tokens: 0, color: "#946100" },
+  { id: "v281", name: "Newswire", domain: "newswire.com.br", cat: "Geral", uf: "—", tier: "F", reach: 1000, tokens: 0, color: "#C2452E" },
+  { id: "v282", name: "Soumaispop", domain: "soumaispop.com.br", cat: "Geral", uf: "—", tier: "F", reach: 1000, tokens: 0, color: "#C2452E" },
+  { id: "v283", name: "Papodebicho", domain: "papodebicho.com.br", cat: "Saúde", uf: "—", tier: "F", reach: 1000, tokens: 0, color: "#C2452E" },
+  { id: "v284", name: "Radardorio", domain: "radardorio.com.br", cat: "Geral", uf: "—", tier: "F", reach: 1000, tokens: 0, color: "#C2452E" },
+  { id: "v285", name: "Projetocasa", domain: "projetocasa.com.br", cat: "Geral", uf: "—", tier: "F", reach: 1000, tokens: 0, color: "#C2452E" },
+  { id: "v286", name: "Arena360", domain: "arena360.com.br", cat: "Geral", uf: "—", tier: "F", reach: 1000, tokens: 0, color: "#C2452E" },
+  { id: "v287", name: "Nosdomorro", domain: "nosdomorro.com.br", cat: "Geral", uf: "—", tier: "B", reach: 980, tokens: 0, color: "#2A6FDB" },
+  { id: "v288", name: "1news correiobraziliense", domain: "1news.correiobraziliense.com.br", cat: "Geral", uf: "—", tier: "A", reach: 958, tokens: 0, color: "#1A1A1A" },
+  { id: "v289", name: "Extraguarapuava", domain: "extraguarapuava.com.br", cat: "Geral", uf: "—", tier: "D", reach: 944, tokens: 0, color: "#946100" },
+  { id: "v290", name: "Contabilidadecidada", domain: "contabilidadecidada.com.br", cat: "Geral", uf: "—", tier: "F", reach: 939, tokens: 0, color: "#C2452E" },
+  { id: "v291", name: "Ortopedistadeombro", domain: "ortopedistadeombro.com.br", cat: "Geral", uf: "—", tier: "C", reach: 913, tokens: 0, color: "#2F8A5B" },
+  { id: "v292", name: "Tribunaregiao", domain: "tribunaregiao.com.br", cat: "Geral", uf: "—", tier: "C", reach: 887, tokens: 0, color: "#2F8A5B" },
+  { id: "v293", name: "Comofazerdicas", domain: "comofazerdicas.com.br", cat: "Geral", uf: "—", tier: "D", reach: 874, tokens: 0, color: "#946100" },
+  { id: "v294", name: "Namidia", domain: "namidia.com.br", cat: "Geral", uf: "—", tier: "D", reach: 873, tokens: 0, color: "#946100" },
+  { id: "v295", name: "Sb24horas", domain: "sb24horas.com.br", cat: "Geral", uf: "—", tier: "D", reach: 859, tokens: 0, color: "#946100" },
+  { id: "v296", name: "Sportingforever", domain: "sportingforever.com", cat: "Geral", uf: "—", tier: "C", reach: 858, tokens: 0, color: "#2F8A5B" },
+  { id: "v297", name: "Portaldostimes", domain: "portaldostimes.com.br", cat: "Geral", uf: "—", tier: "D", reach: 848, tokens: 0, color: "#946100" },
+  { id: "v298", name: "Revistadeducao", domain: "revistadeducao.com.br", cat: "Geral", uf: "—", tier: "C", reach: 831, tokens: 0, color: "#2F8A5B" },
+  { id: "v299", name: "Revistadeducao", domain: "revistadeducao.com.br", cat: "Geral", uf: "—", tier: "C", reach: 831, tokens: 0, color: "#2F8A5B" },
+  { id: "v300", name: "Maracanet", domain: "maracanet.com", cat: "Geral", uf: "—", tier: "D", reach: 808, tokens: 0, color: "#946100" },
+  { id: "v301", name: "Correio seg", domain: "correio.seg.br", cat: "Geral", uf: "—", tier: "C", reach: 787, tokens: 0, color: "#2F8A5B" },
+  { id: "v302", name: "Vidadeviajante", domain: "vidadeviajante.com.br", cat: "Geral", uf: "—", tier: "D", reach: 764, tokens: 0, color: "#946100" },
+  { id: "v303", name: "Tribunaemfoco", domain: "tribunaemfoco.com.br", cat: "Geral", uf: "—", tier: "D", reach: 764, tokens: 0, color: "#946100" },
+  { id: "v304", name: "Jornal log", domain: "jornal.log.br", cat: "Geral", uf: "—", tier: "D", reach: 763, tokens: 0, color: "#946100" },
+  { id: "v305", name: "Glasses4you", domain: "glasses4you.com.br", cat: "Geral", uf: "—", tier: "C", reach: 722, tokens: 0, color: "#2F8A5B" },
+  { id: "v306", name: "Realnews", domain: "realnews.com.br", cat: "Geral", uf: "—", tier: "D", reach: 707, tokens: 0, color: "#946100" },
+  { id: "v307", name: "Acontecenors", domain: "acontecenors.com.br", cat: "Geral", uf: "—", tier: "D", reach: 673, tokens: 0, color: "#946100" },
+  { id: "v308", name: "Devoltaparaocinema", domain: "devoltaparaocinema.com.br", cat: "Geral", uf: "—", tier: "C", reach: 651, tokens: 0, color: "#2F8A5B" },
+  { id: "v309", name: "Folhanobre", domain: "folhanobre.com.br", cat: "Geral", uf: "—", tier: "C", reach: 639, tokens: 0, color: "#2F8A5B" },
+  { id: "v310", name: "Agora To", domain: "agora-to.com.br", cat: "Geral", uf: "—", tier: "D", reach: 627, tokens: 0, color: "#946100" },
+  { id: "v311", name: "Gazetaderondonia", domain: "gazetaderondonia.com.br", cat: "Geral", uf: "—", tier: "C", reach: 610, tokens: 0, color: "#2F8A5B" },
+  { id: "v312", name: "Salariomaternidade", domain: "salariomaternidade.com.br", cat: "Geral", uf: "—", tier: "C", reach: 576, tokens: 0, color: "#2F8A5B" },
+  { id: "v313", name: "Gazetaregional", domain: "gazetaregional.com", cat: "Geral", uf: "—", tier: "D", reach: 568, tokens: 0, color: "#946100" },
+  { id: "v314", name: "Teixeiraemfoco", domain: "teixeiraemfoco.com.br", cat: "Geral", uf: "—", tier: "C", reach: 561, tokens: 0, color: "#2F8A5B" },
+  { id: "v315", name: "Epopnaweb", domain: "epopnaweb.com.br", cat: "Geral", uf: "—", tier: "D", reach: 550, tokens: 0, color: "#946100" },
+  { id: "v316", name: "Estadodoparana", domain: "estadodoparana.com", cat: "Geral", uf: "—", tier: "D", reach: 498, tokens: 0, color: "#946100" },
+  { id: "v317", name: "Gazetadorio", domain: "gazetadorio.com.br", cat: "Geral", uf: "—", tier: "D", reach: 485, tokens: 0, color: "#946100" },
+  { id: "v318", name: "Informa curitiba", domain: "informa.curitiba.br", cat: "Geral", uf: "—", tier: "C", reach: 482, tokens: 0, color: "#2F8A5B" },
+  { id: "v319", name: "Abadianoticia", domain: "abadianoticia.com.br", cat: "Geral", uf: "—", tier: "C", reach: 468, tokens: 0, color: "#2F8A5B" },
+  { id: "v320", name: "Construcaoeacabamento", domain: "construcaoeacabamento.com.br", cat: "Geral", uf: "—", tier: "F", reach: 466, tokens: 0, color: "#C2452E" },
+  { id: "v321", name: "Fatocurioso", domain: "fatocurioso.info", cat: "Geral", uf: "—", tier: "D", reach: 458, tokens: 0, color: "#946100" },
+  { id: "v322", name: "Tonamidia", domain: "tonamidia.com.br", cat: "Entretenimento", uf: "—", tier: "D", reach: 449, tokens: 0, color: "#946100" },
+  { id: "v323", name: "Bloglge", domain: "bloglge.com.br", cat: "Geral", uf: "—", tier: "C", reach: 444, tokens: 0, color: "#2F8A5B" },
+  { id: "v324", name: "Sosnoticias", domain: "sosnoticias.com.br", cat: "Geral", uf: "—", tier: "D", reach: 428, tokens: 0, color: "#946100" },
+  { id: "v325", name: "Noticiasatual", domain: "noticiasatual.com", cat: "Geral", uf: "—", tier: "D", reach: 414, tokens: 0, color: "#946100" },
+  { id: "v326", name: "Advogadosemsaopaulosp", domain: "advogadosemsaopaulosp.com.br", cat: "Jurídico", uf: "—", tier: "D", reach: 400, tokens: 0, color: "#946100" },
+  { id: "v327", name: "Clubemetropole", domain: "clubemetropole.com.br", cat: "Geral", uf: "—", tier: "C", reach: 397, tokens: 0, color: "#2F8A5B" },
+  { id: "v328", name: "Assisnoticias", domain: "assisnoticias.com.br", cat: "Geral", uf: "—", tier: "D", reach: 395, tokens: 0, color: "#946100" },
+  { id: "v329", name: "Clickcampos", domain: "clickcampos.com", cat: "Geral", uf: "—", tier: "F", reach: 395, tokens: 0, color: "#C2452E" },
+  { id: "v330", name: "Jornalasemana", domain: "jornalasemana.com.br", cat: "Geral", uf: "—", tier: "D", reach: 366, tokens: 0, color: "#946100" },
+  { id: "v331", name: "Sabedoriaglobal", domain: "sabedoriaglobal.com.br", cat: "Saúde", uf: "—", tier: "B", reach: 360, tokens: 0, color: "#2A6FDB" },
+  { id: "v332", name: "Saudeacessivel", domain: "saudeacessivel.com.br", cat: "Saúde", uf: "—", tier: "B", reach: 352, tokens: 0, color: "#2A6FDB" },
+  { id: "v333", name: "Portaldogamer", domain: "portaldogamer.com.br", cat: "Geral", uf: "—", tier: "B", reach: 352, tokens: 0, color: "#2A6FDB" },
+  { id: "v334", name: "Portalyoba", domain: "portalyoba.com.br", cat: "Geral", uf: "—", tier: "D", reach: 348, tokens: 0, color: "#946100" },
+  { id: "v335", name: "Botucatuonline", domain: "botucatuonline.com", cat: "Geral", uf: "—", tier: "D", reach: 346, tokens: 0, color: "#946100" },
+  { id: "v336", name: "Businessideas", domain: "businessideas.com.br", cat: "Geral", uf: "—", tier: "D", reach: 346, tokens: 0, color: "#946100" },
+  { id: "v337", name: "Meubanco", domain: "meubanco.digital", cat: "Geral", uf: "—", tier: "C", reach: 343, tokens: 0, color: "#2F8A5B" },
+  { id: "v338", name: "Universarioscristaos", domain: "universarioscristaos.com.br", cat: "Geral", uf: "—", tier: "D", reach: 324, tokens: 0, color: "#946100" },
+  { id: "v339", name: "Folhadeparnaiba", domain: "folhadeparnaiba.com.br", cat: "Geral", uf: "—", tier: "C", reach: 308, tokens: 0, color: "#2F8A5B" },
+  { id: "v340", name: "Euamomeusanimais", domain: "euamomeusanimais.com.br", cat: "Geral", uf: "—", tier: "D", reach: 302, tokens: 0, color: "#946100" },
+  { id: "v341", name: "Timesbrasilia", domain: "timesbrasilia.com.br", cat: "Geral", uf: "—", tier: "D", reach: 301, tokens: 0, color: "#946100" },
+  { id: "v342", name: "Portalgc", domain: "portalgc.com.br", cat: "Geral", uf: "—", tier: "C", reach: 300, tokens: 0, color: "#2F8A5B" },
+  { id: "v343", name: "Clickjornal", domain: "clickjornal.com", cat: "Geral", uf: "—", tier: "D", reach: 299, tokens: 0, color: "#946100" },
+  { id: "v344", name: "Portalz tec", domain: "portalz.tec.br", cat: "Geral", uf: "—", tier: "C", reach: 297, tokens: 0, color: "#2F8A5B" },
+  { id: "v345", name: "Cirurgiacoracao", domain: "cirurgiacoracao.com.br", cat: "Saúde", uf: "—", tier: "F", reach: 297, tokens: 0, color: "#C2452E" },
+  { id: "v346", name: "Portalrmc", domain: "portalrmc.net", cat: "Geral", uf: "—", tier: "C", reach: 295, tokens: 0, color: "#2F8A5B" },
+  { id: "v347", name: "Setorenergetico", domain: "setorenergetico.com.br", cat: "Geral", uf: "—", tier: "B", reach: 285, tokens: 0, color: "#2A6FDB" },
+  { id: "v348", name: "Nahoraonline", domain: "nahoraonline.com", cat: "Geral", uf: "—", tier: "D", reach: 268, tokens: 0, color: "#946100" },
+  { id: "v349", name: "Diariodaborborema", domain: "diariodaborborema.com.br", cat: "Geral", uf: "—", tier: "D", reach: 266, tokens: 0, color: "#946100" },
+  { id: "v350", name: "Onortao", domain: "onortao.com.br", cat: "Geral", uf: "—", tier: "C", reach: 260, tokens: 0, color: "#2F8A5B" },
+  { id: "v351", name: "Cirurgiadacatarata", domain: "cirurgiadacatarata.com.br", cat: "Saúde", uf: "—", tier: "D", reach: 258, tokens: 0, color: "#946100" },
+  { id: "v352", name: "Advivo", domain: "advivo.com.br", cat: "Negócios", uf: "—", tier: "B", reach: 255, tokens: 0, color: "#2A6FDB" },
+  { id: "v353", name: "Minhaconquista", domain: "minhaconquista.digital", cat: "Geral", uf: "—", tier: "D", reach: 255, tokens: 0, color: "#946100" },
+  { id: "v354", name: "Cirurgiadecancer", domain: "cirurgiadecancer.com.br", cat: "Saúde", uf: "—", tier: "F", reach: 254, tokens: 0, color: "#C2452E" },
+  { id: "v355", name: "Paisagismobrasil", domain: "paisagismobrasil.com.br", cat: "Geral", uf: "—", tier: "C", reach: 253, tokens: 0, color: "#2F8A5B" },
+  { id: "v356", name: "Tribunadodia", domain: "tribunadodia.com.br", cat: "Geral", uf: "—", tier: "F", reach: 250, tokens: 0, color: "#C2452E" },
+  { id: "v357", name: "Administracaopolitica", domain: "administracaopolitica.com.br", cat: "Geral", uf: "—", tier: "C", reach: 249, tokens: 0, color: "#2F8A5B" },
+  { id: "v358", name: "Embanewsonline", domain: "embanewsonline.com.br", cat: "Geral", uf: "—", tier: "C", reach: 242, tokens: 0, color: "#2F8A5B" },
+  { id: "v359", name: "Agrocotacoes", domain: "agrocotacoes.com.br", cat: "Geral", uf: "—", tier: "D", reach: 240, tokens: 0, color: "#946100" },
+  { id: "v360", name: "Luiziananoticias", domain: "luiziananoticias.com.br", cat: "Geral", uf: "—", tier: "C", reach: 226, tokens: 0, color: "#2F8A5B" },
+  { id: "v361", name: "Amadahipertrofia", domain: "amadahipertrofia.com", cat: "Geral", uf: "—", tier: "C", reach: 218, tokens: 0, color: "#2F8A5B" },
+  { id: "v362", name: "Tudosexo", domain: "tudosexo.com.br", cat: "Saúde", uf: "—", tier: "F", reach: 210, tokens: 0, color: "#C2452E" },
+  { id: "v363", name: "Gfama", domain: "gfama.com.br", cat: "Geral", uf: "—", tier: "F", reach: 205, tokens: 0, color: "#C2452E" },
+  { id: "v364", name: "Saopauloaberta", domain: "saopauloaberta.com.br", cat: "Geral", uf: "—", tier: "B", reach: 200, tokens: 0, color: "#2A6FDB" },
+  { id: "v365", name: "Siteego", domain: "siteego.com.br", cat: "Geral", uf: "—", tier: "F", reach: 200, tokens: 0, color: "#C2452E" },
+  { id: "v366", name: "Noticas24horas", domain: "noticas24horas.com.br", cat: "Geral", uf: "—", tier: "C", reach: 198, tokens: 0, color: "#2F8A5B" },
+  { id: "v367", name: "Paradis", domain: "paradis.com.br", cat: "Geral", uf: "—", tier: "D", reach: 192, tokens: 0, color: "#946100" },
+  { id: "v368", name: "Trespassosnews", domain: "trespassosnews.com.br", cat: "Geral", uf: "—", tier: "D", reach: 191, tokens: 0, color: "#946100" },
+  { id: "v369", name: "Brazilurgente", domain: "brazilurgente.com.br", cat: "Geral", uf: "—", tier: "D", reach: 191, tokens: 0, color: "#946100" },
+  { id: "v370", name: "Hipnoseterapia", domain: "hipnoseterapia.org", cat: "Geral", uf: "—", tier: "C", reach: 189, tokens: 0, color: "#2F8A5B" },
+  { id: "v371", name: "Wtw19", domain: "wtw19.com.br", cat: "Geral", uf: "—", tier: "C", reach: 188, tokens: 0, color: "#2F8A5B" },
+  { id: "v372", name: "Jornalpreliminar", domain: "jornalpreliminar.com.br", cat: "Geral", uf: "—", tier: "C", reach: 186, tokens: 0, color: "#2F8A5B" },
+  { id: "v373", name: "Conteudosgeniais", domain: "conteudosgeniais.com.br", cat: "Geral", uf: "—", tier: "D", reach: 183, tokens: 0, color: "#946100" },
+  { id: "v374", name: "Gentefamosa", domain: "gentefamosa.com.br", cat: "Geral", uf: "—", tier: "F", reach: 180, tokens: 0, color: "#C2452E" },
+  { id: "v375", name: "Aguafrianoticias", domain: "aguafrianoticias.com.br", cat: "Geral", uf: "—", tier: "F", reach: 180, tokens: 0, color: "#C2452E" },
+  { id: "v376", name: "Gossiptime", domain: "gossiptime.com.br", cat: "Geral", uf: "—", tier: "F", reach: 180, tokens: 0, color: "#C2452E" },
+  { id: "v377", name: "Mundolatino", domain: "mundolatino.com.br", cat: "Geral", uf: "—", tier: "D", reach: 179, tokens: 0, color: "#946100" },
+  { id: "v378", name: "Universoneo", domain: "universoneo.com.br", cat: "Geral", uf: "—", tier: "B", reach: 177, tokens: 0, color: "#2A6FDB" },
+  { id: "v379", name: "Babyou", domain: "babyou.com.br", cat: "Saúde", uf: "—", tier: "C", reach: 166, tokens: 0, color: "#2F8A5B" },
+  { id: "v380", name: "Colunatech", domain: "colunatech.com.br", cat: "Geral", uf: "—", tier: "B", reach: 164, tokens: 0, color: "#2A6FDB" },
+  { id: "v381", name: "Itapenoticias", domain: "itapenoticias.com.br", cat: "Geral", uf: "—", tier: "C", reach: 158, tokens: 0, color: "#2F8A5B" },
+  { id: "v382", name: "Vitrinepix", domain: "vitrinepix.com.br", cat: "Geral", uf: "—", tier: "C", reach: 151, tokens: 0, color: "#2F8A5B" },
+  { id: "v383", name: "Incast", domain: "incast.com.br", cat: "Tecnologia", uf: "—", tier: "C", reach: 149, tokens: 0, color: "#2F8A5B" },
+  { id: "v384", name: "Trocaria", domain: "trocaria.com.br", cat: "Geral", uf: "—", tier: "C", reach: 148, tokens: 0, color: "#2F8A5B" },
+  { id: "v385", name: "Qmixdigital", domain: "qmixdigital.com.br", cat: "Geral", uf: "—", tier: "D", reach: 148, tokens: 0, color: "#946100" },
+  { id: "v386", name: "Vazounaweb", domain: "vazounaweb.com.br", cat: "Geral", uf: "—", tier: "F", reach: 148, tokens: 0, color: "#C2452E" },
+  { id: "v387", name: "Contei", domain: "contei.com.br", cat: "Geral", uf: "—", tier: "F", reach: 147, tokens: 0, color: "#C2452E" },
+  { id: "v388", name: "Diariopernambucano", domain: "diariopernambucano.com.br", cat: "Geral", uf: "—", tier: "C", reach: 135, tokens: 0, color: "#2F8A5B" },
+  { id: "v389", name: "Doutortv", domain: "doutortv.com.br", cat: "Geral", uf: "—", tier: "D", reach: 134, tokens: 0, color: "#946100" },
+  { id: "v390", name: "Noticiasdaserra", domain: "noticiasdaserra.com.br", cat: "Geral", uf: "—", tier: "C", reach: 132, tokens: 0, color: "#2F8A5B" },
+  { id: "v391", name: "Guairanews", domain: "guairanews.com", cat: "Geral", uf: "—", tier: "D", reach: 131, tokens: 0, color: "#946100" },
+  { id: "v392", name: "Uol Portalarrumandoasmalas", domain: "uol.portalarrumandoasmalas.com.br", cat: "Geral", uf: "—", tier: "F", reach: 129, tokens: 0, color: "#C2452E" },
+  { id: "v393", name: "Df8", domain: "df8.com.br", cat: "Geral", uf: "—", tier: "B", reach: 123, tokens: 0, color: "#2A6FDB" },
+  { id: "v394", name: "Portalcarreirajuridica", domain: "portalcarreirajuridica.com.br", cat: "Geral", uf: "—", tier: "D", reach: 121, tokens: 0, color: "#946100" },
+  { id: "v395", name: "Limeiradigital", domain: "limeiradigital.com", cat: "Geral", uf: "—", tier: "D", reach: 120, tokens: 0, color: "#946100" },
+  { id: "v396", name: "Fashionlike", domain: "fashionlike.com.br", cat: "Geral", uf: "—", tier: "F", reach: 120, tokens: 0, color: "#C2452E" },
+  { id: "v397", name: "Advogadoscriminais", domain: "advogadoscriminais.com", cat: "Geral", uf: "—", tier: "D", reach: 119, tokens: 0, color: "#946100" },
+  { id: "v398", name: "Jornalbahia", domain: "jornalbahia.com.br", cat: "Geral", uf: "—", tier: "C", reach: 116, tokens: 0, color: "#2F8A5B" },
+  { id: "v399", name: "Clicnoroeste", domain: "clicnoroeste.com", cat: "Economia", uf: "—", tier: "D", reach: 112, tokens: 0, color: "#946100" },
+  { id: "v400", name: "Alertasocial", domain: "alertasocial.com.br", cat: "Geral", uf: "—", tier: "C", reach: 107, tokens: 0, color: "#2F8A5B" },
+  { id: "v401", name: "Carroslancamentos", domain: "carroslancamentos.com.br", cat: "Geral", uf: "—", tier: "C", reach: 101, tokens: 0, color: "#2F8A5B" },
+  { id: "v402", name: "Divirto", domain: "divirto.com.br", cat: "Geral", uf: "—", tier: "B", reach: 100, tokens: 0, color: "#2A6FDB" },
+  { id: "v403", name: "Saudevitalidade", domain: "saudevitalidade.com.br", cat: "Geral", uf: "—", tier: "C", reach: 100, tokens: 0, color: "#2F8A5B" },
+  { id: "v404", name: "Meupis2021", domain: "meupis2021.com", cat: "Geral", uf: "—", tier: "C", reach: 100, tokens: 0, color: "#2F8A5B" },
+  { id: "v405", name: "Achixclip", domain: "achixclip.com.br", cat: "Geral", uf: "—", tier: "C", reach: 100, tokens: 0, color: "#2F8A5B" },
+  { id: "v406", name: "Certidaonegativa", domain: "certidaonegativa.org", cat: "Geral", uf: "—", tier: "C", reach: 100, tokens: 0, color: "#2F8A5B" },
+  { id: "v407", name: "Mundodasdicas", domain: "mundodasdicas.com.br", cat: "Geral", uf: "—", tier: "C", reach: 100, tokens: 0, color: "#2F8A5B" },
+  { id: "v408", name: "Resumovirtual", domain: "resumovirtual.com.br", cat: "Geral", uf: "—", tier: "C", reach: 100, tokens: 0, color: "#2F8A5B" },
+  { id: "v409", name: "Maisro", domain: "maisro.com.br", cat: "Geral", uf: "—", tier: "C", reach: 100, tokens: 0, color: "#2F8A5B" },
+  { id: "v410", name: "Falanortenordeste", domain: "falanortenordeste.com.br", cat: "Geral", uf: "—", tier: "C", reach: 100, tokens: 0, color: "#2F8A5B" },
+  { id: "v411", name: "Publisherbrasil", domain: "publisherbrasil.com.br", cat: "Geral", uf: "—", tier: "D", reach: 100, tokens: 0, color: "#946100" },
+  { id: "v412", name: "Visaoimparcial", domain: "visaoimparcial.com", cat: "Geral", uf: "—", tier: "D", reach: 100, tokens: 0, color: "#946100" },
+  { id: "v413", name: "Culturaenegocios", domain: "culturaenegocios.com.br", cat: "Geral", uf: "—", tier: "D", reach: 100, tokens: 0, color: "#946100" },
+  { id: "v414", name: "Meioambienterio", domain: "meioambienterio.com", cat: "Geral", uf: "—", tier: "D", reach: 100, tokens: 0, color: "#946100" },
+  { id: "v415", name: "Revista Portalutil", domain: "revista.portalutil.com.br", cat: "Geral", uf: "—", tier: "C", reach: 99, tokens: 0, color: "#2F8A5B" },
+  { id: "v416", name: "Celularhoje", domain: "celularhoje.com", cat: "Geral", uf: "—", tier: "C", reach: 98, tokens: 0, color: "#2F8A5B" },
+  { id: "v417", name: "Circulandonews", domain: "circulandonews.com.br", cat: "Geral", uf: "—", tier: "C", reach: 93, tokens: 0, color: "#2F8A5B" },
+  { id: "v418", name: "Desassossegada", domain: "desassossegada.com.br", cat: "Geral", uf: "—", tier: "B", reach: 92, tokens: 0, color: "#2A6FDB" },
+  { id: "v419", name: "Itbusinessforum", domain: "itbusinessforum.com.br", cat: "Geral", uf: "—", tier: "D", reach: 91, tokens: 0, color: "#946100" },
+  { id: "v420", name: "Logicadomercado", domain: "logicadomercado.com.br", cat: "Geral", uf: "—", tier: "D", reach: 90, tokens: 0, color: "#946100" },
+  { id: "v421", name: "Xthor", domain: "xthor.com.br", cat: "Geral", uf: "—", tier: "C", reach: 88, tokens: 0, color: "#2F8A5B" },
+  { id: "v422", name: "Muitaviagem", domain: "muitaviagem.com.br", cat: "Geral", uf: "—", tier: "C", reach: 83, tokens: 0, color: "#2F8A5B" },
+  { id: "v423", name: "Valeapena", domain: "valeapena.com.br", cat: "Geral", uf: "—", tier: "D", reach: 83, tokens: 0, color: "#946100" },
+  { id: "v424", name: "Noticiasdetimon", domain: "noticiasdetimon.com.br", cat: "Geral", uf: "—", tier: "C", reach: 82, tokens: 0, color: "#2F8A5B" },
+  { id: "v425", name: "Ideiasefinancas", domain: "ideiasefinancas.com.br", cat: "Geral", uf: "—", tier: "C", reach: 80, tokens: 0, color: "#2F8A5B" },
+  { id: "v426", name: "Saberdefato", domain: "saberdefato.com.br", cat: "Geral", uf: "—", tier: "C", reach: 80, tokens: 0, color: "#2F8A5B" },
+  { id: "v427", name: "Elapop", domain: "elapop.com", cat: "Geral", uf: "—", tier: "D", reach: 76, tokens: 0, color: "#946100" },
+  { id: "v428", name: "Atualizado", domain: "atualizado.net.br", cat: "Geral", uf: "—", tier: "C", reach: 75, tokens: 0, color: "#2F8A5B" },
+  { id: "v429", name: "Alagoasdiario", domain: "alagoasdiario.com.br", cat: "Geral", uf: "—", tier: "C", reach: 75, tokens: 0, color: "#2F8A5B" },
+  { id: "v430", name: "Opopularjornal", domain: "opopularjornal.com.br", cat: "Geral", uf: "—", tier: "C", reach: 75, tokens: 0, color: "#2F8A5B" },
+  { id: "v431", name: "Imprensaemidia", domain: "imprensaemidia.com.br", cat: "Geral", uf: "—", tier: "C", reach: 70, tokens: 0, color: "#2F8A5B" },
+  { id: "v432", name: "Blogse", domain: "blogse.com.br", cat: "Geral", uf: "—", tier: "C", reach: 67, tokens: 0, color: "#2F8A5B" },
+  { id: "v433", name: "Gazetadanoticia", domain: "gazetadanoticia.com.br", cat: "Geral", uf: "—", tier: "F", reach: 63, tokens: 0, color: "#C2452E" },
+  { id: "v434", name: "Itapecurunoticias", domain: "itapecurunoticias.com.br", cat: "Geral", uf: "—", tier: "C", reach: 62, tokens: 0, color: "#2F8A5B" },
+  { id: "v435", name: "Planomedicosaude", domain: "planomedicosaude.com.br", cat: "Geral", uf: "—", tier: "C", reach: 60, tokens: 0, color: "#2F8A5B" },
+  { id: "v436", name: "Brasilnovonoticias", domain: "brasilnovonoticias.com.br", cat: "Geral", uf: "—", tier: "C", reach: 57, tokens: 0, color: "#2F8A5B" },
+  { id: "v437", name: "Agoraefacil", domain: "agoraefacil.com", cat: "Geral", uf: "—", tier: "D", reach: 57, tokens: 0, color: "#946100" },
+  { id: "v438", name: "Regiaohoje", domain: "regiaohoje.com.br", cat: "Geral", uf: "—", tier: "D", reach: 55, tokens: 0, color: "#946100" },
+  { id: "v439", name: "Megalopoles", domain: "megalopoles.com.br", cat: "Geral", uf: "—", tier: "F", reach: 55, tokens: 0, color: "#C2452E" },
+  { id: "v440", name: "Diariorepublicano", domain: "diariorepublicano.com.br", cat: "Geral", uf: "—", tier: "F", reach: 54, tokens: 0, color: "#C2452E" },
+  { id: "v441", name: "Futebolatino lance", domain: "futebolatino.lance.com.br", cat: "Geral", uf: "—", tier: "A", reach: 50, tokens: 0, color: "#1A1A1A" },
+  { id: "v442", name: "Gamerview Uai", domain: "gamerview.uai.com.br", cat: "Geral", uf: "—", tier: "B", reach: 50, tokens: 0, color: "#2A6FDB" },
+  { id: "v443", name: "Meiahora", domain: "meiahora.com.br", cat: "Geral", uf: "—", tier: "B", reach: 50, tokens: 0, color: "#2A6FDB" },
+  { id: "v444", name: "Astralassessoria", domain: "astralassessoria.com.br", cat: "Geral", uf: "—", tier: "C", reach: 50, tokens: 0, color: "#2F8A5B" },
+  { id: "v445", name: "Novoprogresso portaldacidade", domain: "novoprogresso.portaldacidade.com.br", cat: "Geral", uf: "—", tier: "C", reach: 50, tokens: 0, color: "#2F8A5B" },
+  { id: "v446", name: "Aguabrancaemfoco", domain: "aguabrancaemfoco.com.br", cat: "Geral", uf: "—", tier: "C", reach: 50, tokens: 0, color: "#2F8A5B" },
+  { id: "v447", name: "Tribunaminas", domain: "tribunaminas.com.br", cat: "Geral", uf: "—", tier: "C", reach: 50, tokens: 0, color: "#2F8A5B" },
+  { id: "v448", name: "Afnewss", domain: "afnewss.com.br", cat: "Geral", uf: "—", tier: "C", reach: 50, tokens: 0, color: "#2F8A5B" },
+  { id: "v449", name: "Curiosododia", domain: "curiosododia.com.br", cat: "Geral", uf: "—", tier: "C", reach: 50, tokens: 0, color: "#2F8A5B" },
+  { id: "v450", name: "Estudioweb", domain: "estudioweb.com.br", cat: "Geral", uf: "—", tier: "C", reach: 50, tokens: 0, color: "#2F8A5B" },
+  { id: "v451", name: "Dicasdaily", domain: "dicasdaily.com", cat: "Geral", uf: "—", tier: "C", reach: 50, tokens: 0, color: "#2F8A5B" },
+  { id: "v452", name: "Informa foz", domain: "informa.foz.br", cat: "Geral", uf: "—", tier: "C", reach: 50, tokens: 0, color: "#2F8A5B" },
+  { id: "v453", name: "Tudoinsight", domain: "tudoinsight.com", cat: "Geral", uf: "—", tier: "D", reach: 50, tokens: 0, color: "#946100" },
+  { id: "v454", name: "Hojetrends", domain: "hojetrends.com", cat: "Geral", uf: "—", tier: "D", reach: 50, tokens: 0, color: "#946100" },
+  { id: "v455", name: "Easyideias", domain: "easyideias.com", cat: "Geral", uf: "—", tier: "D", reach: 50, tokens: 0, color: "#946100" },
+  { id: "v456", name: "Guiadeinvestimento", domain: "guiadeinvestimento.com.br", cat: "Geral", uf: "—", tier: "D", reach: 50, tokens: 0, color: "#946100" },
+  { id: "v457", name: "Fatoslight", domain: "fatoslight.com", cat: "Geral", uf: "—", tier: "D", reach: 50, tokens: 0, color: "#946100" },
+  { id: "v458", name: "Fatosway", domain: "fatosway.com", cat: "Geral", uf: "—", tier: "D", reach: 50, tokens: 0, color: "#946100" },
+  { id: "v459", name: "Clickparana", domain: "clickparana.com", cat: "Geral", uf: "—", tier: "D", reach: 50, tokens: 0, color: "#946100" },
+  { id: "v460", name: "Topnewstech", domain: "topnewstech.com.br", cat: "Geral", uf: "—", tier: "D", reach: 50, tokens: 0, color: "#946100" },
+  { id: "v461", name: "Araguainanoticias", domain: "araguainanoticias.com.br", cat: "Geral", uf: "—", tier: "D", reach: 50, tokens: 0, color: "#946100" },
+  { id: "v462", name: "Anselmosantana", domain: "anselmosantana.com.br", cat: "Geral", uf: "—", tier: "D", reach: 50, tokens: 0, color: "#946100" },
+  { id: "v463", name: "Digiwn", domain: "digiwn.com", cat: "Geral", uf: "—", tier: "D", reach: 50, tokens: 0, color: "#946100" },
+  { id: "v464", name: "Marcasemercados", domain: "marcasemercados.com.br", cat: "Geral", uf: "—", tier: "D", reach: 50, tokens: 0, color: "#946100" },
+  { id: "v465", name: "Empregosconcursos", domain: "empregosconcursos.com", cat: "Geral", uf: "—", tier: "D", reach: 50, tokens: 0, color: "#946100" },
+  { id: "v466", name: "Nitronewsbrasil", domain: "nitronewsbrasil.com.br", cat: "Geral", uf: "—", tier: "D", reach: 50, tokens: 0, color: "#946100" },
+  { id: "v467", name: "Muitomaisqueoamor", domain: "muitomaisqueoamor.com.br", cat: "Geral", uf: "—", tier: "D", reach: 50, tokens: 0, color: "#946100" },
+  { id: "v468", name: "Ortopediacoluna", domain: "ortopediacoluna.com.br", cat: "Geral", uf: "—", tier: "D", reach: 50, tokens: 0, color: "#946100" },
+  { id: "v469", name: "Revistaconsumo", domain: "revistaconsumo.com.br", cat: "Geral", uf: "—", tier: "F", reach: 50, tokens: 0, color: "#C2452E" },
+  { id: "v470", name: "Esportefantastico", domain: "esportefantastico.com.br", cat: "Geral", uf: "—", tier: "F", reach: 50, tokens: 0, color: "#C2452E" },
+  { id: "v471", name: "Portaldafama", domain: "portaldafama.com.br", cat: "Geral", uf: "—", tier: "F", reach: 50, tokens: 0, color: "#C2452E" },
+  { id: "v472", name: "Tododiafit", domain: "tododiafit.com.br", cat: "Geral", uf: "—", tier: "F", reach: 50, tokens: 0, color: "#C2452E" },
+  { id: "v473", name: "Glp4", domain: "glp4.com", cat: "Geral", uf: "—", tier: "F", reach: 50, tokens: 0, color: "#C2452E" },
+  { id: "v474", name: "Socelebridades", domain: "socelebridades.com.br", cat: "Geral", uf: "—", tier: "F", reach: 50, tokens: 0, color: "#C2452E" },
+  { id: "v475", name: "Cosmopolitam", domain: "cosmopolitam.com.br", cat: "Geral", uf: "—", tier: "F", reach: 50, tokens: 0, color: "#C2452E" },
+  { id: "v476", name: "Egomaranhao", domain: "egomaranhao.com.br", cat: "Geral", uf: "—", tier: "F", reach: 50, tokens: 0, color: "#C2452E" },
+  { id: "v477", name: "Influenciadoresdobrasil", domain: "influenciadoresdobrasil.com.br", cat: "Geral", uf: "—", tier: "F", reach: 50, tokens: 0, color: "#C2452E" },
+  { id: "v478", name: "Tupinews", domain: "tupinews.com.br", cat: "Geral", uf: "—", tier: "F", reach: 50, tokens: 0, color: "#C2452E" },
+  { id: "v479", name: "Qgdafama", domain: "qgdafama.com.br", cat: "Geral", uf: "—", tier: "F", reach: 50, tokens: 0, color: "#C2452E" },
+  { id: "v480", name: "Tvseja", domain: "tvseja.com.br", cat: "Geral", uf: "—", tier: "F", reach: 50, tokens: 0, color: "#C2452E" },
+  { id: "v481", name: "Jornaldobairroalto", domain: "jornaldobairroalto.com.br", cat: "Geral", uf: "—", tier: "C", reach: 43, tokens: 0, color: "#2F8A5B" },
+  { id: "v482", name: "Revistabahiaemfoco", domain: "revistabahiaemfoco.com.br", cat: "Geral", uf: "—", tier: "C", reach: 43, tokens: 0, color: "#2F8A5B" },
+  { id: "v483", name: "Nicecontentnews", domain: "nicecontentnews.com", cat: "Geral", uf: "—", tier: "C", reach: 43, tokens: 0, color: "#2F8A5B" },
+  { id: "v484", name: "Cocaisnoticias", domain: "cocaisnoticias.com.br", cat: "Geral", uf: "—", tier: "C", reach: 38, tokens: 0, color: "#2F8A5B" },
+  { id: "v485", name: "Cabrobonews", domain: "cabrobonews.com.br", cat: "Geral", uf: "—", tier: "C", reach: 34, tokens: 0, color: "#2F8A5B" },
+  { id: "v486", name: "Portoenoticias", domain: "portoenoticias.com.br", cat: "Geral", uf: "—", tier: "C", reach: 34, tokens: 0, color: "#2F8A5B" },
+  { id: "v487", name: "Agenciadivulgar", domain: "agenciadivulgar.com.br", cat: "Geral", uf: "—", tier: "C", reach: 30, tokens: 0, color: "#2F8A5B" },
+  { id: "v488", name: "Apucarananoticias", domain: "apucarananoticias.com.br", cat: "Geral", uf: "—", tier: "C", reach: 29, tokens: 0, color: "#2F8A5B" },
+  { id: "v489", name: "Maranhaomais", domain: "maranhaomais.com.br", cat: "Geral", uf: "—", tier: "C", reach: 28, tokens: 0, color: "#2F8A5B" },
+  { id: "v490", name: "Jornalnoticiaonline", domain: "jornalnoticiaonline.com", cat: "Geral", uf: "—", tier: "C", reach: 25, tokens: 0, color: "#2F8A5B" },
+  { id: "v491", name: "Noticiasdefloriano", domain: "noticiasdefloriano.com.br", cat: "Geral", uf: "—", tier: "C", reach: 24, tokens: 0, color: "#2F8A5B" },
+  { id: "v492", name: "Azulmagazine", domain: "azulmagazine.com.br", cat: "Geral", uf: "—", tier: "C", reach: 24, tokens: 0, color: "#2F8A5B" },
+  { id: "v493", name: "Dicasfemininas", domain: "dicasfemininas.com.br", cat: "Geral", uf: "—", tier: "C", reach: 20, tokens: 0, color: "#2F8A5B" },
+  { id: "v494", name: "Noticiasemminasgerais", domain: "noticiasemminasgerais.com", cat: "Geral", uf: "—", tier: "C", reach: 20, tokens: 0, color: "#2F8A5B" },
+  { id: "v495", name: "Ouvidoriabrasil", domain: "ouvidoriabrasil.org", cat: "Geral", uf: "—", tier: "B", reach: 15, tokens: 0, color: "#2A6FDB" },
+  { id: "v496", name: "Medicodasmaos", domain: "medicodasmaos.com.br", cat: "Saúde", uf: "—", tier: "C", reach: 15, tokens: 0, color: "#2F8A5B" },
+  { id: "v497", name: "Reporteranadia", domain: "reporteranadia.com.br", cat: "Geral", uf: "—", tier: "C", reach: 12, tokens: 0, color: "#2F8A5B" },
+  { id: "v498", name: "Saudeemalta", domain: "saudeemalta.net.br", cat: "Saúde", uf: "—", tier: "B", reach: 10, tokens: 0, color: "#2A6FDB" },
+  { id: "v499", name: "Revistatopsaude", domain: "revistatopsaude.com.br", cat: "Saúde", uf: "—", tier: "C", reach: 10, tokens: 0, color: "#2F8A5B" },
+  { id: "v500", name: "Saudicas", domain: "saudicas.com.br", cat: "Saúde", uf: "—", tier: "C", reach: 10, tokens: 0, color: "#2F8A5B" },
+  { id: "v501", name: "Ief", domain: "ief.com.br", cat: "Geral", uf: "—", tier: "D", reach: 10, tokens: 0, color: "#946100" },
+  { id: "v502", name: "Catacralibre", domain: "catacralibre.com.br", cat: "Geral", uf: "—", tier: "F", reach: 1, tokens: 0, color: "#C2452E" }
 ];
 
-const VEH_EDITORIAS = ["Todos","Economia","Negócios","Franquias","Varejo","Tecnologia","Geral"];
-const VEH_UFS = ["Todas","AC","AL","AM","AP","BA","CE","DF","ES","GO","MA","MG","MS","MT","PA","PB","PE","PI","PR","RJ","RN","RO","RR","RS","SC","SE","SP","TO"];
-
-// Custo padrão por tier
-const TIER_COST: Record<string, number> = { AAA: 300, AA: 160, A: 80 };
+const VEH_CATS = ["Todos","Geral","Negócios","Tecnologia","Esportes","Economia","Saúde","Entretenimento","Política","Jurídico","Agronegócio"];
 
 const TIER_INFO = [
-  { t: "AAA", label: "Grande audiência", range: "240–320 créditos", cls: "t-aaa" },
-  { t: "AA",  label: "Audiência média",  range: "140–190 créditos", cls: "t-aa" },
-  { t: "A",   label: "Regional / nicho", range: "60–95 créditos",   cls: "t-a" },
+  { t: "A", label: "Grande portal nacional", range: "10 mi+ leitores/mês",  cls: "t-a" },
+  { t: "B", label: "Portal regional forte",  range: "100 mil–10 mi/mês",    cls: "t-b" },
+  { t: "C", label: "Portal médio / nicho",   range: "10 mil–100 mil/mês",   cls: "t-c" },
+  { t: "D", label: "Blog / portal local",    range: "1 mil–10 mil/mês",     cls: "t-d" },
+  { t: "F", label: "Site emergente",         range: "Até 1 mil/mês",        cls: "t-f" },
 ];
 
 function fmtReach(n: number) {
@@ -46,209 +530,18 @@ function initials(name: string | null | undefined) {
   return name.split(" ").filter(Boolean).slice(0, 2).map(w => w[0]).join("").toUpperCase();
 }
 
-type Vehicle = typeof VEHICLES[number];
-
-function NewVehicleModal({ onClose, onCreate }: { onClose: () => void; onCreate: (v: Vehicle) => void }) {
-  const [name, setName]         = useState("");
-  const [domain, setDomain]     = useState("");
-  const [editoria, setEditoria] = useState("Economia");
-  const [uf, setUf]             = useState("SP");
-  const [tier, setTier]         = useState<"AAA"|"AA"|"A">("AA");
-  const [reach, setReach]       = useState("");
-  const [tokens, setTokens]     = useState(TIER_COST["AA"]);
-  const [logo, setLogo]         = useState<string | null>(null);
-  const fileRef                 = useRef<HTMLInputElement>(null);
-
-  function handleTier(t: "AAA"|"AA"|"A") {
-    setTier(t);
-    setTokens(TIER_COST[t]);
-  }
-
-  function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const f = e.target.files?.[0];
-    if (!f) return;
-    const reader = new FileReader();
-    reader.onload = ev => setLogo(ev.target?.result as string);
-    reader.readAsDataURL(f);
-  }
-
-  const ini = name.split(" ").filter(Boolean).slice(0, 2).map(w => w[0]).join("").toUpperCase() || "VH";
-  const reachNum = parseInt(reach.replace(/\D/g, "")) || 0;
-  const canSave = name.trim() && domain.trim() && reachNum > 0;
-
-  return (
-    <div className="overlay" onClick={onClose}>
-      <div className="modal" style={{ maxWidth: 520 }} onClick={e => e.stopPropagation()}>
-        <div className="m-head" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <h3>Novo <em>veículo</em></h3>
-          <button className="icon-btn" onClick={onClose}><X size={17} /></button>
-        </div>
-
-        <div className="m-body" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          {/* Preview */}
-          <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 16px", borderRadius: "var(--r)", background: "var(--cream)", border: "1px solid var(--line)" }}>
-            <div style={{ width: 44, height: 44, borderRadius: 10, background: "var(--ink)", display: "grid", placeItems: "center", fontFamily: "var(--mono)", fontWeight: 700, fontSize: 14, color: "#fff", flex: "none", overflow: "hidden" }}>
-              {logo ? <img src={logo} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : ini}
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontWeight: 700, fontSize: 15 }}>{name || "Nome do veículo"}</div>
-              <div style={{ fontSize: 12, color: "var(--stone)" }}>{domain || "dominio.com.br"}</div>
-            </div>
-            <span className={`tier t-${tier.toLowerCase()}`}>{tier}</span>
-          </div>
-
-          {/* Upload de logo */}
-          <div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: "var(--ink-soft)", display: "block", marginBottom: 6 }}>Logotipo</label>
-            <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleFile} />
-            <button
-              className="btn btn-ghost btn-sm"
-              style={{ width: "100%", justifyContent: "center", border: "1.5px dashed var(--line-3)" }}
-              onClick={() => fileRef.current?.click()}
-            >
-              <Upload size={15} /> {logo ? "Trocar imagem" : "Fazer upload do logotipo"}
-            </button>
-            {logo && (
-              <button className="link" style={{ fontSize: 12, marginTop: 6 }} onClick={() => setLogo(null)}>
-                Remover imagem
-              </button>
-            )}
-          </div>
-
-          {/* Nome e domínio */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-            <div className="field-row" style={{ marginBottom: 0 }}>
-              <label>Nome do veículo</label>
-              <input className="input" placeholder="Ex.: Capital Econômica" value={name} onChange={e => setName(e.target.value)} autoFocus />
-            </div>
-            <div className="field-row" style={{ marginBottom: 0 }}>
-              <label>Domínio</label>
-              <input className="input" placeholder="capitaleconomica.com.br" value={domain} onChange={e => setDomain(e.target.value)} />
-            </div>
-          </div>
-
-          {/* Editoria e UF */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-            <div className="field-row" style={{ marginBottom: 0 }}>
-              <label>Editoria</label>
-              <div className="select-wrap">
-                <select className="input" value={editoria} onChange={e => setEditoria(e.target.value)}>
-                  {VEH_EDITORIAS.filter(e => e !== "Todos").map(e => <option key={e}>{e}</option>)}
-                </select>
-                <ChevronDown size={16} />
-              </div>
-            </div>
-            <div className="field-row" style={{ marginBottom: 0 }}>
-              <label>UF</label>
-              <div className="select-wrap">
-                <select className="input" value={uf} onChange={e => setUf(e.target.value)}>
-                  {VEH_UFS.filter(u => u !== "Todas").map(u => <option key={u}>{u}</option>)}
-                </select>
-                <ChevronDown size={16} />
-              </div>
-            </div>
-          </div>
-
-          {/* Alcance */}
-          <div className="field-row" style={{ marginBottom: 0 }}>
-            <label>Alcance mensal (leitores únicos)</label>
-            <input
-              className="input"
-              placeholder="Ex.: 1500000"
-              value={reach}
-              onChange={e => setReach(e.target.value.replace(/\D/g, ""))}
-              inputMode="numeric"
-            />
-            {reachNum > 0 && (
-              <span style={{ fontSize: 12, color: "var(--stone)", marginTop: 4 }}>
-                ≈ {reachNum >= 1_000_000
-                  ? (reachNum / 1_000_000).toFixed(1).replace(".", ",") + " mi"
-                  : Math.round(reachNum / 1000) + " mil"} leitores/mês
-              </span>
-            )}
-          </div>
-
-          {/* Tier */}
-          <div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: "var(--ink-soft)", display: "block", marginBottom: 8 }}>Tier de audiência</label>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10 }}>
-              {(["AAA","AA","A"] as const).map(t => (
-                <button
-                  key={t}
-                  onClick={() => handleTier(t)}
-                  style={{
-                    padding: "12px 10px", borderRadius: "var(--r)", border: `1.5px solid ${tier === t ? "var(--coral)" : "var(--line-2)"}`,
-                    background: tier === t ? "rgba(250,181,0,0.06)" : "var(--paper)",
-                    cursor: "pointer", textAlign: "center",
-                  }}
-                >
-                  <span className={`tier t-${t.toLowerCase()}`} style={{ display: "block", marginBottom: 6 }}>{t}</span>
-                  <span style={{ fontSize: 11, color: "var(--stone)", display: "block" }}>
-                    {t === "AAA" ? "Grande audiência" : t === "AA" ? "Audiência média" : "Regional / nicho"}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Custo automático */}
-          <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderRadius: "var(--r)", background: "rgba(250,181,0,0.08)", border: "1px solid rgba(250,181,0,0.25)" }}>
-            <Zap size={16} color="var(--coral)" />
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 12, color: "var(--stone)" }}>Custo por publicação (calculado pelo tier)</div>
-              <div style={{ fontWeight: 700, fontSize: 15, color: "var(--coral-ink)" }}>{tokens} créditos</div>
-            </div>
-            <input
-              type="number"
-              className="input"
-              style={{ width: 90, textAlign: "right" }}
-              value={tokens}
-              min={1}
-              onChange={e => setTokens(Number(e.target.value))}
-            />
-          </div>
-        </div>
-
-        <div className="m-foot" style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
-          <button className="btn btn-ghost" onClick={onClose}>Cancelar</button>
-          <button
-            className="btn btn-dark"
-            disabled={!canSave}
-            onClick={() => {
-              const nv: Vehicle = {
-                id: `v${Date.now()}`,
-                name: name.trim(),
-                domain: domain.trim(),
-                cat: editoria,
-                uf,
-                reach: reachNum,
-                tier,
-                tokens,
-                color: "#1A1A1A",
-              };
-              onCreate(nv);
-            }}
-          >Cadastrar veículo</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export default function VeiculosPage() {
-  const [cat, setCat]       = useState("Todos");
-  const [uf, setUf]         = useState("Todas");
-  const [q, setQ]           = useState("");
-  const [vehicles, setVehicles] = useState(VEHICLES);
-  const [showModal, setShowModal] = useState(false);
+  const [cat, setCat]   = useState("Todos");
+  const [tier, setTier] = useState("Todos");
+  const [q, setQ]       = useState("");
 
-  const list = vehicles.filter(v =>
-    (cat === "Todos" || v.cat === cat) &&
-    (uf  === "Todas" || v.uf  === uf)  &&
+  const list = VEHICLES.filter(v =>
+    (cat  === "Todos" || v.cat  === cat)  &&
+    (tier === "Todos" || v.tier === tier) &&
     (!q.trim() || (v.name + v.domain).toLowerCase().includes(q.toLowerCase()))
   );
 
-  const totalReach = vehicles.reduce((s, v) => s + v.reach, 0);
+  const totalReach = list.reduce((s, v) => s + v.reach, 0);
 
   return (
     <div className="content scroll">
@@ -257,12 +550,9 @@ export default function VeiculosPage() {
           <div>
             <p className="eyebrow">Rede</p>
             <h2><em>Centenas</em> de veículos parceiros</h2>
-            <p className="sub">Do grande portal nacional ao jornal regional. O custo em créditos varia conforme a audiência — e tudo cabe no mesmo plano.</p>
+            <p className="sub">Do grande portal nacional ao blog regional. Escolha os veículos certos para cada release no momento de agendar.</p>
           </div>
           <div className="actions">
-            <button className="btn btn-ghost btn-sm" onClick={() => setShowModal(true)}>
-              <Plus size={15} /> Cadastrar veículo
-            </button>
             <Link href="/releases/novo" className="btn btn-primary btn-sm">
               <Send size={15} /> Distribuir release
             </Link>
@@ -270,24 +560,31 @@ export default function VeiculosPage() {
         </div>
 
         {/* Cards de tier */}
-        <div className="kpi-grid" style={{ gridTemplateColumns: "repeat(3, 1fr)", marginBottom: 24 }}>
+        <div className="kpi-grid" style={{ gridTemplateColumns: "repeat(5, 1fr)", marginBottom: 24 }}>
           {TIER_INFO.map(ti => (
             <div className="card kpi" key={ti.t} style={{ padding: 20 }}>
               <span className={`tier ${ti.cls}`} style={{ fontSize: 11, padding: "4px 10px", marginBottom: 14, display: "inline-block" }}>{ti.t}</span>
               <div className="lbl">{ti.label}</div>
-              <div className="val" style={{ fontSize: 22, marginTop: 6 }}>{ti.range}</div>
+              <div className="val" style={{ fontSize: 13, marginTop: 6, fontWeight: 500 }}>{ti.range}</div>
             </div>
           ))}
         </div>
 
         {/* Filtros */}
-        <div className="toolbar" style={{ marginBottom: 18 }}>
-          <div className="chips">
-            {VEH_EDITORIAS.map(c => (
+        <div className="toolbar" style={{ marginBottom: 18, flexWrap: "wrap", gap: 10 }}>
+          <div className="chips" style={{ flexWrap: "wrap" }}>
+            {VEH_CATS.map(c => (
               <button key={c} className={`chip${cat === c ? " active" : ""}`} onClick={() => setCat(c)}>{c}</button>
             ))}
           </div>
-          <div className="spacer" />
+          <div style={{ flex: 1 }} />
+          <div className="select-wrap" style={{ width: 120 }}>
+            <select className="input" value={tier} onChange={e => setTier(e.target.value)} style={{ padding: "8px 32px 8px 12px", fontSize: 13 }}>
+              <option value="Todos">Todos os tiers</option>
+              {["A","B","C","D","F"].map(t => <option key={t} value={t}>Tier {t}</option>)}
+            </select>
+            <ChevronDown size={15} />
+          </div>
           <input
             className="input"
             placeholder="Buscar veículo…"
@@ -295,12 +592,6 @@ export default function VeiculosPage() {
             onChange={e => setQ(e.target.value)}
             style={{ width: 200, padding: "8px 14px", fontSize: 13 }}
           />
-          <div className="select-wrap" style={{ width: 110 }}>
-            <select className="input" value={uf} onChange={e => setUf(e.target.value)} style={{ padding: "8px 32px 8px 12px", fontSize: 13 }}>
-              {VEH_UFS.map(u => <option key={u}>{u}</option>)}
-            </select>
-            <ChevronDown size={15} />
-          </div>
         </div>
 
         {/* Tabela */}
@@ -310,10 +601,8 @@ export default function VeiculosPage() {
               <tr>
                 <th style={{ width: "40%" }}>Veículo</th>
                 <th>Categoria</th>
-                <th>UF</th>
                 <th>Tier</th>
                 <th style={{ textAlign: "right" }}>Alcance/mês</th>
-                <th style={{ textAlign: "right" }}>Custo</th>
               </tr>
             </thead>
             <tbody>
@@ -331,14 +620,8 @@ export default function VeiculosPage() {
                     </div>
                   </td>
                   <td className="muted">{v.cat}</td>
-                  <td className="muted num">{v.uf}</td>
                   <td><span className={`tier t-${v.tier.toLowerCase()}`}>{v.tier}</span></td>
                   <td className="num" style={{ textAlign: "right", fontWeight: 600 }}>{fmtReach(v.reach)}</td>
-                  <td className="num" style={{ textAlign: "right" }}>
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontWeight: 700 }}>
-                      {v.tokens} <span style={{ color: "var(--coral)", fontSize: 13 }}>⚡</span>
-                    </span>
-                  </td>
                 </tr>
               ))}
             </tbody>
@@ -346,16 +629,9 @@ export default function VeiculosPage() {
         </div>
 
         <p className="muted" style={{ fontSize: 12, textAlign: "center", marginTop: 18, marginBottom: 32 }}>
-          Mostrando {list.length} veículos · alcance combinado da amostra: {fmtReach(totalReach)}
+          Mostrando {list.length} de {VEHICLES.length} veículos · alcance combinado: {fmtReach(totalReach)}
         </p>
       </div>
-
-      {showModal && (
-        <NewVehicleModal
-          onClose={() => setShowModal(false)}
-          onCreate={v => { setVehicles(prev => [v, ...prev]); setShowModal(false); }}
-        />
-      )}
     </div>
   );
 }
