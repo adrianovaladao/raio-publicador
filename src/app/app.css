@@ -661,11 +661,11 @@ select.input { appearance: none; -webkit-appearance: none; padding-right: 36px; 
 }
 .tier.t-aaa { background: var(--ink); color: var(--coral-soft); }
 .tier.t-aa  { background: var(--amber-soft); color: var(--coral-ink); }
-.tier.t-a   { background: var(--ink); color: #fff; }
-.tier.t-b   { background: #2A6FDB; color: #fff; }
-.tier.t-c   { background: #2F8A5B; color: #fff; }
-.tier.t-d   { background: var(--amber-soft); color: var(--coral-ink); }
-.tier.t-f   { background: var(--cream); color: var(--stone); }
+.tier.t-a   { background: #C0392B; color: #fff; }
+.tier.t-b   { background: #E07B2A; color: #fff; }
+.tier.t-c   { background: #D4A017; color: #fff; }
+.tier.t-d   { background: #3A7DC9; color: #fff; }
+.tier.t-e   { background: #D0DFF0; color: #3A5A80; }
 
 /* carrinho de seleção */
 .cart { position: sticky; top: 0; }
