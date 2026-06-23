@@ -560,11 +560,11 @@ const TIER_COLORS: Record<string, string> = { A: "#C0392B", B: "#E07B2A", C: "#D
 const TIER_FG:     Record<string, string> = { A: "#fff",    B: "#fff",    C: "#fff",    D: "#fff",    E: "#3A5A80" };
 
 const TOP_VEHICLES = [
-  { id: "v1",  name: "Ge Globo",        domain: "ge.globo.com",          tier: "A", releases: 18, n: "100"  },
-  { id: "v2",  name: "G1 Globo",        domain: "g1.globo.com",          tier: "A", releases: 15, n: "70"   },
-  { id: "v11", name: "Mixvale",         domain: "mixvale.com.br",        tier: "C", releases: 12, n: "3,7"  },
-  { id: "v6",  name: "Revistakdea360",  domain: "revistakdea360.com.br", tier: "D", releases: 11, n: "5,6"  },
-  { id: "v13", name: "Rollingstone",    domain: "rollingstone.com.br",   tier: "B", releases:  9, n: "2,7"  },
+  { id: "v1",   name: "Ge Globo",         domain: "ge.globo.com",              tier: "A", releases: 18, n: "100"  },
+  { id: "v13",  name: "Rollingstone",     domain: "rollingstone.com.br",       tier: "B", releases: 12, n: "2,7"  },
+  { id: "v11",  name: "Mixvale",          domain: "mixvale.com.br",            tier: "C", releases:  9, n: "3,7"  },
+  { id: "v6",   name: "Revistakdea360",   domain: "revistakdea360.com.br",     tier: "D", releases:  6, n: "5,6"  },
+  { id: "v117", name: "Revistadetetive",  domain: "revistadetetive.com.br",    tier: "E", releases:  3, n: "0,02" },
 ];
 
 function PerformanceDonut() {
@@ -624,7 +624,7 @@ function TopVehicles() {
   return (
     <div className="card">
       <div className="card-head">
-        <h3>Veículos com maior <em>entrega</em></h3>
+        <h3>Veículos com maior entrega <em>por tier</em></h3>
         <a href="/veiculos" className="link">Ver todos</a>
       </div>
       <div className="rank">
