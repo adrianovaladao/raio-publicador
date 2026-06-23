@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { Send, ArrowUpDown, ArrowUp, ArrowDown, SlidersHorizontal, X } from "lucide-react";
+import { ArrowUpDown, ArrowUp, ArrowDown, SlidersHorizontal, X } from "lucide-react";
 
 const VEHICLES = [
   { id: "v1", name: "Ge globo", domain: "ge.globo.com", cat: "Geral", uf: "—", tier: "A", reach: 203000000, tokens: 0, color: "#1A1A1A" },
