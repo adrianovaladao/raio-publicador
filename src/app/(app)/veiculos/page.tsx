@@ -624,12 +624,15 @@ export default function VeiculosPage() {
   const [sortCol,     setSortCol]    = useState<SortCol>("reach");
   const [sortDir,     setSortDir]    = useState<SortDir>("desc");
   const [showFilter,  setShowFilter] = useState(false);
+  const [page,        setPage]       = useState(1);
 
+  const PAGE_SIZE     = 25;
   const activeFilters = filterCats.length + filterTiers.length;
 
   function handleSort(col: SortCol) {
     if (sortCol === col) setSortDir(d => d === "asc" ? "desc" : "asc");
     else { setSortCol(col); setSortDir("asc"); }
+    setPage(1);
   }
 
   const thStyle = (col: SortCol): React.CSSProperties => ({
@@ -651,8 +654,10 @@ export default function VeiculosPage() {
     (!q.trim() || (v.name + v.domain).toLowerCase().includes(q.toLowerCase()))
   );
 
-  const list = sortVehicles(filtered, sortCol, sortDir);
-  const totalReach = list.reduce((s, v) => s + v.reach, 0);
+  const sorted     = sortVehicles(filtered, sortCol, sortDir);
+  const totalPages = Math.ceil(sorted.length / PAGE_SIZE);
+  const list       = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const totalReach = sorted.reduce((s, v) => s + v.reach, 0);
 
   return (
     <div className="content scroll">
@@ -704,7 +709,7 @@ export default function VeiculosPage() {
             className="input"
             placeholder="Buscar veículo…"
             value={q}
-            onChange={e => setQ(e.target.value)}
+            onChange={e => { setQ(e.target.value); setPage(1); }}
             style={{ width: 220, padding: "8px 14px", fontSize: 13 }}
           />
         </div>
@@ -763,15 +768,24 @@ export default function VeiculosPage() {
           </table>
         </div>
 
-        <p className="muted" style={{ fontSize: 12, textAlign: "center", marginTop: 18, marginBottom: 32 }}>
-          Mostrando {list.length} de {VEHICLES.length} veículos · alcance combinado: {fmtReach(totalReach)}
+        {totalPages > 1 && (
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "14px 20px" }}>
+            <button className="btn btn-ghost btn-sm" disabled={page === 1} onClick={() => setPage(p => p - 1)}>← Anterior</button>
+            <span style={{ fontFamily: "var(--mono)", fontSize: 12, color: "var(--stone)", padding: "0 8px" }}>
+              {page} / {totalPages}
+            </span>
+            <button className="btn btn-ghost btn-sm" disabled={page === totalPages} onClick={() => setPage(p => p + 1)}>Próxima →</button>
+          </div>
+        )}
+        <p className="muted" style={{ fontSize: 12, textAlign: "center", marginTop: 8, marginBottom: 32 }}>
+          {sorted.length} veículos encontrados · alcance combinado: {fmtReach(totalReach)}
         </p>
       </div>
 
       {showFilter && (
         <FilterModal
           cats={filterCats} tiers={filterTiers}
-          onApply={(c, t) => { setFilterCats(c); setFilterTiers(t); }}
+          onApply={(c, t) => { setFilterCats(c); setFilterTiers(t); setPage(1); }}
           onClose={() => setShowFilter(false)}
         />
       )}
