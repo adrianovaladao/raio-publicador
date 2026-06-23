@@ -556,12 +556,15 @@ export default function DashboardPage() {
 
 // ── Mock charts (só aparecem com releases) ────────────────────────────────────
 
+const TIER_COLORS: Record<string, string> = { A: "#C0392B", B: "#E07B2A", C: "#D4A017", D: "#3A7DC9", E: "#D0DFF0" };
+const TIER_FG:     Record<string, string> = { A: "#fff",    B: "#fff",    C: "#fff",    D: "#fff",    E: "#3A5A80" };
+
 const TOP_VEHICLES = [
-  { id: "v1",  name: "Capital Econômica",    meta: "18 releases", n: "14,2", color: "#1A1A1A" },
-  { id: "v16", name: "Jornal Metrópole",     meta: "15 releases", n: "11,8", color: "#0E1A2B" },
-  { id: "v2",  name: "Portal Mercado Hoje",  meta: "12 releases", n: "9,4",  color: "#2A6FDB" },
-  { id: "v3",  name: "Diário Nacional",      meta: "11 releases", n: "8,1",  color: "#C2452E" },
-  { id: "v7",  name: "Gazeta do Investidor", meta: "9 releases",  n: "5,7",  color: "#0E7C86" },
+  { id: "v1",  name: "Capital Econômica",    domain: "capitaleconomica.com.br",  tier: "A", releases: 18, n: "14,2" },
+  { id: "v16", name: "Jornal Metrópole",     domain: "jornalmetropole.com.br",   tier: "A", releases: 15, n: "11,8" },
+  { id: "v2",  name: "Portal Mercado Hoje",  domain: "mercadohoje.com.br",       tier: "B", releases: 12, n: "9,4"  },
+  { id: "v3",  name: "Diário Nacional",      domain: "diarionacional.com.br",    tier: "B", releases: 11, n: "8,1"  },
+  { id: "v7",  name: "Gazeta do Investidor", domain: "gazetadoinvestidor.com.br", tier: "C", releases:  9, n: "5,7"  },
 ];
 
 function PerformanceDonut() {
@@ -588,7 +591,7 @@ function PerformanceDonut() {
             <g transform="rotate(-90 90 90)">
               <circle cx="90" cy="90" r={r} fill="none" stroke="var(--cream)" strokeWidth="22" />
               {segs.map(s => (
-                <circle key={s.id} cx="90" cy="90" r={r} fill="none" stroke={s.color} strokeWidth="22"
+                <circle key={s.id} cx="90" cy="90" r={r} fill="none" stroke={TIER_COLORS[s.tier] ?? "#ccc"} strokeWidth="22"
                   strokeDasharray={`${Math.max(s.len - 2, 0)} ${C - Math.max(s.len - 2, 0)}`}
                   strokeDashoffset={s.offset} strokeLinecap="butt" />
               ))}
@@ -601,7 +604,7 @@ function PerformanceDonut() {
           {segs.map(s => (
             <div className="row" key={s.id} style={{ justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid var(--line)" }}>
               <div className="row" style={{ gap: 10, minWidth: 0 }}>
-                <i style={{ width: 11, height: 11, borderRadius: 3, background: s.color, flex: "none" }} />
+                <i style={{ width: 11, height: 11, borderRadius: 3, background: TIER_COLORS[s.tier] ?? "#ccc", flex: "none" }} />
                 <span style={{ fontSize: 13.5, fontWeight: 600, letterSpacing: "-0.01em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.name}</span>
               </div>
               <span style={{ fontFamily: "var(--mono)", fontSize: 12, color: "var(--ink-soft)", width: 38, textAlign: "right", fontWeight: 600 }}>{Math.round(s.frac * 100)}%</span>
@@ -627,10 +630,15 @@ function TopVehicles() {
       <div className="rank">
         {TOP_VEHICLES.map(v => (
           <div className="rank-row" key={v.id}>
-            <div className="logo" style={{ background: v.color }}>{getInitials(v.name)}</div>
-            <div>
+            <div className="logo" style={{ background: TIER_COLORS[v.tier] ?? "#ccc", color: TIER_FG[v.tier] ?? "#fff" }}>{getInitials(v.name)}</div>
+            <div style={{ minWidth: 0 }}>
               <div className="nm">{v.name}</div>
-              <div className="meta">{v.meta}</div>
+              <div className="meta" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <span className={`tier t-${v.tier.toLowerCase()}`} style={{ fontSize: 9, padding: "1px 5px" }}>{v.tier}</span>
+                <span>{v.domain}</span>
+                <span>·</span>
+                <span>{v.releases} releases</span>
+              </div>
             </div>
             <div className="val">
               <div className="n">{v.n} <span style={{ fontSize: 11, color: "var(--stone)", fontWeight: 400 }}>mi</span></div>
