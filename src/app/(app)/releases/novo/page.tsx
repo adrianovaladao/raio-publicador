@@ -21,7 +21,7 @@ import { saveAs } from "file-saver";
 // ── Dados mock ──────────────────────────────────────────────────────────────
 
 const VEHICLES = [
-  { id: "v1", name: "Ge globo", domain: "ge.globo.com", cat: "Geral", uf: "—", tier: "A", reach: 203000000, tokens: 0, color: "#1A1A1A" },
+  { id: "v1", name: "Ge globo", domain: "ge.globo.com", cat: "Geral", uf: "—", tier: "A", reach: 100000000, tokens: 0, color: "#1A1A1A" },
   { id: "v2", name: "G1 globo", domain: "g1.globo.com", cat: "Geral", uf: "—", tier: "A", reach: 70000000, tokens: 0, color: "#1A1A1A" },
   { id: "v3", name: "Terra", domain: "terra.com.br", cat: "Geral", uf: "—", tier: "A", reach: 61000000, tokens: 0, color: "#1A1A1A" },
   { id: "v4", name: "Oglobo globo", domain: "oglobo.globo.com", cat: "Geral", uf: "—", tier: "A", reach: 19000000, tokens: 0, color: "#1A1A1A" },
