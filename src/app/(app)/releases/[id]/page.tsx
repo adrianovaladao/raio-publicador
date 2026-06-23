@@ -1074,7 +1074,7 @@ function StepVehicles({ selected, setSelected }: { selected: string[]; setSelect
           </div>
         )}
 
-        <div className="cart-eoot">
+        <div className="cart-foot">
           {over && (
             <div className="savings" style={{ background: "var(--red-soft)", color: "var(--red)" }}>
               <span>Faltam <b>{(selTokens - left).toLocaleString("pt-BR")} créditos</b>. Remova veículos ou faça upgrade.</span>
