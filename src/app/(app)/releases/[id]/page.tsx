@@ -473,10 +473,12 @@ function StepVehicles({ selected, setSelected }: { selected: string[]; setSelect
 function StepSchedule({
   schedDate, setSchedDate,
   title, body, subtitle, cat, selectedVeh, brand,
+  releaseStatus, onSaveDraft, saving,
 }: {
   schedDate: string; setSchedDate: (v: string) => void;
   title: string; body: string; subtitle: string; cat: string;
   selectedVeh: string[]; brand: Brand | null;
+  releaseStatus: string; onSaveDraft: () => Promise<void>; saving: boolean;
 }) {
   const selVehicles = selectedVeh.map(id => VEHICLES.find(v => v.id === id)).filter(Boolean) as typeof VEHICLES;
   const selTokens   = selVehicles.reduce((s, v) => s + v.tokens, 0);
@@ -557,6 +559,17 @@ function StepSchedule({
               );
             })()}
           </div>
+
+        {releaseStatus === "SCHEDULED" && (
+          <button
+            className="btn btn-ghost btn-sm"
+            style={{ width: "100%", justifyContent: "center", marginTop: 4 }}
+            disabled={saving}
+            onClick={onSaveDraft}
+          >
+            {saving ? "Salvando…" : "Cancelar agendamento e salvar rascunho"}
+          </button>
+        )}
         </div>
       </div>
     </div>
@@ -656,6 +669,29 @@ export default function EditReleasePage() {
           summary: subtitle.trim() || null,
           status: "SCHEDULED",
           scheduledAt,
+          imageUrl: images[0] ?? null,
+          vehicles: selectedVeh,
+        }),
+      });
+      if (!res.ok) { setErr("Erro ao salvar. Tente novamente."); return; }
+      router.push("/releases");
+    } catch { setErr("Falha de conexão."); }
+    finally { setSaving(false); }
+  }
+
+  async function saveDraft() {
+    if (!title.trim()) return;
+    setSaving(true); setErr("");
+    try {
+      const res = await fetch(`/api/releases/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: title.trim(),
+          body,
+          summary: subtitle.trim() || null,
+          status: "DRAFT",
+          scheduledAt: null,
           imageUrl: images[0] ?? null,
           vehicles: selectedVeh,
         }),
@@ -767,6 +803,9 @@ export default function EditReleasePage() {
             schedDate={schedDate} setSchedDate={setSchedDate}
             title={title} body={body} subtitle={subtitle} cat={cat}
             selectedVeh={selectedVeh} brand={brand}
+            releaseStatus={release?.status ?? "DRAFT"}
+            onSaveDraft={saveDraft}
+            saving={saving}
           />
         )}
       </div>
