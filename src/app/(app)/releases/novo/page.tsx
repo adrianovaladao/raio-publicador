@@ -1008,9 +1008,10 @@ function SaveDraftButton({ onSave }: { onSave: () => Promise<void> }) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   return (
+    <div style={{ background: "var(--cream)", borderRadius: 14, padding: "14px 16px", marginTop: 8 }}>
     <button
       className="btn btn-ghost btn-sm"
-      style={{ width: "100%", justifyContent: "center", marginTop: 4 }}
+      style={{ width: "100%", justifyContent: "center" }}
       disabled={saving}
       onClick={async () => {
         setSaving(true);
@@ -1020,6 +1021,7 @@ function SaveDraftButton({ onSave }: { onSave: () => Promise<void> }) {
     >
       {saving ? "Salvando…" : "Salvar rascunho e fechar"}
     </button>
+    </div>
   );
 }
 
