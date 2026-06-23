@@ -511,7 +511,9 @@ const VEHICLES = [
 const VEH_CATS  = ["Geral","Negócios","Tecnologia","Esportes","Economia","Saúde","Entretenimento","Política","Jurídico","Agronegócio"];
 const VEH_TIERS = ["A","B","C","D","E"];
 
-const TIER_TOKENS: Record<string, number> = { A: 250, B: 150, C: 100, D: 50, E: 0 };
+const TIER_TOKENS:  Record<string, number> = { A: 250, B: 150, C: 100, D: 50, E: 0 };
+const TIER_COLORS:  Record<string, string> = { A: "#C0392B", B: "#E07B2A", C: "#D4A017", D: "#3A7DC9", E: "#D0DFF0" };
+const TIER_FG:      Record<string, string> = { A: "#fff",    B: "#fff",    C: "#fff",    D: "#fff",    E: "#3A5A80" };
 
 const TIER_INFO = [
   { t: "A", label: "Grande portal nacional", range: "10 mi+ leitores/mês",  tokens: 250, cls: "t-a" },
@@ -743,7 +745,7 @@ export default function VeiculosPage() {
                   <tr key={v.id}>
                     <td>
                       <div className="row" style={{ gap: 12 }}>
-                        <div style={{ background: v.color, width: 32, height: 32, borderRadius: 8, display: "grid", placeItems: "center", fontFamily: "var(--mono)", fontWeight: 700, fontSize: 11, color: "#fff", flex: "none" }}>
+                        <div style={{ background: TIER_COLORS[v.tier] ?? v.color, width: 32, height: 32, borderRadius: 8, display: "grid", placeItems: "center", fontFamily: "var(--mono)", fontWeight: 700, fontSize: 11, color: TIER_FG[v.tier] ?? "#fff", flex: "none" }}>
                           {initials(v.name)}
                         </div>
                         <div>

@@ -530,7 +530,9 @@ const VEH_CATS_ALL  = ["Geral","Negócios","Tecnologia","Esportes","Economia","S
 const VEH_TIERS_ALL = ["A","B","C","D","E"];
 const PAGE_SIZE      = 25;
 const TIER_TOKENS_MAP: Record<string, number> = { A: 250, B: 150, C: 100, D: 50, E: 0 };
-const TIER_ORDER_MAP: Record<string, number>  = { A: 0, B: 1, C: 2, D: 3, E: 4 };
+const TIER_ORDER_MAP:  Record<string, number> = { A: 0, B: 1, C: 2, D: 3, E: 4 };
+const TIER_COLORS_MAP: Record<string, string> = { A: "#C0392B", B: "#E07B2A", C: "#D4A017", D: "#3A7DC9", E: "#D0DFF0" };
+const TIER_FG_MAP:     Record<string, string> = { A: "#fff",    B: "#fff",    C: "#fff",    D: "#fff",    E: "#3A5A80" };
 
 type VehSortCol = "name" | "tier" | "reach" | "tokens";
 type VehSortDir = "asc" | "desc";
@@ -1151,7 +1153,7 @@ function StepVehicles({ selected, setSelected }: { selected: string[]; setSelect
             return (
               <div key={v.id} className={`veh-row${selected.includes(v.id) ? " sel" : ""}`} onClick={() => toggle(v.id)}>
                 <div className="cbx">{selected.includes(v.id) && <Check size={13} />}</div>
-                <div className="logo" style={{ background: v.color }}>{initials(v.name)}</div>
+                <div className="logo" style={{ background: TIER_COLORS_MAP[v.tier] ?? v.color, color: TIER_FG_MAP[v.tier] ?? "#fff" }}>{initials(v.name)}</div>
                 <div>
                   <div className="nm">{v.name}</div>
                   <div className="meta">
@@ -1208,7 +1210,7 @@ function StepVehicles({ selected, setSelected }: { selected: string[]; setSelect
           <div className="sel-list scroll">
             {selVehicles.map(v => (
               <div className="sel-item" key={v.id}>
-                <div style={{ background: v.color, width: 22, height: 22, borderRadius: 6, display: "grid", placeItems: "center", fontSize: 9, fontFamily: "var(--mono)", fontWeight: 700, color: "#fff", flex: "none" }}>{initials(v.name)}</div>
+                <div style={{ background: TIER_COLORS_MAP[v.tier] ?? v.color, width: 22, height: 22, borderRadius: 6, display: "grid", placeItems: "center", fontSize: 9, fontFamily: "var(--mono)", fontWeight: 700, color: TIER_FG_MAP[v.tier] ?? "#fff", flex: "none" }}>{initials(v.name)}</div>
                 <span className="nm">{v.name}</span>
                 <span className="tk">{TIER_TOKENS_MAP[v.tier] ?? 0}</span>
                 <button className="rm" onClick={() => remove(v.id)} title="Remover"><X size={15} /></button>
