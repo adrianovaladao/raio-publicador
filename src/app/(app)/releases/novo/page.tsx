@@ -1688,8 +1688,10 @@ export default function NovoReleasePage() {
 
   const contentRef  = useRef(content);
   const brandRef    = useRef(brand);
-  useEffect(() => { contentRef.current = content; }, [content]);
-  useEffect(() => { brandRef.current   = brand;   }, [brand]);
+  const selectedRef = useRef(selected);
+  useEffect(() => { contentRef.current  = content;  }, [content]);
+  useEffect(() => { brandRef.current    = brand;    }, [brand]);
+  useEffect(() => { selectedRef.current = selected; }, [selected]);
 
   async function autosave() {
     const c = contentRef.current;
@@ -1706,6 +1708,7 @@ export default function NovoReleasePage() {
         brandId: b.id,
         creditsUsed: 0,
         imageUrl: c.imageUrl || null,
+        vehicles: selectedRef.current,
       };
       if (draftIdRef.current) {
         await fetch(`/api/releases/${draftIdRef.current}`, {
@@ -1875,6 +1878,7 @@ export default function NovoReleasePage() {
                     brandId: brand.id,
                     creditsUsed: 0,
                     imageUrl: content.imageUrl || null,
+                    vehicles: selected,
                   };
                   let res: Response;
                   if (draftIdRef.current) {
