@@ -754,7 +754,7 @@ export default function VeiculosPage() {
                     <td className="num" style={{ textAlign: "right" }}>
                       {tkn > 0
                         ? <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontWeight: 700 }}>{tkn} <span style={{ color: "var(--coral)", fontSize: 13 }}>⚡</span></span>
-                        : <span className="muted">—</span>
+                        : <span style={{ fontWeight: 700 }}>0</span>
                       }
                     </td>
                   </tr>
