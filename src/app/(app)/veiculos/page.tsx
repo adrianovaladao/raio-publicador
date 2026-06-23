@@ -664,11 +664,6 @@ export default function VeiculosPage() {
             <h2><em>Centenas</em> de veículos parceiros</h2>
             <p className="sub">Do grande portal nacional ao blog regional. Escolha os veículos certos para cada release no momento de agendar.</p>
           </div>
-          <div className="actions">
-            <Link href="/releases/novo" className="btn btn-primary btn-sm">
-              <Send size={15} /> Distribuir release
-            </Link>
-          </div>
         </div>
 
         {/* Cards de tier */}
