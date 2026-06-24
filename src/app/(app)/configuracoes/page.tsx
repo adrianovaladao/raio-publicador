@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { useUser } from "@clerk/nextjs";
+import { useUser, useReverification } from "@clerk/nextjs";
 import Image from "next/image";
 import { extractDominantColor, extractDominantColorFromUrl } from "@/lib/color";
 import {
@@ -234,11 +234,16 @@ function ContaPanel({ onToast }: { onToast: (m: string) => void }) {
   const [newPw,      setNewPw]      = useState("");
   const [savingPw,   setSavingPw]   = useState(false);
 
+  const updatePasswordWithReverification = useReverification(
+    (params: { currentPassword: string; newPassword: string }) =>
+      user!.updatePassword(params)
+  );
+
   async function handleChangePassword() {
     if (!user || !newPw) return;
     setSavingPw(true);
     try {
-      await user.updatePassword({ currentPassword: currentPw, newPassword: newPw });
+      await updatePasswordWithReverification({ currentPassword: currentPw, newPassword: newPw });
       onToast("Senha alterada com sucesso");
       setShowPwForm(false);
       setCurrentPw(""); setNewPw("");
