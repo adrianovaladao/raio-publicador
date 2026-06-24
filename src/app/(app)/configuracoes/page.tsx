@@ -226,7 +226,7 @@ function PerfilPanel({ onToast }: { onToast: (m: string) => void }) {
 
 function ContaPanel({ onToast }: { onToast: (m: string) => void }) {
   const { user, isLoaded } = useUser();
-  const [notif, setNotif] = useState({ published: true, scheduled: true, comments: true, weekly: false });
+  const [notif, setNotif] = useState({ sent: true, queued: true, published: true, review: false });
 
   // troca de senha
   const [showPwForm, setShowPwForm] = useState(false);
@@ -309,7 +309,7 @@ function ContaPanel({ onToast }: { onToast: (m: string) => void }) {
       <div className="card" style={{ marginTop: 16 }}>
         <div className="card-head"><h3>Notificações</h3></div>
         <div className="card-pad" style={{ paddingTop: 8, paddingBottom: 8 }}>
-          {([["published","Release publicado","Quando um release entra no ar nos veículos."],["scheduled","Release agendado","Confirmação quando algo é agendado."],["comments","Comentários de revisão","Quando um cliente comenta um release."],["weekly","Resumo semanal","Um panorama de desempenho toda segunda."]] as [keyof typeof notif,string,string][]).map(([k,t,d]) => (
+          {([["sent","Release enviado para publicação","Confirmação quando o release é submetido."],["queued","Release adicionado à fila","Quando o release é recebido e entra na fila de publicação."],["published","Release publicado no veículo","Quando o release entra no ar em cada veículo selecionado."],["review","Release precisa de revisão","Quando um veículo solicita ajustes antes de publicar."]] as [keyof typeof notif,string,string][]).map(([k,t,d]) => (
             <div className="set-inline-row" key={k}>
               <div><div className="sir-title">{t}</div><div className="sir-sub">{d}</div></div>
               <button className={`toggle${notif[k] ? " on" : ""}`} onClick={() => setNotif(n => ({ ...n, [k]: !n[k] }))}><span className="knob" /></button>
