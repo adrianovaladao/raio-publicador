@@ -1314,8 +1314,8 @@ function VeiculosPanel({ onToast }: { onToast: (m: string) => void }) {
                   <td>
                     <span className={`tier t-${v.tier.toLowerCase()}`} style={{ fontSize: 10, padding: "2px 7px" }}>{v.tier}</span>
                   </td>
-                  <td style={{ textAlign: "right", fontFamily: "var(--mono)", fontSize: 13 }}>{fmtReachAdm(v.reach)}</td>
-                  <td style={{ textAlign: "right", fontFamily: "var(--mono)", fontSize: 13 }}>{TIER_TOKENS_ADM[v.tier] ?? 0} ⚡</td>
+                  <td style={{ textAlign: "right", fontFamily: "var(--mono)", fontSize: 13, fontWeight: 700 }}>{fmtReachAdm(v.reach)}</td>
+                  <td style={{ textAlign: "right", fontFamily: "var(--mono)", fontSize: 13, fontWeight: 700 }}>{TIER_TOKENS_ADM[v.tier] ?? 0} ⚡</td>
                   <td>
                     <div style={{ display: "flex", gap: 4, justifyContent: "flex-end", paddingRight: 8 }}>
                       <button className="icon-btn" title="Editar" onClick={() => setEditing(v)}><Pencil size={14} /></button>
