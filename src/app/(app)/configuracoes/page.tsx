@@ -1075,12 +1075,23 @@ function DeleteVehicleModal({ name, onConfirm, onClose, deleting }: { name: stri
 }
 
 function VeiculosPanel({ onToast }: { onToast: (m: string) => void }) {
-  const [vehicles, setVehicles] = useState<VehicleRow[]>([]);
-  const [loading,  setLoading]  = useState(true);
-  const [q,        setQ]        = useState("");
-  const [editing,  setEditing]  = useState<VehicleRow | null | "new">(null);
-  const [deleting, setDeleting] = useState<VehicleRow | null>(null);
-  const [isDel,    setIsDel]    = useState(false);
+  const [vehicles,  setVehicles]  = useState<VehicleRow[]>([]);
+  const [loading,   setLoading]   = useState(true);
+  const [seeding,   setSeeding]   = useState(false);
+  const [q,         setQ]         = useState("");
+  const [editing,   setEditing]   = useState<VehicleRow | null | "new">(null);
+  const [deleting,  setDeleting]  = useState<VehicleRow | null>(null);
+  const [isDel,     setIsDel]     = useState(false);
+
+  async function handleSeed() {
+    setSeeding(true);
+    const res = await fetch("/api/admin/vehicles/seed", { method: "POST" });
+    const data = await res.json() as { inserted: number };
+    const all = await fetch("/api/admin/vehicles").then(r => r.json()) as VehicleRow[];
+    setVehicles(all);
+    setSeeding(false);
+    onToast(`${data.inserted} veículos importados!`);
+  }
 
   useEffect(() => {
     fetch("/api/admin/vehicles")
@@ -1132,6 +1143,11 @@ function VeiculosPanel({ onToast }: { onToast: (m: string) => void }) {
               <Search size={14} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--stone)", pointerEvents: "none" }} />
               <input className="input" style={{ paddingLeft: 30, width: 200, height: 34, fontSize: 13 }} placeholder="Buscar…" value={q} onChange={e => setQ(e.target.value)} />
             </div>
+            {vehicles.length === 0 && !loading && (
+              <button className="btn btn-ghost btn-sm" disabled={seeding} onClick={handleSeed}>
+                {seeding ? "Importando…" : <><Upload size={15} /> Importar veículos padrão</>}
+              </button>
+            )}
             <button className="btn btn-dark btn-sm" onClick={() => setEditing("new")}><Plus size={15} /> Novo veículo</button>
           </div>
         </div>
