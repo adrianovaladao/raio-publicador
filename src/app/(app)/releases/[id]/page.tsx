@@ -1260,6 +1260,12 @@ export default function EditReleasePage() {
   const [deleting,   setDeleting]   = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [err,        setErr]        = useState("");
+  const [toast,      setToast]      = useState<string | null>(null);
+
+  function showToast(msg: string) {
+    setToast(msg);
+    setTimeout(() => setToast(null), 3000);
+  }
 
   const [release,    setRelease]    = useState<ReleaseData | null>(null);
   const [title,      setTitle]      = useState("");
@@ -1312,7 +1318,8 @@ export default function EditReleasePage() {
         }),
       });
       if (!res.ok) { setErr("Erro ao salvar. Tente novamente."); return; }
-      router.push("/releases");
+      showToast("Release agendado com sucesso!");
+      setTimeout(() => router.push("/releases"), 1500);
     } catch { setErr("Falha de conexão."); }
     finally { setSaving(false); }
   }
@@ -1335,7 +1342,8 @@ export default function EditReleasePage() {
         }),
       });
       if (!res.ok) { setErr("Erro ao salvar. Tente novamente."); return; }
-      router.push("/releases");
+      showToast("Rascunho salvo!");
+      setTimeout(() => router.push("/releases"), 1500);
     } catch { setErr("Falha de conexão."); }
     finally { setSaving(false); }
   }
@@ -1455,6 +1463,12 @@ export default function EditReleasePage() {
           onClose={() => setShowDelete(false)}
           deleting={deleting}
         />
+      )}
+
+      {toast && (
+        <div className="toast-wrap">
+          <div className="toast"><span className="ic"><Check size={14} /></span>{toast}</div>
+        </div>
       )}
     </div>
   );

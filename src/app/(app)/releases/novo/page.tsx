@@ -1641,19 +1641,28 @@ function StepReview({ content, selected, when, setWhen, brand, onSaveDraft }: {
 function SaveDraftButton({ onSave }: { onSave: () => Promise<void> }) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState(false);
   return (
-    <button
-      className="btn btn-ghost btn-sm"
-      style={{ width: "100%", justifyContent: "center", marginTop: 8 }}
-      disabled={saving}
-      onClick={async () => {
-        setSaving(true);
-        await onSave();
-        router.push("/releases");
-      }}
-    >
-      {saving ? "Salvando…" : "Salvar rascunho e fechar"}
-    </button>
+    <>
+      <button
+        className="btn btn-ghost btn-sm"
+        style={{ width: "100%", justifyContent: "center", marginTop: 8 }}
+        disabled={saving}
+        onClick={async () => {
+          setSaving(true);
+          await onSave();
+          setToast(true);
+          setTimeout(() => router.push("/releases"), 1500);
+        }}
+      >
+        {saving ? "Salvando…" : "Salvar rascunho e fechar"}
+      </button>
+      {toast && (
+        <div className="toast-wrap">
+          <div className="toast"><span className="ic"><Check size={14} /></span>Rascunho salvo!</div>
+        </div>
+      )}
+    </>
   );
 }
 
