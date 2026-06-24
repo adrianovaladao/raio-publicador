@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ArrowUpDown, ArrowUp, ArrowDown, SlidersHorizontal, X } from "lucide-react";
 
 const VEHICLES = [
@@ -627,6 +627,18 @@ export default function VeiculosPage() {
   const [sortDir,     setSortDir]    = useState<SortDir>("desc");
   const [showFilter,  setShowFilter] = useState(false);
   const [page,        setPage]       = useState(1);
+  const [logoMap,     setLogoMap]    = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    fetch("/api/vehicles")
+      .then(r => r.json())
+      .then((data: { domain: string; logoUrl?: string | null }[]) => {
+        const map: Record<string, string> = {};
+        for (const v of data) if (v.logoUrl) map[v.domain] = v.logoUrl;
+        setLogoMap(map);
+      })
+      .catch(() => {});
+  }, []);
 
   const PAGE_SIZE     = 25;
   const activeFilters = filterCats.length + filterTiers.length;
@@ -748,8 +760,10 @@ export default function VeiculosPage() {
                   <tr key={v.id}>
                     <td>
                       <div className="row" style={{ gap: 12 }}>
-                        <div style={{ background: TIER_COLORS[v.tier] ?? v.color, width: 32, height: 32, borderRadius: 8, display: "grid", placeItems: "center", fontFamily: "var(--mono)", fontWeight: 700, fontSize: 11, color: TIER_FG[v.tier] ?? "#fff", flex: "none" }}>
-                          {initials(v.name)}
+                        <div style={{ background: TIER_COLORS[v.tier] ?? v.color, width: 32, height: 32, borderRadius: 8, display: "grid", placeItems: "center", fontFamily: "var(--mono)", fontWeight: 700, fontSize: 11, color: TIER_FG[v.tier] ?? "#fff", flex: "none", overflow: "hidden" }}>
+                          {logoMap[v.domain]
+                            ? <img src={logoMap[v.domain]} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                            : initials(v.name)}
                         </div>
                         <div>
                           <div style={{ fontSize: 14, fontWeight: 600, letterSpacing: "-0.01em" }}>{v.name}</div>
