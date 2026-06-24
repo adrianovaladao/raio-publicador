@@ -678,7 +678,7 @@ export default function VeiculosPage() {
             <div className="card kpi" key={ti.t} style={{ padding: 20 }}>
               <span className={`tier ${ti.cls}`} style={{ fontSize: 11, padding: "4px 10px", marginBottom: 14, display: "inline-block" }}>{ti.t}</span>
               <div className="lbl">{ti.label}</div>
-              <div className="val" style={{ fontSize: 13, marginTop: 4, fontWeight: 500 }}>{ti.range}</div>
+              <div className="val" style={{ fontSize: 13, marginTop: 4, fontWeight: 700 }}>{ti.range}</div>
               <div style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--stone)", marginTop: 4 }}>
                 {ti.tokens > 0 ? `${ti.tokens} créditos` : "Gratuito"}
               </div>
