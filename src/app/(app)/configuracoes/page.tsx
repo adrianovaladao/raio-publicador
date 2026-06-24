@@ -9,7 +9,7 @@ import {
   UserCircle, Settings2, Users, Building2, CreditCard,
   Plus, ChevronDown, Camera, Lock,
   Mail, Download, Check, X, MoreHorizontal, Ban, Trash2, Send, Upload, Zap,
-  Rss, Search, Pencil, SlidersHorizontal, ArrowUpDown, ArrowUp, ArrowDown,
+  Rss, Pencil, SlidersHorizontal, ArrowUpDown, ArrowUp, ArrowDown,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -989,7 +989,7 @@ interface VehicleRow { id: string; name: string; domain: string; category: strin
 type VAdmSortCol = "name" | "category" | "tier" | "reach";
 type VAdmSortDir = "asc" | "desc";
 const VADM_TIER_ORDER: Record<string, number> = { A: 0, B: 1, C: 2, D: 3, E: 4 };
-const VADM_TOKENS: Record<string, number> = { A: 250, B: 150, C: 100, D: 50, E: 0 };
+
 
 function fmtReachAdm(n: number) {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(n >= 10_000_000 ? 0 : 1).replace(".", ",") + " mi";
@@ -1358,6 +1358,14 @@ function VeiculosPanel({ onToast }: { onToast: (m: string) => void }) {
           onConfirm={handleDelete}
           onClose={() => setDeleting(null)}
           deleting={isDel}
+        />
+      )}
+      {showFilter && (
+        <VAdmFilterModal
+          cats={filterCats}
+          tiers={filterTiers}
+          onApply={(c, t) => { setFilterCats(c); setFilterTiers(t); setPage(1); setShowFilter(false); }}
+          onClose={() => setShowFilter(false)}
         />
       )}
     </div>
