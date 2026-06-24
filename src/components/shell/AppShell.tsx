@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useUser, useClerk } from "@clerk/nextjs";
 import {
-  LayoutDashboard, FileText, CalendarDays, Radio, Settings,
+  LayoutDashboard, FileText, CalendarDays, Rss, Settings,
   Bell, Search, LogOut, ChevronDown, Zap, Check, X,
   ArrowRight, Headphones,
 } from "lucide-react";
@@ -237,7 +237,7 @@ const NAV_ITEMS = [
   { href: "/dashboard",   icon: LayoutDashboard, label: "Visão geral" },
   { href: "/releases",    icon: FileText,         label: "Biblioteca" },
   { href: "/calendario",  icon: CalendarDays,     label: "Calendário" },
-  { href: "/veiculos",    icon: Radio,            label: "Veículos" },
+  { href: "/veiculos",    icon: Rss,              label: "Veículos" },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {

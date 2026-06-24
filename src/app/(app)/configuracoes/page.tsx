@@ -9,7 +9,7 @@ import {
   UserCircle, Settings2, Users, Building2, CreditCard,
   Plus, ChevronDown, Camera, Lock,
   Mail, Download, Check, X, MoreHorizontal, Ban, Trash2, Send, Upload, Zap,
-  Newspaper, Search, Pencil,
+  Rss, Search, Pencil,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -1241,7 +1241,7 @@ function ConfiguracoesInner() {
   const isRaioAdmin = user?.publicMetadata?.raioAdmin === true;
 
   const GROUPS = isRaioAdmin
-    ? [...BASE_GROUPS, { label: "Raio", items: [{ id: "veiculos", icon: Newspaper, label: "Veículos" }] }]
+    ? [...BASE_GROUPS, { label: "Raio", items: [{ id: "veiculos", icon: Rss, label: "Veículos" }] }]
     : BASE_GROUPS;
 
   function showToast(msg: string) {
