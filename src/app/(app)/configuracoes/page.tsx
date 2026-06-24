@@ -1328,22 +1328,23 @@ function VeiculosPanel({ onToast }: { onToast: (m: string) => void }) {
           </table>
         )}
 
-        {/* Paginação */}
-        {!loading && totalPages > 1 && (
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 0 4px", fontSize: 13 }}>
-            <button className="btn btn-ghost btn-sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>← Anterior</button>
-            <span style={{ color: "var(--stone)" }}>{page} / {totalPages}</span>
-            <button className="btn btn-ghost btn-sm" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>Próxima →</button>
-          </div>
-        )}
-
-        {/* Footer count */}
-        {!loading && (
-          <div style={{ padding: "10px 0 4px", fontSize: 12, color: "var(--stone)" }}>
-            {sorted.length} veículos encontrados · alcance combinado: {fmtReachAdm(sorted.reduce((s, v) => s + v.reach, 0))}
-          </div>
-        )}
       </div>
+
+      {/* Paginação */}
+      {!loading && totalPages > 1 && (
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 4px 8px", fontSize: 13 }}>
+          <button className="btn btn-ghost btn-sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>← Anterior</button>
+          <span style={{ color: "var(--stone)" }}>{page} / {totalPages}</span>
+          <button className="btn btn-ghost btn-sm" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>Próxima →</button>
+        </div>
+      )}
+
+      {/* Footer count */}
+      {!loading && (
+        <div style={{ padding: "8px 4px 0", fontSize: 12, color: "var(--stone)" }}>
+          {sorted.length} veículos encontrados · alcance combinado: {fmtReachAdm(sorted.reduce((s, v) => s + v.reach, 0))}
+        </div>
+      )}
 
       {editing !== null && (
         <VehicleModal
