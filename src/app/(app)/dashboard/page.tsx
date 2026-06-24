@@ -671,20 +671,20 @@ function PerformanceDonut() {
   );
 }
 
-// Top vehicle per tier by reach (static)
-const TOP_VEH_BY_TIER = [
-  { id: "v1",   name: "Ge Globo",       domain: "ge.globo.com",           tier: "A", reach: 100000000 },
-  { id: "v13",  name: "Rollingstone",   domain: "rollingstone.com.br",    tier: "B", reach: 2700000   },
-  { id: "v11",  name: "Mixvale",        domain: "mixvale.com.br",         tier: "C", reach: 3700000   },
-  { id: "v6",   name: "Revistakdea360", domain: "revistakdea360.com.br",  tier: "D", reach: 5614333   },
-  { id: "v117", name: "Revistadetetive",domain: "revistadetetive.com.br", tier: "E", reach: 22000     },
-];
-
 function fmtReachStatic(n: number) {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1).replace(".", ",") + " mi";
   if (n >= 1_000)    return (n / 1_000).toFixed(0) + " mil";
   return String(n);
 }
+
+// Top vehicles — exactly one per tier (A→E), highest reach in each
+const TOP_ONE_PER_TIER = [
+  { id: "v1",   name: "Ge Globo",        domain: "ge.globo.com",          tier: "A", reach: 100000000 },
+  { id: "v13",  name: "Rollingstone",    domain: "rollingstone.com.br",   tier: "B", reach: 2700000   },
+  { id: "v11",  name: "Mixvale",         domain: "mixvale.com.br",        tier: "C", reach: 3700000   },
+  { id: "v6",   name: "Revistakdea360",  domain: "revistakdea360.com.br", tier: "D", reach: 5614333   },
+  { id: "v117", name: "Revistadetetive", domain: "revistadetetive.com.br",tier: "E", reach: 22000     },
+];
 
 function TopVehicles() {
   return (
@@ -694,7 +694,7 @@ function TopVehicles() {
         <a href="/veiculos" className="link">Ver todos</a>
       </div>
       <div className="rank">
-        {TOP_VEH_BY_TIER.map(v => (
+        {TOP_ONE_PER_TIER.map(v => (
           <div className="rank-row" key={v.id}>
             <div className="logo" style={{ background: TIER_COLORS[v.tier] ?? "#ccc", color: TIER_FG[v.tier] ?? "#fff" }}>{getInitials(v.name)}</div>
             <div style={{ minWidth: 0 }}>
