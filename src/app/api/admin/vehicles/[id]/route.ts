@@ -15,12 +15,12 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { id } = await params;
-  const { name, domain, category, tier, reach } = await req.json();
+  const { name, domain, category, tier, reach, logoUrl } = await req.json();
 
   try {
     const vehicle = await getPrisma().vehicle.update({
       where: { id },
-      data: { name, domain, category, tier, reach: Number(reach) },
+      data: { name, domain, category, tier, reach: Number(reach), logoUrl: logoUrl ?? null },
     });
     return NextResponse.json(vehicle);
   } catch {

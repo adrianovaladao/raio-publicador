@@ -9,7 +9,7 @@ import {
   UserCircle, Settings2, Users, Building2, CreditCard,
   Plus, ChevronDown, Camera, Lock,
   Mail, Download, Check, X, MoreHorizontal, Ban, Trash2, Send, Upload, Zap,
-  Rss, Search, Pencil,
+  Rss, Search, Pencil, SlidersHorizontal, ArrowUpDown, ArrowUp, ArrowDown,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -985,12 +985,71 @@ const TIER_FG_ADM:     Record<string, string> = { A: "#fff",    B: "#fff",    C:
 const VEH_CATS_ADM = ["Negócios","Tecnologia","Cultura","Esportes","Saúde","Entretenimento","Política","Educação","Lifestyle","Gastronomia","Moda","Sustentabilidade","Finanças","Variedades","Automotivo","Imóveis"];
 const TIERS_ADM = ["A","B","C","D","E"];
 
-interface VehicleRow { id: string; name: string; domain: string; category: string; tier: string; reach: number }
+interface VehicleRow { id: string; name: string; domain: string; category: string; tier: string; reach: number; logoUrl?: string | null }
+type VAdmSortCol = "name" | "category" | "tier" | "reach";
+type VAdmSortDir = "asc" | "desc";
+const VADM_TIER_ORDER: Record<string, number> = { A: 0, B: 1, C: 2, D: 3, E: 4 };
+const VADM_TOKENS: Record<string, number> = { A: 250, B: 150, C: 100, D: 50, E: 0 };
 
 function fmtReachAdm(n: number) {
-  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1).replace(".", ",") + " mi";
-  if (n >= 1_000)    return (n / 1_000).toFixed(0) + " mil";
+  if (n >= 1_000_000) return (n / 1_000_000).toFixed(n >= 10_000_000 ? 0 : 1).replace(".", ",") + " mi";
+  if (n >= 1_000)    return Math.round(n / 1_000) + " mil";
   return String(n);
+}
+function vAdmInitials(name: string) {
+  return name.split(" ").filter(Boolean).slice(0, 2).map(w => w[0]).join("").toUpperCase();
+}
+function sortVAdm(arr: VehicleRow[], col: VAdmSortCol, dir: VAdmSortDir) {
+  return [...arr].sort((a, b) => {
+    let va: string | number, vb: string | number;
+    if (col === "tier")     { va = VADM_TIER_ORDER[a.tier] ?? 99; vb = VADM_TIER_ORDER[b.tier] ?? 99; }
+    else if (col === "reach") { va = a.reach; vb = b.reach; }
+    else { va = (a[col] as string).toLowerCase(); vb = (b[col] as string).toLowerCase(); }
+    if (va < vb) return dir === "asc" ? -1 : 1;
+    if (va > vb) return dir === "asc" ? 1 : -1;
+    return 0;
+  });
+}
+function VAdmSortIcon({ col, active, dir }: { col: string; active: string; dir: VAdmSortDir }) {
+  if (col !== active) return <ArrowUpDown size={13} style={{ opacity: 0.3, marginLeft: 4 }} />;
+  return dir === "asc"
+    ? <ArrowUp   size={13} style={{ marginLeft: 4, color: "var(--coral-ink)" }} />
+    : <ArrowDown size={13} style={{ marginLeft: 4, color: "var(--coral-ink)" }} />;
+}
+function VAdmFilterModal({ cats, tiers, onApply, onClose }: { cats: string[]; tiers: string[]; onApply: (c: string[], t: string[]) => void; onClose: () => void }) {
+  const [selCats,  setSelCats]  = useState<string[]>(cats);
+  const [selTiers, setSelTiers] = useState<string[]>(tiers);
+  return (
+    <div className="overlay" onClick={onClose}>
+      <div className="modal" style={{ maxWidth: 440 }} onClick={e => e.stopPropagation()}>
+        <div className="m-head" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <h3>Filtrar veículos</h3>
+          <button className="icon-btn" onClick={onClose}><X size={17} /></button>
+        </div>
+        <div className="m-body" style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          <div>
+            <p style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 10 }}>Categoria</p>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {VEH_CATS_ADM.map(c => <button key={c} onClick={() => setSelCats(p => p.includes(c) ? p.filter(x => x !== c) : [...p, c])} className={`chip${selCats.includes(c) ? " active" : ""}`}>{c}</button>)}
+            </div>
+          </div>
+          <div>
+            <p style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 10 }}>Tier</p>
+            <div style={{ display: "flex", gap: 8 }}>
+              {TIERS_ADM.map(t => <button key={t} onClick={() => setSelTiers(p => p.includes(t) ? p.filter(x => x !== t) : [...p, t])} className={`chip${selTiers.includes(t) ? " active" : ""}`}>Tier {t}</button>)}
+            </div>
+          </div>
+        </div>
+        <div className="m-foot" style={{ justifyContent: "space-between" }}>
+          <button className="btn btn-ghost btn-sm" onClick={() => { setSelCats([]); setSelTiers([]); }}>Limpar</button>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button className="btn btn-ghost btn-sm" onClick={onClose}>Cancelar</button>
+            <button className="btn btn-primary btn-sm" onClick={() => { onApply(selCats, selTiers); onClose(); }}>Aplicar {(selCats.length + selTiers.length) > 0 ? `(${selCats.length + selTiers.length})` : ""}</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function VehicleModal({ initial, onSave, onClose }: {
@@ -998,19 +1057,31 @@ function VehicleModal({ initial, onSave, onClose }: {
   onSave: (data: Omit<VehicleRow, "id">) => Promise<void>;
   onClose: () => void;
 }) {
-  const [name,     setName]     = useState(initial?.name     ?? "");
-  const [domain,   setDomain]   = useState(initial?.domain   ?? "");
-  const [category, setCategory] = useState(initial?.category ?? VEH_CATS_ADM[0]);
-  const [tier,     setTier]     = useState(initial?.tier     ?? "B");
-  const [reach,    setReach]    = useState(String(initial?.reach ?? ""));
-  const [saving,   setSaving]   = useState(false);
-  const [err,      setErr]      = useState("");
+  const [name,       setName]       = useState(initial?.name       ?? "");
+  const [domain,     setDomain]     = useState(initial?.domain     ?? "");
+  const [category,   setCategory]   = useState(initial?.category   ?? VEH_CATS_ADM[0]);
+  const [tier,       setTier]       = useState(initial?.tier       ?? "B");
+  const [reach,      setReach]      = useState(String(initial?.reach ?? ""));
+  const [logoUrl,    setLogoUrl]    = useState(initial?.logoUrl     ?? "");
+  const [uploading,  setUploading]  = useState(false);
+  const [saving,     setSaving]     = useState(false);
+  const [err,        setErr]        = useState("");
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  async function handleLogoUpload(file: File) {
+    setUploading(true);
+    const fd = new FormData(); fd.append("file", file);
+    const res = await fetch("/api/upload", { method: "POST", body: fd });
+    const data = await res.json() as { url?: string };
+    if (data.url) setLogoUrl(data.url);
+    setUploading(false);
+  }
 
   async function handleSubmit() {
     if (!name.trim() || !domain.trim() || !reach) { setErr("Preencha todos os campos."); return; }
     setSaving(true); setErr("");
     try {
-      await onSave({ name: name.trim(), domain: domain.trim(), category, tier, reach: Number(reach) });
+      await onSave({ name: name.trim(), domain: domain.trim(), category, tier, reach: Number(reach), logoUrl: logoUrl || null });
       onClose();
     } catch (e: unknown) {
       setErr(e instanceof Error ? e.message : "Erro ao salvar");
@@ -1025,6 +1096,24 @@ function VehicleModal({ initial, onSave, onClose }: {
           <button className="icon-btn" onClick={onClose}><X size={18} /></button>
         </div>
         <div className="m-body" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          {/* Logo */}
+          <div className="field">
+            <label>Logo</label>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div
+                style={{ width: 48, height: 48, borderRadius: 10, background: TIER_COLORS_ADM[tier] ?? "#ccc", color: TIER_FG_ADM[tier] ?? "#fff", display: "grid", placeItems: "center", fontFamily: "var(--mono)", fontWeight: 700, fontSize: 14, overflow: "hidden", flexShrink: 0 }}
+              >
+                {logoUrl
+                  ? <img src={logoUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  : vAdmInitials(name || "?")}
+              </div>
+              <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={e => { const f = e.target.files?.[0]; if (f) handleLogoUpload(f); }} />
+              <button className="btn btn-ghost btn-sm" disabled={uploading} onClick={() => fileRef.current?.click()}>
+                <Camera size={14} /> {uploading ? "Enviando…" : logoUrl ? "Trocar logo" : "Adicionar logo"}
+              </button>
+              {logoUrl && <button className="btn btn-ghost btn-sm" style={{ color: "var(--stone)" }} onClick={() => setLogoUrl("")}><X size={13} /></button>}
+            </div>
+          </div>
           <div className="field"><label>Nome</label><input className="input" value={name} onChange={e => setName(e.target.value)} placeholder="Ex.: Folha de S.Paulo" /></div>
           <div className="field"><label>Domínio</label><input className="input" value={domain} onChange={e => setDomain(e.target.value)} placeholder="folha.uol.com.br" /></div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
@@ -1077,24 +1166,22 @@ function DeleteVehicleModal({ name, onConfirm, onClose, deleting }: { name: stri
   );
 }
 
-function VeiculosPanel({ onToast }: { onToast: (m: string) => void }) {
-  const [vehicles,  setVehicles]  = useState<VehicleRow[]>([]);
-  const [loading,   setLoading]   = useState(true);
-  const [seeding,   setSeeding]   = useState(false);
-  const [q,         setQ]         = useState("");
-  const [editing,   setEditing]   = useState<VehicleRow | null | "new">(null);
-  const [deleting,  setDeleting]  = useState<VehicleRow | null>(null);
-  const [isDel,     setIsDel]     = useState(false);
+const VADM_PAGE_SIZE = 25;
 
-  async function handleSeed() {
-    setSeeding(true);
-    const res = await fetch("/api/admin/vehicles/seed", { method: "POST" });
-    const data = await res.json() as { inserted: number };
-    const all = await fetch("/api/admin/vehicles").then(r => r.json()) as VehicleRow[];
-    setVehicles(all);
-    setSeeding(false);
-    onToast(`${data.inserted} veículos importados!`);
-  }
+function VeiculosPanel({ onToast }: { onToast: (m: string) => void }) {
+  const [vehicles,     setVehicles]    = useState<VehicleRow[]>([]);
+  const [loading,      setLoading]     = useState(true);
+  const [seeding,      setSeeding]     = useState(false);
+  const [q,            setQ]           = useState("");
+  const [filterCats,   setFilterCats]  = useState<string[]>([]);
+  const [filterTiers,  setFilterTiers] = useState<string[]>([]);
+  const [sortCol,      setSortCol]     = useState<VAdmSortCol>("reach");
+  const [sortDir,      setSortDir]     = useState<VAdmSortDir>("desc");
+  const [page,         setPage]        = useState(1);
+  const [showFilter,   setShowFilter]  = useState(false);
+  const [editing,      setEditing]     = useState<VehicleRow | null | "new">(null);
+  const [deleting,     setDeleting]    = useState<VehicleRow | null>(null);
+  const [isDel,        setIsDel]       = useState(false);
 
   useEffect(() => {
     fetch("/api/admin/vehicles")
@@ -1103,23 +1190,27 @@ function VeiculosPanel({ onToast }: { onToast: (m: string) => void }) {
       .finally(() => setLoading(false));
   }, []);
 
-  const filtered = vehicles.filter(v =>
-    v.name.toLowerCase().includes(q.toLowerCase()) ||
-    v.domain.toLowerCase().includes(q.toLowerCase()) ||
-    v.category.toLowerCase().includes(q.toLowerCase())
-  );
+  async function handleSeed() {
+    setSeeding(true);
+    const res  = await fetch("/api/admin/vehicles/seed", { method: "POST" });
+    const data = await res.json() as { inserted: number };
+    const all  = await fetch("/api/admin/vehicles").then(r => r.json()) as VehicleRow[];
+    setVehicles(all);
+    setSeeding(false);
+    onToast(`${data.inserted} veículos importados!`);
+  }
 
   async function handleSave(data: Omit<VehicleRow, "id">) {
     if (editing === "new") {
       const res = await fetch("/api/admin/vehicles", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
       if (!res.ok) { const e = await res.json(); throw new Error(e.error); }
-      const v = await res.json();
-      setVehicles(prev => [...prev, v].sort((a, b) => a.name.localeCompare(b.name)));
+      const v = await res.json() as VehicleRow;
+      setVehicles(prev => [...prev, v]);
       onToast("Veículo adicionado!");
     } else if (editing) {
       const res = await fetch(`/api/admin/vehicles/${editing.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
       if (!res.ok) { const e = await res.json(); throw new Error(e.error); }
-      const v = await res.json();
+      const v = await res.json() as VehicleRow;
       setVehicles(prev => prev.map(x => x.id === v.id ? v : x));
       onToast("Veículo atualizado!");
     }
@@ -1134,74 +1225,122 @@ function VeiculosPanel({ onToast }: { onToast: (m: string) => void }) {
     onToast("Veículo removido.");
   }
 
+  function handleSort(col: VAdmSortCol) {
+    if (sortCol === col) setSortDir(d => d === "asc" ? "desc" : "asc");
+    else { setSortCol(col); setSortDir(col === "reach" ? "desc" : "asc"); }
+    setPage(1);
+  }
+
+  const activeFilters = filterCats.length + filterTiers.length;
+  const thStyle = (col: VAdmSortCol): React.CSSProperties => ({
+    cursor: "pointer", userSelect: "none", whiteSpace: "nowrap",
+    color: sortCol === col ? "var(--coral-ink)" : undefined,
+  });
+  const thInner = (label: string, col: VAdmSortCol, align: "left" | "right" = "left") => (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 4, justifyContent: align === "right" ? "flex-end" : "flex-start", width: "100%" }}>
+      {label}<VAdmSortIcon col={col} active={sortCol} dir={sortDir} />
+    </span>
+  );
+
+  const filtered    = vehicles.filter(v =>
+    (filterCats.length  === 0 || filterCats.includes(v.category)) &&
+    (filterTiers.length === 0 || filterTiers.includes(v.tier)) &&
+    (!q.trim() || (v.name + v.domain).toLowerCase().includes(q.toLowerCase()))
+  );
+  const sorted      = sortVAdm(filtered, sortCol, sortDir);
+  const totalPages  = Math.ceil(sorted.length / VADM_PAGE_SIZE);
+  const list        = sorted.slice((page - 1) * VADM_PAGE_SIZE, page * VADM_PAGE_SIZE);
+
   return (
     <div className="set-panel">
       <PanelHead title="Veículos" desc="Gerencie os veículos disponíveis na plataforma." />
 
-      <div className="card">
-        <div className="card-head">
-          <h3>Lista de veículos <span style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--stone)", fontWeight: 400, marginLeft: 6 }}>{vehicles.length}</span></h3>
-          <div style={{ display: "flex", gap: 8 }}>
-            <div style={{ position: "relative" }}>
-              <Search size={14} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--stone)", pointerEvents: "none" }} />
-              <input className="input" style={{ paddingLeft: 30, width: 200, height: 34, fontSize: 13 }} placeholder="Buscar…" value={q} onChange={e => setQ(e.target.value)} />
-            </div>
-            {vehicles.length === 0 && !loading && (
-              <button className="btn btn-ghost btn-sm" disabled={seeding} onClick={handleSeed}>
-                {seeding ? "Importando…" : <><Upload size={15} /> Importar veículos padrão</>}
-              </button>
-            )}
-            <button className="btn btn-dark btn-sm" onClick={() => setEditing("new")}><Plus size={15} /> Novo veículo</button>
-          </div>
-        </div>
+      {/* Toolbar */}
+      <div className="toolbar" style={{ marginBottom: 18, gap: 8 }}>
+        <button className={`btn btn-ghost btn-sm${activeFilters > 0 ? " active" : ""}`} onClick={() => setShowFilter(true)} style={{ gap: 6 }}>
+          <SlidersHorizontal size={14} /> Filtrar
+          {activeFilters > 0 && <span style={{ background: "var(--coral)", color: "#fff", borderRadius: 99, fontSize: 10, fontWeight: 700, padding: "1px 6px", marginLeft: 2 }}>{activeFilters}</span>}
+        </button>
+        {activeFilters > 0 && (
+          <button className="btn btn-ghost btn-sm" style={{ color: "var(--stone)" }} onClick={() => { setFilterCats([]); setFilterTiers([]); setPage(1); }}>
+            <X size={13} /> Limpar
+          </button>
+        )}
+        <div style={{ flex: 1 }} />
+        {vehicles.length === 0 && !loading && (
+          <button className="btn btn-ghost btn-sm" disabled={seeding} onClick={handleSeed}>
+            {seeding ? "Importando…" : <><Upload size={15} /> Importar veículos padrão</>}
+          </button>
+        )}
+        <input className="input" placeholder="Buscar veículo…" value={q} onChange={e => { setQ(e.target.value); setPage(1); }} style={{ width: 220, padding: "8px 14px", fontSize: 13 }} />
+        <button className="btn btn-dark btn-sm" onClick={() => setEditing("new")}><Plus size={15} /> Novo veículo</button>
+      </div>
 
+      {/* Tabela */}
+      <div className="card">
         {loading ? (
-          <div style={{ padding: "40px 22px", textAlign: "center", color: "var(--stone)" }}>Carregando…</div>
+          <div style={{ padding: "48px", textAlign: "center", color: "var(--stone)" }}>Carregando…</div>
         ) : (
-          <div style={{ overflowX: "auto" }}>
-            <table className="rel-table" style={{ width: "100%" }}>
-              <thead>
-                <tr>
-                  <th style={{ textAlign: "left", paddingLeft: 22 }}>Veículo</th>
-                  <th style={{ textAlign: "left" }}>Categoria</th>
-                  <th style={{ textAlign: "center" }}>Tier</th>
-                  <th style={{ textAlign: "right" }}>Alcance/mês</th>
-                  <th style={{ textAlign: "right" }}>Créditos</th>
-                  <th style={{ width: 80 }}></th>
+          <table className="tbl">
+            <thead>
+              <tr>
+                <th style={{ ...thStyle("name"), width: "34%" }} onClick={() => handleSort("name")}>{thInner("Veículo", "name")}</th>
+                <th style={thStyle("category")} onClick={() => handleSort("category")}>{thInner("Categoria", "category")}</th>
+                <th style={thStyle("tier")} onClick={() => handleSort("tier")}>{thInner("Tier", "tier")}</th>
+                <th style={{ ...thStyle("reach"), textAlign: "right" }} onClick={() => handleSort("reach")}>{thInner("Alcance/mês", "reach", "right")}</th>
+                <th style={{ textAlign: "right" }}>Créditos</th>
+                <th style={{ width: 72 }}></th>
+              </tr>
+            </thead>
+            <tbody>
+              {list.length === 0 ? (
+                <tr><td colSpan={6} style={{ textAlign: "center", padding: "40px 0", color: "var(--stone)" }}>Nenhum veículo encontrado.</td></tr>
+              ) : list.map(v => (
+                <tr key={v.id}>
+                  <td>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <div style={{ width: 32, height: 32, borderRadius: 8, background: TIER_COLORS_ADM[v.tier] ?? "#ccc", color: TIER_FG_ADM[v.tier] ?? "#fff", display: "grid", placeItems: "center", fontFamily: "var(--mono)", fontWeight: 700, fontSize: 11, flexShrink: 0, overflow: "hidden" }}>
+                        {v.logoUrl
+                          ? <img src={v.logoUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                          : vAdmInitials(v.name)}
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: 600, fontSize: 14 }}>{v.name}</div>
+                        <div style={{ fontSize: 11, color: "var(--stone)" }}>{v.domain}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td style={{ color: "var(--stone)", fontSize: 13 }}>{v.category}</td>
+                  <td>
+                    <span className={`tier t-${v.tier.toLowerCase()}`} style={{ fontSize: 10, padding: "2px 7px" }}>{v.tier}</span>
+                  </td>
+                  <td style={{ textAlign: "right", fontFamily: "var(--mono)", fontSize: 13 }}>{fmtReachAdm(v.reach)}</td>
+                  <td style={{ textAlign: "right", fontFamily: "var(--mono)", fontSize: 13 }}>{TIER_TOKENS_ADM[v.tier] ?? 0} ⚡</td>
+                  <td>
+                    <div style={{ display: "flex", gap: 4, justifyContent: "flex-end", paddingRight: 8 }}>
+                      <button className="icon-btn" title="Editar" onClick={() => setEditing(v)}><Pencil size={14} /></button>
+                      <button className="icon-btn" title="Remover" onClick={() => setDeleting(v)}><Trash2 size={14} /></button>
+                    </div>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {filtered.length === 0 ? (
-                  <tr><td colSpan={6} style={{ textAlign: "center", padding: "32px 0", color: "var(--stone)" }}>Nenhum veículo encontrado.</td></tr>
-                ) : filtered.map(v => (
-                  <tr key={v.id}>
-                    <td style={{ paddingLeft: 22 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        <div style={{ width: 32, height: 32, borderRadius: 8, background: TIER_COLORS_ADM[v.tier] ?? "#ccc", color: TIER_FG_ADM[v.tier] ?? "#fff", display: "grid", placeItems: "center", fontFamily: "var(--mono)", fontWeight: 700, fontSize: 11, flexShrink: 0 }}>
-                          {v.name.replace(/[^A-Z]/g, "").slice(0, 2) || v.name.slice(0, 2).toUpperCase()}
-                        </div>
-                        <div>
-                          <div style={{ fontWeight: 600, fontSize: 14 }}>{v.name}</div>
-                          <div style={{ fontSize: 11, color: "var(--stone)" }}>{v.domain}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td style={{ color: "var(--stone)", fontSize: 13 }}>{v.category}</td>
-                    <td style={{ textAlign: "center" }}>
-                      <span className={`tier t-${v.tier.toLowerCase()}`} style={{ fontSize: 10, padding: "2px 7px" }}>{v.tier}</span>
-                    </td>
-                    <td style={{ textAlign: "right", fontFamily: "var(--mono)", fontSize: 13 }}>{fmtReachAdm(v.reach)}</td>
-                    <td style={{ textAlign: "right", fontFamily: "var(--mono)", fontSize: 13 }}>{TIER_TOKENS_ADM[v.tier] ?? 0}</td>
-                    <td>
-                      <div style={{ display: "flex", gap: 4, justifyContent: "flex-end", paddingRight: 16 }}>
-                        <button className="icon-btn" title="Editar" onClick={() => setEditing(v)}><Pencil size={14} /></button>
-                        <button className="icon-btn" title="Remover" onClick={() => setDeleting(v)}><Trash2 size={14} /></button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+              ))}
+            </tbody>
+          </table>
+        )}
+
+        {/* Paginação */}
+        {!loading && totalPages > 1 && (
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 0 4px", fontSize: 13 }}>
+            <button className="btn btn-ghost btn-sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>← Anterior</button>
+            <span style={{ color: "var(--stone)" }}>{page} / {totalPages}</span>
+            <button className="btn btn-ghost btn-sm" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>Próxima →</button>
+          </div>
+        )}
+
+        {/* Footer count */}
+        {!loading && (
+          <div style={{ padding: "10px 0 4px", fontSize: 12, color: "var(--stone)" }}>
+            {sorted.length} veículos encontrados · alcance combinado: {fmtReachAdm(sorted.reduce((s, v) => s + v.reach, 0))}
           </div>
         )}
       </div>
