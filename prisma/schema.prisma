@@ -93,6 +93,19 @@ enum MemberStatus {
   SUSPENDED
 }
 
+// ─── Veículo (gerenciado por admins Raio) ────────────────────────────────────
+
+model Vehicle {
+  id        String   @id @default(cuid())
+  name      String
+  domain    String   @unique
+  category  String
+  tier      String
+  reach     Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 // ─── Convite ─────────────────────────────────────────────────────────────────
 
 model Invite {

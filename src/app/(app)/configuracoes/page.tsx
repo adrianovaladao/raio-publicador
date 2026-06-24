@@ -9,6 +9,7 @@ import {
   UserCircle, Settings2, Users, Building2, CreditCard,
   Plus, ChevronDown, Camera, Lock,
   Mail, Download, Check, X, MoreHorizontal, Ban, Trash2, Send, Upload, Zap,
+  Newspaper, Search, Pencil,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -976,9 +977,238 @@ function CobrancaPanel({ onToast }: { onToast: (m: string) => void }) {
   );
 }
 
+// ─── VeiculosPanel (Raio admin only) ─────────────────────────────────────────
+
+const TIER_TOKENS_ADM: Record<string, number> = { A: 250, B: 150, C: 100, D: 50, E: 0 };
+const TIER_COLORS_ADM: Record<string, string> = { A: "#C0392B", B: "#E07B2A", C: "#D4A017", D: "#3A7DC9", E: "#D0DFF0" };
+const TIER_FG_ADM:     Record<string, string> = { A: "#fff",    B: "#fff",    C: "#fff",    D: "#fff",    E: "#3A5A80" };
+const VEH_CATS_ADM = ["Negócios","Tecnologia","Cultura","Esportes","Saúde","Entretenimento","Política","Educação","Lifestyle","Gastronomia","Moda","Sustentabilidade","Finanças","Variedades","Automotivo","Imóveis"];
+const TIERS_ADM = ["A","B","C","D","E"];
+
+interface VehicleRow { id: string; name: string; domain: string; category: string; tier: string; reach: number }
+
+function fmtReachAdm(n: number) {
+  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1).replace(".", ",") + " mi";
+  if (n >= 1_000)    return (n / 1_000).toFixed(0) + " mil";
+  return String(n);
+}
+
+function VehicleModal({ initial, onSave, onClose }: {
+  initial?: VehicleRow | null;
+  onSave: (data: Omit<VehicleRow, "id">) => Promise<void>;
+  onClose: () => void;
+}) {
+  const [name,     setName]     = useState(initial?.name     ?? "");
+  const [domain,   setDomain]   = useState(initial?.domain   ?? "");
+  const [category, setCategory] = useState(initial?.category ?? VEH_CATS_ADM[0]);
+  const [tier,     setTier]     = useState(initial?.tier     ?? "B");
+  const [reach,    setReach]    = useState(String(initial?.reach ?? ""));
+  const [saving,   setSaving]   = useState(false);
+  const [err,      setErr]      = useState("");
+
+  async function handleSubmit() {
+    if (!name.trim() || !domain.trim() || !reach) { setErr("Preencha todos os campos."); return; }
+    setSaving(true); setErr("");
+    try {
+      await onSave({ name: name.trim(), domain: domain.trim(), category, tier, reach: Number(reach) });
+      onClose();
+    } catch (e: unknown) {
+      setErr(e instanceof Error ? e.message : "Erro ao salvar");
+    } finally { setSaving(false); }
+  }
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal" style={{ maxWidth: 480 }} onClick={e => e.stopPropagation()}>
+        <div className="modal-head">
+          <h3>{initial ? "Editar veículo" : "Novo veículo"}</h3>
+          <button className="icon-btn" onClick={onClose}><X size={18} /></button>
+        </div>
+        <div className="modal-body" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <div className="field"><label>Nome</label><input className="input" value={name} onChange={e => setName(e.target.value)} placeholder="Ex.: Folha de S.Paulo" /></div>
+          <div className="field"><label>Domínio</label><input className="input" value={domain} onChange={e => setDomain(e.target.value)} placeholder="folha.uol.com.br" /></div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div className="field">
+              <label>Categoria</label>
+              <div className="select-wrap">
+                <select className="input" value={category} onChange={e => setCategory(e.target.value)}>
+                  {VEH_CATS_ADM.map(c => <option key={c}>{c}</option>)}
+                </select>
+                <ChevronDown size={15} />
+              </div>
+            </div>
+            <div className="field">
+              <label>Tier</label>
+              <div className="select-wrap">
+                <select className="input" value={tier} onChange={e => setTier(e.target.value)}>
+                  {TIERS_ADM.map(t => <option key={t} value={t}>Tier {t} — {TIER_TOKENS_ADM[t]} créditos</option>)}
+                </select>
+                <ChevronDown size={15} />
+              </div>
+            </div>
+          </div>
+          <div className="field"><label>Alcance/mês</label><input className="input" type="number" value={reach} onChange={e => setReach(e.target.value)} placeholder="Ex.: 5000000" /></div>
+          {err && <p style={{ color: "var(--red)", fontSize: 13, margin: 0 }}>{err}</p>}
+        </div>
+        <div className="modal-foot">
+          <button className="btn btn-ghost" onClick={onClose}>Cancelar</button>
+          <button className="btn btn-dark" disabled={saving} onClick={handleSubmit}>{saving ? "Salvando…" : <><Check size={15} /> Salvar</>}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DeleteVehicleModal({ name, onConfirm, onClose, deleting }: { name: string; onConfirm: () => void; onClose: () => void; deleting: boolean }) {
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal" style={{ maxWidth: 400 }} onClick={e => e.stopPropagation()}>
+        <div className="modal-head"><h3>Remover veículo</h3><button className="icon-btn" onClick={onClose}><X size={18} /></button></div>
+        <div className="modal-body"><p>Tem certeza que deseja remover <strong>{name}</strong>? Esta ação não pode ser desfeita.</p></div>
+        <div className="modal-foot">
+          <button className="btn btn-ghost" onClick={onClose}>Cancelar</button>
+          <button className="btn" style={{ background: "var(--red)", color: "#fff", border: "none" }} disabled={deleting} onClick={onConfirm}>{deleting ? "Removendo…" : <><Trash2 size={14} /> Remover</>}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function VeiculosPanel({ onToast }: { onToast: (m: string) => void }) {
+  const [vehicles, setVehicles] = useState<VehicleRow[]>([]);
+  const [loading,  setLoading]  = useState(true);
+  const [q,        setQ]        = useState("");
+  const [editing,  setEditing]  = useState<VehicleRow | null | "new">(null);
+  const [deleting, setDeleting] = useState<VehicleRow | null>(null);
+  const [isDel,    setIsDel]    = useState(false);
+
+  useEffect(() => {
+    fetch("/api/admin/vehicles")
+      .then(r => r.json())
+      .then(setVehicles)
+      .finally(() => setLoading(false));
+  }, []);
+
+  const filtered = vehicles.filter(v =>
+    v.name.toLowerCase().includes(q.toLowerCase()) ||
+    v.domain.toLowerCase().includes(q.toLowerCase()) ||
+    v.category.toLowerCase().includes(q.toLowerCase())
+  );
+
+  async function handleSave(data: Omit<VehicleRow, "id">) {
+    if (editing === "new") {
+      const res = await fetch("/api/admin/vehicles", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
+      if (!res.ok) { const e = await res.json(); throw new Error(e.error); }
+      const v = await res.json();
+      setVehicles(prev => [...prev, v].sort((a, b) => a.name.localeCompare(b.name)));
+      onToast("Veículo adicionado!");
+    } else if (editing) {
+      const res = await fetch(`/api/admin/vehicles/${editing.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
+      if (!res.ok) { const e = await res.json(); throw new Error(e.error); }
+      const v = await res.json();
+      setVehicles(prev => prev.map(x => x.id === v.id ? v : x));
+      onToast("Veículo atualizado!");
+    }
+  }
+
+  async function handleDelete() {
+    if (!deleting) return;
+    setIsDel(true);
+    await fetch(`/api/admin/vehicles/${deleting.id}`, { method: "DELETE" });
+    setVehicles(prev => prev.filter(v => v.id !== deleting.id));
+    setDeleting(null); setIsDel(false);
+    onToast("Veículo removido.");
+  }
+
+  return (
+    <div className="set-panel">
+      <PanelHead title="Veículos" desc="Gerencie os veículos disponíveis na plataforma." />
+
+      <div className="card">
+        <div className="card-head">
+          <h3>Lista de veículos <span style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--stone)", fontWeight: 400, marginLeft: 6 }}>{vehicles.length}</span></h3>
+          <div style={{ display: "flex", gap: 8 }}>
+            <div style={{ position: "relative" }}>
+              <Search size={14} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--stone)", pointerEvents: "none" }} />
+              <input className="input" style={{ paddingLeft: 30, width: 200, height: 34, fontSize: 13 }} placeholder="Buscar…" value={q} onChange={e => setQ(e.target.value)} />
+            </div>
+            <button className="btn btn-dark btn-sm" onClick={() => setEditing("new")}><Plus size={15} /> Novo veículo</button>
+          </div>
+        </div>
+
+        {loading ? (
+          <div style={{ padding: "40px 22px", textAlign: "center", color: "var(--stone)" }}>Carregando…</div>
+        ) : (
+          <div style={{ overflowX: "auto" }}>
+            <table className="rel-table" style={{ width: "100%" }}>
+              <thead>
+                <tr>
+                  <th style={{ textAlign: "left", paddingLeft: 22 }}>Veículo</th>
+                  <th style={{ textAlign: "left" }}>Categoria</th>
+                  <th style={{ textAlign: "center" }}>Tier</th>
+                  <th style={{ textAlign: "right" }}>Alcance/mês</th>
+                  <th style={{ textAlign: "right" }}>Créditos</th>
+                  <th style={{ width: 80 }}></th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.length === 0 ? (
+                  <tr><td colSpan={6} style={{ textAlign: "center", padding: "32px 0", color: "var(--stone)" }}>Nenhum veículo encontrado.</td></tr>
+                ) : filtered.map(v => (
+                  <tr key={v.id}>
+                    <td style={{ paddingLeft: 22 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <div style={{ width: 32, height: 32, borderRadius: 8, background: TIER_COLORS_ADM[v.tier] ?? "#ccc", color: TIER_FG_ADM[v.tier] ?? "#fff", display: "grid", placeItems: "center", fontFamily: "var(--mono)", fontWeight: 700, fontSize: 11, flexShrink: 0 }}>
+                          {v.name.replace(/[^A-Z]/g, "").slice(0, 2) || v.name.slice(0, 2).toUpperCase()}
+                        </div>
+                        <div>
+                          <div style={{ fontWeight: 600, fontSize: 14 }}>{v.name}</div>
+                          <div style={{ fontSize: 11, color: "var(--stone)" }}>{v.domain}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td style={{ color: "var(--stone)", fontSize: 13 }}>{v.category}</td>
+                    <td style={{ textAlign: "center" }}>
+                      <span className={`tier t-${v.tier.toLowerCase()}`} style={{ fontSize: 10, padding: "2px 7px" }}>{v.tier}</span>
+                    </td>
+                    <td style={{ textAlign: "right", fontFamily: "var(--mono)", fontSize: 13 }}>{fmtReachAdm(v.reach)}</td>
+                    <td style={{ textAlign: "right", fontFamily: "var(--mono)", fontSize: 13 }}>{TIER_TOKENS_ADM[v.tier] ?? 0}</td>
+                    <td>
+                      <div style={{ display: "flex", gap: 4, justifyContent: "flex-end", paddingRight: 16 }}>
+                        <button className="icon-btn" title="Editar" onClick={() => setEditing(v)}><Pencil size={14} /></button>
+                        <button className="icon-btn" title="Remover" onClick={() => setDeleting(v)}><Trash2 size={14} /></button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {editing !== null && (
+        <VehicleModal
+          initial={editing === "new" ? null : editing}
+          onSave={handleSave}
+          onClose={() => setEditing(null)}
+        />
+      )}
+      {deleting && (
+        <DeleteVehicleModal
+          name={deleting.name}
+          onConfirm={handleDelete}
+          onClose={() => setDeleting(null)}
+          deleting={isDel}
+        />
+      )}
+    </div>
+  );
+}
+
 // ─── Hub ──────────────────────────────────────────────────────────────────────
 
-const GROUPS = [
+const BASE_GROUPS = [
   { label: "Você", items: [{ id: "perfil", icon: UserCircle, label: "Perfil" }, { id: "conta", icon: Settings2, label: "Conta" }] },
   { label: "Organização", items: [{ id: "equipe", icon: Users, label: "Equipe e permissões" }, { id: "marcas", icon: Building2, label: "Marcas" }, { id: "cobranca", icon: CreditCard, label: "Cobrança" }] },
 ];
@@ -988,6 +1218,12 @@ function ConfiguracoesInner() {
   const initialTab = searchParams.get("tab") ?? "perfil";
   const [tab, setTab] = useState(initialTab);
   const [toast, setToast] = useState<string | null>(null);
+  const { user } = useUser();
+  const isRaioAdmin = user?.publicMetadata?.raioAdmin === true;
+
+  const GROUPS = isRaioAdmin
+    ? [...BASE_GROUPS, { label: "Raio", items: [{ id: "veiculos", icon: Newspaper, label: "Veículos" }] }]
+    : BASE_GROUPS;
 
   function showToast(msg: string) {
     setToast(msg);
@@ -1016,6 +1252,7 @@ function ConfiguracoesInner() {
             {tab === "equipe"   && <EquipePanel   onToast={showToast} />}
             {tab === "marcas"   && <MarcasPanel   onToast={showToast} />}
             {tab === "cobranca" && <CobrancaPanel onToast={showToast} />}
+            {tab === "veiculos" && isRaioAdmin && <VeiculosPanel onToast={showToast} />}
           </div>
         </div>
       </div>
