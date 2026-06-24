@@ -554,99 +554,177 @@ export default function DashboardPage() {
   );
 }
 
-// ── Mock charts (só aparecem com releases) ────────────────────────────────────
+// ── Vehicle charts ────────────────────────────────────────────────────────────
 
 const TIER_COLORS: Record<string, string> = { A: "#C0392B", B: "#E07B2A", C: "#D4A017", D: "#3A7DC9", E: "#D0DFF0" };
 const TIER_FG:     Record<string, string> = { A: "#fff",    B: "#fff",    C: "#fff",    D: "#fff",    E: "#3A5A80" };
+const TIER_TOKENS: Record<string, number> = { A: 250, B: 150, C: 100, D: 50, E: 0 };
 
-const TOP_VEHICLES = [
-  { id: "v1",   name: "Ge Globo",         domain: "ge.globo.com",              tier: "A", releases: 18, n: "100"  },
-  { id: "v13",  name: "Rollingstone",     domain: "rollingstone.com.br",       tier: "B", releases: 12, n: "2,7"  },
-  { id: "v11",  name: "Mixvale",          domain: "mixvale.com.br",            tier: "C", releases:  9, n: "3,7"  },
-  { id: "v6",   name: "Revistakdea360",   domain: "revistakdea360.com.br",     tier: "D", releases:  6, n: "5,6"  },
-  { id: "v117", name: "Revistadetetive",  domain: "revistadetetive.com.br",    tier: "E", releases:  3, n: "0,02" },
-];
+// Minimal vehicle lookup map (id → name, domain, tier, reach)
+// Generated from the same source as the full VEHICLES list
+const VEH_MAP: Record<string, { name: string; domain: string; tier: string; reach: number }> = {
+  "v1":   { name: "Ge Globo",        domain: "ge.globo.com",              tier: "A", reach: 100000000 },
+  "v2":   { name: "G1 Globo",        domain: "g1.globo.com",              tier: "A", reach: 70000000  },
+  "v3":   { name: "Terra",            domain: "terra.com.br",              tier: "A", reach: 61000000  },
+  "v4":   { name: "Oglobo Globo",    domain: "oglobo.globo.com",          tier: "A", reach: 19000000  },
+  "v5":   { name: "Ig",              domain: "ig.com.br",                 tier: "A", reach: 8400000   },
+  "v6":   { name: "Revistakdea360",  domain: "revistakdea360.com.br",     tier: "D", reach: 5614333   },
+  "v7":   { name: "Gazetadopovo",    domain: "gazetadopovo.com.br",       tier: "A", reach: 5500000   },
+  "v8":   { name: "Correiobraziliense", domain: "correiobraziliense.com.br", tier: "A", reach: 5400000 },
+  "v9":   { name: "Band",            domain: "band.com.br",               tier: "A", reach: 5000000   },
+  "v10":  { name: "Valor Globo",     domain: "valor.globo.com",           tier: "A", reach: 4200000   },
+  "v11":  { name: "Mixvale",         domain: "mixvale.com.br",            tier: "C", reach: 3700000   },
+  "v12":  { name: "Uai",             domain: "uai.com.br",                tier: "A", reach: 3600000   },
+  "v13":  { name: "Rollingstone",    domain: "rollingstone.com.br",       tier: "B", reach: 2700000   },
+  "v14":  { name: "Odia Ig",         domain: "odia.ig.com.br",            tier: "A", reach: 2500000   },
+  "v15":  { name: "Em",              domain: "em.com.br",                 tier: "A", reach: 2400000   },
+  "v16":  { name: "Brasil247",       domain: "brasil247.com",             tier: "A", reach: 1700000   },
+  "v17":  { name: "Egobrazil",       domain: "egobrazil.com.br",          tier: "A", reach: 1254000   },
+  "v18":  { name: "Recreio",         domain: "recreio.com.br",            tier: "C", reach: 1200000   },
+  "v19":  { name: "Folhavitoria",    domain: "folhavitoria.com.br",       tier: "B", reach: 1000000   },
+  "v20":  { name: "Futebolinterior", domain: "futebolinterior.com.br",    tier: "B", reach: 956000    },
+  "v117": { name: "Revistadetetive", domain: "revistadetetive.com.br",    tier: "E", reach: 22000     },
+  "v124": { name: "Celebs",          domain: "celebs.com.br",             tier: "E", reach: 19500     },
+};
+
+type VehStat = { id: string; name: string; domain: string; tier: string; reach: number; count: number };
 
 function PerformanceDonut() {
-  const data = TOP_VEHICLES.map(v => ({ ...v, value: parseFloat(v.n.replace(",", ".")) }));
-  const total = data.reduce((s, d) => s + d.value, 0);
+  const [data,   setData]   = useState<VehStat[]>([]);
+  const [total,  setTotal]  = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/vehicles-stats")
+      .then(r => r.json())
+      .then((res: { ranked: { id: string; count: number }[]; totalReleases: number }) => {
+        const top5 = res.ranked.slice(0, 5).map(r => {
+          const v = VEH_MAP[r.id] ?? { name: r.id, domain: "", tier: "E", reach: 0 };
+          return { id: r.id, ...v, count: r.count };
+        });
+        setData(top5);
+        setTotal(res.totalReleases);
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  const totalCount = data.reduce((s, d) => s + d.count, 0);
   const r = 70, C = 2 * Math.PI * r;
   let acc = 0;
   const segs = data.map(d => {
-    const frac = d.value / total;
+    const frac = totalCount > 0 ? d.count / totalCount : 0;
     const len = frac * C;
     const seg = { ...d, frac, len, offset: -acc };
     acc += len;
     return seg;
   });
+
   return (
     <div className="card">
       <div className="card-head">
         <h3>Distribuição de releases por <em>veículo</em></h3>
-        <span className="eyebrow">Top 5 · alcance entregue</span>
+        <span className="eyebrow">Top 5 · mais selecionados</span>
       </div>
-      <div className="card-pad" style={{ display: "flex", alignItems: "center", gap: 28, flexWrap: "wrap" }}>
-        <div style={{ position: "relative", width: 180, height: 180, flex: "none" }}>
-          <svg width="180" height="180" viewBox="0 0 180 180">
-            <g transform="rotate(-90 90 90)">
-              <circle cx="90" cy="90" r={r} fill="none" stroke="var(--cream)" strokeWidth="22" />
-              {segs.map(s => (
-                <circle key={s.id} cx="90" cy="90" r={r} fill="none" stroke={TIER_COLORS[s.tier] ?? "#ccc"} strokeWidth="22"
-                  strokeDasharray={`${Math.max(s.len - 2, 0)} ${C - Math.max(s.len - 2, 0)}`}
-                  strokeDashoffset={s.offset} strokeLinecap="butt" />
-              ))}
-            </g>
-            <text x="90" y="86" textAnchor="middle" dominantBaseline="middle" style={{ fontFamily: "var(--sans)", fontWeight: 700, fontSize: 30, letterSpacing: "-0.03em", fill: "var(--ink)" }}>{total.toFixed(1).replace(".", ",")}</text>
-            <text x="90" y="108" textAnchor="middle" dominantBaseline="middle" style={{ fontFamily: "var(--mono)", fontSize: 9.5, letterSpacing: "0.14em", fill: "var(--stone)" }}>MILHÕES</text>
-          </svg>
-        </div>
-        <div style={{ flex: 1, minWidth: 200 }}>
-          {segs.map(s => (
-            <div className="row" key={s.id} style={{ justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid var(--line)" }}>
-              <div className="row" style={{ gap: 10, minWidth: 0 }}>
-                <i style={{ width: 11, height: 11, borderRadius: 3, background: TIER_COLORS[s.tier] ?? "#ccc", flex: "none" }} />
-                <span style={{ fontSize: 13.5, fontWeight: 600, letterSpacing: "-0.01em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.name}</span>
-              </div>
-              <span style={{ fontFamily: "var(--mono)", fontSize: 12, color: "var(--ink-soft)", width: 38, textAlign: "right", fontWeight: 600 }}>{Math.round(s.frac * 100)}%</span>
+      {loading ? (
+        <div className="card-pad" style={{ textAlign: "center", color: "var(--stone)", padding: "40px 0" }}>Carregando…</div>
+      ) : data.length === 0 ? (
+        <div className="card-pad" style={{ textAlign: "center", color: "var(--stone)", padding: "40px 0" }}>Nenhum veículo selecionado ainda.</div>
+      ) : (
+        <>
+          <div className="card-pad" style={{ display: "flex", alignItems: "center", gap: 28, flexWrap: "wrap" }}>
+            <div style={{ position: "relative", width: 180, height: 180, flex: "none" }}>
+              <svg width="180" height="180" viewBox="0 0 180 180">
+                <g transform="rotate(-90 90 90)">
+                  <circle cx="90" cy="90" r={r} fill="none" stroke="var(--cream)" strokeWidth="22" />
+                  {segs.map(s => (
+                    <circle key={s.id} cx="90" cy="90" r={r} fill="none" stroke={TIER_COLORS[s.tier] ?? "#ccc"} strokeWidth="22"
+                      strokeDasharray={`${Math.max(s.len - 2, 0)} ${C - Math.max(s.len - 2, 0)}`}
+                      strokeDashoffset={s.offset} strokeLinecap="butt" />
+                  ))}
+                </g>
+                <text x="90" y="84" textAnchor="middle" dominantBaseline="middle" style={{ fontFamily: "var(--sans)", fontWeight: 700, fontSize: 28, letterSpacing: "-0.03em", fill: "var(--ink)" }}>{totalCount}</text>
+                <text x="90" y="106" textAnchor="middle" dominantBaseline="middle" style={{ fontFamily: "var(--mono)", fontSize: 9.5, letterSpacing: "0.14em", fill: "var(--stone)" }}>SELEÇÕES</text>
+              </svg>
             </div>
-          ))}
-        </div>
-      </div>
-      <div style={{ padding: "14px 22px", borderTop: "1px solid var(--line)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <span className="muted" style={{ fontSize: 13 }}>Top 5 veículos concentram</span>
-        <span style={{ fontWeight: 700, letterSpacing: "-0.01em" }}>77% do alcance do período</span>
-      </div>
+            <div style={{ flex: 1, minWidth: 200 }}>
+              {segs.map(s => (
+                <div className="row" key={s.id} style={{ justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid var(--line)" }}>
+                  <div className="row" style={{ gap: 10, minWidth: 0 }}>
+                    <i style={{ width: 11, height: 11, borderRadius: 3, background: TIER_COLORS[s.tier] ?? "#ccc", flex: "none" }} />
+                    <span style={{ fontSize: 13.5, fontWeight: 600, letterSpacing: "-0.01em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.name}</span>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--stone)" }}>{s.count}×</span>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: 12, color: "var(--ink-soft)", width: 38, textAlign: "right", fontWeight: 600 }}>{Math.round(s.frac * 100)}%</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div style={{ padding: "14px 22px", borderTop: "1px solid var(--line)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span className="muted" style={{ fontSize: 13 }}>Top 5 veículos concentram</span>
+            <span style={{ fontWeight: 700, letterSpacing: "-0.01em" }}>{totalCount} seleções em {total} release{total !== 1 ? "s" : ""}</span>
+          </div>
+        </>
+      )}
     </div>
   );
 }
 
 function TopVehicles() {
+  const [data,    setData]    = useState<VehStat[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/vehicles-stats")
+      .then(r => r.json())
+      .then((res: { ranked: { id: string; count: number }[] }) => {
+        // Top vehicle per tier
+        const byTier: Record<string, VehStat> = {};
+        for (const r of res.ranked) {
+          const v = VEH_MAP[r.id];
+          if (!v) continue;
+          const entry = { id: r.id, ...v, count: r.count };
+          if (!byTier[v.tier]) byTier[v.tier] = entry;
+        }
+        const ordered = ["A","B","C","D","E"].map(t => byTier[t]).filter(Boolean) as VehStat[];
+        setData(ordered);
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
   return (
     <div className="card">
       <div className="card-head">
         <h3>Veículos com maior entrega <em>por tier</em></h3>
         <a href="/veiculos" className="link">Ver todos</a>
       </div>
-      <div className="rank">
-        {TOP_VEHICLES.map(v => (
-          <div className="rank-row" key={v.id}>
-            <div className="logo" style={{ background: TIER_COLORS[v.tier] ?? "#ccc", color: TIER_FG[v.tier] ?? "#fff" }}>{getInitials(v.name)}</div>
-            <div style={{ minWidth: 0 }}>
-              <div className="nm">{v.name}</div>
-              <div className="meta" style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <span className={`tier t-${v.tier.toLowerCase()}`} style={{ fontSize: 9, padding: "1px 5px" }}>{v.tier}</span>
-                <span>{v.domain}</span>
-                <span>·</span>
-                <span>{v.releases} releases</span>
+      {loading ? (
+        <div style={{ padding: "40px 20px", textAlign: "center", color: "var(--stone)" }}>Carregando…</div>
+      ) : data.length === 0 ? (
+        <div style={{ padding: "40px 20px", textAlign: "center", color: "var(--stone)" }}>Nenhum veículo selecionado ainda.</div>
+      ) : (
+        <div className="rank">
+          {data.map(v => (
+            <div className="rank-row" key={v.id}>
+              <div className="logo" style={{ background: TIER_COLORS[v.tier] ?? "#ccc", color: TIER_FG[v.tier] ?? "#fff" }}>{getInitials(v.name)}</div>
+              <div style={{ minWidth: 0 }}>
+                <div className="nm">{v.name}</div>
+                <div className="meta" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <span className={`tier t-${v.tier.toLowerCase()}`} style={{ fontSize: 9, padding: "1px 5px" }}>{v.tier}</span>
+                  <span>{v.domain}</span>
+                  <span>·</span>
+                  <span>{v.count} release{v.count !== 1 ? "s" : ""}</span>
+                </div>
+              </div>
+              <div className="val">
+                <div className="n">{TIER_TOKENS[v.tier]} <span style={{ fontSize: 11, color: "var(--stone)", fontWeight: 400 }}>créditos</span></div>
+                <div className="u">por envio</div>
               </div>
             </div>
-            <div className="val">
-              <div className="n">{v.n} <span style={{ fontSize: 11, color: "var(--stone)", fontWeight: 400 }}>mi</span></div>
-              <div className="u">alcance</div>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
