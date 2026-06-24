@@ -942,7 +942,7 @@ select.input { appearance: none; -webkit-appearance: none; padding-right: 36px; 
 
 /* linhas inline (toggle, ação) */
 .set-inline-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 0; border-top: 1px solid var(--line); }
-.card-pad > .set-inline-row:first-child, .card-pad > .set-grid2 + .set-inline-row { }
+.card-pad > .set-inline-row:first-child { border-top: none; }
 .set-grid2 + .set-inline-row { margin-top: 4px; }
 .sir-title { font-weight: 600; font-size: 14.5px; letter-spacing: -0.01em; display: inline-flex; align-items: center; gap: 9px; }
 .sir-sub { font-size: 13px; color: var(--stone); margin-top: 3px; }
