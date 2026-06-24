@@ -1018,13 +1018,13 @@ function VehicleModal({ initial, onSave, onClose }: {
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="overlay" onClick={onClose}>
       <div className="modal" style={{ maxWidth: 480 }} onClick={e => e.stopPropagation()}>
-        <div className="modal-head">
+        <div className="m-head" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <h3>{initial ? "Editar veículo" : "Novo veículo"}</h3>
           <button className="icon-btn" onClick={onClose}><X size={18} /></button>
         </div>
-        <div className="modal-body" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        <div className="m-body" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <div className="field"><label>Nome</label><input className="input" value={name} onChange={e => setName(e.target.value)} placeholder="Ex.: Folha de S.Paulo" /></div>
           <div className="field"><label>Domínio</label><input className="input" value={domain} onChange={e => setDomain(e.target.value)} placeholder="folha.uol.com.br" /></div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
@@ -1050,7 +1050,7 @@ function VehicleModal({ initial, onSave, onClose }: {
           <div className="field"><label>Alcance/mês</label><input className="input" type="number" value={reach} onChange={e => setReach(e.target.value)} placeholder="Ex.: 5000000" /></div>
           {err && <p style={{ color: "var(--red)", fontSize: 13, margin: 0 }}>{err}</p>}
         </div>
-        <div className="modal-foot">
+        <div className="m-foot">
           <button className="btn btn-ghost" onClick={onClose}>Cancelar</button>
           <button className="btn btn-dark" disabled={saving} onClick={handleSubmit}>{saving ? "Salvando…" : <><Check size={15} /> Salvar</>}</button>
         </div>
@@ -1061,11 +1061,14 @@ function VehicleModal({ initial, onSave, onClose }: {
 
 function DeleteVehicleModal({ name, onConfirm, onClose, deleting }: { name: string; onConfirm: () => void; onClose: () => void; deleting: boolean }) {
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="overlay" onClick={onClose}>
       <div className="modal" style={{ maxWidth: 400 }} onClick={e => e.stopPropagation()}>
-        <div className="modal-head"><h3>Remover veículo</h3><button className="icon-btn" onClick={onClose}><X size={18} /></button></div>
-        <div className="modal-body"><p>Tem certeza que deseja remover <strong>{name}</strong>? Esta ação não pode ser desfeita.</p></div>
-        <div className="modal-foot">
+        <div className="m-head" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <h3>Remover veículo</h3>
+          <button className="icon-btn" onClick={onClose}><X size={18} /></button>
+        </div>
+        <div className="m-body"><p>Tem certeza que deseja remover <strong>{name}</strong>? Esta ação não pode ser desfeita.</p></div>
+        <div className="m-foot">
           <button className="btn btn-ghost" onClick={onClose}>Cancelar</button>
           <button className="btn" style={{ background: "var(--red)", color: "#fff", border: "none" }} disabled={deleting} onClick={onConfirm}>{deleting ? "Removendo…" : <><Trash2 size={14} /> Remover</>}</button>
         </div>
