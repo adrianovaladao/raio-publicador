@@ -676,7 +676,7 @@ export default function VeiculosPage() {
         <div className="kpi-grid" style={{ gridTemplateColumns: "repeat(5, 1fr)", marginBottom: 24 }}>
           {TIER_INFO.map(ti => (
             <div className="card kpi" key={ti.t} style={{ padding: 20 }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
                 <span className={`tier ${ti.cls}`} style={{ fontSize: 11, padding: "4px 10px" }}>{ti.t}</span>
                 <span style={{ fontFamily: "var(--mono)", fontSize: 22, fontWeight: 700, letterSpacing: "-0.03em", color: "var(--ink)" }}>
                   {ti.tokens > 0 ? `${ti.tokens}` : "0"}
