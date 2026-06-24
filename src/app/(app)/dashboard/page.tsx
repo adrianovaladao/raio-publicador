@@ -671,60 +671,46 @@ function PerformanceDonut() {
   );
 }
 
+// Top vehicle per tier by reach (static)
+const TOP_VEH_BY_TIER = [
+  { id: "v1",   name: "Ge Globo",       domain: "ge.globo.com",           tier: "A", reach: 100000000 },
+  { id: "v13",  name: "Rollingstone",   domain: "rollingstone.com.br",    tier: "B", reach: 2700000   },
+  { id: "v11",  name: "Mixvale",        domain: "mixvale.com.br",         tier: "C", reach: 3700000   },
+  { id: "v6",   name: "Revistakdea360", domain: "revistakdea360.com.br",  tier: "D", reach: 5614333   },
+  { id: "v117", name: "Revistadetetive",domain: "revistadetetive.com.br", tier: "E", reach: 22000     },
+];
+
+function fmtReachStatic(n: number) {
+  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1).replace(".", ",") + " mi";
+  if (n >= 1_000)    return (n / 1_000).toFixed(0) + " mil";
+  return String(n);
+}
+
 function TopVehicles() {
-  const [data,    setData]    = useState<VehStat[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch("/api/vehicles-stats")
-      .then(r => r.json())
-      .then((res: { ranked: { id: string; count: number }[] }) => {
-        // Top vehicle per tier
-        const byTier: Record<string, VehStat> = {};
-        for (const r of res.ranked) {
-          const v = VEH_MAP[r.id];
-          if (!v) continue;
-          const entry = { id: r.id, ...v, count: r.count };
-          if (!byTier[v.tier]) byTier[v.tier] = entry;
-        }
-        const ordered = ["A","B","C","D","E"].map(t => byTier[t]).filter(Boolean) as VehStat[];
-        setData(ordered);
-      })
-      .finally(() => setLoading(false));
-  }, []);
-
   return (
     <div className="card">
       <div className="card-head">
         <h3>Veículos com maior entrega <em>por tier</em></h3>
         <a href="/veiculos" className="link">Ver todos</a>
       </div>
-      {loading ? (
-        <div style={{ padding: "40px 20px", textAlign: "center", color: "var(--stone)" }}>Carregando…</div>
-      ) : data.length === 0 ? (
-        <div style={{ padding: "40px 20px", textAlign: "center", color: "var(--stone)" }}>Nenhum veículo selecionado ainda.</div>
-      ) : (
-        <div className="rank">
-          {data.map(v => (
-            <div className="rank-row" key={v.id}>
-              <div className="logo" style={{ background: TIER_COLORS[v.tier] ?? "#ccc", color: TIER_FG[v.tier] ?? "#fff" }}>{getInitials(v.name)}</div>
-              <div style={{ minWidth: 0 }}>
-                <div className="nm">{v.name}</div>
-                <div className="meta" style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <span className={`tier t-${v.tier.toLowerCase()}`} style={{ fontSize: 9, padding: "1px 5px" }}>{v.tier}</span>
-                  <span>{v.domain}</span>
-                  <span>·</span>
-                  <span>{v.count} release{v.count !== 1 ? "s" : ""}</span>
-                </div>
-              </div>
-              <div className="val">
-                <div className="n">{TIER_TOKENS[v.tier]} <span style={{ fontSize: 11, color: "var(--stone)", fontWeight: 400 }}>créditos</span></div>
-                <div className="u">por envio</div>
+      <div className="rank">
+        {TOP_VEH_BY_TIER.map(v => (
+          <div className="rank-row" key={v.id}>
+            <div className="logo" style={{ background: TIER_COLORS[v.tier] ?? "#ccc", color: TIER_FG[v.tier] ?? "#fff" }}>{getInitials(v.name)}</div>
+            <div style={{ minWidth: 0 }}>
+              <div className="nm">{v.name}</div>
+              <div className="meta" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <span className={`tier t-${v.tier.toLowerCase()}`} style={{ fontSize: 9, padding: "1px 5px" }}>{v.tier}</span>
+                <span>{v.domain}</span>
               </div>
             </div>
-          ))}
-        </div>
-      )}
+            <div className="val">
+              <div className="n">{fmtReachStatic(v.reach)}</div>
+              <div className="u">alcance</div>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
