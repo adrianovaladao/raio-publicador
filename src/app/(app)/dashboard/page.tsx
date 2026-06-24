@@ -558,7 +558,7 @@ export default function DashboardPage() {
 
 const TIER_COLORS: Record<string, string> = { A: "#C0392B", B: "#E07B2A", C: "#D4A017", D: "#3A7DC9", E: "#D0DFF0" };
 const TIER_FG:     Record<string, string> = { A: "#fff",    B: "#fff",    C: "#fff",    D: "#fff",    E: "#3A5A80" };
-const TIER_TOKENS: Record<string, number> = { A: 250, B: 150, C: 100, D: 50, E: 0 };
+
 
 // Minimal vehicle lookup map (id → name, domain, tier, reach)
 // Generated from the same source as the full VEHICLES list
