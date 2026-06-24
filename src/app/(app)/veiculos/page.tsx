@@ -676,12 +676,15 @@ export default function VeiculosPage() {
         <div className="kpi-grid" style={{ gridTemplateColumns: "repeat(5, 1fr)", marginBottom: 24 }}>
           {TIER_INFO.map(ti => (
             <div className="card kpi" key={ti.t} style={{ padding: 20 }}>
-              <span className={`tier ${ti.cls}`} style={{ fontSize: 11, padding: "4px 10px", marginBottom: 14, display: "inline-block" }}>{ti.t}</span>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+                <span className={`tier ${ti.cls}`} style={{ fontSize: 11, padding: "4px 10px" }}>{ti.t}</span>
+                <span style={{ fontFamily: "var(--mono)", fontSize: 22, fontWeight: 700, letterSpacing: "-0.03em", color: "var(--ink)" }}>
+                  {ti.tokens > 0 ? `${ti.tokens}` : "0"}
+                  <span style={{ fontSize: 11, fontWeight: 400, color: "var(--stone)", marginLeft: 4 }}>créditos</span>
+                </span>
+              </div>
               <div className="lbl">{ti.label}</div>
               <div className="val" style={{ fontSize: 13, marginTop: 4, fontWeight: 700 }}>{ti.range}</div>
-              <div style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--stone)", marginTop: 4 }}>
-                {ti.tokens > 0 ? `${ti.tokens} créditos` : "Gratuito"}
-              </div>
             </div>
           ))}
         </div>
