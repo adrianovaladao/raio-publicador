@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { List, LayoutGrid, Plus, Inbox, Trash2 } from "lucide-react";
+import { List, LayoutGrid, Plus, Inbox, Trash2, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 
 interface Release {
   id: string;
@@ -48,6 +48,30 @@ function fmtDate(iso: string) {
   return `${String(d.getDate()).padStart(2,"0")} ${meses[d.getMonth()]} ${d.getFullYear()}`;
 }
 
+type SortCol = "title" | "status" | "date" | "author" | "cat";
+type SortDir = "asc" | "desc";
+
+const STATUS_ORDER: Record<string, number> = { published: 0, scheduled: 1, review: 2, draft: 3, cancelled: 4 };
+
+function sortReleases(arr: ReleaseRow[], col: SortCol, dir: SortDir) {
+  return [...arr].sort((a, b) => {
+    let va: string | number, vb: string | number;
+    if (col === "date") { va = new Date(a.date).getTime(); vb = new Date(b.date).getTime(); }
+    else if (col === "status") { va = STATUS_ORDER[a.status] ?? 99; vb = STATUS_ORDER[b.status] ?? 99; }
+    else { va = (a[col] as string).toLowerCase(); vb = (b[col] as string).toLowerCase(); }
+    if (va < vb) return dir === "asc" ? -1 : 1;
+    if (va > vb) return dir === "asc" ? 1 : -1;
+    return 0;
+  });
+}
+
+function SortIcon({ col, active, dir }: { col: string; active: string; dir: SortDir }) {
+  if (col !== active) return <ArrowUpDown size={12} style={{ opacity: 0.3, marginLeft: 3 }} />;
+  return dir === "asc"
+    ? <ArrowUp size={12} style={{ marginLeft: 3, color: "var(--coral-ink)" }} />
+    : <ArrowDown size={12} style={{ marginLeft: 3, color: "var(--coral-ink)" }} />;
+}
+
 function StatusBadge({ status }: { status: string }) {
   return <span className={`badge-status ${status}`}>{STATUS_LABEL[status] ?? status}</span>;
 }
@@ -72,6 +96,8 @@ export default function ReleasesPage() {
   const [mode, setMode]     = useState<"list" | "grid">("list");
   const [filter, setFilter] = useState("all");
   const [q, setQ]           = useState("");
+  const [sortCol, setSortCol] = useState<SortCol>("date");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [releases, setReleases] = useState<ReleaseRow[]>([]);
   const [loading, setLoading]   = useState(true);
   const [confirmId, setConfirmId] = useState<string | null>(null);
@@ -105,8 +131,24 @@ export default function ReleasesPage() {
     STATUS_FILTERS.map(f => [f.id, f.id === "all" ? releases.length : releases.filter(r => r.status === f.id).length])
   );
 
+  function handleSort(col: SortCol) {
+    if (sortCol === col) setSortDir(d => d === "asc" ? "desc" : "asc");
+    else { setSortCol(col); setSortDir(col === "date" ? "desc" : "asc"); }
+  }
+
+  const thStyle = (col: SortCol): React.CSSProperties => ({
+    cursor: "pointer", userSelect: "none", whiteSpace: "nowrap",
+    color: sortCol === col ? "var(--coral-ink)" : undefined,
+  });
+  const thInner = (label: string, col: SortCol, align: "left" | "right" = "left") => (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 2, justifyContent: align === "right" ? "flex-end" : "flex-start", width: "100%" }}>
+      {label}<SortIcon col={col} active={sortCol} dir={sortDir} />
+    </span>
+  );
+
   let list = releases.filter(r => filter === "all" || r.status === filter);
   if (q.trim()) list = list.filter(r => (r.title + r.cat + r.author).toLowerCase().includes(q.toLowerCase()));
+  list = sortReleases(list, sortCol, sortDir);
 
   return (
     <div className="content scroll">
@@ -161,11 +203,11 @@ export default function ReleasesPage() {
             <table className="tbl">
               <thead>
                 <tr>
-                  <th style={{ width: "42%" }}>Release</th>
-                  <th>Status</th>
-                  <th>Data</th>
-                  <th>Autor</th>
-                  <th style={{ textAlign: "right" }}>Marca</th>
+                  <th style={{ ...thStyle("title"), width: "42%" }} onClick={() => handleSort("title")}>{thInner("Release", "title")}</th>
+                  <th style={thStyle("status")} onClick={() => handleSort("status")}>{thInner("Status", "status")}</th>
+                  <th style={thStyle("date")} onClick={() => handleSort("date")}>{thInner("Data", "date")}</th>
+                  <th style={thStyle("author")} onClick={() => handleSort("author")}>{thInner("Autor", "author")}</th>
+                  <th style={{ ...thStyle("cat"), textAlign: "right" }} onClick={() => handleSort("cat")}>{thInner("Marca", "cat", "right")}</th>
                   <th style={{ width: 40 }} />
                 </tr>
               </thead>
