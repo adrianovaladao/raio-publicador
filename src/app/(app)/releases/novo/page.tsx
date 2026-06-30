@@ -648,7 +648,9 @@ function StepVehicles({ selected, setSelected, vehicles }: { selected: string[];
             return (
               <div key={v.id} className={`veh-row${selected.includes(v.id) ? " sel" : ""}`} onClick={() => toggle(v.id)}>
                 <div className="cbx">{selected.includes(v.id) && <Check size={13} />}</div>
-                <div className="logo" style={{ background: TIER_COLORS_MAP[v.tier], color: TIER_FG_MAP[v.tier] ?? "#fff" }}>{initials(v.name)}</div>
+                <div className="logo" style={{ background: TIER_COLORS_MAP[v.tier], color: TIER_FG_MAP[v.tier] ?? "#fff", overflow: "hidden" }}>
+                  {v.logoUrl ? <img src={v.logoUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : initials(v.name)}
+                </div>
                 <div>
                   <div className="nm">{v.name}</div>
                   <div className="meta">
@@ -705,7 +707,9 @@ function StepVehicles({ selected, setSelected, vehicles }: { selected: string[];
           <div className="sel-list scroll">
             {selVehicles.map(v => (
               <div className="sel-item" key={v.id}>
-                <div style={{ background: TIER_COLORS_MAP[v.tier], width: 22, height: 22, borderRadius: 6, display: "grid", placeItems: "center", fontSize: 9, fontFamily: "var(--mono)", fontWeight: 700, color: TIER_FG_MAP[v.tier] ?? "#fff", flex: "none" }}>{initials(v.name)}</div>
+                <div style={{ background: TIER_COLORS_MAP[v.tier], width: 22, height: 22, borderRadius: 6, display: "grid", placeItems: "center", fontSize: 9, fontFamily: "var(--mono)", fontWeight: 700, color: TIER_FG_MAP[v.tier] ?? "#fff", flex: "none", overflow: "hidden" }}>
+                  {v.logoUrl ? <img src={v.logoUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : initials(v.name)}
+                </div>
                 <span className="nm">{v.name}</span>
                 <span className="tk">{TIER_TOKENS_MAP[v.tier] ?? 0}</span>
                 <button className="rm" onClick={() => remove(v.id)} title="Remover"><X size={15} /></button>
@@ -714,7 +718,7 @@ function StepVehicles({ selected, setSelected, vehicles }: { selected: string[];
           </div>
         )}
 
-        <div className="cart-eoot">
+        <div className="cart-foot">
           {over && (
             <div className="savings" style={{ background: "var(--red-soft)", color: "var(--red)" }}>
               <span>Faltam <b>{(selTokens - left).toLocaleString("pt-BR")} créditos</b>. Remova veículos ou faça upgrade.</span>
