@@ -336,17 +336,17 @@ export default function CalendarioPage() {
         </div>
 
         {/* Barra de plano */}
-        <div style={{ display: "flex", alignItems: "center", gap: 24, background: "var(--paper)", border: "1px solid var(--line)", borderRadius: 12, padding: "14px 20px", marginBottom: 16 }}>
-          <div style={{ flex: 1 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 40, background: "var(--paper)", border: "1px solid var(--line)", borderRadius: 12, padding: "14px 24px", marginBottom: 16 }}>
+          <div style={{ width: 280, flexShrink: 0 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8 }}>
               <span style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--stone)" }}>Dias utilizados</span>
               <span style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--stone)" }}>{usedDays} / {totalDays} dias</span>
             </div>
-            <div style={{ height: 6, borderRadius: 99, background: "var(--line)", overflow: "hidden" }}>
+            <div style={{ height: 4, borderRadius: 99, background: "var(--line)", overflow: "hidden" }}>
               <div style={{ height: "100%", borderRadius: 99, background: "var(--coral)", width: `${Math.round((usedDays / totalDays) * 100)}%`, transition: "width 0.4s" }} />
             </div>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 32, flexShrink: 0 }}>
             <div style={{ textAlign: "right" }}>
               <div style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 2 }}>Dias restantes</div>
               <div style={{ fontWeight: 700, fontSize: 20, fontFamily: "var(--sans)", letterSpacing: "-0.02em", color: daysLeft <= 5 ? "var(--red)" : "var(--ink)" }}>{daysLeft}</div>
