@@ -169,8 +169,6 @@ function DayModal({ date, evs, onClose }: { date: string; evs: CalEvent[]; onClo
               <div key={ev.id}
                 onClick={() => { router.push(`/releases/${ev.id}`); onClose(); }}
                 style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px", borderRadius: 10, cursor: "pointer", transition: "background 0.1s" }}
-                onMouseEnter={e => (e.currentTarget.style.background = "var(--cream)")}
-                onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
               >
                 {/* Logo da marca */}
                 <div style={{ width: 32, height: 32, borderRadius: 8, background: ev.brand?.color ?? "var(--line)", flexShrink: 0, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
