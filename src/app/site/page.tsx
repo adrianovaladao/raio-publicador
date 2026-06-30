@@ -28,6 +28,7 @@ const PLANS = [
     desc: "Para quem está começando a distribuir releases.",
     amt: "1.000", credits: "200 créditos", cl: "por mês · renovação automática",
     feats: [
+      ["Até 2 marcas por plano", true],
       ["Até 2 veículos AAA por release", true],
       ["Acesso aos 600 veículos parceiros", true],
       ["Calendário de publicação", true],
@@ -43,6 +44,7 @@ const PLANS = [
     desc: "O equilíbrio ideal de alcance e custo.",
     amt: "2.000", credits: "500 créditos", cl: "por mês · renovação automática",
     feats: [
+      ["Até 5 marcas por plano", true],
       ["Até 5 veículos AAA por release", true],
       ["Acesso aos 600 veículos parceiros", true],
       ["Calendário e agendamento", true],
@@ -58,6 +60,7 @@ const PLANS = [
     desc: "Para assessorias com alto volume de distribuição.",
     amt: "3.000", credits: "1.000 créditos", cl: "por mês · renovação automática",
     feats: [
+      ["Até 10 marcas por plano", true],
       ["Até 10 veículos AAA por release", true],
       ["Acesso aos 600 veículos parceiros", true],
       ["Calendário e agendamento", true],
