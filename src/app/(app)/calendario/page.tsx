@@ -213,21 +213,10 @@ function DayModal({ date, evs, onClose }: { date: string; evs: CalEvent[]; onClo
 }
 
 function CalEventChip({ ev }: { ev: CalEvent }) {
-  const [hovered, setHovered] = useState(false);
-  const ref = useRef<HTMLSpanElement>(null);
-
   return (
-    <>
-      <span
-        ref={ref}
-        className={`cal-event ${statusClass(ev.status)}`}
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-      >
-        {ev.title}
-      </span>
-      {hovered && <EventTooltip ev={ev} anchorRef={ref} />}
-    </>
+    <span className={`cal-event ${statusClass(ev.status)}`}>
+      {ev.title}
+    </span>
   );
 }
 
