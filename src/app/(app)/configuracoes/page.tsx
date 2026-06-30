@@ -9,7 +9,7 @@ import {
   UserCircle, Settings2, Users, Building2, CreditCard,
   Plus, ChevronDown, Camera, Lock,
   Mail, Download, Check, X, MoreHorizontal, Ban, Trash2, Send, Upload, Zap,
-  Rss, Pencil, SlidersHorizontal, ArrowUpDown, ArrowUp, ArrowDown,
+  Rss, Pencil, SlidersHorizontal, ArrowUpDown, ArrowUp, ArrowDown, ArrowRight,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -26,6 +26,70 @@ interface Brand {
   authors: string[];
   logoUrl: string | null;
   toneConfig: unknown;
+}
+
+// ─── Upgrade modal ───────────────────────────────────────────────────────────
+
+const UPGRADE_NEXT: Record<string, { id: string; label: string; brandsLimit: number; price: string }> = {
+  BASIC:    { id: "ADVANCED",     label: "Avançado",     brandsLimit: 5,  price: "R$ 2.000" },
+  ADVANCED: { id: "PROFESSIONAL", label: "Profissional", brandsLimit: 10, price: "R$ 3.000" },
+};
+
+function UpgradeModal({ currentPlan, onClose }: { currentPlan: string; onClose: () => void }) {
+  const next = UPGRADE_NEXT[currentPlan];
+  const [loading, setLoading] = useState(false);
+
+  async function handleUpgrade() {
+    if (!next) return;
+    setLoading(true);
+    try {
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ planId: next.id }),
+      });
+      const data = await res.json();
+      if (data.url) { window.location.href = data.url; return; }
+    } catch { /* ignore */ }
+    setLoading(false);
+  }
+
+  return (
+    <div className="overlay" onClick={onClose}>
+      <div className="modal" style={{ maxWidth: 420, textAlign: "center" }} onClick={e => e.stopPropagation()}>
+        <div className="m-head" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <h3>Limite de <em>marcas</em> atingido</h3>
+          <button className="icon-btn" onClick={onClose}><X size={17} /></button>
+        </div>
+        <div className="m-body" style={{ paddingTop: 8, paddingBottom: 24 }}>
+          {next ? (
+            <>
+              <p style={{ fontSize: 14, color: "var(--stone)", marginBottom: 24 }}>
+                Seu plano atual não permite mais marcas. Faça upgrade para o plano <b>{next.label}</b> e gerencie até <b>{next.brandsLimit} marcas</b> por <b>{next.price}/mês</b>.
+              </p>
+              <button
+                className="btn btn-primary btn-block btn-lg"
+                onClick={handleUpgrade}
+                disabled={loading}
+              >
+                {loading ? "Redirecionando…" : <><span>Fazer upgrade para {next.label}</span><ArrowRight size={16} /></>}
+              </button>
+              <button className="btn btn-ghost btn-block" style={{ marginTop: 10 }} onClick={onClose}>
+                Cancelar
+              </button>
+            </>
+          ) : (
+            <>
+              <p style={{ fontSize: 14, color: "var(--stone)", marginBottom: 24 }}>
+                Você já está no plano máximo. Entre em contato com nossa equipe para soluções personalizadas.
+              </p>
+              <button className="btn btn-primary btn-block" onClick={onClose}>Entendido</button>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 // ─── Mock data ────────────────────────────────────────────────────────────────
@@ -811,18 +875,32 @@ function BrandFormModal({ brand, onClose, onSaved }: {
 }
 
 function MarcasPanel({ onToast }: { onToast: (m: string) => void }) {
-  const [brands,  setBrands]  = useState<Brand[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [editing, setEditing] = useState<Brand | null>(null);
-  const [showNew, setShowNew] = useState(false);
+  const [brands,       setBrands]       = useState<Brand[]>([]);
+  const [loading,      setLoading]      = useState(true);
+  const [editing,      setEditing]      = useState<Brand | null>(null);
+  const [showNew,      setShowNew]      = useState(false);
+  const [showUpgrade,  setShowUpgrade]  = useState(false);
+  const [currentPlan,  setCurrentPlan]  = useState<string | null>(null);
+  const [brandsLimit,  setBrandsLimit]  = useState<number | null>(null);
 
   useEffect(() => {
-    fetch("/api/brands")
-      .then(r => r.json())
-      .then((data: unknown) => setBrands(Array.isArray(data) ? (data as Brand[]) : []))
-      .catch(() => setBrands([]))
-      .finally(() => setLoading(false));
+    Promise.all([
+      fetch("/api/brands").then(r => r.json()),
+      fetch("/api/stripe/subscription").then(r => r.json()),
+    ]).then(([brandsData, subData]) => {
+      setBrands(Array.isArray(brandsData) ? (brandsData as Brand[]) : []);
+      setCurrentPlan((subData as { plan?: string }).plan ?? null);
+      setBrandsLimit((subData as { brandsLimit?: number }).brandsLimit ?? null);
+    }).catch(() => setBrands([])).finally(() => setLoading(false));
   }, []);
+
+  function handleNewClick() {
+    if (brandsLimit !== null && brands.length >= brandsLimit) {
+      setShowUpgrade(true);
+    } else {
+      setShowNew(true);
+    }
+  }
 
   function handleSaved(b: Brand) {
     if (b.id.startsWith("__deleted__")) {
@@ -839,10 +917,19 @@ function MarcasPanel({ onToast }: { onToast: (m: string) => void }) {
 
   if (loading) return <div className="set-panel"><div className="card card-pad muted">Carregando…</div></div>;
 
+  const atLimit = brandsLimit !== null && brands.length >= brandsLimit;
+
   return (
     <div className="set-panel">
-      <PanelHead title="Suas <em>marcas</em>" desc="Clique em uma marca para editar seus dados."
-        action={<button className="btn btn-primary" onClick={() => setShowNew(true)}><Plus size={16} /> Nova marca</button>} />
+      <PanelHead
+        title="Suas <em>marcas</em>"
+        desc={brandsLimit ? `${brands.length} de ${brandsLimit} marcas utilizadas no seu plano.` : "Clique em uma marca para editar seus dados."}
+        action={
+          <button className={`btn ${atLimit ? "btn-ghost" : "btn-primary"}`} onClick={handleNewClick}>
+            <Plus size={16} /> Nova marca
+          </button>
+        }
+      />
 
       <div className="card">
         {brands.length === 0 ? (
@@ -881,8 +968,9 @@ function MarcasPanel({ onToast }: { onToast: (m: string) => void }) {
         )}
       </div>
 
-      {editing && <BrandFormModal brand={editing} onClose={() => setEditing(null)} onSaved={b => { handleSaved(b); setEditing(null); }} />}
-      {showNew  && <BrandFormModal onClose={() => setShowNew(false)} onSaved={b => { handleSaved(b); setShowNew(false); }} />}
+      {editing     && <BrandFormModal brand={editing} onClose={() => setEditing(null)} onSaved={b => { handleSaved(b); setEditing(null); }} />}
+      {showNew     && <BrandFormModal onClose={() => setShowNew(false)} onSaved={b => { handleSaved(b); setShowNew(false); }} />}
+      {showUpgrade && <UpgradeModal currentPlan={currentPlan ?? ""} onClose={() => setShowUpgrade(false)} />}
     </div>
   );
 }
