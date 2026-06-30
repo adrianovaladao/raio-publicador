@@ -11,11 +11,13 @@ export async function POST(req: NextRequest) {
   const sig = req.headers.get("stripe-signature");
   const body = await req.text();
 
-  let event: Stripe.Event;
-  try {
-    event = stripe.webhooks.constructEvent(body, sig!, process.env.STRIPE_WEBHOOK_SECRET!);
-  } catch (err) {
-    return NextResponse.json({ error: `Webhook signature inválida: ${(err as Error).message}` }, { status: 400 });
+  let event: Stripe.Event | undefined;
+  const secrets = [process.env.STRIPE_WEBHOOK_SECRET, process.env.STRIPE_WEBHOOK_SECRET_CUSTOM].filter(Boolean) as string[];
+  for (const secret of secrets) {
+    try { event = stripe.webhooks.constructEvent(body, sig!, secret); break; } catch { /* tenta o próximo */ }
+  }
+  if (!event) {
+    return NextResponse.json({ error: "Webhook signature inválida" }, { status: 400 });
   }
 
   switch (event.type) {
