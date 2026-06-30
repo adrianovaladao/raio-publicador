@@ -33,7 +33,8 @@ export async function POST(req: NextRequest) {
     customer: customerId,
     line_items: [{ price: plan.stripePriceId, quantity: 1 }],
     success_url: `${origin}/dashboard?checkout=success`,
-    cancel_url: `${origin}/site/planos?checkout=cancelled`,
+    cancel_url: `${origin}/site#planos`,
+    locale: "pt-BR",
     metadata: { clerkId: userId, planId },
     subscription_data: { metadata: { clerkId: userId, planId } },
   });
