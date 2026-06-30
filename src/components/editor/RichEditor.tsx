@@ -9,7 +9,7 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import {
   Bold, Italic, Underline as UnderlineIcon, Heading2,
   List, ListOrdered, Quote, Link as LinkIcon, Undo, Redo,
-  Sparkles, Loader, X,
+  Sparkles, Loader, X, Image as ImageIcon,
 } from "lucide-react";
 
 interface RichEditorProps {
@@ -20,6 +20,7 @@ interface RichEditorProps {
   content: string;
   onContentChange: (html: string) => void;
   brandName?: string;
+  triggerImageUpload?: () => void;
 }
 
 export function RichEditor({
@@ -27,6 +28,7 @@ export function RichEditor({
   subtitle, onSubtitleChange,
   content, onContentChange,
   brandName,
+  triggerImageUpload,
 }: RichEditorProps) {
   const [aiLoading,  setAiLoading]  = useState(false);
   const [aiErr,      setAiErr]      = useState("");
@@ -120,6 +122,28 @@ export function RichEditor({
   const wordDone  = wordCount >= RECOMMENDED * 0.9 && !wordOver;
   const wordColor = wordOver ? "var(--red,#c0392b)" : wordDone ? "var(--green,#2f8a5b)" : "var(--stone)";
 
+  function AutoTextarea({ className, value, onChange, placeholder, style }: {
+    className?: string; value: string; onChange: (v: string) => void; placeholder?: string; style?: React.CSSProperties;
+  }) {
+    const ref = useRef<HTMLTextAreaElement>(null);
+    useEffect(() => {
+      if (!ref.current) return;
+      ref.current.style.height = "auto";
+      ref.current.style.height = ref.current.scrollHeight + "px";
+    }, [value]);
+    return (
+      <textarea
+        ref={ref}
+        className={className}
+        value={value}
+        placeholder={placeholder}
+        rows={1}
+        style={{ resize: "none", overflow: "hidden", ...style }}
+        onChange={e => onChange(e.target.value)}
+      />
+    );
+  }
+
   if (!editor) return null;
 
   const btn = (active: boolean, onClick: () => void, children: React.ReactNode, title?: string) => (
@@ -162,6 +186,15 @@ export function RichEditor({
           <Redo size={15} />
         </button>
 
+        {triggerImageUpload && (
+          <>
+            <span className="div" />
+            <button type="button" className="tb" onClick={triggerImageUpload} title="Adicionar imagem">
+              <ImageIcon size={15} />
+            </button>
+          </>
+        )}
+
         <div style={{ flex: 1 }} />
 
         {/* AI */}
@@ -185,17 +218,17 @@ export function RichEditor({
       )}
 
       <div className="body-pad">
-        <input
+        <AutoTextarea
           className="title-input"
           placeholder="Título do release"
           value={title}
-          onChange={e => onTitleChange(e.target.value)}
+          onChange={onTitleChange}
         />
-        <input
+        <AutoTextarea
           className="sub-input"
           placeholder="Subtítulo / linha de apoio"
           value={subtitle}
-          onChange={e => onSubtitleChange(e.target.value)}
+          onChange={onSubtitleChange}
         />
         <EditorContent editor={editor} />
       </div>

@@ -340,78 +340,73 @@ function StepBrand({ selected, onSelect, brands, onAddBrand }: {
 
 // ── Passo 1: Conteúdo ────────────────────────────────────────────────────────
 
-interface Content { title: string; subtitle: string; body: string; cat: string; author: string; imageUrl?: string }
+interface Content { title: string; subtitle: string; body: string; cat: string; author: string; imageUrls: string[] }
 
-function MediaCard({ imageUrl, onChange }: { imageUrl?: string; onChange: (url: string | undefined) => void }) {
-  const [uploading, setUploading] = useState(false);
-  const [err, setErr] = useState("");
-  const fileRef = useRef<HTMLInputElement>(null);
-  const [dragging, setDragging] = useState(false);
+function SelectBox({ value, options, onChange }: { value: string; options: string[]; onChange: (v: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    function handle(e: MouseEvent) { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); }
+    document.addEventListener("mousedown", handle);
+    return () => document.removeEventListener("mousedown", handle);
+  }, []);
+  return (
+    <div ref={ref} style={{ position: "relative" }}>
+      <button
+        type="button"
+        className="input"
+        style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", textAlign: "left" }}
+        onClick={() => setOpen(o => !o)}
+      >
+        <span>{value}</span>
+        <ChevronDown size={15} style={{ color: "var(--stone)", flexShrink: 0 }} />
+      </button>
+      {open && (
+        <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, right: 0, background: "var(--paper)", border: "1px solid var(--line)", borderRadius: 10, boxShadow: "0 8px 24px rgba(0,0,0,0.10)", zIndex: 200, overflow: "hidden" }}>
+          {options.map(opt => (
+            <button
+              key={opt}
+              type="button"
+              style={{ width: "100%", textAlign: "left", padding: "9px 14px", background: opt === value ? "var(--cream)" : "none", border: "none", cursor: "pointer", fontSize: 14, color: "var(--ink)", fontWeight: opt === value ? 600 : 400 }}
+              onClick={() => { onChange(opt); setOpen(false); }}
+            >
+              {opt}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
-  async function handleFile(file: File) {
-    if (!file.type.startsWith("image/")) { setErr("Apenas imagens JPG ou PNG."); return; }
-    if (file.size > 5 * 1024 * 1024) { setErr("Arquivo muito grande (máx. 5 MB)."); return; }
-    // Valida dimensões antes de fazer upload
-    const dims = await new Promise<{ w: number; h: number }>(res => {
-      const url = URL.createObjectURL(file);
-      const img = new Image();
-      img.onload = () => { res({ w: img.naturalWidth, h: img.naturalHeight }); URL.revokeObjectURL(url); };
-      img.onerror = () => { res({ w: 0, h: 0 }); URL.revokeObjectURL(url); };
-      img.src = url;
-    });
-    if (dims.w < 1200 || dims.h < 630) {
-      setErr(`Imagem muito pequena (${dims.w}×${dims.h}px). Mínimo: 1200×630px.`); return;
-    }
-    if (dims.w > 3600 || dims.h > 1890) {
-      setErr(`Imagem muito grande (${dims.w}×${dims.h}px). Máximo: 3600×1890px.`); return;
-    }
-    setErr(""); setUploading(true);
-    try {
-      const form = new FormData();
-      form.append("file", file);
-      const res  = await fetch("/api/upload", { method: "POST", body: form });
-      const text = await res.text();
-      let data: { url?: string; error?: string } = {};
-      try { data = JSON.parse(text); } catch { /* ignore */ }
-      if (!res.ok || !data.url) { setErr(data.error ?? "Falha no upload."); return; }
-      onChange(data.url);
-    } catch { setErr("Falha de conexão."); }
-    finally { setUploading(false); }
-  }
-
+function MediaGallery({ images, onRemove, fileRef, uploading }: {
+  images: string[];
+  onRemove: (url: string) => void;
+  fileRef: React.RefObject<HTMLInputElement | null>;
+  uploading: boolean;
+}) {
   return (
     <div className="card side-card">
       <div className="card-head"><h3>Mídia</h3></div>
-      <div className="sc-body">
-        <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" style={{ display: "none" }}
-          onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = ""; }} />
-        {imageUrl ? (
-          <div style={{ position: "relative" }}>
+      <div style={{ padding: "12px 20px 20px", display: "flex", gap: 12, flexWrap: "wrap" }}>
+        {images.map(url => (
+          <div key={url} style={{ position: "relative", width: 120, height: 76, borderRadius: 8, overflow: "hidden", flexShrink: 0, border: "1px solid var(--line)" }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={imageUrl} alt="Capa do release" style={{ width: "100%", borderRadius: 8, display: "block", maxHeight: 180, objectFit: "cover" }} />
-            <button type="button" onClick={() => onChange(undefined)}
-              style={{ position: "absolute", top: 6, right: 6, background: "rgba(0,0,0,0.55)", border: "none", borderRadius: 6, color: "#fff", cursor: "pointer", padding: "4px 8px", fontSize: 12 }}>
+            <img src={url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+            <button onClick={() => onRemove(url)}
+              style={{ position: "absolute", top: 5, right: 5, background: "rgba(0,0,0,0.55)", border: "none", borderRadius: 5, color: "#fff", cursor: "pointer", padding: "2px 7px", fontSize: 11, fontWeight: 600 }}>
               Remover
             </button>
-            <button type="button" className="btn btn-quiet btn-sm" style={{ marginTop: 8, width: "100%" }} onClick={() => fileRef.current?.click()}>
-              Trocar imagem
-            </button>
           </div>
-        ) : (
-          <div
-            className={`attach${dragging ? " drag-over" : ""}`}
-            onClick={() => fileRef.current?.click()}
-            onDragOver={e => { e.preventDefault(); setDragging(true); }}
-            onDragLeave={() => setDragging(false)}
-            onDrop={e => { e.preventDefault(); setDragging(false); const f = e.dataTransfer.files[0]; if (f) handleFile(f); }}
-            style={{ cursor: "pointer" }}
-          >
-            {uploading
-              ? <><ImageIcon size={22} /><div className="t">Enviando…</div></>
-              : <><ImageIcon size={22} /><div className="t">Arraste imagens aqui</div><div className="h">JPG ou PNG · até 5 MB</div></>}
-          </div>
-        )}
-        {err && <p style={{ color: "var(--red,#c0392b)", fontSize: 12, margin: "6px 0 0" }}>{err}</p>}
+        ))}
+        <div
+          onClick={() => !uploading && fileRef.current?.click()}
+          style={{ width: 120, height: 76, borderRadius: 8, border: "1.5px dashed var(--sand)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4, cursor: uploading ? "default" : "pointer", color: "var(--stone)", flexShrink: 0 }}
+        >
+          {uploading
+            ? <><ImageIcon size={16} /><span style={{ fontSize: 10 }}>Enviando…</span></>
+            : <><Plus size={16} /><span style={{ fontSize: 10, fontWeight: 600, textAlign: "center", lineHeight: 1.3 }}>Adicionar imagem</span></>}
+        </div>
       </div>
     </div>
   );
@@ -420,11 +415,34 @@ function MediaCard({ imageUrl, onChange }: { imageUrl?: string; onChange: (url: 
 function StepContent({ content, setContent, brand, ownerName }: { content: Content; setContent: (c: Content) => void; brand: Brand | null; ownerName: string }) {
   const brandAuthors = brand?.authors ?? [];
   const authors = brandAuthors.length > 0 ? brandAuthors : [ownerName].filter(Boolean);
-  const up = (k: keyof Content, v: string) => setContent({ ...content, [k]: v });
+  const up = (k: keyof Content, v: string | string[]) => setContent({ ...content, [k]: v });
   const cats = VEH_CATS_ALL;
+  const [uploading, setUploading] = useState(false);
+  const imageFileRef = useRef<HTMLInputElement>(null);
+
+  async function handleImageFile(file: File) {
+    if (!file.type.startsWith("image/")) return;
+    if (file.size > 5 * 1024 * 1024) return;
+    setUploading(true);
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      const res = await fetch("/api/upload", { method: "POST", body: form });
+      const data = await res.json() as { url?: string };
+      if (data.url) up("imageUrls", [...content.imageUrls, data.url] as unknown as string);
+    } catch { /* ignore */ }
+    finally { setUploading(false); }
+  }
 
   return (
     <div className="composer-grid">
+      <input
+        ref={imageFileRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        style={{ display: "none" }}
+        onChange={e => { const f = e.target.files?.[0]; if (f) handleImageFile(f); e.target.value = ""; }}
+      />
       <RichEditor
         title={content.title}
         onTitleChange={v => up("title", v)}
@@ -433,6 +451,7 @@ function StepContent({ content, setContent, brand, ownerName }: { content: Conte
         content={content.body}
         onContentChange={v => up("body", v)}
         brandName={brand?.name}
+        triggerImageUpload={() => imageFileRef.current?.click()}
       />
 
       <div>
@@ -441,26 +460,21 @@ function StepContent({ content, setContent, brand, ownerName }: { content: Conte
           <div className="sc-body">
             <div className="field-row">
               <label>Categoria</label>
-              <div className="select-wrap">
-                <select className="input" value={content.cat} onChange={e => up("cat", e.target.value)}>
-                  {cats.map(c => <option key={c}>{c}</option>)}
-                </select>
-                <ChevronDown size={16} />
-              </div>
+              <SelectBox value={content.cat} options={cats} onChange={v => up("cat", v)} />
             </div>
             <div className="field-row">
               <label>Autor</label>
-              <div className="select-wrap">
-                <select className="input" value={content.author} onChange={e => up("author", e.target.value)}>
-                  {authors.map(a => <option key={a} value={a}>{a}</option>)}
-                </select>
-                <ChevronDown size={16} />
-              </div>
+              <SelectBox value={content.author} options={authors} onChange={v => up("author", v)} />
             </div>
           </div>
         </div>
 
-        <MediaCard imageUrl={content.imageUrl} onChange={url => up("imageUrl", url ?? "")} />
+        <MediaGallery
+          images={content.imageUrls}
+          onRemove={url => up("imageUrls", content.imageUrls.filter(u => u !== url))}
+          fileRef={imageFileRef}
+          uploading={uploading}
+        />
       </div>
     </div>
   );
@@ -1182,7 +1196,7 @@ export default function NovoReleasePage() {
   const [done, setDone] = useState(false);
   const [brand, setBrand] = useState<Brand | null>(null);
   const [brands, setBrands] = useState<Brand[]>([]);
-  const [content, setContent] = useState<Content>({ title: "", subtitle: "", body: "", cat: "Negócios", author: "" });
+  const [content, setContent] = useState<Content>({ title: "", subtitle: "", body: "", cat: "Negócios", author: "", imageUrls: [] });
   const [selected, setSelected] = useState<string[]>([]);
   const [vehicles, setVehicles] = useState<VehicleItem[]>([]);
   useEffect(() => {
@@ -1224,7 +1238,7 @@ export default function NovoReleasePage() {
         scheduledAt: null,
         brandId: b.id,
         creditsUsed: 0,
-        imageUrl: c.imageUrl || null,
+        imageUrl: c.imageUrls[0] ?? null,
         vehicles: selectedRef.current,
       };
       if (draftIdRef.current) {
@@ -1252,7 +1266,7 @@ export default function NovoReleasePage() {
   useEffect(() => {
     const id = setInterval(autosave, 2 * 60 * 1000);
     return () => clearInterval(id);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     fetch("/api/brands")
@@ -1394,7 +1408,7 @@ export default function NovoReleasePage() {
                     scheduledAt,
                     brandId: brand.id,
                     creditsUsed: 0,
-                    imageUrl: content.imageUrl || null,
+                    imageUrl: content.imageUrls[0] ?? null,
                     vehicles: selected,
                   };
                   let res: Response;
