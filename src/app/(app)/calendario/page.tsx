@@ -278,10 +278,18 @@ export default function CalendarioPage() {
   const dim     = new Date(y, m + 1, 0).getDate();
   const prevDim = new Date(y, m, 0).getDate();
 
-  const cells: { d: number; out: boolean }[] = [];
-  for (let i = 0; i < lead; i++) cells.push({ d: prevDim - lead + 1 + i, out: true });
-  for (let d = 1; d <= dim; d++) cells.push({ d, out: false });
-  while (cells.length % 7 !== 0) cells.push({ d: cells.length - (lead + dim) + 1, out: true });
+  const prevY = m === 0 ? y - 1 : y, prevM = m === 0 ? 11 : m - 1;
+  const nextY = m === 11 ? y + 1 : y, nextM = m === 11 ? 0 : m + 1;
+  const cells: { d: number; out: boolean; key: string }[] = [];
+  for (let i = 0; i < lead; i++) {
+    const d = prevDim - lead + 1 + i;
+    cells.push({ d, out: true, key: calKey(prevY, prevM, d) });
+  }
+  for (let d = 1; d <= dim; d++) cells.push({ d, out: false, key: calKey(y, m, d) });
+  let trail = 1;
+  while (cells.length % 7 !== 0) { cells.push({ d: trail, out: true, key: calKey(nextY, nextM, trail) }); trail++; }
+
+  const renewalKey = calKey(PLAN_YEAR, PLAN_MONTH + 1, 1);
 
   const isPlanMonth = y === PLAN_YEAR && m === PLAN_MONTH;
 
@@ -370,13 +378,14 @@ export default function CalendarioPage() {
 
           <div className="cal-grid">
             {cells.map((c, i) => {
-              const k = c.out ? null : calKey(y, m, c.d);
-              const evs = k ? (events[k] ?? []) : [];
+              const k = c.key;
+              const evs = !c.out ? (events[k] ?? []) : [];
               const isToday = k === TODAY;
+              const isRenewal = k === renewalKey;
               const col = i % 7;
               const isWeekend = col === 0 || col === 6;
               const isLocked = !isPlanMonth;
-              const clickable = !c.out && !isWeekend && !isLocked && k;
+              const clickable = !c.out && !isWeekend && !isLocked;
               return (
                 <div key={i}
                   className={`cal-cell${c.out ? " out" : ""}${isToday ? " today" : ""}${isLocked ? " locked" : ""}`}
@@ -385,10 +394,16 @@ export default function CalendarioPage() {
                     cursor: clickable ? "pointer" : "default",
                     opacity: isLocked ? 0.5 : 1,
                     pointerEvents: isLocked ? "none" : undefined,
+                    position: "relative",
                   }}
-                  onClick={() => { if (clickable) setSelectedDay({ key: k!, evs }); }}
+                  onClick={() => { if (clickable) setSelectedDay({ key: k, evs }); }}
                 >
-                  <div className="dn">{c.d}</div>
+                  <div className="dn" style={isRenewal ? { color: "var(--coral-ink)", fontWeight: 700 } : undefined}>{c.d}</div>
+                  {isRenewal && (
+                    <div style={{ position: "absolute", top: 6, right: 8, fontSize: 9, fontFamily: "var(--mono)", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--coral-ink)", background: "color-mix(in srgb, var(--coral) 12%, transparent)", borderRadius: 4, padding: "2px 5px", lineHeight: 1.4 }}>
+                      renovação
+                    </div>
+                  )}
                   {evs.slice(0, 2).map(e => (
                     <CalEventChip key={e.id} ev={e} />
                   ))}
