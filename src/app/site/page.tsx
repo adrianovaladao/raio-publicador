@@ -26,7 +26,7 @@ const PLANS = [
     id: "BASIC",
     name: "Básico",
     desc: "Para quem está começando a distribuir releases.",
-    amt: "1.000", credits: "200 créditos", cl: "por mês · renovação automática",
+    amt: "1.000", credits: "200 créditos/mês", cl: "R$ 5,00 por crédito",
     feats: [
       ["Até 2 marcas por plano", true],
       ["Até 2 veículos AAA por release", true],
@@ -42,7 +42,7 @@ const PLANS = [
     id: "ADVANCED",
     name: "Avançado",
     desc: "O equilíbrio ideal de alcance e custo.",
-    amt: "2.000", credits: "500 créditos", cl: "por mês · renovação automática",
+    amt: "3.000", credits: "1.000 créditos/mês", cl: "R$ 3,00 por crédito",
     feats: [
       ["Até 5 marcas por plano", true],
       ["Até 5 veículos AAA por release", true],
@@ -58,7 +58,7 @@ const PLANS = [
     id: "PROFESSIONAL",
     name: "Profissional",
     desc: "Para assessorias com alto volume de distribuição.",
-    amt: "3.000", credits: "1.000 créditos", cl: "por mês · renovação automática",
+    amt: "5.000", credits: "2.000 créditos/mês", cl: "R$ 2,50 por crédito",
     feats: [
       ["Até 10 marcas por plano", true],
       ["Até 10 veículos AAA por release", true],
@@ -256,14 +256,14 @@ function Compare() {
           <div className="comp-card us reveal" style={{ transitionDelay: "90ms" }}>
             <span className="tag">Raio Publicador</span>
             <h3>Plano por créditos</h3>
-            <p className="price-line">A partir de R$ 1.000 por mês, releases ilimitados</p>
+            <p className="price-line">A partir de R$ 1.000/mês, releases ilimitados</p>
             <ul>
               <li><Check size={19} /> Um plano cobre diversas publicações</li>
               <li><Check size={19} /> Custo fixo e previsível</li>
               <li><Check size={19} /> Quanto mais publica, menor o custo por release</li>
               <li><Check size={19} /> Painel de resultados em tempo real incluído</li>
             </ul>
-            <div className="foot-note">10 releases no plano Avançado: <b>R$ 2.000/mês</b></div>
+            <div className="foot-note">10 releases no plano Avançado: <b>R$ 3.000/mês</b></div>
           </div>
         </div>
       </div>
