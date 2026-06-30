@@ -560,33 +560,6 @@ const TIER_COLORS: Record<string, string> = { A: "#C0392B", B: "#E07B2A", C: "#D
 const TIER_FG:     Record<string, string> = { A: "#fff",    B: "#fff",    C: "#fff",    D: "#fff",    E: "#3A5A80" };
 
 
-// Minimal vehicle lookup map (id → name, domain, tier, reach)
-// Generated from the same source as the full VEHICLES list
-const VEH_MAP: Record<string, { name: string; domain: string; tier: string; reach: number }> = {
-  "v1":   { name: "Ge Globo",        domain: "ge.globo.com",              tier: "A", reach: 100000000 },
-  "v2":   { name: "G1 Globo",        domain: "g1.globo.com",              tier: "A", reach: 70000000  },
-  "v3":   { name: "Terra",            domain: "terra.com.br",              tier: "A", reach: 61000000  },
-  "v4":   { name: "Oglobo Globo",    domain: "oglobo.globo.com",          tier: "A", reach: 19000000  },
-  "v5":   { name: "Ig",              domain: "ig.com.br",                 tier: "A", reach: 8400000   },
-  "v6":   { name: "Revistakdea360",  domain: "revistakdea360.com.br",     tier: "D", reach: 5614333   },
-  "v7":   { name: "Gazetadopovo",    domain: "gazetadopovo.com.br",       tier: "A", reach: 5500000   },
-  "v8":   { name: "Correiobraziliense", domain: "correiobraziliense.com.br", tier: "A", reach: 5400000 },
-  "v9":   { name: "Band",            domain: "band.com.br",               tier: "A", reach: 5000000   },
-  "v10":  { name: "Valor Globo",     domain: "valor.globo.com",           tier: "A", reach: 4200000   },
-  "v11":  { name: "Mixvale",         domain: "mixvale.com.br",            tier: "C", reach: 3700000   },
-  "v12":  { name: "Uai",             domain: "uai.com.br",                tier: "A", reach: 3600000   },
-  "v13":  { name: "Rollingstone",    domain: "rollingstone.com.br",       tier: "B", reach: 2700000   },
-  "v14":  { name: "Odia Ig",         domain: "odia.ig.com.br",            tier: "A", reach: 2500000   },
-  "v15":  { name: "Em",              domain: "em.com.br",                 tier: "A", reach: 2400000   },
-  "v16":  { name: "Brasil247",       domain: "brasil247.com",             tier: "A", reach: 1700000   },
-  "v17":  { name: "Egobrazil",       domain: "egobrazil.com.br",          tier: "A", reach: 1254000   },
-  "v18":  { name: "Recreio",         domain: "recreio.com.br",            tier: "C", reach: 1200000   },
-  "v19":  { name: "Folhavitoria",    domain: "folhavitoria.com.br",       tier: "B", reach: 1000000   },
-  "v20":  { name: "Futebolinterior", domain: "futebolinterior.com.br",    tier: "B", reach: 956000    },
-  "v117": { name: "Revistadetetive", domain: "revistadetetive.com.br",    tier: "E", reach: 22000     },
-  "v124": { name: "Celebs",          domain: "celebs.com.br",             tier: "E", reach: 19500     },
-};
-
 type VehStat = { id: string; name: string; domain: string; tier: string; reach: number; count: number };
 
 function PerformanceDonut() {
@@ -597,11 +570,10 @@ function PerformanceDonut() {
   useEffect(() => {
     fetch("/api/vehicles-stats")
       .then(r => r.json())
-      .then((res: { ranked: { id: string; count: number }[]; totalReleases: number }) => {
-        const top5 = res.ranked.slice(0, 5).map(r => {
-          const v = VEH_MAP[r.id] ?? { name: r.id, domain: "", tier: "E", reach: 0 };
-          return { id: r.id, ...v, count: r.count };
-        });
+      .then((res: { ranked: { id: string; count: number; name: string; domain: string; tier: string; reach: number }[]; totalReleases: number }) => {
+        const top5 = res.ranked.slice(0, 5).map(r => ({
+          id: r.id, name: r.name, domain: r.domain, tier: r.tier, reach: r.reach, count: r.count,
+        }));
         setData(top5);
         setTotal(res.totalReleases);
       })

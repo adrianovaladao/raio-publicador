@@ -20,11 +20,21 @@ export async function GET() {
     }
   }
 
-  // Sort by count descending, return top 10
-  const ranked = Object.entries(counts)
+  const sorted = Object.entries(counts)
     .sort((a, b) => b[1] - a[1])
-    .slice(0, 10)
-    .map(([id, count]) => ({ id, count }));
+    .slice(0, 10);
+
+  const ids = sorted.map(([id]) => id);
+  const vehicles = ids.length
+    ? await getPrisma().vehicle.findMany({ where: { id: { in: ids } }, select: { id: true, name: true, domain: true, tier: true, reach: true } })
+    : [];
+
+  const vMap = Object.fromEntries(vehicles.map(v => [v.id, v]));
+
+  const ranked = sorted.map(([id, count]) => {
+    const v = vMap[id] ?? { name: id, domain: "", tier: "E", reach: 0 };
+    return { id, count, name: v.name, domain: v.domain, tier: v.tier, reach: v.reach };
+  });
 
   return NextResponse.json({ ranked, totalReleases: releases.length });
 }
