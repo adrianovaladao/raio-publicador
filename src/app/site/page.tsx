@@ -23,9 +23,10 @@ const STEPS = [
 
 const PLANS = [
   {
+    id: "BASIC",
     name: "Básico",
     desc: "Para quem está começando a distribuir releases.",
-    amt: "999", credits: "500 créditos", cl: "por mês · renovação automática",
+    amt: "1.000", credits: "200 créditos", cl: "por mês · renovação automática",
     feats: [
       ["Até 2 veículos AAA por release", true],
       ["Acesso aos 600 veículos parceiros", true],
@@ -34,12 +35,13 @@ const PLANS = [
       ["1 usuário", true],
       ["Relatórios avançados", false],
     ],
-    cta: "Começar agora", featured: false,
+    cta: "Assinar Básico", featured: false,
   },
   {
+    id: "ADVANCED",
     name: "Avançado",
     desc: "O equilíbrio ideal de alcance e custo.",
-    amt: "1.500", credits: "1.000 créditos", cl: "por mês · renovação automática",
+    amt: "2.000", credits: "500 créditos", cl: "por mês · renovação automática",
     feats: [
       ["Até 5 veículos AAA por release", true],
       ["Acesso aos 600 veículos parceiros", true],
@@ -51,9 +53,10 @@ const PLANS = [
     cta: "Assinar Avançado", featured: true,
   },
   {
+    id: "PROFESSIONAL",
     name: "Profissional",
     desc: "Para assessorias com alto volume de distribuição.",
-    amt: "2.500", credits: "3.000 créditos", cl: "por mês · renovação automática",
+    amt: "3.000", credits: "1.000 créditos", cl: "por mês · renovação automática",
     feats: [
       ["Até 10 veículos AAA por release", true],
       ["Acesso aos 600 veículos parceiros", true],
@@ -127,7 +130,7 @@ function Nav({ onContact }: { onContact: () => void }) {
         </div>
         <div className="nav-cta">
           <Link className="enter" href="/login">Entrar</Link>
-          <Link className="btn btn-primary btn-sm" href="/cadastro">Criar conta</Link>
+          <a className="btn btn-primary btn-sm" href="#planos">Assinar agora</a>
         </div>
         <button className="nav-burger" aria-label="Abrir menu" onClick={() => setMenuOpen((o) => !o)}>
           {menuOpen ? <X size={22} /> : <Menu size={22} />}
@@ -141,7 +144,7 @@ function Nav({ onContact }: { onContact: () => void }) {
         <a href="#faq" onClick={close}>FAQ</a>
         <div className="nav-mobile-cta">
           <Link className="btn btn-ghost btn-block" href="/login" onClick={close}>Entrar</Link>
-          <Link className="btn btn-primary btn-block" href="/cadastro" onClick={close}>Criar conta grátis</Link>
+          <a className="btn btn-primary btn-block" href="#planos" onClick={close}>Assinar agora</a>
         </div>
       </div>
       {menuOpen && <div className="nav-scrim" onClick={close} />}
@@ -166,13 +169,13 @@ function Hero() {
             Sem custo por nota — você usa créditos em quantas publicações quiser.
           </p>
           <div className="cta-row">
-            <Link className="btn btn-primary btn-lg" href="/cadastro">
-              Criar conta grátis <ArrowRight size={17} />
-            </Link>
-            <a className="btn btn-ghost btn-lg" href="#planos">Ver planos</a>
+            <a className="btn btn-primary btn-lg" href="#planos">
+              Ver planos <ArrowRight size={17} />
+            </a>
+            <Link className="btn btn-ghost btn-lg" href="/login">Já tenho conta</Link>
           </div>
           <div className="micro">
-            <CheckCircle size={15} /> Sem cartão de crédito · ative em minutos
+            <CheckCircle size={15} /> Sem fidelidade · cancele quando quiser
           </div>
         </div>
       </div>
@@ -250,14 +253,14 @@ function Compare() {
           <div className="comp-card us reveal" style={{ transitionDelay: "90ms" }}>
             <span className="tag">Raio Publicador</span>
             <h3>Plano por créditos</h3>
-            <p className="price-line">A partir de R$ 999 por mês, releases ilimitados</p>
+            <p className="price-line">A partir de R$ 1.000 por mês, releases ilimitados</p>
             <ul>
               <li><Check size={19} /> Um plano cobre diversas publicações</li>
               <li><Check size={19} /> Custo fixo e previsível</li>
               <li><Check size={19} /> Quanto mais publica, menor o custo por release</li>
               <li><Check size={19} /> Painel de resultados em tempo real incluído</li>
             </ul>
-            <div className="foot-note">10 releases no plano Avançado: <b>R$ 1.500/mês</b></div>
+            <div className="foot-note">10 releases no plano Avançado: <b>R$ 2.000/mês</b></div>
           </div>
         </div>
       </div>
@@ -326,7 +329,7 @@ function Plans({ onContact }: { onContact: () => void }) {
                   </li>
                 ))}
               </ul>
-              <Link className={`btn btn-block ${p.featured ? "btn-primary" : "btn-ghost"}`} href="/cadastro">
+              <Link className={`btn btn-block ${p.featured ? "btn-primary" : "btn-ghost"}`} href={`/cadastro?plan=${p.id}`}>
                 {p.cta}
               </Link>
             </div>
@@ -416,11 +419,11 @@ function CtaBand() {
         <div className="cta-inner reveal">
           <span className="glow" />
           <h2>Pronto para publicar <em>como um raio?</em></h2>
-          <p className="sub">Crie sua conta, escolha os veículos e dispare seu primeiro release ainda hoje.</p>
+          <p className="sub">Escolha um plano, crie sua conta e dispare seu primeiro release ainda hoje.</p>
           <div className="cta-row">
-            <Link className="btn btn-primary btn-lg" href="/cadastro">
-              Criar conta grátis <ArrowRight size={17} />
-            </Link>
+            <a className="btn btn-primary btn-lg" href="#planos">
+              Ver planos <ArrowRight size={17} />
+            </a>
             <Link className="btn btn-ghost btn-lg" href="/login">Já tenho conta</Link>
           </div>
         </div>

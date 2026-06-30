@@ -3,8 +3,8 @@
 import { useSignUp, useAuth } from "@clerk/nextjs";
 import Link from "next/link";
 import Image from "next/image";
-import { useState, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useRef, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowRight, Eye, EyeOff, CheckCircle, Feather, Newspaper, Send, Mail } from "lucide-react";
 import { RaioLockup } from "@/components/logo/RaioLockup";
 import { translateClerkError } from "@/lib/clerkErrors";
@@ -34,15 +34,35 @@ const STEPS_MINI = [
   { icon: Send,      t: "Publique com um clique" },
 ];
 
-export default function CadastroPage() {
+const VALID_PLANS = ["BASIC", "ADVANCED", "PROFESSIONAL"];
+
+function CadastroInner() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { signUp, setActive } = useSignUp() as any;
   const { isSignedIn } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const planParam = searchParams.get("plan");
+  const plan = planParam && VALID_PLANS.includes(planParam) ? planParam : null;
+
+  async function goToCheckout() {
+    if (!plan) { router.replace("/boas-vindas"); return; }
+    try {
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ planId: plan }),
+      });
+      const data = await res.json();
+      if (data.url) { window.location.href = data.url; return; }
+    } catch {}
+    router.replace("/boas-vindas");
+  }
 
   useEffect(() => {
-    if (isSignedIn) router.replace("/boas-vindas");
-  }, [isSignedIn, router]);
+    if (isSignedIn) goToCheckout();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSignedIn]);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const suRef    = useRef<any>(null);
@@ -103,7 +123,7 @@ export default function CadastroPage() {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const sa = setActive ?? (window as any).Clerk?.setActive;
         await sa({ session: result.createdSessionId });
-        router.replace("/boas-vindas");
+        await goToCheckout();
       } else {
         setError("Verificação incompleta. Tente novamente.");
       }
@@ -274,5 +294,13 @@ export default function CadastroPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function CadastroPage() {
+  return (
+    <Suspense>
+      <CadastroInner />
+    </Suspense>
   );
 }
