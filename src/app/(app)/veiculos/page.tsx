@@ -10,7 +10,7 @@ type VehicleItem = { id: string; name: string; domain: string; cat: string; tier
 const VEH_CATS  = ["Geral","Negócios","Tecnologia","Esportes","Economia","Saúde","Entretenimento","Política","Jurídico","Agronegócio"];
 const VEH_TIERS = ["A","B","C","D","E"];
 
-const TIER_TOKENS:  Record<string, number> = { A: 250, B: 150, C: 100, D: 50, E: 0 };
+const TIER_TOKENS:  Record<string, number> = { A: 100, B: 60, C: 40, D: 20, E: 0 };
 const TIER_COLORS:  Record<string, string> = { A: "#C0392B", B: "#E07B2A", C: "#D4A017", D: "#3A7DC9", E: "#D0DFF0" };
 const TIER_FG:      Record<string, string> = { A: "#fff",    B: "#fff",    C: "#fff",    D: "#fff",    E: "#3A5A80" };
 

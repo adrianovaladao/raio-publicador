@@ -107,6 +107,36 @@ model Vehicle {
   updatedAt DateTime @updatedAt
 }
 
+// ─── Assinatura ──────────────────────────────────────────────────────────────
+
+model Subscription {
+  id                   String             @id @default(cuid())
+  ownerId              String             @unique
+  plan                 PlanTier
+  status               SubscriptionStatus @default(INACTIVE)
+  creditsTotal         Int
+  creditsUsed          Int                @default(0)
+  stripeCustomerId     String?            @unique
+  stripeSubscriptionId String?            @unique
+  currentPeriodStart   DateTime?
+  currentPeriodEnd     DateTime?
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+}
+
+enum PlanTier {
+  BASIC
+  ADVANCED
+  PROFESSIONAL
+}
+
+enum SubscriptionStatus {
+  INACTIVE
+  ACTIVE
+  PAST_DUE
+  CANCELLED
+}
+
 // ─── Convite ─────────────────────────────────────────────────────────────────
 
 model Invite {
