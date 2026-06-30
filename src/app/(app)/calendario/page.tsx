@@ -201,18 +201,13 @@ function DayModal({ date, evs, onClose }: { date: string; evs: CalEvent[]; onClo
         </div>
 
         {/* Footer */}
-        <div style={{ padding: "10px 16px 14px", borderTop: "1px solid var(--line)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ display: "flex", gap: 14 }}>
-            {[["scheduled","var(--blue)","Agendado"],["published","var(--green)","Publicado"],["draft","var(--coral)","Rascunho"]].map(([,color,label]) => (
-              <span key={label} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: "var(--stone)" }}>
-                <span style={{ width: 7, height: 7, borderRadius: "50%", background: color, flexShrink: 0 }} />
-                {label}
-              </span>
-            ))}
-          </div>
-          <Link href="/releases/novo" className="btn btn-primary btn-sm" onClick={onClose}>
-            <Plus size={14} /> Agendar para este dia
-          </Link>
+        <div style={{ padding: "10px 16px 14px", borderTop: "1px solid var(--line)", display: "flex", alignItems: "center", gap: 14 }}>
+          {[["scheduled","var(--blue)","Agendado"],["published","var(--green)","Publicado"],["draft","var(--coral)","Rascunho"]].map(([,color,label]) => (
+            <span key={label} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: "var(--stone)" }}>
+              <span style={{ width: 7, height: 7, borderRadius: "50%", background: color, flexShrink: 0 }} />
+              {label}
+            </span>
+          ))}
         </div>
       </div>
     </div>
@@ -240,8 +235,11 @@ function CalEventChip({ ev }: { ev: CalEvent }) {
 
 export default function CalendarioPage() {
   const now = new Date();
-  const [y, setY] = useState(now.getFullYear());
-  const [m, setM] = useState(now.getMonth());
+  // Mês de assinatura ativo = mês atual
+  const PLAN_YEAR  = now.getFullYear();
+  const PLAN_MONTH = now.getMonth();
+  const [y, setY] = useState(PLAN_YEAR);
+  const [m, setM] = useState(PLAN_MONTH);
   const TODAY = calKey(now.getFullYear(), now.getMonth(), now.getDate());
 
   const [events, setEvents] = useState<Record<string, CalEvent[]>>({});
@@ -285,6 +283,8 @@ export default function CalendarioPage() {
   for (let d = 1; d <= dim; d++) cells.push({ d, out: false });
   while (cells.length % 7 !== 0) cells.push({ d: cells.length - (lead + dim) + 1, out: true });
 
+  const isPlanMonth = y === PLAN_YEAR && m === PLAN_MONTH;
+
   function shift(dir: number) {
     let nm = m + dir, ny = y;
     if (nm < 0) { nm = 11; ny--; }
@@ -315,9 +315,10 @@ export default function CalendarioPage() {
               <span className="chip"><i style={{ width: 9, height: 9, borderRadius: 3, background: "var(--coral)", display: "inline-block", marginRight: 4 }} />Rascunho</span>
               <span className="chip"><i style={{ width: 9, height: 9, borderRadius: 3, background: "var(--green)", display: "inline-block", marginRight: 4 }} />Publicado</span>
             </div>
-            <Link href="/releases/novo" className="btn btn-primary btn-sm">
-              <Plus size={15} /> Agendar release
-            </Link>
+            {isPlanMonth
+              ? <Link href="/releases/novo" className="btn btn-primary btn-sm"><Plus size={15} /> Agendar release</Link>
+              : <button className="btn btn-primary btn-sm" disabled style={{ opacity: 0.4, cursor: "not-allowed" }}><Plus size={15} /> Agendar release</button>
+            }
           </div>
         </div>
 
@@ -343,11 +344,18 @@ export default function CalendarioPage() {
               const isToday = k === TODAY;
               const col = i % 7;
               const isWeekend = col === 0 || col === 6;
+              const isLocked = !isPlanMonth;
+              const clickable = !c.out && !isWeekend && !isLocked && k;
               return (
                 <div key={i}
-                  className={`cal-cell${c.out ? " out" : ""}${isToday ? " today" : ""}`}
-                  style={{ backgroundColor: isWeekend ? "#ECEAE5" : undefined, cursor: (c.out || isWeekend) ? "default" : "pointer" }}
-                  onClick={() => { if (!c.out && !isWeekend && k) setSelectedDay({ key: k, evs }); }}
+                  className={`cal-cell${c.out ? " out" : ""}${isToday ? " today" : ""}${isLocked ? " locked" : ""}`}
+                  style={{
+                    backgroundColor: isLocked ? "var(--cream)" : isWeekend ? "#ECEAE5" : undefined,
+                    cursor: clickable ? "pointer" : "default",
+                    opacity: isLocked ? 0.5 : 1,
+                    pointerEvents: isLocked ? "none" : undefined,
+                  }}
+                  onClick={() => { if (clickable) setSelectedDay({ key: k!, evs }); }}
                 >
                   <div className="dn">{c.d}</div>
                   {evs.slice(0, 2).map(e => (
