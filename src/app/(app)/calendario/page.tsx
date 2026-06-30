@@ -246,8 +246,9 @@ export default function CalendarioPage() {
         </div>
 
         {/* Barra de plano */}
-        <div style={{ display: "flex", alignItems: "center", gap: 40, background: "var(--paper)", border: "1px solid var(--line)", borderRadius: 12, padding: "14px 24px", marginBottom: 16 }}>
-          <div style={{ width: 280, flexShrink: 0 }}>
+        <div style={{ display: "flex", alignItems: "stretch", background: "var(--paper)", border: "1px solid var(--line)", borderRadius: 12, padding: "14px 24px", marginBottom: 16, gap: 0 }}>
+          {/* Barra de progresso */}
+          <div style={{ flex: 1, paddingRight: 32 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8 }}>
               <span style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--stone)" }}>Dias utilizados</span>
               <span style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--stone)" }}>{usedDays} / {totalDays} dias</span>
@@ -256,16 +257,19 @@ export default function CalendarioPage() {
               <div style={{ height: "100%", borderRadius: 99, background: "var(--coral)", width: `${Math.round((usedDays / totalDays) * 100)}%`, transition: "width 0.4s" }} />
             </div>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 32, flexShrink: 0 }}>
-            <div style={{ textAlign: "right" }}>
-              <div style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 2 }}>Dias restantes</div>
-              <div style={{ fontWeight: 700, fontSize: 20, fontFamily: "var(--sans)", letterSpacing: "-0.02em", color: daysLeft <= 5 ? "var(--red)" : "var(--ink)" }}>{daysLeft}</div>
-            </div>
-            <div style={{ width: 1, height: 36, background: "var(--line)" }} />
-            <div style={{ textAlign: "right" }}>
-              <div style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 2 }}>Renovação</div>
-              <div style={{ fontWeight: 600, fontSize: 13, color: "var(--ink)" }}>{renewalLabel}</div>
-            </div>
+          {/* Divisor */}
+          <div style={{ width: 1, background: "var(--line)", flexShrink: 0 }} />
+          {/* Dias restantes */}
+          <div style={{ paddingLeft: 28, paddingRight: 28, flexShrink: 0 }}>
+            <div style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 4 }}>Dias restantes</div>
+            <div style={{ fontWeight: 700, fontSize: 20, fontFamily: "var(--sans)", letterSpacing: "-0.02em", color: daysLeft <= 5 ? "var(--red)" : "var(--ink)" }}>{daysLeft}</div>
+          </div>
+          {/* Divisor */}
+          <div style={{ width: 1, background: "var(--line)", flexShrink: 0 }} />
+          {/* Renovação */}
+          <div style={{ paddingLeft: 28, flexShrink: 0 }}>
+            <div style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 4 }}>Renovação</div>
+            <div style={{ fontWeight: 600, fontSize: 13, color: "var(--ink)" }}>{renewalLabel}</div>
           </div>
         </div>
 
