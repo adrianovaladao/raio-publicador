@@ -1,0 +1,93 @@
+export const dynamic = "force-dynamic";
+import { getStripe } from "@/lib/stripe";
+import { PLANS, type PlanId } from "@/lib/plans";
+import { getPrisma } from "@/lib/prisma";
+import { NextRequest, NextResponse } from "next/server";
+import Stripe from "stripe";
+
+export async function POST(req: NextRequest) {
+  const stripe = getStripe();
+  const prisma = getPrisma();
+  const sig = req.headers.get("stripe-signature");
+  const body = await req.text();
+
+  let event: Stripe.Event;
+  try {
+    event = stripe.webhooks.constructEvent(body, sig!, process.env.STRIPE_WEBHOOK_SECRET!);
+  } catch (err) {
+    return NextResponse.json({ error: `Webhook signature inválida: ${(err as Error).message}` }, { status: 400 });
+  }
+
+  switch (event.type) {
+    case "checkout.session.completed": {
+      const session = event.data.object as Stripe.Checkout.Session;
+      const clerkId = session.metadata?.clerkId;
+      const planId = session.metadata?.planId as PlanId | undefined;
+      if (!clerkId || !planId) break;
+
+      const subscriptionId = session.subscription as string;
+      const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+
+      await prisma.subscription.update({
+        where: { ownerId: clerkId },
+        data: {
+          plan: planId,
+          status: "ACTIVE",
+          creditsTotal: PLANS[planId].credits,
+          creditsUsed: 0,
+          stripeSubscriptionId: subscription.id,
+          currentPeriodStart: new Date(subscription.items.data[0].current_period_start * 1000),
+          currentPeriodEnd: new Date(subscription.items.data[0].current_period_end * 1000),
+        },
+      });
+      break;
+    }
+
+    case "invoice.payment_succeeded": {
+      const invoice = event.data.object as Stripe.Invoice;
+      const subscriptionId = (invoice as unknown as { subscription?: string }).subscription;
+      if (!subscriptionId) break;
+
+      const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+      const clerkId = subscription.metadata?.clerkId;
+      const planId = subscription.metadata?.planId as PlanId | undefined;
+      if (!clerkId || !planId) break;
+
+      await prisma.subscription.update({
+        where: { ownerId: clerkId },
+        data: {
+          status: "ACTIVE",
+          creditsTotal: PLANS[planId].credits,
+          creditsUsed: 0,
+          currentPeriodStart: new Date(subscription.items.data[0].current_period_start * 1000),
+          currentPeriodEnd: new Date(subscription.items.data[0].current_period_end * 1000),
+        },
+      });
+      break;
+    }
+
+    case "invoice.payment_failed": {
+      const invoice = event.data.object as Stripe.Invoice;
+      const subscriptionId = (invoice as unknown as { subscription?: string }).subscription;
+      if (!subscriptionId) break;
+
+      const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+      const clerkId = subscription.metadata?.clerkId;
+      if (!clerkId) break;
+
+      await prisma.subscription.update({ where: { ownerId: clerkId }, data: { status: "PAST_DUE" } });
+      break;
+    }
+
+    case "customer.subscription.deleted": {
+      const subscription = event.data.object as Stripe.Subscription;
+      const clerkId = subscription.metadata?.clerkId;
+      if (!clerkId) break;
+
+      await prisma.subscription.update({ where: { ownerId: clerkId }, data: { status: "CANCELLED" } });
+      break;
+    }
+  }
+
+  return NextResponse.json({ received: true });
+}
