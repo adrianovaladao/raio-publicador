@@ -55,13 +55,16 @@ const STATUS_ORDER: Record<string, number> = { published: 0, scheduled: 1, revie
 
 function sortReleases(arr: ReleaseRow[], col: SortCol, dir: SortDir) {
   return [...arr].sort((a, b) => {
-    let va: string | number, vb: string | number;
-    if (col === "date") { va = new Date(a.date).getTime(); vb = new Date(b.date).getTime(); }
-    else if (col === "status") { va = STATUS_ORDER[a.status] ?? 99; vb = STATUS_ORDER[b.status] ?? 99; }
-    else { va = (a[col] as string).toLowerCase(); vb = (b[col] as string).toLowerCase(); }
-    if (va < vb) return dir === "asc" ? -1 : 1;
-    if (va > vb) return dir === "asc" ? 1 : -1;
-    return 0;
+    if (col === "date") {
+      const diff = new Date(a.date).getTime() - new Date(b.date).getTime();
+      return dir === "asc" ? diff : -diff;
+    }
+    if (col === "status") {
+      const diff = (STATUS_ORDER[a.status] ?? 99) - (STATUS_ORDER[b.status] ?? 99);
+      return dir === "asc" ? diff : -diff;
+    }
+    const cmp = (a[col] as string).localeCompare(b[col] as string, "pt-BR", { numeric: true, sensitivity: "base" });
+    return dir === "asc" ? cmp : -cmp;
   });
 }
 
