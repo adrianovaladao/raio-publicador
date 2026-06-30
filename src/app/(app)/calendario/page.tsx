@@ -296,6 +296,13 @@ export default function CalendarioPage() {
   const monthEvs = Object.entries(events).filter(([k]) => k.startsWith(monthPrefix));
   const scheduledCount = monthEvs.flatMap(([,v]) => v).filter(e => e.status.toLowerCase() === "scheduled").length;
 
+  // Plano: mês corrente, renovação no 1º dia do próximo mês
+  const planEnd      = new Date(PLAN_YEAR, PLAN_MONTH + 1, 1);
+  const daysLeft     = Math.max(0, Math.ceil((planEnd.getTime() - now.setHours(0,0,0,0)) / 86400000));
+  const renewalLabel = planEnd.toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
+  const totalDays    = new Date(PLAN_YEAR, PLAN_MONTH + 1, 0).getDate();
+  const usedDays     = totalDays - daysLeft;
+
   return (
     <div className="content scroll">
       <div className="content-inner">
@@ -319,6 +326,30 @@ export default function CalendarioPage() {
               ? <Link href="/releases/novo" className="btn btn-primary btn-sm"><Plus size={15} /> Agendar release</Link>
               : <button className="btn btn-primary btn-sm" disabled style={{ opacity: 0.4, cursor: "not-allowed" }}><Plus size={15} /> Agendar release</button>
             }
+          </div>
+        </div>
+
+        {/* Barra de plano */}
+        <div style={{ display: "flex", alignItems: "center", gap: 24, background: "var(--paper)", border: "1px solid var(--line)", borderRadius: 12, padding: "14px 20px", marginBottom: 16 }}>
+          <div style={{ flex: 1 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
+              <span style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--stone)" }}>Dias utilizados</span>
+              <span style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--stone)" }}>{usedDays} / {totalDays} dias</span>
+            </div>
+            <div style={{ height: 6, borderRadius: 99, background: "var(--line)", overflow: "hidden" }}>
+              <div style={{ height: "100%", borderRadius: 99, background: "var(--coral)", width: `${Math.round((usedDays / totalDays) * 100)}%`, transition: "width 0.4s" }} />
+            </div>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+            <div style={{ textAlign: "right" }}>
+              <div style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 2 }}>Dias restantes</div>
+              <div style={{ fontWeight: 700, fontSize: 20, fontFamily: "var(--sans)", letterSpacing: "-0.02em", color: daysLeft <= 5 ? "var(--red)" : "var(--ink)" }}>{daysLeft}</div>
+            </div>
+            <div style={{ width: 1, height: 36, background: "var(--line)" }} />
+            <div style={{ textAlign: "right" }}>
+              <div style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 2 }}>Renovação</div>
+              <div style={{ fontWeight: 600, fontSize: 13, color: "var(--ink)" }}>{renewalLabel}</div>
+            </div>
           </div>
         </div>
 
