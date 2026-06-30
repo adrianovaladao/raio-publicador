@@ -266,7 +266,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const firstName = user?.firstName ?? "";
   const lastName  = user?.lastName  ?? "";
   const fullName  = [firstName, lastName].filter(Boolean).join(" ") || "Usuário";
-  const initials  = [firstName[0], lastName[0]].filter(Boolean).join("").toUpperCase() || "U";
 
   async function handleLogout() {
     await signOut();
@@ -343,7 +342,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             {user?.imageUrl
               // eslint-disable-next-line @next/next/no-img-element
               ? <img src={user.imageUrl} alt={fullName} className="av" style={{ objectFit: "cover" }} />
-              : <div className="av">{initials}</div>
+              : (
+                <div className="av av-default">
+                  <svg viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", height: "100%", display: "block" }}>
+                    <defs>
+                      <linearGradient id="av-grad" x1="17" y1="4" x2="17" y2="34" gradientUnits="userSpaceOnUse">
+                        <stop offset="0%" stopColor="#5A5A5A" />
+                        <stop offset="100%" stopColor="#1A1A1A" />
+                      </linearGradient>
+                    </defs>
+                    <circle cx="17" cy="13" r="6" fill="url(#av-grad)" />
+                    <path d="M4 34c0-7.18 5.82-13 13-13s13 5.82 13 13" fill="url(#av-grad)" />
+                  </svg>
+                </div>
+              )
             }
             <div className="who">
               <div className="nm">{fullName}</div>
