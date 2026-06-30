@@ -8,11 +8,6 @@ import { ChevronLeft, ChevronRight, Plus, X, ArrowRight } from "lucide-react";
 const MESES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 const DOW   = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
 
-const STATUS_LABEL: Record<string, string> = {
-  PUBLISHED: "Publicado", published: "Publicado",
-  SCHEDULED: "Agendado",  scheduled: "Agendado",
-  DRAFT:     "Rascunho",  draft:     "Rascunho",
-};
 
 const STATUS_DOT_COLOR: Record<string, string> = {
   published: "var(--green)",
