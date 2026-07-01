@@ -23,6 +23,28 @@ interface RichEditorProps {
   brandName?: string;
 }
 
+function AutoTextarea({ className, value, onChange, placeholder, style }: {
+  className?: string; value: string; onChange: (v: string) => void; placeholder?: string; style?: React.CSSProperties;
+}) {
+  const ref = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    if (!ref.current) return;
+    ref.current.style.height = "auto";
+    ref.current.style.height = ref.current.scrollHeight + "px";
+  }, [value]);
+  return (
+    <textarea
+      ref={ref}
+      className={className}
+      value={value}
+      placeholder={placeholder}
+      rows={1}
+      style={{ resize: "none", overflow: "hidden", ...style }}
+      onChange={e => onChange(e.target.value)}
+    />
+  );
+}
+
 export function RichEditor({
   title, onTitleChange,
   subtitle, onSubtitleChange,
@@ -142,28 +164,6 @@ export function RichEditor({
   const wordOver  = wordCount > RECOMMENDED * 1.2;
   const wordDone  = wordCount >= RECOMMENDED * 0.9 && !wordOver;
   const wordColor = wordOver ? "var(--red,#c0392b)" : wordDone ? "var(--green,#2f8a5b)" : "var(--stone)";
-
-  function AutoTextarea({ className, value, onChange, placeholder, style }: {
-    className?: string; value: string; onChange: (v: string) => void; placeholder?: string; style?: React.CSSProperties;
-  }) {
-    const ref = useRef<HTMLTextAreaElement>(null);
-    useEffect(() => {
-      if (!ref.current) return;
-      ref.current.style.height = "auto";
-      ref.current.style.height = ref.current.scrollHeight + "px";
-    }, [value]);
-    return (
-      <textarea
-        ref={ref}
-        className={className}
-        value={value}
-        placeholder={placeholder}
-        rows={1}
-        style={{ resize: "none", overflow: "hidden", ...style }}
-        onChange={e => onChange(e.target.value)}
-      />
-    );
-  }
 
   if (!editor) return null;
 
