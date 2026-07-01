@@ -158,6 +158,17 @@ function CadastroInner() {
     if (e.key === "Backspace" && !otp[i] && i > 0) otpRefs.current[i - 1]?.focus();
   }
 
+  function handleOtpPaste(e: React.ClipboardEvent) {
+    e.preventDefault();
+    const digits = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6).split("");
+    if (!digits.length) return;
+    const next = [...otp];
+    digits.forEach((d, idx) => { if (idx < 6) next[idx] = d; });
+    setOtp(next);
+    const focusIdx = Math.min(digits.length, 5);
+    otpRefs.current[focusIdx]?.focus();
+  }
+
   return (
     <div className="auth">
       {/* ── Painel esquerdo ── */}
@@ -259,6 +270,7 @@ function CadastroInner() {
                     value={digit}
                     onChange={(e) => handleOtpChange(i, e.target.value)}
                     onKeyDown={(e) => handleOtpKey(i, e)}
+                    onPaste={handleOtpPaste}
                     className={digit ? "filled" : ""}
                     autoFocus={i === 0}
                   />
