@@ -18,6 +18,13 @@ export async function POST(req: Request) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const body = await req.json();
-  const release = await getPrisma().release.create({ data: { ...body, authorId: userId } });
+  const prisma = getPrisma();
+  const release = await prisma.release.create({ data: { ...body, authorId: userId } });
+  if (body.status === "SCHEDULED" && body.creditsUsed > 0) {
+    await prisma.subscription.updateMany({
+      where: { ownerId: userId },
+      data: { creditsUsed: { increment: body.creditsUsed } },
+    });
+  }
   return NextResponse.json(release, { status: 201 });
 }

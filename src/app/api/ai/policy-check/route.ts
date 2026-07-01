@@ -58,7 +58,9 @@ Se não houver nenhum problema, retorne {"ok": true, "issues": []}.`;
       .filter(b => b.type === "text")
       .map(b => (b as { type: "text"; text: string }).text)
       .join("")
-      .trim();
+      .trim()
+      .replace(/^```(?:json)?\s*/i, "")
+      .replace(/\s*```$/, "");
 
     const json = JSON.parse(raw);
     return NextResponse.json(json);

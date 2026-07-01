@@ -1547,7 +1547,7 @@ export default function NovoReleasePage() {
                     status,
                     scheduledAt,
                     brandId: brand.id,
-                    creditsUsed: 0,
+                    creditsUsed: selTokens,
                     imageUrl: content.imageUrls[0] ?? null,
                     vehicles: selected,
                   };

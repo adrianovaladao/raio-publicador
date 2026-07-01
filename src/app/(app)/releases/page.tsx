@@ -121,7 +121,7 @@ export default function ReleasesPage() {
           cat: r.brand?.name ?? "—",
           author: "Você",
           status: r.status.toLowerCase(),
-          date: r.createdAt,
+          date: r.scheduledAt ?? r.publishedAt ?? r.createdAt,
           imageUrl: r.imageUrl,
           brandColor: r.brand?.color,
         }));
