@@ -11,14 +11,14 @@ import {
 import { RaioLockup } from "@/components/logo/RaioLockup";
 import { useState, useEffect } from "react";
 
-// ─── Mock data ────────────────────────────────────────────────────────────────
+// ─── Subscription data ────────────────────────────────────────────────────────
 
-const PLAN = { total: 5000, used: 3200 };
+interface SubInfo { plan: string | null; label: string; priceCents: number | null; credits: number; creditsUsed: number; }
 
 const APP_PLANS = [
-  { name: "Básico",       amt: "999",   credits: "500 créditos",   feats: ["Até 2 veículos AAA por release", "Centenas de veículos parceiros", "1 usuário"] },
-  { name: "Avançado",     amt: "1.500", credits: "1.000 créditos", feats: ["Até 5 veículos AAA por release", "Relatórios de desempenho", "Até 3 usuários"], featured: true },
-  { name: "Profissional", amt: "2.500", credits: "3.000 créditos", feats: ["Até 10 veículos AAA por release", "Relatórios + exportação", "Usuários ilimitados"], current: true },
+  { id: "BASIC",        name: "Básico",       amt: "1.000", credits: "200 créditos",   feats: ["Até 2 marcas", "1 editor + 1 revisor",  "Centenas de veículos"] },
+  { id: "ADVANCED",     name: "Avançado",     amt: "3.000", credits: "1.000 créditos", feats: ["Até 5 marcas", "3 editores + 5 revisores", "Relatórios de desempenho"], featured: true },
+  { id: "PROFESSIONAL", name: "Profissional", amt: "5.000", credits: "2.000 créditos", feats: ["Até 10 marcas", "5 editores + 10 revisores", "Relatórios + exportação"] },
 ];
 
 const BRAND_COLORS = ["#C25E00","#2A6FDB","#2F8A5B","#6D3BD9","#0E7C86","#B0322E","#8A6500","#1A1A1A"];
@@ -32,9 +32,9 @@ function getInitials(name: string | null | undefined) {
 
 // ─── PlansModal ───────────────────────────────────────────────────────────────
 
-function PlansModal({ onClose }: { onClose: () => void }) {
-  const pct = Math.round((PLAN.used / PLAN.total) * 100);
-  const left = PLAN.total - PLAN.used;
+function PlansModal({ onClose, sub }: { onClose: () => void; sub: SubInfo }) {
+  const pct  = sub.credits > 0 ? Math.round((sub.creditsUsed / sub.credits) * 100) : 0;
+  const left = sub.credits - sub.creditsUsed;
 
   useEffect(() => {
     const fn = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
@@ -59,37 +59,40 @@ function PlansModal({ onClose }: { onClose: () => void }) {
         <div className="m-body">
           <div className="plan-usage">
             <div className="pu-top">
-              <span>Plano Pro · {PLAN.used.toLocaleString("pt-BR")} de {PLAN.total.toLocaleString("pt-BR")} usados</span>
+              <span>{sub.label} · {sub.creditsUsed.toLocaleString("pt-BR")} de {sub.credits.toLocaleString("pt-BR")} usados</span>
               <span className="pu-left">{left.toLocaleString("pt-BR")} restantes</span>
             </div>
             <div className="pu-bar"><i style={{ width: `${pct}%` }} /></div>
           </div>
 
           <div className="plans-row">
-            {APP_PLANS.map(p => (
-              <div key={p.name} className={`plan-card${p.featured ? " featured" : ""}${p.current ? " current" : ""}`}>
-                {p.featured && !p.current && <span className="pc-ribbon">Mais vendido</span>}
-                {p.current && <span className="pc-ribbon cur">Plano atual</span>}
-                <div className="pc-name">{p.name}</div>
-                <div className="pc-price">
-                  <span className="cur">R$</span>
-                  <span className="amt">{p.amt}</span>
-                  <span className="per">/mês</span>
+            {APP_PLANS.map(p => {
+              const isCurrent = sub.plan === p.id;
+              return (
+                <div key={p.name} className={`plan-card${p.featured ? " featured" : ""}${isCurrent ? " current" : ""}`}>
+                  {p.featured && !isCurrent && <span className="pc-ribbon">Mais vendido</span>}
+                  {isCurrent && <span className="pc-ribbon cur">Plano atual</span>}
+                  <div className="pc-name">{p.name}</div>
+                  <div className="pc-price">
+                    <span className="cur">R$</span>
+                    <span className="amt">{p.amt}</span>
+                    <span className="per">/mês</span>
+                  </div>
+                  <div className="pc-credits"><Zap size={16} /> {p.credits}</div>
+                  <ul className="pc-feats">
+                    {p.feats.map((f, i) => (
+                      <li key={i}><Check size={15} /> {f}</li>
+                    ))}
+                  </ul>
+                  <button
+                    className={`btn btn-block${isCurrent ? " btn-ghost" : p.featured ? " btn-primary" : " btn-dark"}`}
+                    disabled={isCurrent}
+                  >
+                    {isCurrent ? "Plano atual" : `Mudar para ${p.name}`}
+                  </button>
                 </div>
-                <div className="pc-credits"><Zap size={16} /> {p.credits}</div>
-                <ul className="pc-feats">
-                  {p.feats.map((f, i) => (
-                    <li key={i}><Check size={15} /> {f}</li>
-                  ))}
-                </ul>
-                <button
-                  className={`btn btn-block${p.current ? " btn-ghost" : p.featured ? " btn-primary" : " btn-dark"}`}
-                  disabled={p.current}
-                >
-                  {p.current ? "Plano atual" : `Mudar para ${p.name}`}
-                </button>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           <div className="plans-note">
@@ -250,11 +253,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [showNewBrand, setShowNewBrand] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [releaseCount, setReleaseCount] = useState<number | null>(null);
+  const [sub, setSub] = useState<SubInfo>({ plan: null, label: "—", priceCents: null, credits: 0, creditsUsed: 0 });
 
   useEffect(() => {
     fetch("/api/dashboard")
       .then(r => r.json())
       .then((d: { stats?: { total?: number } }) => { if (d?.stats?.total != null) setReleaseCount(d.stats.total); })
+      .catch(() => {});
+    fetch("/api/stripe/subscription")
+      .then(r => r.json())
+      .then((d: Partial<SubInfo>) => {
+        setSub({ plan: d.plan ?? null, label: d.label ?? "—", priceCents: d.priceCents ?? null, credits: d.credits ?? 0, creditsUsed: d.creditsUsed ?? 0 });
+      })
       .catch(() => {});
   }, []);
 
@@ -267,8 +277,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     router.replace("/login");
   }
 
-  const pct  = Math.round((PLAN.used / PLAN.total) * 100);
-  const left = PLAN.total - PLAN.used;
+  const pct  = sub.credits > 0 ? Math.round((sub.creditsUsed / sub.credits) * 100) : 0;
+  const left = sub.credits - sub.creditsUsed;
 
   return (
     <div className="app">
@@ -309,11 +319,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <button className="credits" onClick={() => setShowPlans(true)} title="Ver planos e créditos">
           <div className="top">
             <span className="lbl">Créditos</span>
-            <span className="credits-plan">Plano Pro</span>
+            <span className="credits-plan">{sub.label}</span>
           </div>
           <div className="num">
             {left.toLocaleString("pt-BR")}
-            <small> / {PLAN.total.toLocaleString("pt-BR")}</small>
+            <small> / {sub.credits.toLocaleString("pt-BR")}</small>
           </div>
           <div className="bar"><i style={{ width: `${pct}%` }} /></div>
           <div className="hint">{pct}% usados · renova em {(() => { const d = new Date(); const r = new Date(d.getFullYear(), d.getMonth()+1, 1); return `${String(r.getDate()).padStart(2,"0")}/${String(r.getMonth()+1).padStart(2,"0")}/${r.getFullYear()}`; })()}</div>
@@ -375,7 +385,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </div>
 
       {/* ── MODAIS ── */}
-      {showPlans && <PlansModal onClose={() => setShowPlans(false)} />}
+      {showPlans && <PlansModal onClose={() => setShowPlans(false)} sub={sub} />}
       {showNewBrand && (
         <NewBrandModal
           onClose={() => setShowNewBrand(false)}
