@@ -5,6 +5,7 @@ import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import Link from "@tiptap/extension-link";
 import Underline from "@tiptap/extension-underline";
+import TiptapImage from "@tiptap/extension-image";
 import { useState, useCallback, useRef, useEffect } from "react";
 import {
   Bold, Italic, Underline as UnderlineIcon, Heading2,
@@ -20,7 +21,6 @@ interface RichEditorProps {
   content: string;
   onContentChange: (html: string) => void;
   brandName?: string;
-  triggerImageUpload?: () => void;
 }
 
 export function RichEditor({
@@ -28,8 +28,9 @@ export function RichEditor({
   subtitle, onSubtitleChange,
   content, onContentChange,
   brandName,
-  triggerImageUpload,
 }: RichEditorProps) {
+  const imageFileRef = useRef<HTMLInputElement>(null);
+  const [imgUploading, setImgUploading] = useState(false);
   const [aiLoading,  setAiLoading]  = useState(false);
   const [aiErr,      setAiErr]      = useState("");
   const [wordCount,  setWordCount]  = useState(0);
@@ -45,6 +46,7 @@ export function RichEditor({
       Underline,
       Placeholder.configure({ placeholder: "Escreva o corpo do release… Comece com o lide: o quê, quem, quando, onde e por quê." }),
       Link.configure({ openOnClick: false, HTMLAttributes: { class: "editor-link" } }),
+      TiptapImage.configure({ HTMLAttributes: { class: "editor-img" } }),
     ],
     content: content || "",
     onUpdate: ({ editor }) => {
@@ -69,6 +71,23 @@ export function RichEditor({
     setLinkModal({ open: false, initial: "" });
     if (!url.trim()) { editor.chain().focus().unsetLink().run(); return; }
     editor.chain().focus().setLink({ href: url.trim() }).run();
+  }
+
+  async function handleImageFile(file: File) {
+    if (!editor || !file.type.startsWith("image/")) return;
+    if (file.size > 5 * 1024 * 1024) return;
+    setImgUploading(true);
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      const res = await fetch("/api/upload", { method: "POST", body: form });
+      const data = await res.json() as { url?: string };
+      if (data.url) {
+        editor.chain().focus().setImage({ src: data.url }).run();
+        onContentChange(editor.getHTML());
+      }
+    } catch { /* ignore */ }
+    finally { setImgUploading(false); }
   }
 
   async function runAI() {
@@ -160,6 +179,13 @@ export function RichEditor({
 
   return (
     <>
+    <input
+      ref={imageFileRef}
+      type="file"
+      accept="image/jpeg,image/png,image/webp"
+      style={{ display: "none" }}
+      onChange={e => { const f = e.target.files?.[0]; if (f) handleImageFile(f); e.target.value = ""; }}
+    />
     <div className="card editor">
       <div className="toolbtns">
         {/* Text style */}
@@ -186,14 +212,16 @@ export function RichEditor({
           <Redo size={15} />
         </button>
 
-        {triggerImageUpload && (
-          <>
-            <span className="div" />
-            <button type="button" className="tb" onClick={triggerImageUpload} title="Adicionar imagem">
-              <ImageIcon size={15} />
-            </button>
-          </>
-        )}
+        <span className="div" />
+        <button
+          type="button"
+          className={`tb${imgUploading ? " on" : ""}`}
+          onClick={() => imageFileRef.current?.click()}
+          title="Inserir imagem"
+          disabled={imgUploading}
+        >
+          <ImageIcon size={15} />
+        </button>
 
         <div style={{ flex: 1 }} />
 

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 
 import {
   ArrowLeft, ArrowRight, Check, ChevronDown,
-  Image as ImageIcon, Rocket, Calendar, X, Search,
+  Rocket, Calendar, X, Search,
   List, LayoutGrid, Plus, Download, Upload, Cloud, CloudOff,
   SlidersHorizontal, ArrowUpDown, ArrowUp, ArrowDown,
 } from "lucide-react";
@@ -379,70 +379,15 @@ function SelectBox({ value, options, onChange }: { value: string; options: strin
   );
 }
 
-function MediaGallery({ images, onRemove, fileRef, uploading }: {
-  images: string[];
-  onRemove: (url: string) => void;
-  fileRef: React.RefObject<HTMLInputElement | null>;
-  uploading: boolean;
-}) {
-  return (
-    <div className="card side-card">
-      <div className="card-head"><h3>Mídia</h3></div>
-      <div style={{ padding: "12px 20px 20px", display: "flex", gap: 12, flexWrap: "wrap" }}>
-        {images.map(url => (
-          <div key={url} style={{ position: "relative", width: 120, height: 76, borderRadius: 8, overflow: "hidden", flexShrink: 0, border: "1px solid var(--line)" }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-            <button onClick={() => onRemove(url)}
-              style={{ position: "absolute", top: 5, right: 5, background: "rgba(0,0,0,0.55)", border: "none", borderRadius: 5, color: "#fff", cursor: "pointer", padding: "2px 7px", fontSize: 11, fontWeight: 600 }}>
-              Remover
-            </button>
-          </div>
-        ))}
-        <div
-          onClick={() => !uploading && fileRef.current?.click()}
-          style={{ width: 120, height: 76, borderRadius: 8, border: "1.5px dashed var(--sand)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4, cursor: uploading ? "default" : "pointer", color: "var(--stone)", flexShrink: 0 }}
-        >
-          {uploading
-            ? <><ImageIcon size={16} /><span style={{ fontSize: 10 }}>Enviando…</span></>
-            : <><Plus size={16} /><span style={{ fontSize: 10, fontWeight: 600, textAlign: "center", lineHeight: 1.3 }}>Adicionar imagem</span></>}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function StepContent({ content, setContent, brand, ownerName }: { content: Content; setContent: (c: Content) => void; brand: Brand | null; ownerName: string }) {
   const brandAuthors = brand?.authors ?? [];
   const authors = brandAuthors.length > 0 ? brandAuthors : [ownerName].filter(Boolean);
   const up = (k: keyof Content, v: string | string[]) => setContent({ ...content, [k]: v });
   const cats = VEH_CATS_ALL;
-  const [uploading, setUploading] = useState(false);
-  const imageFileRef = useRef<HTMLInputElement>(null);
-
-  async function handleImageFile(file: File) {
-    if (!file.type.startsWith("image/")) return;
-    if (file.size > 5 * 1024 * 1024) return;
-    setUploading(true);
-    try {
-      const form = new FormData();
-      form.append("file", file);
-      const res = await fetch("/api/upload", { method: "POST", body: form });
-      const data = await res.json() as { url?: string };
-      if (data.url) up("imageUrls", [...content.imageUrls, data.url] as unknown as string);
-    } catch { /* ignore */ }
-    finally { setUploading(false); }
-  }
 
   return (
     <div className="composer-grid">
-      <input
-        ref={imageFileRef}
-        type="file"
-        accept="image/jpeg,image/png,image/webp"
-        style={{ display: "none" }}
-        onChange={e => { const f = e.target.files?.[0]; if (f) handleImageFile(f); e.target.value = ""; }}
-      />
       <RichEditor
         title={content.title}
         onTitleChange={v => up("title", v)}
@@ -451,7 +396,6 @@ function StepContent({ content, setContent, brand, ownerName }: { content: Conte
         content={content.body}
         onContentChange={v => up("body", v)}
         brandName={brand?.name}
-        triggerImageUpload={() => imageFileRef.current?.click()}
       />
 
       <div>
@@ -468,13 +412,6 @@ function StepContent({ content, setContent, brand, ownerName }: { content: Conte
             </div>
           </div>
         </div>
-
-        <MediaGallery
-          images={content.imageUrls}
-          onRemove={url => up("imageUrls", content.imageUrls.filter(u => u !== url))}
-          fileRef={imageFileRef}
-          uploading={uploading}
-        />
       </div>
     </div>
   );
