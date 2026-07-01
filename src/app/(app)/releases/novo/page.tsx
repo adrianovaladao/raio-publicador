@@ -8,6 +8,7 @@ import {
   Rocket, Calendar, X, Search,
   List, LayoutGrid, Plus, Download, Upload, Cloud, CloudOff,
   SlidersHorizontal, ArrowUpDown, ArrowUp, ArrowDown,
+  Sparkles, Loader, AlertTriangle, AlertCircle, BookOpen, ShieldCheck,
 } from "lucide-react";
 import { extractDominantColor } from "@/lib/color";
 import { RichEditor } from "@/components/editor/RichEditor";
@@ -883,6 +884,90 @@ function DatePicker({ value, onChange, minDate, maxDate }: {
   );
 }
 
+// ── Modal de Política Editorial ───────────────────────────────────────────────
+
+function PolicyModal({ onClose }: { onClose: () => void }) {
+  useEffect(() => {
+    const fn = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", fn);
+    return () => window.removeEventListener("keydown", fn);
+  }, [onClose]);
+
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 9999, display: "grid", placeItems: "center", padding: 16 }}
+      onClick={onClose}>
+      <div style={{ background: "var(--paper)", borderRadius: 20, width: "100%", maxWidth: 620, maxHeight: "85vh", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 32px 80px rgba(0,0,0,0.22)" }}
+        onClick={e => e.stopPropagation()}>
+        <div style={{ padding: "22px 24px 16px", borderBottom: "1px solid var(--line)", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <ShieldCheck size={20} color="var(--coral-ink)" />
+            <h3 style={{ margin: 0, fontFamily: "var(--sans)", fontWeight: 700, fontSize: 17, letterSpacing: "-0.01em" }}>Política <em style={{ fontFamily: "var(--serif)", fontStyle: "italic", fontWeight: 400 }}>editorial</em></h3>
+          </div>
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--stone)", display: "flex", padding: 4 }}><X size={17} /></button>
+        </div>
+        <div style={{ overflowY: "auto", padding: "20px 24px 28px" }}>
+          <p style={{ margin: "0 0 20px", fontSize: 14, color: "var(--ink-soft)", lineHeight: 1.6 }}>
+            Os releases publicados pelo Raio Publicador precisam seguir as diretrizes editoriais dos veículos parceiros. Leia com atenção antes de agendar.
+          </p>
+
+          {[
+            {
+              color: "#2F8A5B", bg: "#E3F2E9", label: "✅ O que explorar",
+              items: [
+                "Dados com fonte identificada (nome da pesquisa, instituição, data e metodologia)",
+                "Cases de sucesso com autorização das partes envolvidas",
+                "Linguagem informativa, objetiva e relevante para o leitor",
+                "Análises, evidências concretas e informações verificáveis",
+                "Créditos de autoria em todas as imagens (fotógrafo, banco licenciado ou IA)",
+              ],
+            },
+            {
+              color: "#C07A00", bg: "#FEF3DC", label: "⚠️ Evitar",
+              items: [
+                'Excesso de adjetivos, superlativos e slogans sem comprovação ("o maior", "líder absoluto")',
+                "Referências a outros veículos de comunicação como fonte (Folha, Veja, Estadão etc.)",
+                "Menção genérica a rankings, premiações ou estudos sem identificar a fonte",
+                "Mensagens puramente promocionais sem dados que as sustentem",
+                "Mais de 2 links externos por release",
+              ],
+            },
+            {
+              color: "#C0392B", bg: "#FDECEA", label: "🚫 Proibido",
+              items: [
+                "Dados estatísticos sem fonte identificada",
+                "Citação de concorrentes ou comparações diretas com outras empresas",
+                "Menção a clientes, parceiros ou pessoas físicas sem autorização prévia",
+                "Imagens sem crédito, com marca d'água ou sem licença de uso",
+                "Informações falsas, não verificáveis ou enganosas",
+              ],
+            },
+          ].map(section => (
+            <div key={section.label} style={{ marginBottom: 20 }}>
+              <div style={{ display: "inline-flex", alignItems: "center", padding: "4px 10px", borderRadius: 99, background: section.bg, color: section.color, fontWeight: 700, fontSize: 12, marginBottom: 10 }}>
+                {section.label}
+              </div>
+              <ul style={{ margin: 0, padding: "0 0 0 18px", listStyle: "disc" }}>
+                {section.items.map((item, i) => (
+                  <li key={i} style={{ fontSize: 13.5, color: "var(--ink-soft)", lineHeight: 1.6, marginBottom: 6 }}>{item}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
+
+          <div style={{ background: "var(--bg)", borderRadius: 10, padding: "14px 16px", marginTop: 4, fontSize: 13, color: "var(--stone)", lineHeight: 1.6 }}>
+            O anunciante é integralmente responsável pela veracidade, legalidade e autorização de uso de todas as informações, imagens e referências presentes no conteúdo. Releases em desacordo com esta política poderão ser recusados ou devolvidos para ajuste.
+          </div>
+        </div>
+        <div style={{ padding: "16px 24px", borderTop: "1px solid var(--line)", flexShrink: 0 }}>
+          <button className="btn btn-primary btn-sm" style={{ width: "100%", justifyContent: "center" }} onClick={onClose}>
+            Entendi
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Passo 3: Revisão ─────────────────────────────────────────────────────────
 
 interface When { mode: "now" | "schedule"; date: string }
@@ -998,10 +1083,35 @@ async function downloadDocx(content: Content, selVehicles: VehicleItem[], brand:
   saveAs(blob, `${slug}.docx`);
 }
 
-function StepReview({ content, selected, when, setWhen, brand, onSaveDraft, vehicles }: {
+interface PolicyIssue { rule: string; severity: "error" | "warning"; description: string; suggestion: string }
+
+function StepReview({ content, selected, when, setWhen, brand, onSaveDraft, vehicles, termsAccepted, setTermsAccepted }: {
   content: Content; selected: string[]; when: When; setWhen: (w: When) => void; brand: Brand | null;
   onSaveDraft: () => Promise<void>; vehicles: VehicleItem[];
+  termsAccepted: boolean; setTermsAccepted: (v: boolean) => void;
 }) {
+  const [showPolicy,    setShowPolicy]    = useState(false);
+  const [validating,    setValidating]    = useState(false);
+  const [policyIssues,  setPolicyIssues]  = useState<PolicyIssue[] | null>(null);
+  const [policyOk,      setPolicyOk]      = useState(false);
+  const [policyErr,     setPolicyErr]     = useState("");
+
+  async function runPolicyCheck() {
+    setValidating(true); setPolicyIssues(null); setPolicyOk(false); setPolicyErr("");
+    try {
+      const res = await fetch("/api/ai/policy-check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: content.title, subtitle: content.subtitle, body: content.body }),
+      });
+      const data = await res.json() as { ok?: boolean; issues?: PolicyIssue[]; error?: string };
+      if (!res.ok || data.error) { setPolicyErr(data.error ?? "Erro na validação."); return; }
+      setPolicyIssues(data.issues ?? []);
+      setPolicyOk(data.ok ?? false);
+    } catch { setPolicyErr("Falha de conexão."); }
+    finally { setValidating(false); }
+  }
+
   const selVehicles = selected.map(id => vehicles.find(v => v.id === id)).filter(Boolean) as VehicleItem[];
   const selTokens   = selVehicles.reduce((s, v) => s + (TIER_TOKENS_MAP[v.tier] ?? 0), 0);
   const selReach    = selVehicles.reduce((s, v) => s + v.reach, 0);
@@ -1082,6 +1192,79 @@ function StepReview({ content, selected, when, setWhen, brand, onSaveDraft, vehi
           </div>
         </div>
 
+        {/* Validação com IA */}
+        <div className="card side-card" style={{ marginTop: 12 }}>
+          <div className="card-head">
+            <h3>Validação <em>editorial</em></h3>
+            <button className="link" style={{ fontSize: 12, display: "flex", alignItems: "center", gap: 5 }} onClick={() => setShowPolicy(true)}>
+              <BookOpen size={13} /> Ver política
+            </button>
+          </div>
+          <div className="sc-body">
+            <button
+              className="btn btn-ghost btn-sm"
+              style={{ width: "100%", justifyContent: "center", gap: 7 }}
+              onClick={runPolicyCheck}
+              disabled={validating}
+            >
+              {validating ? <Loader size={14} className="spin" /> : <Sparkles size={14} />}
+              {validating ? "Analisando…" : "Validar com IA"}
+            </button>
+
+            {policyErr && (
+              <p style={{ fontSize: 12, color: "var(--red,#c0392b)", margin: "10px 0 0" }}>{policyErr}</p>
+            )}
+
+            {policyIssues !== null && (
+              <div style={{ marginTop: 12 }}>
+                {policyOk ? (
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: "#E3F2E9", borderRadius: 8, fontSize: 13, color: "#2F8A5B", fontWeight: 600 }}>
+                    <ShieldCheck size={15} /> Nenhum problema encontrado
+                  </div>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    {policyIssues.map((issue, i) => (
+                      <div key={i} style={{
+                        padding: "10px 12px", borderRadius: 8, fontSize: 12, lineHeight: 1.5,
+                        background: issue.severity === "error" ? "#FDECEA" : "#FEF3DC",
+                        borderLeft: `3px solid ${issue.severity === "error" ? "#C0392B" : "#C07A00"}`,
+                      }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4, fontWeight: 700, color: issue.severity === "error" ? "#C0392B" : "#C07A00" }}>
+                          {issue.severity === "error"
+                            ? <AlertCircle size={13} />
+                            : <AlertTriangle size={13} />}
+                          {issue.rule}
+                        </div>
+                        <p style={{ margin: "0 0 4px", color: "var(--ink-soft)" }}>{issue.description}</p>
+                        <p style={{ margin: 0, color: "var(--stone)", fontStyle: "italic" }}>💡 {issue.suggestion}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Aceite de termos */}
+        <label style={{ display: "flex", alignItems: "flex-start", gap: 10, marginTop: 14, cursor: "pointer", userSelect: "none" }}>
+          <input
+            type="checkbox"
+            checked={termsAccepted}
+            onChange={e => setTermsAccepted(e.target.checked)}
+            style={{ marginTop: 2, accentColor: "var(--coral)", flexShrink: 0, width: 15, height: 15, cursor: "pointer" }}
+          />
+          <span style={{ fontSize: 12.5, color: "var(--ink-soft)", lineHeight: 1.55 }}>
+            Li e aceito a{" "}
+            <button className="link" style={{ fontSize: 12.5, padding: 0 }} onClick={() => setShowPolicy(true)}>
+              política editorial
+            </button>
+            {" "}do Raio Publicador e confirmo que o conteúdo respeita as diretrizes de publicação dos veículos parceiros.
+          </span>
+        </label>
+
+        {showPolicy && <PolicyModal onClose={() => setShowPolicy(false)} />}
+
         <SaveDraftButton onSave={onSaveDraft} />
       </div>
     </div>
@@ -1155,6 +1338,7 @@ export default function NovoReleasePage() {
   const defaultDate = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()+1).padStart(2,"0")}`;
   const [when, setWhen] = useState<When>({ mode: "schedule", date: defaultDate });
   const [submitting, setSubmitting] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   // ── Autosave ─────────────────────────────────────────────────────────────
   const draftIdRef  = useRef<string | null>(null);
@@ -1231,7 +1415,7 @@ export default function NovoReleasePage() {
     step === 0 ? !!brand :
     step === 1 ? content.title.trim().length > 0 :
     step === 2 ? (selected.length > 0 && !over) :
-    true;
+    termsAccepted;
 
   // ── Tela de sucesso ───────────────────────────────────────────────────────
   if (done) {
@@ -1386,7 +1570,7 @@ export default function NovoReleasePage() {
         {step === 0 && <StepBrand selected={brand} onSelect={setBrand} brands={brands} onAddBrand={b => setBrands(prev => [...prev, b])} />}
         {step === 1 && <StepContent content={content} setContent={setContent} brand={brand} ownerName={ownerName} />}
         {step === 2 && <StepVehicles selected={selected} setSelected={setSelected} vehicles={vehicles} sub={sub} />}
-        {step === 3 && <StepReview content={content} selected={selected} when={when} setWhen={setWhen} brand={brand} onSaveDraft={autosave} vehicles={vehicles} />}
+        {step === 3 && <StepReview content={content} selected={selected} when={when} setWhen={setWhen} brand={brand} onSaveDraft={autosave} vehicles={vehicles} termsAccepted={termsAccepted} setTermsAccepted={setTermsAccepted} />}
       </div>
     </div>
   );
