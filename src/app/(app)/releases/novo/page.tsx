@@ -8,7 +8,7 @@ import {
   Rocket, Calendar, X, Search,
   List, LayoutGrid, Plus, Download, Upload, Cloud, CloudOff,
   SlidersHorizontal, ArrowUpDown, ArrowUp, ArrowDown,
-  Sparkles, Loader, AlertTriangle, AlertCircle, BookOpen, ShieldCheck,
+  Sparkles, Loader, AlertTriangle, AlertCircle, ShieldCheck,
 } from "lucide-react";
 import { extractDominantColor } from "@/lib/color";
 import { RichEditor } from "@/components/editor/RichEditor";
@@ -1346,7 +1346,6 @@ export default function NovoReleasePage() {
   const defaultDate = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()+1).padStart(2,"0")}`;
   const [when, setWhen] = useState<When>({ mode: "schedule", date: defaultDate });
   const [submitting, setSubmitting] = useState(false);
-  const [termsAccepted, setTermsAccepted] = useState(false);
   const [showPolicyModal, setShowPolicyModal] = useState(false);
 
   // ── Autosave ─────────────────────────────────────────────────────────────
@@ -1589,7 +1588,7 @@ export default function NovoReleasePage() {
 
     {showPolicyModal && (
       <PolicyModal
-        onAccept={() => { setShowPolicyModal(false); setTermsAccepted(true); setStep(1); }}
+        onAccept={() => { setShowPolicyModal(false); setStep(1); }}
         onClose={() => setShowPolicyModal(false)}
       />
     )}
