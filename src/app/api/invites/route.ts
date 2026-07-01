@@ -81,7 +81,7 @@ export async function POST(req: Request) {
 
   const resend = new Resend(process.env.RESEND_API_KEY);
   await resend.emails.send({
-    from: "Raio Publicador <onboarding@resend.dev>",
+    from: "Raio Publicador <noreply@raiopublicador.com.br>",
     to: email,
     subject: `${ownerName} te convidou para o Raio Publicador`,
     html: `

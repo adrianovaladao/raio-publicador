@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
   // Send email notification
   const resend = new Resend(process.env.RESEND_API_KEY);
   await resend.emails.send({
-    from: "Raio Publicador <onboarding@resend.dev>",
+    from: "Raio Publicador <noreply@raiopublicador.com.br>",
     to: "adrianojvfreitas@gmail.com",
     subject: `[Ticket #${ticket.id.slice(-6).toUpperCase()}] ${subject}`,
     html: `
@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
   // Also send confirmation to user
   if (userEmail) {
     await resend.emails.send({
-      from: "Raio Publicador <onboarding@resend.dev>",
+      from: "Raio Publicador <noreply@raiopublicador.com.br>",
       to: userEmail,
       subject: `Recebemos seu ticket — Protocolo #${ticket.id.slice(-6).toUpperCase()}`,
       html: `
