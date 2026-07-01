@@ -35,12 +35,27 @@ function getInitials(name: string | null | undefined) {
 function PlansModal({ onClose, sub }: { onClose: () => void; sub: SubInfo }) {
   const pct  = sub.credits > 0 ? Math.round((sub.creditsUsed / sub.credits) * 100) : 0;
   const left = sub.credits - sub.creditsUsed;
+  const [upgrading, setUpgrading] = useState<string | null>(null);
 
   useEffect(() => {
     const fn = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
     window.addEventListener("keydown", fn);
     return () => window.removeEventListener("keydown", fn);
   }, [onClose]);
+
+  async function handleUpgrade(planId: string) {
+    setUpgrading(planId);
+    try {
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ planId }),
+      });
+      const data = await res.json() as { url?: string; error?: string };
+      if (data.url) { window.location.href = data.url; return; }
+    } catch {}
+    setUpgrading(null);
+  }
 
   return (
     <div className="overlay" onClick={onClose}>
@@ -86,9 +101,10 @@ function PlansModal({ onClose, sub }: { onClose: () => void; sub: SubInfo }) {
                   </ul>
                   <button
                     className={`btn btn-block${isCurrent ? " btn-ghost" : p.featured ? " btn-primary" : " btn-dark"}`}
-                    disabled={isCurrent}
+                    disabled={isCurrent || upgrading === p.id}
+                    onClick={() => { if (!isCurrent) handleUpgrade(p.id); }}
                   >
-                    {isCurrent ? "Plano atual" : `Mudar para ${p.name}`}
+                    {upgrading === p.id ? "Redirecionando…" : isCurrent ? "Plano atual" : `Mudar para ${p.name}`}
                   </button>
                 </div>
               );
