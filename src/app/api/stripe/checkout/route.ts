@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     mode: "subscription",
     customer: customerId,
     line_items: [{ price: plan.stripePriceId, quantity: 1 }],
-    success_url: `${origin}/dashboard?checkout=success`,
+    success_url: `${origin}/boas-vindas?checkout=success`,
     cancel_url: `${origin}/site#planos`,
     locale: "pt-BR",
     metadata: { clerkId: userId, planId },
