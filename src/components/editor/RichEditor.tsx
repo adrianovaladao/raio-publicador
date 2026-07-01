@@ -5,7 +5,7 @@ import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import Link from "@tiptap/extension-link";
 import Underline from "@tiptap/extension-underline";
-import TiptapImage from "@tiptap/extension-image";
+import { Image as TiptapImage } from "@tiptap/extension-image";
 import { useState, useCallback, useRef, useEffect } from "react";
 import {
   Bold, Italic, Underline as UnderlineIcon, Heading2,
@@ -75,18 +75,20 @@ export function RichEditor({
 
   async function handleImageFile(file: File) {
     if (!editor || !file.type.startsWith("image/")) return;
-    if (file.size > 5 * 1024 * 1024) return;
+    if (file.size > 5 * 1024 * 1024) { setAiErr("Imagem muito grande (máx. 5 MB)."); return; }
     setImgUploading(true);
     try {
       const form = new FormData();
       form.append("file", file);
       const res = await fetch("/api/upload", { method: "POST", body: form });
-      const data = await res.json() as { url?: string };
-      if (data.url) {
-        editor.chain().focus().setImage({ src: data.url }).run();
-        onContentChange(editor.getHTML());
-      }
-    } catch { /* ignore */ }
+      const data = await res.json() as { url?: string; error?: string };
+      if (!res.ok || !data.url) { setAiErr(data.error ?? "Falha no upload da imagem."); return; }
+      const ok = editor.chain().focus().insertContent(`<img src="${data.url}" />`).run();
+      if (!ok) setAiErr("Não foi possível inserir a imagem no editor.");
+      else onContentChange(editor.getHTML());
+    } catch (e) {
+      setAiErr(e instanceof Error ? e.message : "Falha de conexão.");
+    }
     finally { setImgUploading(false); }
   }
 
