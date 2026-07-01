@@ -96,9 +96,12 @@ function UpgradeModal({ currentPlan, onClose }: { currentPlan: string; onClose: 
 // ─── Mock data ────────────────────────────────────────────────────────────────
 
 const ROLES: Record<string, { label: string; desc: string; color: string; bg: string }> = {
-  editor:   { label: "Edição",   desc: "Escreve, revisa e agenda releases das marcas atribuídas.", color: "#2A6FDB", bg: "#E6EEFB" },
-  reviewer: { label: "Revisão",  desc: "Acessa a lista de releases da marca e adiciona comentários.", color: "#2F8A5B", bg: "#E3F2E9" },
+  admin:    { label: "Administração", desc: "Acesso total: edita releases, gerencia pessoas, marcas e cobrança.", color: "#8A6500", bg: "#FCEFCB" },
+  editor:   { label: "Edição",        desc: "Escreve, revisa e agenda releases das marcas atribuídas.",          color: "#2A6FDB", bg: "#E6EEFB" },
+  reviewer: { label: "Revisão",       desc: "Acessa a lista de releases da marca e adiciona comentários.",        color: "#2F8A5B", bg: "#E3F2E9" },
 };
+
+const INVITE_ROLES = Object.fromEntries(Object.entries(ROLES).filter(([k]) => k !== "admin"));
 
 
 const INVOICES = [
@@ -460,7 +463,7 @@ function InviteModal({ onClose, onSent }: { onClose: () => void; onSent: (inv: I
               )}
             </div>
             <div className="role-pick">
-              {Object.entries(ROLES).map(([k, r]) => {
+              {Object.entries(INVITE_ROLES).map(([k, r]) => {
                 const atLimit = slots && (
                   (k === "editor"   && slots.editorsUsed   >= slots.editorsLimit) ||
                   (k === "reviewer" && slots.reviewersUsed >= slots.reviewersLimit)
