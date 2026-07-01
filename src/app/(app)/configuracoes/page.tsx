@@ -95,9 +95,8 @@ function UpgradeModal({ currentPlan, onClose }: { currentPlan: string; onClose: 
 // ─── Mock data ────────────────────────────────────────────────────────────────
 
 const ROLES: Record<string, { label: string; desc: string; color: string; bg: string }> = {
-  admin:    { label: "Administração", desc: "Acesso total: edita releases, gerencia pessoas, marcas e cobrança.", color: "#8A6500", bg: "#FCEFCB" },
-  editor:   { label: "Edição",        desc: "Escreve, revisa e agenda releases das marcas atribuídas.",          color: "#2A6FDB", bg: "#E6EEFB" },
-  reviewer: { label: "Revisão",       desc: "Acessa a lista de releases da marca e adiciona comentários.",        color: "#2F8A5B", bg: "#E3F2E9" },
+  editor:   { label: "Edição",   desc: "Escreve, revisa e agenda releases das marcas atribuídas.", color: "#2A6FDB", bg: "#E6EEFB" },
+  reviewer: { label: "Revisão",  desc: "Acessa a lista de releases da marca e adiciona comentários.", color: "#2F8A5B", bg: "#E3F2E9" },
 };
 
 
