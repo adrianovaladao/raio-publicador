@@ -150,3 +150,34 @@ model Invite {
   expiresAt DateTime
   accepted  Boolean  @default(false)
 }
+
+// ─── Suporte ──────────────────────────────────────────────────────────────────
+
+model SupportConversation {
+  id        String           @id @default(cuid())
+  ownerId   String
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  messages  SupportMessage[]
+  ticket    SupportTicket?
+}
+
+model SupportMessage {
+  id             String              @id @default(cuid())
+  conversationId String
+  role           String              // "user" | "assistant"
+  content        String
+  createdAt      DateTime            @default(now())
+  conversation   SupportConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+}
+
+model SupportTicket {
+  id             String              @id @default(cuid())
+  conversationId String              @unique
+  ownerId        String
+  subject        String
+  description    String
+  status         String              @default("open") // "open" | "closed"
+  createdAt      DateTime            @default(now())
+  conversation   SupportConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+}

@@ -10,6 +10,7 @@ import {
   Plus, ChevronDown, Camera, Lock,
   Mail, Download, Check, X, MoreHorizontal, Ban, Trash2, Send, Upload, Zap,
   Rss, Pencil, SlidersHorizontal, ArrowUpDown, ArrowUp, ArrowDown, ArrowRight,
+  MessageCircle, Ticket,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -1522,9 +1523,89 @@ function VeiculosPanel({ onToast }: { onToast: (m: string) => void }) {
 
 // ─── Hub ──────────────────────────────────────────────────────────────────────
 
+// ─── Suporte ──────────────────────────────────────────────────────────────────
+
+interface SupportMsg { role: string; content: string; createdAt: string }
+interface SupportConv { id: string; createdAt: string; updatedAt: string; messages: SupportMsg[]; ticket: { subject: string; status: string } | null }
+
+function SupportPanel() {
+  const [convs, setConvs] = useState<SupportConv[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [open, setOpen] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/api/support/chat").then(r => r.json()).then((data: SupportConv[]) => {
+      setConvs(Array.isArray(data) ? data : []);
+    }).catch(() => {}).finally(() => setLoading(false));
+  }, []);
+
+  const fmt = (d: string) => new Date(d).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+
+  return (
+    <div className="set-panel">
+      <PanelHead title="Histórico de <em>suporte</em>" desc="Suas conversas e tickets com o suporte do Raio Publicador." />
+
+      {loading && <p className="muted" style={{ fontSize: 13 }}>Carregando…</p>}
+
+      {!loading && convs.length === 0 && (
+        <div className="card" style={{ padding: "32px 24px", textAlign: "center" }}>
+          <MessageCircle size={32} color="var(--stone)" style={{ marginBottom: 12 }} />
+          <p style={{ margin: 0, fontSize: 14, color: "var(--stone)" }}>Nenhuma conversa de suporte ainda.</p>
+        </div>
+      )}
+
+      {convs.map(conv => (
+        <div key={conv.id} className="card" style={{ marginBottom: 12 }}>
+          <button
+            style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", background: "none", border: "none", cursor: "pointer", textAlign: "left" }}
+            onClick={() => setOpen(open === conv.id ? null : conv.id)}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              {conv.ticket
+                ? <Ticket size={16} color="var(--coral-ink)" />
+                : <MessageCircle size={16} color="var(--stone)" />}
+              <div>
+                <div style={{ fontWeight: 600, fontSize: 13.5, color: "var(--ink)" }}>
+                  {conv.ticket ? conv.ticket.subject : "Conversa com assistente"}
+                </div>
+                <div style={{ fontSize: 12, color: "var(--stone)", marginTop: 2 }}>
+                  {fmt(conv.updatedAt)} · {conv.messages.length} mensagens
+                  {conv.ticket && (
+                    <span style={{ marginLeft: 8, padding: "2px 7px", borderRadius: 99, fontSize: 11, fontWeight: 600, background: conv.ticket.status === "open" ? "#FEF3DC" : "#E3F2E9", color: conv.ticket.status === "open" ? "#C07A00" : "#2F8A5B" }}>
+                      {conv.ticket.status === "open" ? "Aberto" : "Resolvido"}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+            <ChevronDown size={16} color="var(--stone)" style={{ transform: open === conv.id ? "rotate(180deg)" : "none", transition: "transform .2s" }} />
+          </button>
+
+          {open === conv.id && (
+            <div style={{ borderTop: "1px solid var(--line)", padding: "12px 20px 16px", display: "flex", flexDirection: "column", gap: 8 }}>
+              {conv.messages.map((m, i) => (
+                <div key={i} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start" }}>
+                  <div style={{
+                    maxWidth: "80%", padding: "8px 12px", borderRadius: 12, fontSize: 13, lineHeight: 1.5,
+                    background: m.role === "user" ? "var(--ink)" : "var(--bg)",
+                    color: m.role === "user" ? "var(--paper)" : "var(--ink)",
+                  }}>
+                    {m.content}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 const BASE_GROUPS = [
   { label: "Você", items: [{ id: "perfil", icon: UserCircle, label: "Perfil" }, { id: "conta", icon: Settings2, label: "Conta" }] },
   { label: "Organização", items: [{ id: "equipe", icon: Users, label: "Equipe e permissões" }, { id: "marcas", icon: Building2, label: "Marcas" }, { id: "cobranca", icon: CreditCard, label: "Cobrança" }] },
+  { label: "Suporte", items: [{ id: "suporte", icon: MessageCircle, label: "Histórico de suporte" }] },
 ];
 
 function ConfiguracoesInner() {
@@ -1566,6 +1647,7 @@ function ConfiguracoesInner() {
             {tab === "equipe"   && <EquipePanel   onToast={showToast} />}
             {tab === "marcas"   && <MarcasPanel   onToast={showToast} />}
             {tab === "cobranca" && <CobrancaPanel onToast={showToast} />}
+            {tab === "suporte"  && <SupportPanel />}
             {tab === "veiculos" && isRaioAdmin && <VeiculosPanel onToast={showToast} />}
           </div>
         </div>

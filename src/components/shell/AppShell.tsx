@@ -9,6 +9,7 @@ import {
   ArrowRight, Headphones,
 } from "lucide-react";
 import { RaioLockup } from "@/components/logo/RaioLockup";
+import { SupportWidget } from "@/components/support/SupportWidget";
 import { useState, useEffect } from "react";
 
 // ─── Subscription data ────────────────────────────────────────────────────────
@@ -326,7 +327,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             })}
             <Link href="/configuracoes" className={`sb-item${pathname.startsWith("/configuracoes") ? " active" : ""}`}>
               <Settings size={18} />
-              <span>Configurações</span>
+              <span>Gerenciamento</span>
             </Link>
           </nav>
         </div>
@@ -409,6 +410,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         />
       )}
       {toast && <Toast msg={toast} onDone={() => setToast(null)} />}
+
+      <SupportWidget plan={sub.plan} />
     </div>
   );
 }
