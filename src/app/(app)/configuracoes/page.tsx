@@ -880,24 +880,15 @@ function MarcasPanel({ onToast }: { onToast: (m: string) => void }) {
   const [showUpgrade,  setShowUpgrade]  = useState(false);
   const [currentPlan,  setCurrentPlan]  = useState<string | null>(null);
   const [brandsLimit,  setBrandsLimit]  = useState<number | null>(null);
-  const [planLabel,    setPlanLabel]    = useState<string>("—");
-  const [priceCents,   setPriceCents]   = useState<number | null>(null);
-  const [credits,      setCredits]      = useState(0);
-  const [creditsUsed,  setCreditsUsed]  = useState(0);
-
   useEffect(() => {
     Promise.all([
       fetch("/api/brands").then(r => r.json()),
       fetch("/api/stripe/subscription").then(r => r.json()),
     ]).then(([brandsData, subData]) => {
       setBrands(Array.isArray(brandsData) ? (brandsData as Brand[]) : []);
-      const s = subData as { plan?: string; brandsLimit?: number; label?: string; priceCents?: number; credits?: number; creditsUsed?: number };
+      const s = subData as { plan?: string; brandsLimit?: number };
       setCurrentPlan(s.plan ?? null);
       setBrandsLimit(s.brandsLimit ?? null);
-      if (s.label)      setPlanLabel(s.label);
-      if (s.priceCents) setPriceCents(s.priceCents);
-      if (s.credits)    setCredits(s.credits);
-      setCreditsUsed(s.creditsUsed ?? 0);
     }).catch(() => setBrands([])).finally(() => setLoading(false));
   }, []);
 
