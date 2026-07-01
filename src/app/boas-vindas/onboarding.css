@@ -84,7 +84,7 @@
 .choice-card:hover { border-color: var(--coral); background: rgba(250,181,0,0.06); transform: translateY(-3px); }
 .choice-card .ic { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; background: rgba(250,181,0,0.12); color: var(--coral); margin-bottom: 16px; }
 .choice-card.primary { border-color: rgba(250,181,0,0.4); background: linear-gradient(180deg, rgba(250,181,0,0.10), rgba(255,255,255,0.02)); }
-.choice-card h3 { font-size: 17px; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 5px; }
+.choice-card h3 { font-size: 17px; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 5px; color: var(--tx); }
 .choice-card p { font-size: 13.5px; color: var(--tx-2); margin: 0; line-height: 1.5; }
 .choice-card .go { margin-top: 14px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--coral); display: inline-flex; align-items: center; gap: 6px; }
 .welcome .skip-link { margin-top: 26px; font-size: 13.5px; color: var(--tx-3); cursor: pointer; background: none; border: none; text-decoration: none; }
