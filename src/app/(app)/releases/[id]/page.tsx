@@ -3,8 +3,8 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import {
-  ArrowLeft, ArrowRight, Check, ChevronDown, Image as ImageIcon,
-  Calendar, X, Search, Trash2, Plus,
+  ArrowLeft, ArrowRight, Check, ChevronDown,
+  Calendar, X, Search, Trash2,
   ArrowUpDown, ArrowUp, ArrowDown, SlidersHorizontal,
 } from "lucide-react";
 import { RichEditor } from "@/components/editor/RichEditor";
@@ -171,81 +171,15 @@ interface ReleaseData {
 
 // ── Step 0: Conteúdo ──────────────────────────────────────────────────────────
 
-function MediaGallery({ images, onAdd, onRemove }: {
-  images: string[];
-  onAdd: (url: string) => void;
-  onRemove: (url: string) => void;
-}) {
-  const [uploading, setUploading] = useState(false);
-  const [err, setErr] = useState("");
-  const fileRef = useRef<HTMLInputElement>(null);
-
-  async function handleFile(file: File) {
-    if (!file.type.startsWith("image/")) { setErr("Apenas imagens JPG ou PNG."); return; }
-    if (file.size > 5 * 1024 * 1024) { setErr("Arquivo muito grande (máx. 5 MB)."); return; }
-    const dims = await new Promise<{ w: number; h: number }>(res => {
-      const url = URL.createObjectURL(file);
-      const img = new Image();
-      img.onload = () => { res({ w: img.naturalWidth, h: img.naturalHeight }); URL.revokeObjectURL(url); };
-      img.onerror = () => { res({ w: 0, h: 0 }); URL.revokeObjectURL(url); };
-      img.src = url;
-    });
-    if (dims.w < 1200 || dims.h < 630) { setErr(`Mínimo: 1200×630px (atual: ${dims.w}×${dims.h}px).`); return; }
-    if (dims.w > 3600 || dims.h > 1890) { setErr(`Máximo: 3600×1890px (atual: ${dims.w}×${dims.h}px).`); return; }
-    setErr(""); setUploading(true);
-    try {
-      const form = new FormData();
-      form.append("file", file);
-      const res  = await fetch("/api/upload", { method: "POST", body: form });
-      const text = await res.text();
-      let data: { url?: string; error?: string } = {};
-      try { data = JSON.parse(text); } catch { /* ignore */ }
-      if (!res.ok || !data.url) { setErr(data.error ?? "Falha no upload."); return; }
-      onAdd(data.url);
-    } catch { setErr("Falha de conexão."); }
-    finally { setUploading(false); }
-  }
-
-  return (
-    <div className="card side-card">
-      <div className="card-head"><h3>Mídia</h3></div>
-      <div style={{ padding: "12px 20px 20px", display: "flex", gap: 12, flexWrap: "wrap" }}>
-        {images.map(url => (
-          <div key={url} style={{ position: "relative", width: 120, height: 76, borderRadius: 8, overflow: "hidden", flexShrink: 0, border: "1px solid var(--line)" }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-            <button onClick={() => onRemove(url)}
-              style={{ position: "absolute", top: 5, right: 5, background: "rgba(0,0,0,0.55)", border: "none", borderRadius: 5, color: "#fff", cursor: "pointer", padding: "2px 7px", fontSize: 11, fontWeight: 600 }}>
-              Remover
-            </button>
-          </div>
-        ))}
-        <div
-          onClick={() => !uploading && fileRef.current?.click()}
-          style={{ width: 120, height: 76, borderRadius: 8, border: "1.5px dashed var(--sand)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4, cursor: uploading ? "default" : "pointer", color: "var(--stone)", flexShrink: 0 }}
-        >
-          {uploading
-            ? <><ImageIcon size={16} /><span style={{ fontSize: 10 }}>Enviando…</span></>
-            : <><Plus size={16} /><span style={{ fontSize: 10, fontWeight: 600, textAlign: "center", lineHeight: 1.3 }}>Adicionar imagem</span></>}
-        </div>
-        <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" style={{ display: "none" }}
-          onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = ""; }} />
-      </div>
-      {err && <p style={{ color: "var(--red,#c0392b)", fontSize: 12, margin: "-8px 20px 12px", fontWeight: 500 }}>{err}</p>}
-    </div>
-  );
-}
-
 function StepContent({
   title, setTitle, subtitle, setSubtitle, body, setBody,
-  cat, setCat, author, setAuthor, images, onAddImage, onRemoveImage, brand,
+  cat, setCat, author, setAuthor, brand,
 }: {
   title: string; setTitle: (v: string) => void;
   subtitle: string; setSubtitle: (v: string) => void;
   body: string; setBody: (v: string) => void;
   cat: string; setCat: (v: string) => void;
   author: string; setAuthor: (v: string) => void;
-  images: string[]; onAddImage: (url: string) => void; onRemoveImage: (url: string) => void;
   brand: Brand | null;
 }) {
   const [teamMembers, setTeamMembers] = useState<{ id: string; name: string }[]>([]);
@@ -316,8 +250,6 @@ function StepContent({
           </div>
         </div>
 
-        {/* Mídia */}
-        <MediaGallery images={images} onAdd={onAddImage} onRemove={onRemoveImage} />
       </div>
     </div>
   );
@@ -774,7 +706,6 @@ export default function EditReleasePage() {
   const [body,       setBody]       = useState("");
   const [cat,        setCat]        = useState("Negócios");
   const [author,     setAuthor]     = useState("");
-  const [images,     setImages]     = useState<string[]>([]);
   const [schedDate,  setSchedDate]  = useState("");
   const [selectedVeh, setSelectedVeh] = useState<string[]>([]);
   const [vehicles, setVehicles] = useState<VehicleItem[]>([]);
@@ -795,7 +726,6 @@ export default function EditReleasePage() {
         setTitle(data.title ?? "");
         setSubtitle(data.summary ?? "");
         setBody(data.body ?? "");
-        if (data.imageUrl) setImages([data.imageUrl]);
         if (data.vehicles?.length) setSelectedVeh(data.vehicles);
         setAuthor(a => a || data.brand?.authors?.[0] || "");
         if (data.scheduledAt) {
@@ -823,7 +753,7 @@ export default function EditReleasePage() {
           summary: subtitle.trim() || null,
           status: "SCHEDULED",
           scheduledAt,
-          imageUrl: images[0] ?? null,
+          imageUrl: null,
           vehicles: selectedVeh,
         }),
       });
@@ -847,7 +777,7 @@ export default function EditReleasePage() {
           summary: subtitle.trim() || null,
           status: "DRAFT",
           scheduledAt: null,
-          imageUrl: images[0] ?? null,
+          imageUrl: null,
           vehicles: selectedVeh,
         }),
       });
@@ -947,9 +877,6 @@ export default function EditReleasePage() {
             body={body} setBody={setBody}
             cat={cat} setCat={setCat}
             author={author} setAuthor={setAuthor}
-            images={images}
-            onAddImage={url => setImages(prev => [...prev, url])}
-            onRemoveImage={url => setImages(prev => prev.filter(u => u !== url))}
             brand={brand}
           />
         )}
