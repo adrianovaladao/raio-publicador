@@ -1339,6 +1339,7 @@ export default function NovoReleasePage() {
   const [when, setWhen] = useState<When>({ mode: "schedule", date: defaultDate });
   const [submitting, setSubmitting] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [showPolicyModal, setShowPolicyModal] = useState(false);
 
   // ── Autosave ─────────────────────────────────────────────────────────────
   const draftIdRef  = useRef<string | null>(null);
@@ -1478,6 +1479,7 @@ export default function NovoReleasePage() {
   }
 
   return (
+    <>
     <div className="content scroll">
       <div className="content-inner">
         {/* Stepper + ações */}
@@ -1516,7 +1518,10 @@ export default function NovoReleasePage() {
               </button>
             )}
             {step < last ? (
-              <button className="btn btn-dark" disabled={!canNext} onClick={() => setStep(s => s + 1)}>
+              <button className="btn btn-dark" disabled={!canNext} onClick={() => {
+                if (step === 0) { setShowPolicyModal(true); return; }
+                setStep(s => s + 1);
+              }}>
                 Continuar <ArrowRight size={16} />
               </button>
             ) : (
@@ -1573,5 +1578,10 @@ export default function NovoReleasePage() {
         {step === 3 && <StepReview content={content} selected={selected} when={when} setWhen={setWhen} brand={brand} onSaveDraft={autosave} vehicles={vehicles} termsAccepted={termsAccepted} setTermsAccepted={setTermsAccepted} />}
       </div>
     </div>
+
+    {showPolicyModal && (
+      <PolicyModal onClose={() => { setShowPolicyModal(false); setStep(1); }} />
+    )}
+    </>
   );
 }
