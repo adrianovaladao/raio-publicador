@@ -110,7 +110,8 @@ export function SupportWidget({ plan }: SupportWidgetProps) {
           {/* Header */}
           <div className="sw-head">
             <div className="sw-head-info">
-              <div className="sw-avatar">R</div>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/chatbot-icon.png" alt="Raio" className="sw-avatar" style={{ objectFit: "cover", borderRadius: 12 }} />
               <div>
                 <div className="sw-name">Suporte Raio</div>
                 <div className="sw-status">
