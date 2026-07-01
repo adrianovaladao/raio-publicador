@@ -16,6 +16,8 @@ export async function GET() {
     plan: sub.plan,
     status: sub.status,
     brandsLimit: planMeta?.brandsLimit ?? null,
+    editorsLimit: planMeta?.editorsLimit ?? null,
+    reviewersLimit: planMeta?.reviewersLimit ?? null,
     label: planMeta?.label ?? sub.plan,
     priceCents: planMeta?.priceCents ?? null,
     credits: sub.creditsTotal,

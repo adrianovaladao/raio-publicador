@@ -395,11 +395,37 @@ function ContaPanel({ onToast }: { onToast: (m: string) => void }) {
 
 interface InviteRow { id: string; email: string; role: string; brandIds: string[]; sentAt: string }
 
+interface SlotsInfo { editorsUsed: number; editorsLimit: number; reviewersUsed: number; reviewersLimit: number; }
+
 function InviteModal({ onClose, onSent }: { onClose: () => void; onSent: (inv: InviteRow) => void }) {
   const [email, setEmail] = useState("");
   const [role, setRole]   = useState("editor");
   const [sending, setSending] = useState(false);
   const [err, setErr]     = useState("");
+  const [slots, setSlots] = useState<SlotsInfo | null>(null);
+
+  useEffect(() => {
+    Promise.all([
+      fetch("/api/stripe/subscription").then(r => r.json()),
+      fetch("/api/team/members").then(r => r.json()),
+      fetch("/api/invites").then(r => r.json()),
+    ]).then(([sub, members, invites]: [
+      { plan?: string; editorsLimit?: number; reviewersLimit?: number },
+      { role: string; status: string }[],
+      { role: string }[]
+    ]) => {
+      const editorsUsed    = (members.filter(m => m.role === "EDITOR"   && m.status === "ACTIVE").length)
+                           + (invites.filter(i => i.role === "EDITOR").length);
+      const reviewersUsed  = (members.filter(m => m.role === "REVIEWER" && m.status === "ACTIVE").length)
+                           + (invites.filter(i => i.role === "REVIEWER").length);
+      setSlots({
+        editorsUsed,
+        editorsLimit:   sub.editorsLimit   ?? 0,
+        reviewersUsed,
+        reviewersLimit: sub.reviewersLimit ?? 0,
+      });
+    }).catch(() => {});
+  }, []);
 
   async function send() {
     if (!email.trim()) { setErr("Informe o e-mail."); return; }
@@ -425,14 +451,31 @@ function InviteModal({ onClose, onSent }: { onClose: () => void; onSent: (inv: I
         <div className="m-body">
           <div className="field"><label>E-mail</label><input className="input" type="email" placeholder="nome@empresa.com.br" autoFocus value={email} onChange={e => setEmail(e.target.value)} onKeyDown={e => e.key === "Enter" && send()} /></div>
           <div className="field">
-            <label>Função</label>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+              <label style={{ margin: 0 }}>Função</label>
+              {slots && (
+                <span style={{ fontSize: 11, fontFamily: "var(--mono)", color: "var(--stone)", letterSpacing: "0.04em" }}>
+                  {slots.editorsUsed}/{slots.editorsLimit} editores · {slots.reviewersUsed}/{slots.reviewersLimit} revisores
+                </span>
+              )}
+            </div>
             <div className="role-pick">
-              {Object.entries(ROLES).map(([k, r]) => (
-                <button key={k} className={`role-opt${role === k ? " on" : ""}`} onClick={() => setRole(k)}>
-                  <span className="ro-radio" />
-                  <span><span className="ro-name">{r.label}</span><span className="ro-desc">{r.desc}</span></span>
-                </button>
-              ))}
+              {Object.entries(ROLES).map(([k, r]) => {
+                const atLimit = slots && (
+                  (k === "editor"   && slots.editorsUsed   >= slots.editorsLimit) ||
+                  (k === "reviewer" && slots.reviewersUsed >= slots.reviewersLimit)
+                );
+                return (
+                  <button key={k} className={`role-opt${role === k ? " on" : ""}${atLimit ? " disabled" : ""}`}
+                    onClick={() => { if (!atLimit) setRole(k); }}
+                    style={atLimit ? { opacity: 0.45, cursor: "not-allowed" } : undefined}
+                    title={atLimit ? "Limite do plano atingido" : undefined}
+                  >
+                    <span className="ro-radio" />
+                    <span><span className="ro-name">{r.label}</span><span className="ro-desc">{r.desc}</span></span>
+                  </button>
+                );
+              })}
             </div>
           </div>
           {role === "reviewer" && <p className="muted" style={{ fontSize: 12, margin: "-8px 0 12px" }}>Revisão acessa apenas a marca atribuída.</p>}
