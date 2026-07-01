@@ -94,8 +94,6 @@ function UpgradeModal({ currentPlan, onClose }: { currentPlan: string; onClose: 
 
 // ─── Mock data ────────────────────────────────────────────────────────────────
 
-const PLAN = { total: 5000, used: 3200 };
-
 const ROLES: Record<string, { label: string; desc: string; color: string; bg: string }> = {
   admin:    { label: "Administração", desc: "Acesso total: edita releases, gerencia pessoas, marcas e cobrança.", color: "#8A6500", bg: "#FCEFCB" },
   editor:   { label: "Edição",        desc: "Escreve, revisa e agenda releases das marcas atribuídas.",          color: "#2A6FDB", bg: "#E6EEFB" },
@@ -882,6 +880,10 @@ function MarcasPanel({ onToast }: { onToast: (m: string) => void }) {
   const [showUpgrade,  setShowUpgrade]  = useState(false);
   const [currentPlan,  setCurrentPlan]  = useState<string | null>(null);
   const [brandsLimit,  setBrandsLimit]  = useState<number | null>(null);
+  const [planLabel,    setPlanLabel]    = useState<string>("—");
+  const [priceCents,   setPriceCents]   = useState<number | null>(null);
+  const [credits,      setCredits]      = useState(0);
+  const [creditsUsed,  setCreditsUsed]  = useState(0);
 
   useEffect(() => {
     Promise.all([
@@ -889,8 +891,13 @@ function MarcasPanel({ onToast }: { onToast: (m: string) => void }) {
       fetch("/api/stripe/subscription").then(r => r.json()),
     ]).then(([brandsData, subData]) => {
       setBrands(Array.isArray(brandsData) ? (brandsData as Brand[]) : []);
-      setCurrentPlan((subData as { plan?: string }).plan ?? null);
-      setBrandsLimit((subData as { brandsLimit?: number }).brandsLimit ?? null);
+      const s = subData as { plan?: string; brandsLimit?: number; label?: string; priceCents?: number; credits?: number; creditsUsed?: number };
+      setCurrentPlan(s.plan ?? null);
+      setBrandsLimit(s.brandsLimit ?? null);
+      if (s.label)      setPlanLabel(s.label);
+      if (s.priceCents) setPriceCents(s.priceCents);
+      if (s.credits)    setCredits(s.credits);
+      setCreditsUsed(s.creditsUsed ?? 0);
     }).catch(() => setBrands([])).finally(() => setLoading(false));
   }, []);
 
@@ -978,9 +985,28 @@ function MarcasPanel({ onToast }: { onToast: (m: string) => void }) {
 // ─── Cobrança ─────────────────────────────────────────────────────────────────
 
 function CobrancaPanel({ onToast }: { onToast: (m: string) => void }) {
-  const pct = Math.round((PLAN.used / PLAN.total) * 100);
-  const left = PLAN.total - PLAN.used;
+  const [planLabel,   setPlanLabel]   = useState<string>("—");
+  const [priceCents,  setPriceCents]  = useState<number | null>(null);
+  const [credits,     setCredits]     = useState(0);
+  const [creditsUsed, setCreditsUsed] = useState(0);
+
+  useEffect(() => {
+    fetch("/api/stripe/subscription").then(r => r.json()).then((s: { label?: string; priceCents?: number; credits?: number; creditsUsed?: number }) => {
+      if (s.label)      setPlanLabel(s.label);
+      if (s.priceCents) setPriceCents(s.priceCents);
+      if (s.credits)    setCredits(s.credits);
+      setCreditsUsed(s.creditsUsed ?? 0);
+    }).catch(() => {});
+  }, []);
+
+  const pct  = credits > 0 ? Math.round((creditsUsed / credits) * 100) : 0;
+  const left = credits - creditsUsed;
   const maxC = Math.max(...CONSUMPTION.map(c => c.credits));
+
+  const priceStr = priceCents != null
+    ? (priceCents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0, maximumFractionDigits: 0 })
+    : "—";
+
   return (
     <div className="set-panel">
       <PanelHead title="Cobrança e <em>créditos</em>" desc="Plano, consumo, pagamento e faturas." />
@@ -988,8 +1014,8 @@ function CobrancaPanel({ onToast }: { onToast: (m: string) => void }) {
       <div className="card billing-plan">
         <div className="bp-left">
           <div className="bp-label">Plano atual</div>
-          <div className="bp-name">Plano Pro</div>
-          <div className="bp-price">R$ 1.500 <span>/mês · renova em {(() => { const d = new Date(); const r = new Date(d.getFullYear(), d.getMonth()+1, 1); return `${String(r.getDate()).padStart(2,"0")}/${String(r.getMonth()+1).padStart(2,"0")}/${r.getFullYear()}`; })()}</span></div>
+          <div className="bp-name">{planLabel}</div>
+          <div className="bp-price">{priceStr} <span>/mês · renova em {(() => { const d = new Date(); const r = new Date(d.getFullYear(), d.getMonth()+1, 1); return `${String(r.getDate()).padStart(2,"0")}/${String(r.getMonth()+1).padStart(2,"0")}/${r.getFullYear()}`; })()}</span></div>
           <div className="row" style={{ gap: 10, marginTop: 16 }}>
             <button className="btn btn-primary btn-sm">Mudar de plano</button>
             <button className="btn btn-ghost btn-sm"><Zap size={15} /> Comprar créditos</button>
@@ -998,10 +1024,10 @@ function CobrancaPanel({ onToast }: { onToast: (m: string) => void }) {
         <div className="bp-right">
           <div className="bp-credit-top">
             <span className="bp-credit-num">{left.toLocaleString("pt-BR")}</span>
-            <span className="bp-credit-of">de {PLAN.total.toLocaleString("pt-BR")} créditos</span>
+            <span className="bp-credit-of">de {credits.toLocaleString("pt-BR")} créditos</span>
           </div>
           <div className="bp-bar"><i style={{ width: `${pct}%` }} /></div>
-          <div className="bp-bar-legend"><span>{PLAN.used.toLocaleString("pt-BR")} usados neste ciclo</span><span>{pct}%</span></div>
+          <div className="bp-bar-legend"><span>{creditsUsed.toLocaleString("pt-BR")} usados neste ciclo</span><span>{pct}%</span></div>
         </div>
       </div>
 

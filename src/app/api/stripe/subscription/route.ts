@@ -11,10 +11,14 @@ export async function GET() {
   const sub = await getPrisma().subscription.findUnique({ where: { ownerId: userId } });
   if (!sub) return NextResponse.json({ plan: null, status: null, brandsLimit: null });
 
-  const plan = PLANS[sub.plan as keyof typeof PLANS] ?? null;
+  const planMeta = PLANS[sub.plan as keyof typeof PLANS] ?? null;
   return NextResponse.json({
     plan: sub.plan,
     status: sub.status,
-    brandsLimit: plan?.brandsLimit ?? null,
+    brandsLimit: planMeta?.brandsLimit ?? null,
+    label: planMeta?.label ?? sub.plan,
+    priceCents: planMeta?.priceCents ?? null,
+    credits: sub.creditsTotal,
+    creditsUsed: sub.creditsUsed,
   });
 }

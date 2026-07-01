@@ -31,7 +31,7 @@ const TIER_FG_MAP:     Record<string, string> = { A: "#fff",    B: "#fff",    C:
 
 type VehSortCol = "name" | "tier" | "reach" | "tokens";
 type VehSortDir = "asc" | "desc";
-const PLAN = { total: 5000, used: 3200 };
+type SubInfo = { credits: number; creditsUsed: number };
 
 
 const BRAND_COLORS = ["#C25E00","#2A6FDB","#2F8A5B","#6D3BD9","#0E7C86","#B0322E","#8A6500","#1A1A1A"];
@@ -488,7 +488,7 @@ function sortVeh(arr: VehicleItem[], col: VehSortCol, dir: VehSortDir) {
   });
 }
 
-function StepVehicles({ selected, setSelected, vehicles }: { selected: string[]; setSelected: (s: string[]) => void; vehicles: VehicleItem[] }) {
+function StepVehicles({ selected, setSelected, vehicles, sub }: { selected: string[]; setSelected: (s: string[]) => void; vehicles: VehicleItem[]; sub: SubInfo }) {
   const [filterCats,  setFilterCats]  = useState<string[]>([]);
   const [filterTiers, setFilterTiers] = useState<string[]>([]);
   const [q,           setQ]           = useState("");
@@ -523,10 +523,10 @@ function StepVehicles({ selected, setSelected, vehicles }: { selected: string[];
   const selVehicles = selected.map(id => vehicles.find(v => v.id === id)).filter(Boolean) as VehicleItem[];
   const selTokens   = selVehicles.reduce((s, v) => s + (TIER_TOKENS_MAP[v.tier] ?? 0), 0);
   const selReach    = selVehicles.reduce((s, v) => s + v.reach, 0);
-  const left        = PLAN.total - PLAN.used;
+  const left        = sub.credits - sub.creditsUsed;
   const over        = selTokens > left;
-  const usedPct     = (PLAN.used / PLAN.total) * 100;
-  const nowPct      = Math.min((selTokens / PLAN.total) * 100, 100 - usedPct);
+  const usedPct     = sub.credits > 0 ? (sub.creditsUsed / sub.credits) * 100 : 0;
+  const nowPct      = sub.credits > 0 ? Math.min((selTokens / sub.credits) * 100, 100 - usedPct) : 0;
 
   const sortBtnStyle = (col: VehSortCol): React.CSSProperties => ({
     display: "inline-flex", alignItems: "center", background: "none", border: "none",
@@ -641,13 +641,13 @@ function StepVehicles({ selected, setSelected, vehicles }: { selected: string[];
             <span className="tk" style={{ color: over ? "var(--red)" : "var(--ink)" }}>{selTokens}</span>
             <span className="of">créditos</span>
           </div>
-          <div className="muted" style={{ fontSize: 12, marginTop: 2 }}>{left.toLocaleString("pt-BR")} disponíveis no plano</div>
+          <div className="muted" style={{ fontSize: 12, marginTop: 2 }}>{left.toLocaleString("pt-BR")} disponíveis · {sub.credits.toLocaleString("pt-BR")} total</div>
           <div className="meter">
             <i className="used" style={{ width: usedPct + "%" }} />
             <i className="now"  style={{ width: nowPct  + "%" }} />
           </div>
           <div className="meter-legend">
-            <span><i style={{ background: "var(--ink)",   display: "inline-block", width: 9, height: 9, borderRadius: 3, marginRight: 5 }} />Já usados {PLAN.used.toLocaleString("pt-BR")}</span>
+            <span><i style={{ background: "var(--ink)",   display: "inline-block", width: 9, height: 9, borderRadius: 3, marginRight: 5 }} />Já usados {sub.creditsUsed.toLocaleString("pt-BR")}</span>
             <span><i style={{ background: "var(--coral)", display: "inline-block", width: 9, height: 9, borderRadius: 3, marginRight: 5 }} />Esta seleção {selTokens}</span>
           </div>
         </div>
@@ -1129,6 +1129,13 @@ export default function NovoReleasePage() {
       .catch(() => {});
   }, []);
 
+  const [sub, setSub] = useState<SubInfo>({ credits: 0, creditsUsed: 0 });
+  useEffect(() => {
+    fetch("/api/stripe/subscription").then(r => r.json()).then((d: SubInfo) => {
+      if (d.credits != null) setSub({ credits: d.credits, creditsUsed: d.creditsUsed ?? 0 });
+    }).catch(() => {});
+  }, []);
+
   const [step, setStep] = useState(0);
   const [done, setDone] = useState(false);
   const [brand, setBrand] = useState<Brand | null>(null);
@@ -1218,7 +1225,7 @@ export default function NovoReleasePage() {
 
   const selVehicles = selected.map(id => vehicles.find(v => v.id === id)).filter(Boolean) as VehicleItem[];
   const selTokens   = selVehicles.reduce((s, v) => s + (TIER_TOKENS_MAP[v.tier] ?? 0), 0);
-  const over        = selTokens > (PLAN.total - PLAN.used);
+  const over        = sub.credits > 0 && selTokens > (sub.credits - sub.creditsUsed);
 
   const canNext =
     step === 0 ? !!brand :
@@ -1378,7 +1385,7 @@ export default function NovoReleasePage() {
 
         {step === 0 && <StepBrand selected={brand} onSelect={setBrand} brands={brands} onAddBrand={b => setBrands(prev => [...prev, b])} />}
         {step === 1 && <StepContent content={content} setContent={setContent} brand={brand} ownerName={ownerName} />}
-        {step === 2 && <StepVehicles selected={selected} setSelected={setSelected} vehicles={vehicles} />}
+        {step === 2 && <StepVehicles selected={selected} setSelected={setSelected} vehicles={vehicles} sub={sub} />}
         {step === 3 && <StepReview content={content} selected={selected} when={when} setWhen={setWhen} brand={brand} onSaveDraft={autosave} vehicles={vehicles} />}
       </div>
     </div>
