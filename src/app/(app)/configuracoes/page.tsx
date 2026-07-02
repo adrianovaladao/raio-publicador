@@ -31,50 +31,70 @@ interface Brand {
 
 // ─── Upgrade modal ───────────────────────────────────────────────────────────
 
-const UPGRADE_NEXT: Record<string, { id: string; label: string; brandsLimit: number; price: string }> = {
-  BASIC:    { id: "ADVANCED",     label: "Avançado",     brandsLimit: 5,  price: "R$ 2.000" },
-  ADVANCED: { id: "PROFESSIONAL", label: "Profissional", brandsLimit: 10, price: "R$ 3.000" },
+const UPGRADE_OPTIONS: Record<string, Array<{ id: string; label: string; brandsLimit: number; price: string; monthly: string }>> = {
+  BASIC: [
+    { id: "ADVANCED",     label: "Avançado",     brandsLimit: 5,  price: "R$ 3.000/mês", monthly: "R$ 3.000" },
+    { id: "PROFESSIONAL", label: "Profissional",  brandsLimit: 10, price: "R$ 5.000/mês", monthly: "R$ 5.000" },
+  ],
+  ADVANCED: [
+    { id: "PROFESSIONAL", label: "Profissional",  brandsLimit: 10, price: "R$ 5.000/mês", monthly: "R$ 5.000" },
+  ],
 };
 
 function UpgradeModal({ currentPlan, onClose }: { currentPlan: string; onClose: () => void }) {
-  const next = UPGRADE_NEXT[currentPlan];
-  const [loading, setLoading] = useState(false);
+  const options = UPGRADE_OPTIONS[currentPlan] ?? [];
+  const [loadingId, setLoadingId] = useState<string | null>(null);
 
-  async function handleUpgrade() {
-    if (!next) return;
-    setLoading(true);
+  async function handleUpgrade(planId: string) {
+    setLoadingId(planId);
     try {
-      const res = await fetch("/api/stripe/checkout", {
+      const res = await fetch("/api/stripe/upgrade", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ planId: next.id }),
+        body: JSON.stringify({ planId }),
       });
-      const data = await res.json();
-      if (data.url) { window.location.href = data.url; return; }
+      const data = await res.json() as { ok?: boolean; redirect?: boolean; url?: string };
+      if (data.ok) { window.location.href = "/configuracoes?upgrade=success"; return; }
+      if (data.redirect && data.url) { window.location.href = data.url; return; }
     } catch { /* ignore */ }
-    setLoading(false);
+    setLoadingId(null);
   }
 
   return (
     <div className="overlay" onClick={onClose}>
-      <div className="modal" style={{ maxWidth: 420, textAlign: "center" }} onClick={e => e.stopPropagation()}>
+      <div className="modal" style={{ maxWidth: options.length > 1 ? 560 : 420, textAlign: "center" }} onClick={e => e.stopPropagation()}>
         <div className="m-head" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <h3>Limite de <em>marcas</em> atingido</h3>
           <button className="icon-btn" onClick={onClose}><X size={17} /></button>
         </div>
         <div className="m-body" style={{ paddingTop: 8, paddingBottom: 24 }}>
-          {next ? (
+          {options.length > 0 ? (
             <>
-              <p style={{ fontSize: 14, color: "var(--stone)", marginBottom: 24 }}>
-                Seu plano atual não permite mais marcas. Faça upgrade para o plano <b>{next.label}</b> e gerencie até <b>{next.brandsLimit} marcas</b> por <b>{next.price}/mês</b>.
+              <p style={{ fontSize: 14, color: "var(--stone)", marginBottom: 20 }}>
+                Seu plano atual não permite mais marcas. Escolha um plano para continuar.
               </p>
-              <button
-                className="btn btn-primary btn-block btn-lg"
-                onClick={handleUpgrade}
-                disabled={loading}
-              >
-                {loading ? "Redirecionando…" : <><span>Fazer upgrade para {next.label}</span><ArrowRight size={16} /></>}
-              </button>
+              <div style={{ display: "grid", gridTemplateColumns: `repeat(${options.length}, 1fr)`, gap: 12, marginBottom: 16 }}>
+                {options.map(opt => (
+                  <div key={opt.id} style={{ border: "1.5px solid var(--border)", borderRadius: 14, padding: "20px 16px", textAlign: "left", display: "flex", flexDirection: "column", gap: 12 }}>
+                    <div>
+                      <div style={{ fontFamily: "var(--mono)", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.07em", color: "var(--coral-ink)", marginBottom: 4 }}>{opt.label}</div>
+                      <div style={{ fontSize: 18, fontWeight: 700 }}>{opt.price}</div>
+                      <div style={{ fontSize: 12, color: "var(--stone)", marginTop: 4 }}>até {opt.brandsLimit} marcas</div>
+                    </div>
+                    <button
+                      className="btn btn-primary btn-sm btn-block"
+                      style={{ justifyContent: "center" }}
+                      onClick={() => handleUpgrade(opt.id)}
+                      disabled={loadingId !== null}
+                    >
+                      {loadingId === opt.id ? "Aguarde…" : <><span>Fazer upgrade</span><ArrowRight size={14} /></>}
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <p style={{ fontSize: 12, color: "var(--stone)" }}>
+                Você paga apenas a diferença proporcional ao tempo restante do ciclo atual.
+              </p>
               <button className="btn btn-ghost btn-block" style={{ marginTop: 10 }} onClick={onClose}>
                 Cancelar
               </button>

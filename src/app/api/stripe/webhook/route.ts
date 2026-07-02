@@ -81,6 +81,25 @@ export async function POST(req: NextRequest) {
       break;
     }
 
+    case "customer.subscription.updated": {
+      const subscription = event.data.object as Stripe.Subscription;
+      const clerkId = subscription.metadata?.clerkId;
+      const planId = subscription.metadata?.planId as PlanId | undefined;
+      if (!clerkId || !planId || !PLANS[planId]) break;
+
+      await prisma.subscription.update({
+        where: { ownerId: clerkId },
+        data: {
+          plan: planId,
+          creditsTotal: PLANS[planId].credits,
+          stripeSubscriptionId: subscription.id,
+          currentPeriodStart: new Date(subscription.items.data[0].current_period_start * 1000),
+          currentPeriodEnd: new Date(subscription.items.data[0].current_period_end * 1000),
+        },
+      });
+      break;
+    }
+
     case "customer.subscription.deleted": {
       const subscription = event.data.object as Stripe.Subscription;
       const clerkId = subscription.metadata?.clerkId;
