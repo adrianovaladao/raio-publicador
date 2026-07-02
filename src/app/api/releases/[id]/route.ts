@@ -19,16 +19,20 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { id } = await params;
-  const body = await req.json();
+  const body = await req.json() as { status: string; creditsUsed: number; [k: string]: unknown };
   const prisma = getPrisma();
   const prev = await prisma.release.findUnique({ where: { id }, select: { status: true } });
+  console.log("[releases PUT] prevStatus:", prev?.status, "newStatus:", body.status, "creditsUsed:", body.creditsUsed);
   const release = await prisma.release.update({ where: { id }, data: body });
   const becomingScheduled = body.status === "SCHEDULED" && prev?.status !== "SCHEDULED";
   if (becomingScheduled && body.creditsUsed > 0) {
-    await prisma.subscription.updateMany({
+    const sub = await prisma.subscription.updateMany({
       where: { ownerId: userId },
       data: { creditsUsed: { increment: body.creditsUsed } },
     });
+    console.log("[releases PUT] subscription updated:", sub.count, "rows, increment:", body.creditsUsed);
+  } else {
+    console.log("[releases PUT] skipped — becomingScheduled:", becomingScheduled, "creditsUsed:", body.creditsUsed);
   }
   return NextResponse.json(release);
 }
