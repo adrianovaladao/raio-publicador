@@ -11,7 +11,8 @@ import {
 import { RaioLockup } from "@/components/logo/RaioLockup";
 import { SupportWidget } from "@/components/support/SupportWidget";
 import { BuyCreditsModal } from "@/components/BuyCreditsModal";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 
 // ─── Subscription data ────────────────────────────────────────────────────────
 
@@ -34,7 +35,7 @@ function getInitials(name: string | null | undefined) {
 
 // ─── PlansModal ───────────────────────────────────────────────────────────────
 
-function PlansModal({ onClose, sub }: { onClose: () => void; sub: SubInfo }) {
+function PlansModal({ onClose, sub, onSuccess }: { onClose: () => void; sub: SubInfo; onSuccess: (msg: string) => void }) {
   const pct  = sub.credits > 0 ? Math.round((sub.creditsUsed / sub.credits) * 100) : 0;
   const left = sub.credits - sub.creditsUsed;
   const [upgrading, setUpgrading] = useState<string | null>(null);
@@ -55,7 +56,7 @@ function PlansModal({ onClose, sub }: { onClose: () => void; sub: SubInfo }) {
       });
       const data = await res.json() as { ok?: boolean; redirect?: boolean; url?: string; error?: string };
       if (data.redirect && data.url) { window.location.href = data.url; return; }
-      if (data.ok) { window.location.href = "/configuracoes?upgrade=success"; return; }
+      if (data.ok) { onSuccess("Plano atualizado com sucesso"); onClose(); return; }
     } catch {}
     setUpgrading(null);
   }
@@ -265,6 +266,7 @@ const NAV_ITEMS = [
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user } = useUser();
   const { signOut } = useClerk();
 
@@ -275,14 +277,30 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [releaseCount, setReleaseCount] = useState<number | null>(null);
   const [sub, setSub] = useState<SubInfo>({ plan: null, label: "—", priceCents: null, credits: 0, creditsUsed: 0 });
 
-  const fetchSub = () => {
+  // Show toast when returning from Stripe checkout after upgrade
+  useEffect(() => {
+    if (searchParams.get("upgrade") === "success") {
+      setToast("Plano atualizado com sucesso");
+      const url = new URL(window.location.href);
+      url.searchParams.delete("upgrade");
+      router.replace(url.pathname + (url.search || ""));
+    }
+    if (searchParams.get("credits") === "success") {
+      setToast("Créditos adicionados ao seu saldo");
+      const url = new URL(window.location.href);
+      url.searchParams.delete("credits");
+      router.replace(url.pathname + (url.search || ""));
+    }
+  }, [searchParams, router]);
+
+  const fetchSub = useCallback(() => {
     fetch("/api/stripe/subscription")
       .then(r => r.json())
       .then((d: Partial<SubInfo>) => {
         setSub({ plan: d.plan ?? null, label: d.label ?? "—", priceCents: d.priceCents ?? null, credits: d.credits ?? 0, creditsUsed: d.creditsUsed ?? 0 });
       })
       .catch(() => {});
-  };
+  }, []);
 
   useEffect(() => {
     fetch("/api/dashboard")
@@ -419,7 +437,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </div>
 
       {/* ── MODAIS ── */}
-      {showPlans && <PlansModal onClose={() => setShowPlans(false)} sub={sub} />}
+      {showPlans && <PlansModal onClose={() => setShowPlans(false)} sub={sub} onSuccess={msg => { setToast(msg); setShowPlans(false); fetchSub(); }} />}
       {showBuyCredits && sub.plan && (
         <BuyCreditsModal currentPlan={sub.plan} onClose={() => setShowBuyCredits(false)} />
       )}
