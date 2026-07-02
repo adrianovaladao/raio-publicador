@@ -8,18 +8,16 @@ type VehicleItem = { id: string; name: string; domain: string; cat: string; tier
 
 
 const VEH_CATS  = ["Geral","Negócios","Tecnologia","Esportes","Economia","Saúde","Entretenimento","Política","Jurídico","Agronegócio"];
-const VEH_TIERS = ["A","B","C","D","E"];
+const VEH_TIERS = ["A","B","C"];
 
-const TIER_TOKENS:  Record<string, number> = { A: 100, B: 60, C: 40, D: 20, E: 0 };
-const TIER_COLORS:  Record<string, string> = { A: "#C0392B", B: "#E07B2A", C: "#D4A017", D: "#3A7DC9", E: "#D0DFF0" };
-const TIER_FG:      Record<string, string> = { A: "#fff",    B: "#fff",    C: "#fff",    D: "#fff",    E: "#3A5A80" };
+const TIER_TOKENS:  Record<string, number> = { A: 100, B: 50, C: 25 };
+const TIER_COLORS:  Record<string, string> = { A: "#C0392B", B: "#E07B2A", C: "#D4A017" };
+const TIER_FG:      Record<string, string> = { A: "#fff",    B: "#fff",    C: "#fff"    };
 
 const TIER_INFO = [
   { t: "A", label: "Grande portal nacional", range: "10 mi+ leitores/mês",  tokens: 100, cls: "t-a" },
-  { t: "B", label: "Portal regional forte",  range: "100 mil–10 mi/mês",    tokens: 60,  cls: "t-b" },
-  { t: "C", label: "Portal médio / nicho",   range: "10 mil–100 mil/mês",   tokens: 40,  cls: "t-c" },
-  { t: "D", label: "Blog / portal local",    range: "1 mil–10 mil/mês",     tokens: 20,  cls: "t-d" },
-  { t: "E", label: "Site emergente",         range: "Até 1 mil/mês",        tokens: 0,   cls: "t-e" },
+  { t: "B", label: "Portal regional forte",  range: "100 mil–10 mi/mês",    tokens: 50,  cls: "t-b" },
+  { t: "C", label: "Portal médio / nicho",   range: "10 mil–100 mil/mês",   tokens: 25,  cls: "t-c" },
 ];
 
 type SortCol = "name" | "cat" | "tier" | "reach" | "tokens";
@@ -36,7 +34,7 @@ function initials(name: string | null | undefined) {
   return name.split(" ").filter(Boolean).slice(0, 2).map(w => w[0]).join("").toUpperCase();
 }
 
-const TIER_ORDER: Record<string, number> = { A: 0, B: 1, C: 2, D: 3, E: 4 };
+const TIER_ORDER: Record<string, number> = { A: 0, B: 1, C: 2 };
 
 function sortVehicles(arr: VehicleItem[], col: SortCol, dir: SortDir) {
   return [...arr].sort((a, b) => {

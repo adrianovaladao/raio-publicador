@@ -24,12 +24,12 @@ type VehicleItem = { id: string; name: string; domain: string; cat: string; tier
 
 
 const VEH_CATS_ALL  = ["Geral","Negócios","Tecnologia","Esportes","Economia","Saúde","Entretenimento","Política","Jurídico","Agronegócio"];
-const VEH_TIERS_ALL = ["A","B","C","D","E"];
+const VEH_TIERS_ALL = ["A","B","C"];
 const PAGE_SIZE      = 25;
-const TIER_TOKENS_MAP: Record<string, number> = { A: 100, B: 60, C: 40, D: 20, E: 0 };
-const TIER_ORDER_MAP:  Record<string, number> = { A: 0, B: 1, C: 2, D: 3, E: 4 };
-const TIER_COLORS_MAP: Record<string, string> = { A: "#C0392B", B: "#E07B2A", C: "#D4A017", D: "#3A7DC9", E: "#D0DFF0" };
-const TIER_FG_MAP:     Record<string, string> = { A: "#fff",    B: "#fff",    C: "#fff",    D: "#fff",    E: "#3A5A80" };
+const TIER_TOKENS_MAP: Record<string, number> = { A: 100, B: 50, C: 25 };
+const TIER_ORDER_MAP:  Record<string, number> = { A: 0, B: 1, C: 2 };
+const TIER_COLORS_MAP: Record<string, string> = { A: "#C0392B", B: "#E07B2A", C: "#D4A017" };
+const TIER_FG_MAP:     Record<string, string> = { A: "#fff",    B: "#fff",    C: "#fff"    };
 
 type VehSortCol = "name" | "tier" | "reach" | "tokens";
 type VehSortDir = "asc" | "desc";
@@ -526,8 +526,15 @@ function StepVehicles({ selected, setSelected, vehicles, sub, onUpgrade }: { sel
 
   const activeFilters = filterCats.length + filterTiers.length;
 
-  const toggle = (id: string) =>
-    setSelected(selected.includes(id) ? selected.filter(x => x !== id) : [...selected, id]);
+  const hasSelectedTierA = selected.some(id => vehicles.find(v => v.id === id)?.tier === "A");
+
+  const toggle = (id: string) => {
+    if (selected.includes(id)) { setSelected(selected.filter(x => x !== id)); return; }
+    const v = vehicles.find(x => x.id === id);
+    if (v?.tier === "A" && hasSelectedTierA) return; // já tem um tier A
+    if (v?.tier !== "A" && hasSelectedTierA) return; // tier A selecionado, bloqueia outros
+    setSelected([...selected, id]);
+  };
   const remove = (id: string) => setSelected(selected.filter(x => x !== id));
 
   const baseFiltered = vehicles.filter(v =>
@@ -615,9 +622,15 @@ function StepVehicles({ selected, setSelected, vehicles, sub, onUpgrade }: { sel
         <div>
           {list.map(v => {
             const tkn = TIER_TOKENS_MAP[v.tier] ?? 0;
+            const isSel = selected.includes(v.id);
+            const isDisabled = !isSel && hasSelectedTierA;
             return (
-              <div key={v.id} className={`veh-row${selected.includes(v.id) ? " sel" : ""}`} onClick={() => toggle(v.id)}>
-                <div className="cbx">{selected.includes(v.id) && <Check size={13} />}</div>
+              <div key={v.id}
+                className={`veh-row${isSel ? " sel" : ""}`}
+                onClick={() => !isDisabled && toggle(v.id)}
+                style={isDisabled ? { opacity: 0.35, cursor: "not-allowed", pointerEvents: "none" } : undefined}
+              >
+                <div className="cbx">{isSel && <Check size={13} />}</div>
                 <div className="logo" style={{ background: TIER_COLORS_MAP[v.tier], color: TIER_FG_MAP[v.tier] ?? "#fff", overflow: "hidden" }}>
                   {v.logoUrl ? <img src={v.logoUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : initials(v.name)}
                 </div>
