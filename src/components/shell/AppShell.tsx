@@ -6,7 +6,7 @@ import { useUser, useClerk } from "@clerk/nextjs";
 import {
   LayoutDashboard, FileText, CalendarDays, Rss, Settings,
   Bell, Search, LogOut, ChevronDown, Zap, Check, X,
-  ArrowRight, Headphones,
+  Headphones,
 } from "lucide-react";
 import { RaioLockup } from "@/components/logo/RaioLockup";
 import { SupportWidget } from "@/components/support/SupportWidget";
@@ -371,10 +371,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
           <div className="bar"><i style={{ width: `${pct}%` }} /></div>
           <div className="hint">{pct}% usados · renova em {(() => { const d = new Date(); const r = new Date(d.getFullYear(), d.getMonth()+1, 1); return `${String(r.getDate()).padStart(2,"0")}/${String(r.getMonth()+1).padStart(2,"0")}/${r.getFullYear()}`; })()}</div>
-          <div className="credits-cta">Ver planos <ArrowRight size={12} /></div>
           {sub.plan && (
             <div
-              style={{ marginTop: 8, padding: "6px 10px", borderRadius: 8, background: "#000", border: "1px solid #000", fontSize: 12, fontWeight: 600, color: "#fff", textAlign: "center", cursor: "pointer" }}
+              style={{ marginTop: 8, padding: "6px 10px", borderRadius: 8, background: "rgba(255,255,255,0.12)", fontSize: 12, fontWeight: 600, color: "#fff", textAlign: "center", cursor: "pointer" }}
+              onClick={e => { e.stopPropagation(); setShowPlans(true); }}
+            >
+              Ver planos
+            </div>
+          )}
+          {sub.plan && (
+            <div
+              style={{ marginTop: 6, padding: "6px 10px", borderRadius: 8, background: "#000", border: "1px solid #000", fontSize: 12, fontWeight: 600, color: "#fff", textAlign: "center", cursor: "pointer" }}
               onClick={e => { e.stopPropagation(); setShowBuyCredits(true); }}
             >
               + Comprar créditos avulsos
