@@ -332,7 +332,7 @@ function NewBrandModal({ onClose, onSave }: { onClose: () => void; onSave: () =>
 
 // ── BrandSwitcher ─────────────────────────────────────────────────────────────
 
-function DashBrandSwitcher({ brands, onNewBrand }: { brands: Brand[]; onNewBrand: () => void }) {
+function DashBrandSwitcher({ brands, brandsLimit, onNewBrand }: { brands: Brand[]; brandsLimit: number | null; onNewBrand: () => void }) {
   const [open, setOpen] = useState(false);
   const [activeIdx, setActiveIdx] = useState(0);
 
@@ -365,12 +365,24 @@ function DashBrandSwitcher({ brands, onNewBrand }: { brands: Brand[]; onNewBrand
                 {i === activeIdx && <Check size={15} />}
               </button>
             ))}
-            <button className="tbb-opt tbb-new" onClick={() => { setOpen(false); onNewBrand(); }}>
-              <span className="tbb-av" style={{ background: "var(--line)", color: "var(--tx-3)" }}><Plus size={14} /></span>
-              <span className="tbb-opt-meta">
-                <span className="tbb-nm">Nova marca</span>
-              </span>
-            </button>
+            {(() => {
+              const atLimit = brandsLimit !== null && brands.length >= brandsLimit;
+              return (
+                <button
+                  className="tbb-opt tbb-new"
+                  onClick={() => { if (atLimit) return; setOpen(false); onNewBrand(); }}
+                  disabled={atLimit}
+                  title={atLimit ? `Limite de ${brandsLimit} marca${brandsLimit !== 1 ? "s" : ""} atingido. Faça upgrade para adicionar mais.` : undefined}
+                  style={atLimit ? { opacity: 0.45, cursor: "not-allowed" } : undefined}
+                >
+                  <span className="tbb-av" style={{ background: "var(--line)", color: "var(--tx-3)" }}><Plus size={14} /></span>
+                  <span className="tbb-opt-meta">
+                    <span className="tbb-nm">Nova marca</span>
+                    {atLimit && <span className="tbb-sg">Limite atingido</span>}
+                  </span>
+                </button>
+              );
+            })()}
           </div>
         </>
       )}
@@ -428,6 +440,14 @@ export default function DashboardPage() {
   const [loading, setLoading]     = useState(true);
   const [editBrand, setEditBrand] = useState<Brand | null>(null);
   const [showNew, setShowNew]     = useState(false);
+  const [brandsLimit, setBrandsLimit] = useState<number | null>(null);
+
+  useEffect(() => {
+    fetch("/api/stripe/subscription")
+      .then(r => r.json())
+      .then((d: { brandsLimit?: number | null }) => setBrandsLimit(d.brandsLimit ?? null))
+      .catch(() => {});
+  }, []);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -483,7 +503,7 @@ export default function DashboardPage() {
             </p>
           </div>
           <div className="actions">
-            {hasBrands && <DashBrandSwitcher brands={brands} onNewBrand={() => setShowNew(true)} />}
+            {hasBrands && <DashBrandSwitcher brands={brands} brandsLimit={brandsLimit} onNewBrand={() => setShowNew(true)} />}
           </div>
         </div>
 
