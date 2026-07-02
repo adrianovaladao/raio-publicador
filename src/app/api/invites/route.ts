@@ -80,7 +80,7 @@ export async function POST(req: Request) {
   const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? "https://raio-publicador.vercel.app"}/convite/${invite.token}`;
 
   const resend = new Resend(process.env.RESEND_API_KEY);
-  await resend.emails.send({
+  const { error: emailError } = await resend.emails.send({
     from: "Raio Publicador <noreply@raiopublicador.com.br>",
     to: email,
     subject: `${ownerName} te convidou para o Raio Publicador`,
@@ -101,6 +101,14 @@ export async function POST(req: Request) {
       </div>
     `,
   });
+
+  if (emailError) {
+    console.error("[invites] Resend error:", JSON.stringify(emailError));
+    return NextResponse.json(
+      { error: `Convite criado, mas falha ao enviar e-mail: ${emailError.message}` },
+      { status: 500 }
+    );
+  }
 
   return NextResponse.json(invite, { status: 201 });
 }
