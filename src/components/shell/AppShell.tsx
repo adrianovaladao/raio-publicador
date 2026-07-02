@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { RaioLockup } from "@/components/logo/RaioLockup";
 import { SupportWidget } from "@/components/support/SupportWidget";
+import { BuyCreditsModal } from "@/components/BuyCreditsModal";
 import { useState, useEffect } from "react";
 
 // ─── Subscription data ────────────────────────────────────────────────────────
@@ -267,6 +268,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { signOut } = useClerk();
 
   const [showPlans, setShowPlans] = useState(false);
+  const [showBuyCredits, setShowBuyCredits] = useState(false);
   const [showNewBrand, setShowNewBrand] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [releaseCount, setReleaseCount] = useState<number | null>(null);
@@ -351,6 +353,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="bar"><i style={{ width: `${pct}%` }} /></div>
           <div className="hint">{pct}% usados · renova em {(() => { const d = new Date(); const r = new Date(d.getFullYear(), d.getMonth()+1, 1); return `${String(r.getDate()).padStart(2,"0")}/${String(r.getMonth()+1).padStart(2,"0")}/${r.getFullYear()}`; })()}</div>
           <div className="credits-cta">Ver planos <ArrowRight size={12} /></div>
+          {sub.plan && (
+            <div
+              style={{ marginTop: 8, padding: "6px 10px", borderRadius: 8, background: "rgba(250,181,0,0.12)", border: "1px solid rgba(250,181,0,0.3)", fontSize: 12, fontWeight: 600, color: "var(--coral-ink, #8A6500)", textAlign: "center", cursor: "pointer" }}
+              onClick={e => { e.stopPropagation(); setShowBuyCredits(true); }}
+            >
+              + Comprar créditos avulsos
+            </div>
+          )}
         </button>
 
         {/* Usuário — clicável → Configurações */}
@@ -409,6 +419,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* ── MODAIS ── */}
       {showPlans && <PlansModal onClose={() => setShowPlans(false)} sub={sub} />}
+      {showBuyCredits && sub.plan && (
+        <BuyCreditsModal currentPlan={sub.plan} onClose={() => setShowBuyCredits(false)} />
+      )}
       {showNewBrand && (
         <NewBrandModal
           onClose={() => setShowNewBrand(false)}
@@ -427,6 +440,6 @@ function getPageTitle(pathname: string): string {
   if (pathname.startsWith("/releases")) return "Biblioteca";
   if (pathname.startsWith("/calendario")) return "Calendário";
   if (pathname.startsWith("/veiculos")) return "Veículos";
-  if (pathname.startsWith("/configuracoes")) return "Configurações";
+  if (pathname.startsWith("/configuracoes")) return "Gerenciamento";
   return "Visão geral";
 }

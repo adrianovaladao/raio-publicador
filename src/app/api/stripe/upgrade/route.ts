@@ -61,23 +61,60 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ redirect: true, url: session.url });
     }
 
-    // Active subscription — update in place with proration
-    const stripeSub = await stripe.subscriptions.retrieve(sub.stripeSubscriptionId);
-    const itemId = stripeSub.items.data[0]?.id;
-    if (!itemId) return NextResponse.json({ error: "Item de assinatura não encontrado" }, { status: 500 });
+    const currentPlan = sub.plan as PlanId | null;
+    const currentPrice = currentPlan ? (PLANS[currentPlan]?.priceCents ?? 0) : 0;
+    const isDowngrade = plan.priceCents < currentPrice;
 
-    await stripe.subscriptions.update(sub.stripeSubscriptionId, {
-      items: [{ id: itemId, price: plan.stripePriceId }],
-      proration_behavior: "create_prorations",
+    // Downgrade — update Stripe subscription directly, no payment needed
+    if (isDowngrade) {
+      const stripeSub = await stripe.subscriptions.retrieve(sub.stripeSubscriptionId);
+      const itemId = stripeSub.items.data[0]?.id;
+      if (!itemId) return NextResponse.json({ error: "Item de assinatura não encontrado" }, { status: 500 });
+
+      await stripe.subscriptions.update(sub.stripeSubscriptionId, {
+        items: [{ id: itemId, price: plan.stripePriceId }],
+        proration_behavior: "none",
+        metadata: { clerkId: userId, planId },
+      });
+
+      // DB updated immediately for downgrade (no payment required)
+      await prisma.subscription.update({
+        where: { ownerId: userId },
+        data: { plan: planId, creditsTotal: plan.credits },
+      });
+
+      return NextResponse.json({ ok: true });
+    }
+
+    // Upgrade — redirect to Stripe checkout for payment
+    const user = await currentUser();
+    const email = user?.emailAddresses[0]?.emailAddress;
+
+    let customerId = sub.stripeCustomerId ?? undefined;
+    if (!customerId) {
+      const customer = await stripe.customers.create({ email, metadata: { clerkId: userId } });
+      customerId = customer.id;
+      await prisma.subscription.update({ where: { ownerId: userId }, data: { stripeCustomerId: customerId } });
+    }
+
+    const origin = req.nextUrl.origin;
+    const session = await stripe.checkout.sessions.create({
+      mode: "subscription",
+      customer: customerId,
+      currency: "brl",
+      line_items: [{ price: plan.stripePriceId, quantity: 1 }],
+      success_url: `${origin}/configuracoes?upgrade=success`,
+      cancel_url: `${origin}/configuracoes`,
+      locale: "pt-BR",
       metadata: { clerkId: userId, planId },
+      subscription_data: { metadata: { clerkId: userId, planId } },
     });
 
-    await prisma.subscription.update({
-      where: { ownerId: userId },
-      data: { plan: planId, creditsTotal: plan.credits },
-    });
+    if (!session.url) {
+      return NextResponse.json({ error: "Não foi possível criar a sessão de pagamento." }, { status: 500 });
+    }
 
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ redirect: true, url: session.url });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Erro interno";
     console.error("[stripe/upgrade]", message);

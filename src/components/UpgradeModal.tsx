@@ -54,9 +54,7 @@ export function UpgradeModal({ currentPlan, onClose }: { currentPlan: string; on
               <div style={{ display: "grid", gridTemplateColumns: `repeat(${options.length}, 1fr)`, gap: 12, marginBottom: 16 }}>
                 {options.map(opt => (
                   <div key={opt.id}
-                    onMouseEnter={() => setHoverId(opt.id)}
-                    onMouseLeave={() => setHoverId(null)}
-                    style={{ border: `1.5px solid ${hoverId === opt.id ? "var(--line)" : "var(--border)"}`, borderRadius: 14, padding: "20px 16px", textAlign: "left", display: "flex", flexDirection: "column", gap: 12, background: hoverId === opt.id ? "rgba(0,0,0,0.06)" : "transparent", transition: "background 0.15s, border-color 0.15s", cursor: "default" }}>
+                    style={{ border: `1.5px solid var(--border)`, borderRadius: 14, padding: "20px 16px", textAlign: "left", display: "flex", flexDirection: "column", gap: 12, background: "rgba(0,0,0,0.04)", cursor: "default" }}>
                     <div>
                       <div style={{ fontFamily: "var(--mono)", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.07em", color: "var(--coral-ink)", marginBottom: 4 }}>{opt.label}</div>
                       <div style={{ fontSize: 18, fontWeight: 700 }}>{opt.price}</div>

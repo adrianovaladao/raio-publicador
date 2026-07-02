@@ -175,13 +175,13 @@ export default function VeiculosPage() {
         <div className="page-head">
           <div>
             <p className="eyebrow">Rede</p>
-            <h2><em>Centenas</em> de veículos parceiros</h2>
+            <h2><em>Centenas</em> de veículos parceiros ✓</h2>
             <p className="sub">Do grande portal nacional ao blog regional. Escolha os veículos certos para cada release no momento de agendar.</p>
           </div>
         </div>
 
         {/* Cards de tier */}
-        <div className="kpi-grid" style={{ gridTemplateColumns: "repeat(5, 1fr)", marginBottom: 24 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 24, width: "100%" }}>
           {TIER_INFO.map(ti => (
             <div className="card kpi" key={ti.t} style={{ padding: 20 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>

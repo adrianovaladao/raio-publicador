@@ -52,7 +52,7 @@ function fmtDate(iso: string) {
   return `${String(d.getDate()).padStart(2,"0")} ${meses[d.getMonth()]} ${d.getFullYear()}`;
 }
 
-type SortCol = "title" | "status" | "date" | "author" | "cat";
+type SortCol = "title" | "status" | "date" | "author" | "cat" | "creditsUsed";
 type SortDir = "asc" | "desc";
 
 const STATUS_ORDER: Record<string, number> = { published: 0, scheduled: 1, review: 2, draft: 3, cancelled: 4 };
@@ -65,6 +65,10 @@ function sortReleases(arr: ReleaseRow[], col: SortCol, dir: SortDir) {
     }
     if (col === "status") {
       const diff = (STATUS_ORDER[a.status] ?? 99) - (STATUS_ORDER[b.status] ?? 99);
+      return dir === "asc" ? diff : -diff;
+    }
+    if (col === "creditsUsed") {
+      const diff = a.creditsUsed - b.creditsUsed;
       return dir === "asc" ? diff : -diff;
     }
     const cmp = (a[col] as string).localeCompare(b[col] as string, "pt-BR", { numeric: true, sensitivity: "base" });
@@ -218,7 +222,11 @@ export default function ReleasesPage() {
                   <th style={thStyle("date")} onClick={() => handleSort("date")}>{thInner("Data", "date")}</th>
                   <th style={thStyle("author")} onClick={() => handleSort("author")}>{thInner("Autor", "author")}</th>
                   <th style={{ ...thStyle("cat"), textAlign: "right" }} onClick={() => handleSort("cat")}>{thInner("Marca", "cat", "right")}</th>
-                  <th style={{ textAlign: "right", whiteSpace: "nowrap" }}>Créditos</th>
+                  <th style={{ ...thStyle("creditsUsed"), textAlign: "right", whiteSpace: "nowrap" }} onClick={() => handleSort("creditsUsed")}>
+                    Créditos{sortCol === "creditsUsed"
+                      ? (sortDir === "asc" ? <ArrowUp size={12} style={{ marginLeft: 3, color: "var(--coral-ink)", verticalAlign: "middle" }} /> : <ArrowDown size={12} style={{ marginLeft: 3, color: "var(--coral-ink)", verticalAlign: "middle" }} />)
+                      : <ArrowUpDown size={12} style={{ opacity: 0.3, marginLeft: 3, verticalAlign: "middle" }} />}
+                  </th>
                   <th style={{ width: 40 }} />
                 </tr>
               </thead>

@@ -351,8 +351,7 @@ function StepVehicles({ selected, setSelected, vehicles, sub, onUpgrade }: { sel
   const toggle = (id: string) => {
     if (selected.includes(id)) { setSelected(selected.filter(x => x !== id)); return; }
     const v = vehicles.find(x => x.id === id);
-    if (v?.tier === "A" && hasSelectedTierA) return;
-    if (v?.tier !== "A" && hasSelectedTierA) return;
+    if (v?.tier === "A" && hasSelectedTierA) return; // só um tier A por release
     setSelected([...selected, id]);
   };
   const remove = (id: string) => setSelected(selected.filter(x => x !== id));
@@ -443,7 +442,7 @@ function StepVehicles({ selected, setSelected, vehicles, sub, onUpgrade }: { sel
           {list.map(v => {
             const tkn = TIER_TOKENS_MAP[v.tier] ?? 0;
             const isSel = selected.includes(v.id);
-            const isDisabled = !isSel && hasSelectedTierA;
+            const isDisabled = !isSel && hasSelectedTierA && v.tier === "A";
             return (
               <div key={v.id}
                 className={`veh-row${isSel ? " sel" : ""}`}
