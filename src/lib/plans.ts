@@ -6,4 +6,4 @@ export const PLANS: Record<PlanId, { label: string; priceCents: number; credits:
   PROFESSIONAL: { label: "Profissional", priceCents: 500_000, credits: 2_000, tierAIncluded: 10, brandsLimit: 10, editorsLimit: 5,  reviewersLimit: 10, stripePriceId: "price_1To9AT49GuLk7UE9uH2vQXnd" },
 };
 
-export const TIER_TOKENS: Record<string, number> = { A: 100, B: 60, C: 40, D: 20, E: 0 };
+export const TIER_TOKENS: Record<string, number> = { A: 250, B: 150, C: 100, D: 50, E: 0 };
