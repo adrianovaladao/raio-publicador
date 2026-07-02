@@ -1,61 +1,17 @@
 /* ============================================================
    RAIO PUBLICADOR — site de marketing + fluxo de acesso
    Tema escuro premium · sistema visual Markable
+   Os tokens de cor ficam em globals.css [data-theme="dark"].
+   Não redefinir :root nem body aqui — esses estilos vazam para
+   outras rotas via CSS global do Next.js (não é descarregado
+   durante navegação client-side).
    ============================================================ */
-
-:root {
-  --ink: #1A1A1A;
-  --ink-2: #212121;
-  --ink-3: #262626;
-  --panel: #1F1F1F;
-  --panel-2: #242424;
-  --paper: #FFFFFF;
-  --cream: #F4F2EC;
-
-  --coral: #FAB500;
-  --coral-soft: #FFC93B;
-  --coral-ink: #8A6500;
-
-  --tx: rgba(255,255,255,0.94);
-  --tx-2: rgba(255,255,255,0.66);
-  --tx-3: rgba(255,255,255,0.44);
-  --tx-4: rgba(255,255,255,0.28);
-  --line: rgba(255,255,255,0.10);
-  --line-2: rgba(255,255,255,0.16);
-  --line-3: rgba(255,255,255,0.24);
-
-  --green: #5BD08A;
-  --red: #F0876B;
-
-  --serif: "Roboto Serif", Georgia, serif;
-  --sans: "DM Sans", -apple-system, system-ui, sans-serif;
-  --mono: "Switzer", "DM Sans", sans-serif;
-
-  --r-sm: 8px;
-  --r: 12px;
-  --r-lg: 18px;
-  --r-xl: 26px;
-  --maxw: 1180px;
-  --shadow-lg: 0 40px 80px -40px rgba(0,0,0,0.7);
-}
 
 * , *::before, *::after { box-sizing: border-box; }
 html { scroll-behavior: smooth; scroll-padding-top: 90px; }
-body {
-  margin: 0;
-  font-family: var(--sans);
-  background: var(--ink);
-  color: var(--tx);
-  font-size: 16px;
-  line-height: 1.55;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  overflow-x: hidden;
-}
 a { color: inherit; text-decoration: none; }
 button { font-family: inherit; cursor: pointer; }
 img { max-width: 100%; }
-::selection { background: var(--coral); color: var(--ink); }
 
 .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 28px; }
 .eyebrow {

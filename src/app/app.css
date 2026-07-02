@@ -3,57 +3,7 @@
    Sistema visual herdado da marca Markable
    ============================================================ */
 
-:root {
-  /* Neutros */
-  --ink: #212121;
-  --ink-2: #2B2B2B;
-  --ink-soft: #3D3D3D;
-  --paper: #FFFFFF;
-  --bg: #F6F5F2;          /* fundo da área de trabalho, off-white quente */
-  --cream: #F1F0EC;
-  --sand: #CECECE;
-  --stone: #848484;
-  --stone-soft: #B4B4B4;
-
-  /* Accent */
-  --coral: #FAB500;
-  --coral-soft: #FFC93B;
-  --coral-ink: #8A6500;   /* texto âmbar legível sobre claro */
-
-  /* Status */
-  --green: #2F8A5B;
-  --green-soft: #E3F2E9;
-  --blue: #2A6FDB;
-  --blue-soft: #E6EEFB;
-  --amber-soft: #FCEFCB;
-  --red: #C2452E;
-  --red-soft: #F8E5E1;
-
-  /* Linhas */
-  --line: rgba(33,33,33,0.10);
-  --line-2: rgba(33,33,33,0.16);
-  --line-3: rgba(33,33,33,0.26);
-
-  /* Linhas dentro da sidebar escura */
-  --d-line: rgba(255,255,255,0.10);
-  --d-line-2: rgba(255,255,255,0.16);
-  --d-text: rgba(255,255,255,0.62);
-  --d-text-soft: rgba(255,255,255,0.40);
-
-  --serif: "Roboto Serif", Georgia, serif;
-  --sans: "DM Sans", -apple-system, system-ui, sans-serif;
-  --mono: "Switzer", "DM Sans", sans-serif;
-
-  --r-sm: 7px;
-  --r: 11px;
-  --r-lg: 16px;
-  --shadow-sm: 0 1px 2px rgba(33,33,33,0.06), 0 1px 1px rgba(33,33,33,0.04);
-  --shadow: 0 12px 28px -16px rgba(33,33,33,0.30);
-  --shadow-lg: 0 30px 60px -30px rgba(33,33,33,0.45);
-
-  --sidebar-w: 248px;
-  --topbar-h: 66px;
-}
+/* tokens definidos em globals.css :root — não redefinir aqui */
 
 * , *::before, *::after { box-sizing: border-box; }
 html, body { height: 100%; }
