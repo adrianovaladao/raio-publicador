@@ -10,7 +10,7 @@ import {
 import { RaioLockup } from "@/components/logo/RaioLockup";
 import { SupportWidget } from "@/components/support/SupportWidget";
 import { BuyCreditsModal } from "@/components/BuyCreditsModal";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 
 // ─── Subscription data ────────────────────────────────────────────────────────
@@ -262,21 +262,9 @@ const NAV_ITEMS = [
   { href: "/veiculos",    icon: Rss,              label: "Veículos" },
 ];
 
-export function AppShell({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  const router = useRouter();
+function QueryParamWatcher({ setToast }: { setToast: (m: string) => void }) {
   const searchParams = useSearchParams();
-  const { user } = useUser();
-  const { signOut } = useClerk();
-
-  const [showPlans, setShowPlans] = useState(false);
-  const [showBuyCredits, setShowBuyCredits] = useState(false);
-  const [showNewBrand, setShowNewBrand] = useState(false);
-  const [toast, setToast] = useState<string | null>(null);
-  const [releaseCount, setReleaseCount] = useState<number | null>(null);
-  const [sub, setSub] = useState<SubInfo>({ plan: null, label: "—", priceCents: null, credits: 0, creditsUsed: 0 });
-
-  // Show toast when returning from Stripe checkout after upgrade
+  const router = useRouter();
   useEffect(() => {
     if (searchParams.get("upgrade") === "success") {
       setToast("Plano atualizado com sucesso");
@@ -290,7 +278,22 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       url.searchParams.delete("credits");
       router.replace(url.pathname + (url.search || ""));
     }
-  }, [searchParams, router]);
+  }, [searchParams, router, setToast]);
+  return null;
+}
+
+export function AppShell({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const { user } = useUser();
+  const { signOut } = useClerk();
+
+  const [showPlans, setShowPlans] = useState(false);
+  const [showBuyCredits, setShowBuyCredits] = useState(false);
+  const [showNewBrand, setShowNewBrand] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+  const [releaseCount, setReleaseCount] = useState<number | null>(null);
+  const [sub, setSub] = useState<SubInfo>({ plan: null, label: "—", priceCents: null, credits: 0, creditsUsed: 0 });
 
   const fetchSub = useCallback(() => {
     fetch("/api/stripe/subscription")
@@ -459,6 +462,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         />
       )}
       {toast && <Toast msg={toast} onDone={() => setToast(null)} />}
+      <Suspense fallback={null}><QueryParamWatcher setToast={setToast} /></Suspense>
 
       <SupportWidget plan={sub.plan} />
     </div>
