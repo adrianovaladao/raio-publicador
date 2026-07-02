@@ -17,19 +17,24 @@ export function UpgradeModal({ currentPlan, onClose }: { currentPlan: string; on
   const options = UPGRADE_OPTIONS[currentPlan] ?? [];
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [hoverId, setHoverId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   async function handleUpgrade(planId: string) {
     setLoadingId(planId);
+    setError(null);
     try {
       const res = await fetch("/api/stripe/upgrade", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ planId }),
       });
-      const data = await res.json() as { ok?: boolean; redirect?: boolean; url?: string };
+      const data = await res.json() as { ok?: boolean; redirect?: boolean; url?: string; error?: string };
       if (data.ok) { window.location.href = "/configuracoes?upgrade=success"; return; }
       if (data.redirect && data.url) { window.location.href = data.url; return; }
-    } catch { /* ignore */ }
+      setError(data.error ?? "Não foi possível processar o upgrade. Tente novamente.");
+    } catch {
+      setError("Falha de conexão. Tente novamente.");
+    }
     setLoadingId(null);
   }
 
@@ -68,6 +73,11 @@ export function UpgradeModal({ currentPlan, onClose }: { currentPlan: string; on
                   </div>
                 ))}
               </div>
+              {error && (
+                <p style={{ fontSize: 13, color: "var(--red)", background: "var(--red-soft)", borderRadius: 8, padding: "10px 12px" }}>
+                  {error}
+                </p>
+              )}
               <p style={{ fontSize: 12, color: "var(--stone)" }}>
                 Você paga apenas a diferença proporcional ao tempo restante do ciclo atual.
               </p>
