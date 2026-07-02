@@ -157,7 +157,7 @@ export function BuyCreditsModal({ currentPlan, onClose }: { currentPlan: string;
           </button>
 
           <p style={{ fontSize: 12, color: "var(--stone)", textAlign: "center", marginTop: 12 }}>
-            Pagamento único via Stripe. Créditos não expiram.
+            Pagamento único via Stripe. Créditos válidos até o fim do ciclo de assinatura atual.
           </p>
         </div>
       </div>
