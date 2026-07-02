@@ -8,6 +8,7 @@ import {
   ArrowUpDown, ArrowUp, ArrowDown, SlidersHorizontal,
 } from "lucide-react";
 import { RichEditor } from "@/components/editor/RichEditor";
+import { UpgradeModal } from "@/components/UpgradeModal";
 
 // ── DatePicker customizado ────────────────────────────────────────────────────
 
@@ -127,7 +128,7 @@ const TIER_COLORS_MAP: Record<string, string> = { A: "#C0392B", B: "#E07B2A", C:
 const TIER_FG_MAP:     Record<string, string> = { A: "#fff",    B: "#fff",    C: "#fff",    D: "#fff",    E: "#3A5A80" };
 
 const CONTENT_CATS = ["Geral","Negócios","Tecnologia","Esportes","Economia","Saúde","Entretenimento","Política","Jurídico","Agronegócio"];
-const PLAN = { total: 5000, used: 3200 };
+// PLAN é substituído por estado real — ver useState sub abaixo
 const STEPS = ["Conteúdo", "Veículos", "Agendamento"];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -326,7 +327,7 @@ function sortVeh(arr: VehicleItem[], col: VehSortCol, dir: VehSortDir) {
   });
 }
 
-function StepVehicles({ selected, setSelected, vehicles }: { selected: string[]; setSelected: (s: string[]) => void; vehicles: VehicleItem[] }) {
+function StepVehicles({ selected, setSelected, vehicles, sub, onUpgrade }: { selected: string[]; setSelected: (s: string[]) => void; vehicles: VehicleItem[]; sub: { credits: number; creditsUsed: number }; onUpgrade?: () => void }) {
   const [filterCats,  setFilterCats]  = useState<string[]>([]);
   const [filterTiers, setFilterTiers] = useState<string[]>([]);
   const [q,           setQ]           = useState("");
@@ -361,10 +362,10 @@ function StepVehicles({ selected, setSelected, vehicles }: { selected: string[];
   const selVehicles = selected.map(id => vehicles.find(v => v.id === id)).filter(Boolean) as VehicleItem[];
   const selTokens   = selVehicles.reduce((s, v) => s + (TIER_TOKENS_MAP[v.tier] ?? 0), 0);
   const selReach    = selVehicles.reduce((s, v) => s + v.reach, 0);
-  const left        = PLAN.total - PLAN.used;
+  const left        = sub.credits - sub.creditsUsed;
   const over        = selTokens > left;
-  const usedPct     = (PLAN.used / PLAN.total) * 100;
-  const nowPct      = Math.min((selTokens / PLAN.total) * 100, 100 - usedPct);
+  const usedPct     = sub.credits > 0 ? (sub.creditsUsed / sub.credits) * 100 : 0;
+  const nowPct      = sub.credits > 0 ? Math.min((selTokens / sub.credits) * 100, 100 - usedPct) : 0;
 
   const sortBtnStyle = (col: VehSortCol): React.CSSProperties => ({
     display: "inline-flex", alignItems: "center", background: "none", border: "none",
@@ -485,7 +486,7 @@ function StepVehicles({ selected, setSelected, vehicles }: { selected: string[];
             <i className="now"  style={{ width: nowPct  + "%" }} />
           </div>
           <div className="meter-legend">
-            <span><i style={{ background: "var(--ink)",   display: "inline-block", width: 9, height: 9, borderRadius: 3, marginRight: 5 }} />Já usados {PLAN.used.toLocaleString("pt-BR")}</span>
+            <span><i style={{ background: "var(--ink)",   display: "inline-block", width: 9, height: 9, borderRadius: 3, marginRight: 5 }} />Já usados {sub.creditsUsed.toLocaleString("pt-BR")}</span>
             <span><i style={{ background: "var(--coral)", display: "inline-block", width: 9, height: 9, borderRadius: 3, marginRight: 5 }} />Esta seleção {selTokens}</span>
           </div>
         </div>
@@ -509,8 +510,17 @@ function StepVehicles({ selected, setSelected, vehicles }: { selected: string[];
 
         <div className="cart-foot">
           {over && (
-            <div className="savings" style={{ background: "var(--red-soft)", color: "var(--red)" }}>
+            <div className="savings" style={{ background: "var(--red-soft)", color: "var(--red)", flexDirection: "column", alignItems: "flex-start", gap: 10 }}>
               <span>Faltam <b>{(selTokens - left).toLocaleString("pt-BR")} créditos</b>. Remova veículos ou faça upgrade.</span>
+              {onUpgrade && (
+                <button
+                  className="btn btn-sm"
+                  style={{ background: "var(--red)", color: "#fff", border: "none", fontSize: 12 }}
+                  onClick={onUpgrade}
+                >
+                  Fazer upgrade de plano
+                </button>
+              )}
             </div>
           )}
           {!over && selVehicles.length > 0 && (
@@ -692,8 +702,16 @@ export default function EditReleasePage() {
   const [saving,     setSaving]     = useState(false);
   const [deleting,   setDeleting]   = useState(false);
   const [showDelete, setShowDelete] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [err,        setErr]        = useState("");
   const [toast,      setToast]      = useState<string | null>(null);
+  const [sub, setSub] = useState({ credits: 0, creditsUsed: 0, plan: null as string | null });
+  useEffect(() => {
+    fetch("/api/stripe/subscription").then(r => r.json())
+      .then((d: { credits?: number; creditsUsed?: number; plan?: string | null }) => {
+        setSub({ credits: d.credits ?? 0, creditsUsed: d.creditsUsed ?? 0, plan: d.plan ?? null });
+      }).catch(() => {});
+  }, []);
 
   function showToast(msg: string) {
     setToast(msg);
@@ -819,7 +837,7 @@ export default function EditReleasePage() {
   const brand = release?.brand ?? null;
   const selVehicles = selectedVeh.map(vid => vehicles.find(v => v.id === vid)).filter(Boolean) as VehicleItem[];
   const selTokens   = selVehicles.reduce((s, v) => s + (TIER_TOKENS_MAP[v.tier] ?? 0), 0);
-  const over        = selTokens > (PLAN.total - PLAN.used);
+  const over        = selTokens > (sub.credits - sub.creditsUsed);
   const last        = STEPS.length - 1;
 
   const canNext =
@@ -880,7 +898,7 @@ export default function EditReleasePage() {
             brand={brand}
           />
         )}
-        {step === 1 && <StepVehicles selected={selectedVeh} setSelected={setSelectedVeh} vehicles={vehicles} />}
+        {step === 1 && <StepVehicles selected={selectedVeh} setSelected={setSelectedVeh} vehicles={vehicles} sub={sub} onUpgrade={() => setShowUpgradeModal(true)} />}
         {step === 2 && (
           <StepSchedule
             schedDate={schedDate} setSchedDate={setSchedDate}
@@ -907,6 +925,13 @@ export default function EditReleasePage() {
         <div className="toast-wrap">
           <div className="toast"><span className="ic"><Check size={14} /></span>{toast}</div>
         </div>
+      )}
+
+      {showUpgradeModal && (
+        <UpgradeModal
+          currentPlan={sub.plan ?? "BASIC"}
+          onClose={() => setShowUpgradeModal(false)}
+        />
       )}
     </div>
   );

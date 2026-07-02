@@ -501,7 +501,7 @@ function sortVeh(arr: VehicleItem[], col: VehSortCol, dir: VehSortDir) {
   });
 }
 
-function StepVehicles({ selected, setSelected, vehicles, sub }: { selected: string[]; setSelected: (s: string[]) => void; vehicles: VehicleItem[]; sub: SubInfo }) {
+function StepVehicles({ selected, setSelected, vehicles, sub, onUpgrade }: { selected: string[]; setSelected: (s: string[]) => void; vehicles: VehicleItem[]; sub: SubInfo; onUpgrade?: () => void }) {
   const [filterCats,  setFilterCats]  = useState<string[]>([]);
   const [filterTiers, setFilterTiers] = useState<string[]>([]);
   const [q,           setQ]           = useState("");
@@ -684,8 +684,17 @@ function StepVehicles({ selected, setSelected, vehicles, sub }: { selected: stri
 
         <div className="cart-foot">
           {over && (
-            <div className="savings" style={{ background: "var(--red-soft)", color: "var(--red)" }}>
+            <div className="savings" style={{ background: "var(--red-soft)", color: "var(--red)", flexDirection: "column", alignItems: "flex-start", gap: 10 }}>
               <span>Faltam <b>{(selTokens - left).toLocaleString("pt-BR")} créditos</b>. Remova veículos ou faça upgrade.</span>
+              {onUpgrade && (
+                <button
+                  className="btn btn-sm"
+                  style={{ background: "var(--red)", color: "#fff", border: "none", fontSize: 12 }}
+                  onClick={onUpgrade}
+                >
+                  Fazer upgrade de plano
+                </button>
+              )}
             </div>
           )}
           {!over && selVehicles.length > 0 && (
@@ -1606,7 +1615,7 @@ export default function NovoReleasePage() {
 
         {step === 0 && <StepBrand selected={brand} onSelect={setBrand} brands={brands} onAddBrand={b => setBrands(prev => [...prev, b])} onLimitReached={() => setShowUpgradeModal(true)} />}
         {step === 1 && <StepContent content={content} setContent={setContent} brand={brand} ownerName={ownerName} />}
-        {step === 2 && <StepVehicles selected={selected} setSelected={setSelected} vehicles={vehicles} sub={sub} />}
+        {step === 2 && <StepVehicles selected={selected} setSelected={setSelected} vehicles={vehicles} sub={sub} onUpgrade={() => setShowUpgradeModal(true)} />}
         {step === 3 && <StepReview content={content} selected={selected} when={when} setWhen={setWhen} brand={brand} onSaveDraft={autosave} vehicles={vehicles} />}
       </div>
     </div>
