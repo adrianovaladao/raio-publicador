@@ -11,6 +11,7 @@ import {
   Sparkles, Loader, AlertTriangle, AlertCircle, ShieldCheck,
 } from "lucide-react";
 import { extractDominantColor } from "@/lib/color";
+import { UpgradeModal } from "@/components/UpgradeModal";
 import { RichEditor } from "@/components/editor/RichEditor";
 import {
   Document, Packer, Paragraph, TextRun, HeadingLevel,
@@ -32,7 +33,7 @@ const TIER_FG_MAP:     Record<string, string> = { A: "#fff",    B: "#fff",    C:
 
 type VehSortCol = "name" | "tier" | "reach" | "tokens";
 type VehSortDir = "asc" | "desc";
-type SubInfo = { credits: number; creditsUsed: number };
+type SubInfo = { credits: number; creditsUsed: number; plan?: string | null };
 
 
 const BRAND_COLORS = ["#C25E00","#2A6FDB","#2F8A5B","#6D3BD9","#0E7C86","#B0322E","#8A6500","#1A1A1A"];
@@ -58,7 +59,7 @@ const STEPS = ["Marca", "Conteúdo", "Veículos & créditos", "Revisão"];
 
 type Brand = { id: string; name: string; segment: string | null; color: string | null; logoUrl?: string | null; authors?: string[]; releases?: number; tone?: boolean };
 
-function NewBrandModal({ onClose, onCreate }: { onClose: () => void; onCreate: (b: Brand) => void }) {
+function NewBrandModal({ onClose, onCreate, onLimitReached }: { onClose: () => void; onCreate: (b: Brand) => void; onLimitReached?: () => void }) {
   const [name,    setName]    = useState("");
   const [segment, setSegment] = useState(BRAND_SEGMENTS[0]);
   const [color,   setColor]   = useState(BRAND_COLORS[0]);
@@ -106,7 +107,11 @@ function NewBrandModal({ onClose, onCreate }: { onClose: () => void; onCreate: (
         body: JSON.stringify({ name: name.trim(), segment, color, site: site.trim() || null, contact: contact.trim() || null, description: desc.trim() || null, boilerplate: boiler.trim() || null, logoUrl }),
       });
       const text = await res.text();
-      if (!res.ok) { setErr(`Erro ${res.status}`); return; }
+      if (!res.ok) {
+        if (res.status === 403) { onLimitReached?.(); onClose(); return; }
+        setErr(`Erro ${res.status}`);
+        return;
+      }
       const nb: Brand = JSON.parse(text);
       onCreate(nb);
     } catch (e) { setErr(e instanceof Error ? e.message : "Falha de conexão."); }
@@ -191,11 +196,12 @@ function NewBrandModal({ onClose, onCreate }: { onClose: () => void; onCreate: (
   );
 }
 
-function StepBrand({ selected, onSelect, brands, onAddBrand }: {
+function StepBrand({ selected, onSelect, brands, onAddBrand, onLimitReached }: {
   selected: Brand | null;
   onSelect: (b: Brand) => void;
   brands: Brand[];
   onAddBrand: (b: Brand) => void;
+  onLimitReached?: () => void;
 }) {
   const [mode, setMode] = useState<"grid" | "list">("grid");
   const [q, setQ] = useState("");
@@ -333,6 +339,7 @@ function StepBrand({ selected, onSelect, brands, onAddBrand }: {
         <NewBrandModal
           onClose={() => setShowModal(false)}
           onCreate={b => { onAddBrand(b); onSelect(b); setShowModal(false); }}
+          onLimitReached={onLimitReached}
         />
       )}
     </div>
@@ -1340,7 +1347,7 @@ export default function NovoReleasePage() {
   const [sub, setSub] = useState<SubInfo>({ credits: 0, creditsUsed: 0 });
   useEffect(() => {
     fetch("/api/stripe/subscription").then(r => r.json()).then((d: SubInfo) => {
-      if (d.credits != null) setSub({ credits: d.credits, creditsUsed: d.creditsUsed ?? 0 });
+      if (d.credits != null) setSub({ credits: d.credits, creditsUsed: d.creditsUsed ?? 0, plan: d.plan });
     }).catch(() => {});
   }, []);
 
@@ -1364,6 +1371,7 @@ export default function NovoReleasePage() {
   const [when, setWhen] = useState<When>({ mode: "schedule", date: defaultDate });
   const [submitting, setSubmitting] = useState(false);
   const [showPolicyModal, setShowPolicyModal] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   // ── Autosave ─────────────────────────────────────────────────────────────
   const draftIdRef  = useRef<string | null>(null);
@@ -1596,7 +1604,7 @@ export default function NovoReleasePage() {
           </div>
         </div>
 
-        {step === 0 && <StepBrand selected={brand} onSelect={setBrand} brands={brands} onAddBrand={b => setBrands(prev => [...prev, b])} />}
+        {step === 0 && <StepBrand selected={brand} onSelect={setBrand} brands={brands} onAddBrand={b => setBrands(prev => [...prev, b])} onLimitReached={() => setShowUpgradeModal(true)} />}
         {step === 1 && <StepContent content={content} setContent={setContent} brand={brand} ownerName={ownerName} />}
         {step === 2 && <StepVehicles selected={selected} setSelected={setSelected} vehicles={vehicles} sub={sub} />}
         {step === 3 && <StepReview content={content} selected={selected} when={when} setWhen={setWhen} brand={brand} onSaveDraft={autosave} vehicles={vehicles} />}
@@ -1607,6 +1615,12 @@ export default function NovoReleasePage() {
       <PolicyModal
         onAccept={() => { setShowPolicyModal(false); setStep(1); }}
         onClose={() => setShowPolicyModal(false)}
+      />
+    )}
+    {showUpgradeModal && (
+      <UpgradeModal
+        currentPlan={sub.plan ?? "BASIC"}
+        onClose={() => setShowUpgradeModal(false)}
       />
     )}
     </>
