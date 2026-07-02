@@ -13,6 +13,7 @@ import {
   MessageCircle, Ticket,
 } from "lucide-react";
 import { UpgradeModal } from "@/components/UpgradeModal";
+import { BuyCreditsModal } from "@/components/BuyCreditsModal";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -961,13 +962,16 @@ function MarcasPanel({ onToast }: { onToast: (m: string) => void }) {
 // ─── Cobrança ─────────────────────────────────────────────────────────────────
 
 function CobrancaPanel({ onToast }: { onToast: (m: string) => void }) {
-  const [planLabel,   setPlanLabel]   = useState<string>("—");
-  const [priceCents,  setPriceCents]  = useState<number | null>(null);
-  const [credits,     setCredits]     = useState(0);
-  const [creditsUsed, setCreditsUsed] = useState(0);
+  const [planLabel,       setPlanLabel]       = useState<string>("—");
+  const [plan,            setPlan]            = useState<string>("BASIC");
+  const [priceCents,      setPriceCents]      = useState<number | null>(null);
+  const [credits,         setCredits]         = useState(0);
+  const [creditsUsed,     setCreditsUsed]     = useState(0);
+  const [showBuyCredits,  setShowBuyCredits]  = useState(false);
 
   useEffect(() => {
-    fetch("/api/stripe/subscription").then(r => r.json()).then((s: { label?: string; priceCents?: number; credits?: number; creditsUsed?: number }) => {
+    fetch("/api/stripe/subscription").then(r => r.json()).then((s: { plan?: string; label?: string; priceCents?: number; credits?: number; creditsUsed?: number }) => {
+      if (s.plan)       setPlan(s.plan);
       if (s.label)      setPlanLabel(s.label);
       if (s.priceCents) setPriceCents(s.priceCents);
       if (s.credits)    setCredits(s.credits);
@@ -986,6 +990,7 @@ function CobrancaPanel({ onToast }: { onToast: (m: string) => void }) {
   return (
     <div className="set-panel">
       <PanelHead title="Cobrança e <em>créditos</em>" desc="Plano, consumo, pagamento e faturas." />
+      {showBuyCredits && <BuyCreditsModal currentPlan={plan} onClose={() => setShowBuyCredits(false)} />}
 
       <div className="card billing-plan">
         <div className="bp-left">
@@ -993,8 +998,8 @@ function CobrancaPanel({ onToast }: { onToast: (m: string) => void }) {
           <div className="bp-name">{planLabel}</div>
           <div className="bp-price">{priceStr} <span>/mês · renova em {(() => { const d = new Date(); const r = new Date(d.getFullYear(), d.getMonth()+1, 1); return `${String(r.getDate()).padStart(2,"0")}/${String(r.getMonth()+1).padStart(2,"0")}/${r.getFullYear()}`; })()}</span></div>
           <div className="row" style={{ gap: 10, marginTop: 16 }}>
-            <button className="btn btn-primary btn-sm">Mudar de plano</button>
-            <button className="btn btn-ghost btn-sm"><Zap size={15} /> Comprar créditos</button>
+            <button className="btn btn-primary btn-sm" onClick={() => window.dispatchEvent(new Event("open-plans"))}>Mudar de plano</button>
+            <button className="btn btn-ghost btn-sm" onClick={() => setShowBuyCredits(true)}><Zap size={15} /> Comprar créditos</button>
           </div>
         </div>
         <div className="bp-right">

@@ -308,8 +308,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       .then((d: { stats?: { total?: number } }) => { if (d?.stats?.total != null) setReleaseCount(d.stats.total); })
       .catch(() => {});
     fetchSub();
+    const openPlans = () => setShowPlans(true);
     window.addEventListener("credits-changed", fetchSub);
-    return () => window.removeEventListener("credits-changed", fetchSub);
+    window.addEventListener("open-plans", openPlans);
+    return () => {
+      window.removeEventListener("credits-changed", fetchSub);
+      window.removeEventListener("open-plans", openPlans);
+    };
   }, []);
 
   const firstName = user?.firstName ?? "";
