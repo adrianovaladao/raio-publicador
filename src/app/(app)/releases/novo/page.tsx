@@ -33,7 +33,7 @@ const TIER_FG_MAP:     Record<string, string> = { A: "#fff",    B: "#fff",    C:
 
 type VehSortCol = "name" | "tier" | "reach" | "tokens";
 type VehSortDir = "asc" | "desc";
-type SubInfo = { credits: number; creditsUsed: number; plan?: string | null };
+type SubInfo = { credits: number; creditsUsed: number; plan?: string | null; brandsLimit?: number | null };
 
 
 const BRAND_COLORS = ["#C25E00","#2A6FDB","#2F8A5B","#6D3BD9","#0E7C86","#B0322E","#8A6500","#1A1A1A"];
@@ -196,16 +196,25 @@ function NewBrandModal({ onClose, onCreate, onLimitReached }: { onClose: () => v
   );
 }
 
-function StepBrand({ selected, onSelect, brands, onAddBrand, onLimitReached }: {
+function StepBrand({ selected, onSelect, brands, brandsLimit, onAddBrand, onLimitReached }: {
   selected: Brand | null;
   onSelect: (b: Brand) => void;
   brands: Brand[];
+  brandsLimit?: number | null;
   onAddBrand: (b: Brand) => void;
   onLimitReached?: () => void;
 }) {
   const [mode, setMode] = useState<"grid" | "list">("grid");
   const [q, setQ] = useState("");
   const [showModal, setShowModal] = useState(false);
+
+  function handleNewBrand() {
+    if (brandsLimit !== null && brandsLimit !== undefined && brands.length >= brandsLimit) {
+      onLimitReached?.();
+    } else {
+      setShowModal(true);
+    }
+  }
 
   const filtered = brands.filter(b =>
     !q.trim() || (b.name + b.segment).toLowerCase().includes(q.toLowerCase())
@@ -234,7 +243,7 @@ function StepBrand({ selected, onSelect, brands, onAddBrand, onLimitReached }: {
           onChange={e => setQ(e.target.value)}
           style={{ width: 200, padding: "8px 14px", fontSize: 13 }}
         />
-        <button className="btn btn-ghost btn-sm" onClick={() => setShowModal(true)}>
+        <button className="btn btn-ghost btn-sm" onClick={handleNewBrand}>
           <Plus size={15} /> Nova marca
         </button>
         <div className="seg">
@@ -278,7 +287,7 @@ function StepBrand({ selected, onSelect, brands, onAddBrand, onLimitReached }: {
           {/* Card "Nova marca" */}
           <div
             className="lib-card-new"
-            onClick={() => setShowModal(true)}
+            onClick={handleNewBrand}
           >
             <div className="lib-card-new-icon"><Plus size={22} /></div>
             <div className="lib-card-new-label">Nova marca</div>
@@ -319,7 +328,7 @@ function StepBrand({ selected, onSelect, brands, onAddBrand, onLimitReached }: {
                 </tr>
               ))}
               {/* Linha "Nova marca" */}
-              <tr style={{ cursor: "pointer", background: "var(--cream)" }} onClick={() => setShowModal(true)}>
+              <tr style={{ cursor: "pointer", background: "var(--cream)" }} onClick={handleNewBrand}>
                 <td style={{ display: "flex", alignItems: "center", gap: 10, color: "var(--stone)" }}>
                   <div style={{ width: 28, height: 28, borderRadius: 8, border: "1.5px dashed var(--sand)", display: "grid", placeItems: "center", flex: "none" }}>
                     <Plus size={14} color="var(--stone)" />
@@ -1359,7 +1368,7 @@ export default function NovoReleasePage() {
   const [sub, setSub] = useState<SubInfo>({ credits: 0, creditsUsed: 0 });
   useEffect(() => {
     fetch("/api/stripe/subscription").then(r => r.json()).then((d: SubInfo) => {
-      if (d.credits != null) setSub({ credits: d.credits, creditsUsed: d.creditsUsed ?? 0, plan: d.plan });
+      if (d.credits != null) setSub({ credits: d.credits, creditsUsed: d.creditsUsed ?? 0, plan: d.plan, brandsLimit: d.brandsLimit });
     }).catch(() => {});
   }, []);
 
@@ -1617,7 +1626,7 @@ export default function NovoReleasePage() {
           </div>
         </div>
 
-        {step === 0 && <StepBrand selected={brand} onSelect={setBrand} brands={brands} onAddBrand={b => setBrands(prev => [...prev, b])} onLimitReached={() => setShowUpgradeModal(true)} />}
+        {step === 0 && <StepBrand selected={brand} onSelect={setBrand} brands={brands} brandsLimit={sub.brandsLimit} onAddBrand={b => setBrands(prev => [...prev, b])} onLimitReached={() => setShowUpgradeModal(true)} />}
         {step === 1 && <StepContent content={content} setContent={setContent} brand={brand} ownerName={ownerName} />}
         {step === 2 && <StepVehicles selected={selected} setSelected={setSelected} vehicles={vehicles} sub={sub} onUpgrade={() => setShowUpgradeModal(true)} />}
         {step === 3 && <StepReview content={content} selected={selected} when={when} setWhen={setWhen} brand={brand} onSaveDraft={autosave} vehicles={vehicles} />}
