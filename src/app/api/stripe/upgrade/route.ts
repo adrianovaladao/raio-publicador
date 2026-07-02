@@ -77,10 +77,10 @@ export async function POST(req: NextRequest) {
         metadata: { clerkId: userId, planId },
       });
 
-      // DB updated immediately for downgrade (no payment required)
+      // DB: update plan only — keep current credits until renewal cycle
       await prisma.subscription.update({
         where: { ownerId: userId },
-        data: { plan: planId, creditsTotal: plan.credits },
+        data: { plan: planId },
       });
 
       return NextResponse.json({ ok: true });

@@ -48,13 +48,14 @@ function PlansModal({ onClose, sub }: { onClose: () => void; sub: SubInfo }) {
   async function handleUpgrade(planId: string) {
     setUpgrading(planId);
     try {
-      const res = await fetch("/api/stripe/checkout", {
+      const res = await fetch("/api/stripe/upgrade", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ planId }),
       });
-      const data = await res.json() as { url?: string; error?: string };
-      if (data.url) { window.location.href = data.url; return; }
+      const data = await res.json() as { ok?: boolean; redirect?: boolean; url?: string; error?: string };
+      if (data.redirect && data.url) { window.location.href = data.url; return; }
+      if (data.ok) { window.location.href = "/configuracoes?upgrade=success"; return; }
     } catch {}
     setUpgrading(null);
   }
