@@ -21,28 +21,30 @@ export async function POST(req: Request) {
   const body = await req.json() as { status: string; creditsUsed: number; title: string; body: string; summary?: string; scheduledAt?: string | null; brandId: string; imageUrl?: string | null; vehicles: string[] };
   console.log("[releases POST] status:", body.status, "creditsUsed:", body.creditsUsed, "vehicles:", body.vehicles?.length);
   const prisma = getPrisma();
-  const release = await prisma.release.create({
-    data: {
-      title:       body.title,
-      body:        body.body,
-      summary:     body.summary,
-      status:      body.status as ReleaseStatus,
-      scheduledAt: body.scheduledAt ? new Date(body.scheduledAt) : null,
-      brandId:     body.brandId,
-      imageUrl:    body.imageUrl,
-      vehicles:    body.vehicles,
-      creditsUsed: body.creditsUsed,
-      authorId:    userId,
-    },
-  });
-  if (body.status === "SCHEDULED" && body.creditsUsed > 0) {
-    const sub = await prisma.subscription.updateMany({
-      where: { ownerId: userId },
-      data: { creditsUsed: { increment: body.creditsUsed } },
-    });
-    console.log("[releases POST] subscription updated:", sub.count, "rows");
-  } else {
-    console.log("[releases POST] skipped credit debit — status or creditsUsed is zero/falsy");
-  }
+  const creditsToDebit = body.status === "SCHEDULED" ? (body.creditsUsed ?? 0) : 0;
+
+  const [release] = await prisma.$transaction([
+    prisma.release.create({
+      data: {
+        title:       body.title,
+        body:        body.body,
+        summary:     body.summary,
+        status:      body.status as ReleaseStatus,
+        scheduledAt: body.scheduledAt ? new Date(body.scheduledAt) : null,
+        brandId:     body.brandId,
+        imageUrl:    body.imageUrl,
+        vehicles:    body.vehicles,
+        creditsUsed: body.creditsUsed,
+        authorId:    userId,
+      },
+    }),
+    ...(creditsToDebit > 0
+      ? [prisma.subscription.update({
+          where: { ownerId: userId },
+          data: { creditsUsed: { increment: creditsToDebit } },
+        })]
+      : []),
+  ]);
+
   return NextResponse.json(release, { status: 201 });
 }

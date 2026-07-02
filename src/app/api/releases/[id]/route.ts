@@ -23,31 +23,31 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   const body = await req.json() as { status: string; creditsUsed: number; title?: string; body?: string; summary?: string; scheduledAt?: string | null; brandId?: string; imageUrl?: string | null; vehicles?: string[] };
   const prisma = getPrisma();
   const prev = await prisma.release.findUnique({ where: { id }, select: { status: true } });
-  console.log("[releases PUT] prevStatus:", prev?.status, "newStatus:", body.status, "creditsUsed:", body.creditsUsed);
-  const release = await prisma.release.update({
-    where: { id },
-    data: {
-      ...(body.title       !== undefined && { title:       body.title }),
-      ...(body.body        !== undefined && { body:        body.body }),
-      ...(body.summary     !== undefined && { summary:     body.summary }),
-      ...(body.imageUrl    !== undefined && { imageUrl:    body.imageUrl }),
-      ...(body.vehicles    !== undefined && { vehicles:    body.vehicles }),
-      ...(body.brandId     !== undefined && { brandId:     body.brandId }),
-      ...(body.scheduledAt !== undefined && { scheduledAt: body.scheduledAt ? new Date(body.scheduledAt) : null }),
-      ...(body.creditsUsed !== undefined && { creditsUsed: body.creditsUsed }),
-      ...(body.status      !== undefined && { status:      body.status as ReleaseStatus }),
-    },
-  });
   const becomingScheduled = body.status === "SCHEDULED" && prev?.status !== "SCHEDULED";
-  if (becomingScheduled && body.creditsUsed > 0) {
-    const sub = await prisma.subscription.updateMany({
-      where: { ownerId: userId },
-      data: { creditsUsed: { increment: body.creditsUsed } },
-    });
-    console.log("[releases PUT] subscription updated:", sub.count, "rows, increment:", body.creditsUsed);
-  } else {
-    console.log("[releases PUT] skipped — becomingScheduled:", becomingScheduled, "creditsUsed:", body.creditsUsed);
-  }
+  const updateData = {
+    ...(body.title       !== undefined && { title:       body.title }),
+    ...(body.body        !== undefined && { body:        body.body }),
+    ...(body.summary     !== undefined && { summary:     body.summary }),
+    ...(body.imageUrl    !== undefined && { imageUrl:    body.imageUrl }),
+    ...(body.vehicles    !== undefined && { vehicles:    body.vehicles }),
+    ...(body.brandId     !== undefined && { brandId:     body.brandId }),
+    ...(body.scheduledAt !== undefined && { scheduledAt: body.scheduledAt ? new Date(body.scheduledAt) : null }),
+    ...(body.creditsUsed !== undefined && { creditsUsed: body.creditsUsed }),
+    ...(body.status      !== undefined && { status:      body.status as ReleaseStatus }),
+  };
+
+  const creditsToDebit = becomingScheduled ? (body.creditsUsed ?? 0) : 0;
+
+  const [release] = await prisma.$transaction([
+    prisma.release.update({ where: { id }, data: updateData }),
+    ...(creditsToDebit > 0
+      ? [prisma.subscription.update({
+          where: { ownerId: userId },
+          data: { creditsUsed: { increment: creditsToDebit } },
+        })]
+      : []),
+  ]);
+
   return NextResponse.json(release);
 }
 
