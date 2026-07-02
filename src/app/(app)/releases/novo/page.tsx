@@ -895,9 +895,10 @@ function PolicyModal({ onAccept, onClose }: { onAccept: () => void; onClose: () 
     return () => window.removeEventListener("keydown", fn);
   }, [onClose]);
 
-  const columns = [
+  const columns: { accent: string; dot: string; Icon: React.ElementType; label: string; items: string[] }[] = [
     {
-      color: "#2F8A5B", bg: "#E3F2E9", border: "#B8E0CA", icon: "✅", label: "O que explorar",
+      accent: "var(--green)", dot: "var(--green-soft)", Icon: Check,
+      label: "O que explorar",
       items: [
         "Dados com fonte identificada (pesquisa, instituição, data e metodologia)",
         "Cases de sucesso com autorização das partes envolvidas",
@@ -907,7 +908,8 @@ function PolicyModal({ onAccept, onClose }: { onAccept: () => void; onClose: () 
       ],
     },
     {
-      color: "#C07A00", bg: "#FEF3DC", border: "#F5D78E", icon: "⚠️", label: "Evitar",
+      accent: "var(--coral-ink)", dot: "var(--amber-soft)", Icon: AlertTriangle,
+      label: "Evitar",
       items: [
         'Excesso de adjetivos e slogans sem comprovação ("o maior", "líder absoluto")',
         "Referências a outros veículos como fonte (Folha, Veja, Estadão etc.)",
@@ -917,10 +919,11 @@ function PolicyModal({ onAccept, onClose }: { onAccept: () => void; onClose: () 
       ],
     },
     {
-      color: "#C0392B", bg: "#FDECEA", border: "#F5B8B4", icon: "🚫", label: "Proibido",
+      accent: "var(--red)", dot: "var(--red-soft)", Icon: X,
+      label: "Proibido",
       items: [
         "Dados estatísticos sem fonte identificada",
-        "Citação de concorrentes ou comparações diretas com outras empresas",
+        "Citação de concorrentes ou comparações com outras empresas",
         "Menção a clientes, parceiros ou pessoas físicas sem autorização prévia",
         "Imagens sem crédito, com marca d'água ou sem licença de uso",
         "Informações falsas, não verificáveis ou enganosas",
@@ -931,15 +934,15 @@ function PolicyModal({ onAccept, onClose }: { onAccept: () => void; onClose: () 
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 9999, display: "grid", placeItems: "center", padding: 16 }}
       onClick={onClose}>
-      <div style={{ background: "var(--paper)", borderRadius: 20, width: "100%", maxWidth: 900, maxHeight: "90vh", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 32px 80px rgba(0,0,0,0.22)" }}
+      <div style={{ background: "var(--paper)", borderRadius: 20, width: "100%", maxWidth: 900, maxHeight: "90vh", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "var(--shadow-lg)" }}
         onClick={e => e.stopPropagation()}>
 
         {/* Header */}
-        <div style={{ padding: "22px 28px 16px", borderBottom: "1px solid var(--line)", display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexShrink: 0 }}>
+        <div style={{ padding: "22px 28px 18px", borderBottom: "1px solid var(--line)", display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexShrink: 0 }}>
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
               <ShieldCheck size={20} color="var(--coral-ink)" />
-              <h3 style={{ margin: 0, fontFamily: "var(--sans)", fontWeight: 700, fontSize: 18, letterSpacing: "-0.01em" }}>
+              <h3 style={{ margin: 0, fontFamily: "var(--sans)", fontWeight: 700, fontSize: 18, letterSpacing: "-0.02em" }}>
                 Política <em style={{ fontFamily: "var(--serif)", fontStyle: "italic", fontWeight: 400 }}>editorial</em>
               </h3>
             </div>
@@ -952,23 +955,32 @@ function PolicyModal({ onAccept, onClose }: { onAccept: () => void; onClose: () 
 
         {/* 3-col grid */}
         <div style={{ overflowY: "auto", padding: "24px 28px" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
             {columns.map(col => (
-              <div key={col.label} style={{ border: `1.5px solid ${col.border}`, borderRadius: 14, overflow: "hidden", display: "flex", flexDirection: "column" }}>
-                <div style={{ background: col.bg, padding: "12px 16px", display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ fontSize: 15 }}>{col.icon}</span>
-                  <span style={{ fontWeight: 700, fontSize: 13, color: col.color }}>{col.label}</span>
+              <div key={col.label} style={{ border: "1px solid var(--line-2)", borderRadius: "var(--r-lg)", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+                {/* Column header */}
+                <div style={{ padding: "12px 16px", display: "flex", alignItems: "center", gap: 8, borderBottom: "1px solid var(--line)" }}>
+                  <div style={{ width: 26, height: 26, borderRadius: 6, background: col.dot, display: "grid", placeItems: "center", flexShrink: 0 }}>
+                    <col.Icon size={13} color={col.accent} strokeWidth={2.5} />
+                  </div>
+                  <span style={{ fontFamily: "var(--mono)", fontWeight: 700, fontSize: 11, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--ink)" }}>
+                    {col.label}
+                  </span>
                 </div>
-                <ul style={{ margin: 0, padding: "14px 16px 14px 28px", listStyle: "disc" }}>
+                {/* Items */}
+                <div style={{ padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
                   {col.items.map((item, i) => (
-                    <li key={i} style={{ fontSize: 12.5, color: "var(--ink-soft)", lineHeight: 1.6, marginBottom: 7 }}>{item}</li>
+                    <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+                      <div style={{ width: 5, height: 5, borderRadius: "50%", background: col.accent, flexShrink: 0, marginTop: 6 }} />
+                      <span style={{ fontSize: 12.5, color: "var(--ink-soft)", lineHeight: 1.55 }}>{item}</span>
+                    </div>
                   ))}
-                </ul>
+                </div>
               </div>
             ))}
           </div>
 
-          <div style={{ background: "var(--bg)", borderRadius: 10, padding: "12px 16px", marginTop: 16, fontSize: 12.5, color: "var(--stone)", lineHeight: 1.6 }}>
+          <div style={{ background: "var(--bg)", borderRadius: "var(--r)", padding: "12px 16px", marginTop: 14, fontSize: 12.5, color: "var(--stone)", lineHeight: 1.6 }}>
             O anunciante é integralmente responsável pela veracidade, legalidade e autorização de uso de todas as informações, imagens e referências presentes no conteúdo. Releases em desacordo com esta política poderão ser recusados ou devolvidos para ajuste.
           </div>
         </div>
