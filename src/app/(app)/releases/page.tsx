@@ -77,10 +77,11 @@ function sortReleases(arr: ReleaseRow[], col: SortCol, dir: SortDir) {
 }
 
 function SortIcon({ col, active, dir }: { col: string; active: string; dir: SortDir }) {
-  if (col !== active) return <ArrowUpDown size={12} style={{ opacity: 0.3, marginLeft: 3 }} />;
+  const base: React.CSSProperties = { marginLeft: 3, verticalAlign: "middle", flexShrink: 0 };
+  if (col !== active) return <ArrowUpDown size={12} style={{ ...base, opacity: 0.3 }} />;
   return dir === "asc"
-    ? <ArrowUp size={12} style={{ marginLeft: 3, color: "var(--coral-ink)" }} />
-    : <ArrowDown size={12} style={{ marginLeft: 3, color: "var(--coral-ink)" }} />;
+    ? <ArrowUp size={12} style={{ ...base, color: "var(--coral-ink)" }} />
+    : <ArrowDown size={12} style={{ ...base, color: "var(--coral-ink)" }} />;
 }
 
 function StatusBadge({ status }: { status: string }) {
@@ -222,7 +223,7 @@ export default function ReleasesPage() {
                   <th style={thStyle("date")} onClick={() => handleSort("date")}>{thInner("Data", "date")}</th>
                   <th style={thStyle("author")} onClick={() => handleSort("author")}>{thInner("Autor", "author")}</th>
                   <th style={{ ...thStyle("cat"), textAlign: "right" }} onClick={() => handleSort("cat")}>{thInner("Marca", "cat")}</th>
-                  <th style={{ ...thStyle("creditsUsed"), textAlign: "right" }} onClick={() => handleSort("creditsUsed")}>{thInner("Créditos", "creditsUsed")}</th>
+                  <th style={{ ...thStyle("creditsUsed"), textAlign: "right", minWidth: 90 }} onClick={() => handleSort("creditsUsed")}>{thInner("Créditos", "creditsUsed")}</th>
                   <th style={{ width: 40 }} />
                 </tr>
               </thead>
