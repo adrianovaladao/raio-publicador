@@ -524,22 +524,22 @@ function StepVehicles({ selected, setSelected, vehicles, sub, onUpgrade }: { sel
           </div>
         </div>
       </div>
-
-      {over && (
-        <div style={{ background: "var(--red-soft)", color: "var(--red)", borderRadius: 12, padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
-          <span style={{ fontSize: 13 }}>Faltam <b>{(selTokens - left).toLocaleString("pt-BR")} créditos</b>. Remova veículos ou faça upgrade.</span>
-          {onUpgrade && (
-            <button
-              className="btn btn-sm"
-              style={{ background: "var(--red)", color: "#fff", border: "none", fontSize: 12 }}
-              onClick={onUpgrade}
-            >
-              Fazer upgrade de plano
-            </button>
-          )}
-        </div>
-      )}
     </div>
+
+    {over && (
+      <div style={{ background: "var(--red-soft)", color: "var(--red)", borderRadius: 12, padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
+        <span style={{ fontSize: 13 }}>Faltam <b>{(selTokens - left).toLocaleString("pt-BR")} créditos</b>. Remova veículos ou faça upgrade.</span>
+        {onUpgrade && (
+          <button
+            className="btn btn-sm"
+            style={{ background: "var(--red)", color: "#fff", border: "none", fontSize: 12 }}
+            onClick={onUpgrade}
+          >
+            Fazer upgrade de plano
+          </button>
+        )}
+      </div>
+    )}
 
     {showFilter && (
       <VehFilterModal
