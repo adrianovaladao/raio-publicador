@@ -1669,7 +1669,7 @@ export default function NovoReleasePage() {
     )}
     {showBuyCreditsModal && (
       <BuyCreditsModal
-        plan={sub.plan ?? "BASIC"}
+        currentPlan={sub.plan ?? "BASIC"}
         onClose={() => setShowBuyCreditsModal(false)}
       />
     )}

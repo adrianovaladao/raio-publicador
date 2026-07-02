@@ -971,7 +971,7 @@ export default function EditReleasePage() {
       )}
       {showBuyCreditsModal && (
         <BuyCreditsModal
-          plan={sub.plan ?? "BASIC"}
+          currentPlan={sub.plan ?? "BASIC"}
           onClose={() => setShowBuyCreditsModal(false)}
         />
       )}
