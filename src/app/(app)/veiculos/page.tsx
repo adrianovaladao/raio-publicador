@@ -15,10 +15,10 @@ const TIER_COLORS:  Record<string, string> = { A: "#C0392B", B: "#E07B2A", C: "#
 const TIER_FG:      Record<string, string> = { A: "#fff",    B: "#fff",    C: "#fff",    D: "#fff",    E: "#3A5A80" };
 
 const TIER_INFO = [
-  { t: "A", label: "Grande portal nacional", range: "10 mi+ leitores/mês",  tokens: 250, cls: "t-a" },
-  { t: "B", label: "Portal regional forte",  range: "100 mil–10 mi/mês",    tokens: 150, cls: "t-b" },
-  { t: "C", label: "Portal médio / nicho",   range: "10 mil–100 mil/mês",   tokens: 100, cls: "t-c" },
-  { t: "D", label: "Blog / portal local",    range: "1 mil–10 mil/mês",     tokens: 50,  cls: "t-d" },
+  { t: "A", label: "Grande portal nacional", range: "10 mi+ leitores/mês",  tokens: 100, cls: "t-a" },
+  { t: "B", label: "Portal regional forte",  range: "100 mil–10 mi/mês",    tokens: 60,  cls: "t-b" },
+  { t: "C", label: "Portal médio / nicho",   range: "10 mil–100 mil/mês",   tokens: 40,  cls: "t-c" },
+  { t: "D", label: "Blog / portal local",    range: "1 mil–10 mil/mês",     tokens: 20,  cls: "t-d" },
   { t: "E", label: "Site emergente",         range: "Até 1 mil/mês",        tokens: 0,   cls: "t-e" },
 ];
 
