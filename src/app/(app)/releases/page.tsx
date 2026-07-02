@@ -110,9 +110,11 @@ export default function ReleasesPage() {
   const [confirmId, setConfirmId] = useState<string | null>(null);
 
   async function deleteRelease(id: string) {
+    const releasing = releases.find(r => r.id === id);
     await fetch(`/api/releases/${id}`, { method: "DELETE" });
     setReleases(prev => prev.filter(r => r.id !== id));
     setConfirmId(null);
+    if (releasing?.status === "scheduled") window.dispatchEvent(new Event("credits-changed"));
   }
 
   useEffect(() => {

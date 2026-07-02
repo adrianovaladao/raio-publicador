@@ -272,17 +272,23 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [releaseCount, setReleaseCount] = useState<number | null>(null);
   const [sub, setSub] = useState<SubInfo>({ plan: null, label: "—", priceCents: null, credits: 0, creditsUsed: 0 });
 
-  useEffect(() => {
-    fetch("/api/dashboard")
-      .then(r => r.json())
-      .then((d: { stats?: { total?: number } }) => { if (d?.stats?.total != null) setReleaseCount(d.stats.total); })
-      .catch(() => {});
+  const fetchSub = () => {
     fetch("/api/stripe/subscription")
       .then(r => r.json())
       .then((d: Partial<SubInfo>) => {
         setSub({ plan: d.plan ?? null, label: d.label ?? "—", priceCents: d.priceCents ?? null, credits: d.credits ?? 0, creditsUsed: d.creditsUsed ?? 0 });
       })
       .catch(() => {});
+  };
+
+  useEffect(() => {
+    fetch("/api/dashboard")
+      .then(r => r.json())
+      .then((d: { stats?: { total?: number } }) => { if (d?.stats?.total != null) setReleaseCount(d.stats.total); })
+      .catch(() => {});
+    fetchSub();
+    window.addEventListener("credits-changed", fetchSub);
+    return () => window.removeEventListener("credits-changed", fetchSub);
   }, []);
 
   const firstName = user?.firstName ?? "";

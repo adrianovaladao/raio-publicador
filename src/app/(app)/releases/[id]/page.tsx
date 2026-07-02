@@ -777,6 +777,7 @@ export default function EditReleasePage() {
         }),
       });
       if (!res.ok) { setErr("Erro ao salvar. Tente novamente."); return; }
+      window.dispatchEvent(new Event("credits-changed"));
       showToast("Release agendado com sucesso!");
       setTimeout(() => router.push("/releases"), 1500);
     } catch { setErr("Falha de conexão."); }
@@ -801,6 +802,7 @@ export default function EditReleasePage() {
         }),
       });
       if (!res.ok) { setErr("Erro ao salvar. Tente novamente."); return; }
+      if (release?.status === "SCHEDULED") window.dispatchEvent(new Event("credits-changed"));
       showToast("Rascunho salvo!");
       setTimeout(() => router.push("/releases"), 1500);
     } catch { setErr("Falha de conexão."); }
@@ -811,6 +813,7 @@ export default function EditReleasePage() {
     setDeleting(true);
     try {
       await fetch(`/api/releases/${id}`, { method: "DELETE" });
+      if (release?.status === "SCHEDULED") window.dispatchEvent(new Event("credits-changed"));
       router.replace("/releases");
     } catch { setDeleting(false); }
   }

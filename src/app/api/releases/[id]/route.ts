@@ -22,8 +22,9 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   const { id } = await params;
   const body = await req.json() as { status: string; creditsUsed: number; title?: string; body?: string; summary?: string; scheduledAt?: string | null; brandId?: string; imageUrl?: string | null; vehicles?: string[] };
   const prisma = getPrisma();
-  const prev = await prisma.release.findUnique({ where: { id }, select: { status: true } });
-  const becomingScheduled = body.status === "SCHEDULED" && prev?.status !== "SCHEDULED";
+  const prev = await prisma.release.findUnique({ where: { id }, select: { status: true, creditsUsed: true } });
+  const becomingScheduled   = body.status === "SCHEDULED" && prev?.status !== "SCHEDULED";
+  const leavingScheduled    = prev?.status === "SCHEDULED" && body.status !== undefined && body.status !== "SCHEDULED";
   const updateData = {
     ...(body.title       !== undefined && { title:       body.title }),
     ...(body.body        !== undefined && { body:        body.body }),
@@ -36,7 +37,8 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     ...(body.status      !== undefined && { status:      body.status as ReleaseStatus }),
   };
 
-  const creditsToDebit = becomingScheduled ? (body.creditsUsed ?? 0) : 0;
+  const creditsToDebit  = becomingScheduled ? (body.creditsUsed ?? 0) : 0;
+  const creditsToReturn = leavingScheduled  ? (prev?.creditsUsed ?? 0) : 0;
 
   const [release] = await prisma.$transaction([
     prisma.release.update({ where: { id }, data: updateData }),
@@ -44,6 +46,12 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       ? [prisma.subscription.update({
           where: { ownerId: userId },
           data: { creditsUsed: { increment: creditsToDebit } },
+        })]
+      : []),
+    ...(creditsToReturn > 0
+      ? [prisma.subscription.update({
+          where: { ownerId: userId },
+          data: { creditsUsed: { decrement: creditsToReturn } },
         })]
       : []),
   ]);
@@ -55,6 +63,17 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { id } = await params;
-  await getPrisma().release.delete({ where: { id } });
+  const prisma = getPrisma();
+  const release = await prisma.release.findUnique({ where: { id }, select: { status: true, creditsUsed: true } });
+  const creditsToReturn = release?.status === "SCHEDULED" ? (release.creditsUsed ?? 0) : 0;
+  await prisma.$transaction([
+    prisma.release.delete({ where: { id } }),
+    ...(creditsToReturn > 0
+      ? [prisma.subscription.update({
+          where: { ownerId: userId },
+          data: { creditsUsed: { decrement: creditsToReturn } },
+        })]
+      : []),
+  ]);
   return NextResponse.json({ ok: true });
 }

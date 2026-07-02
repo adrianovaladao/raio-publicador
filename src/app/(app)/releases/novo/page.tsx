@@ -1601,6 +1601,7 @@ export default function NovoReleasePage() {
                     });
                   }
                   if (!res.ok) throw new Error("Falha ao salvar");
+                  window.dispatchEvent(new Event("credits-changed"));
                   setDone(true);
                 } catch {
                   alert("Erro ao salvar release. Tente novamente.");
