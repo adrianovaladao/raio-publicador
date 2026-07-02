@@ -355,7 +355,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="credits-cta">Ver planos <ArrowRight size={12} /></div>
           {sub.plan && (
             <div
-              style={{ marginTop: 8, padding: "6px 10px", borderRadius: 8, background: "rgba(250,181,0,0.12)", border: "1px solid rgba(250,181,0,0.3)", fontSize: 12, fontWeight: 600, color: "var(--coral-ink, #8A6500)", textAlign: "center", cursor: "pointer" }}
+              style={{ marginTop: 8, padding: "6px 10px", borderRadius: 8, background: "#000", border: "1px solid #000", fontSize: 12, fontWeight: 600, color: "#fff", textAlign: "center", cursor: "pointer" }}
               onClick={e => { e.stopPropagation(); setShowBuyCredits(true); }}
             >
               + Comprar créditos avulsos
