@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { extractDominantColor } from "@/lib/color";
 import { UpgradeModal } from "@/components/UpgradeModal";
+import { BuyCreditsModal } from "@/components/BuyCreditsModal";
 import { RichEditor } from "@/components/editor/RichEditor";
 import {
   Document, Packer, Paragraph, TextRun, HeadingLevel,
@@ -507,7 +508,7 @@ function sortVeh(arr: VehicleItem[], col: VehSortCol, dir: VehSortDir) {
   });
 }
 
-function StepVehicles({ selected, setSelected, vehicles, sub, onUpgrade }: { selected: string[]; setSelected: (s: string[]) => void; vehicles: VehicleItem[]; sub: SubInfo; onUpgrade?: () => void }) {
+function StepVehicles({ selected, setSelected, vehicles, sub, onUpgrade, onBuyCredits }: { selected: string[]; setSelected: (s: string[]) => void; vehicles: VehicleItem[]; sub: SubInfo; onUpgrade?: () => void; onBuyCredits?: () => void }) {
   const [filterCats,  setFilterCats]  = useState<string[]>([]);
   const [filterTiers, setFilterTiers] = useState<string[]>([]);
   const [q,           setQ]           = useState("");
@@ -720,16 +721,27 @@ function StepVehicles({ selected, setSelected, vehicles, sub, onUpgrade }: { sel
 
       {over && (
         <div style={{ background: "var(--red-soft)", color: "var(--red)", borderRadius: 12, padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10, position: "relative", zIndex: 2 }}>
-          <span style={{ fontSize: 13 }}>Faltam <b>{(selTokens - left).toLocaleString("pt-BR")} créditos</b>. Remova veículos ou faça upgrade.</span>
-          {onUpgrade && (
-            <button
-              className="btn btn-sm"
-              style={{ background: "var(--red)", color: "#fff", border: "none", fontSize: 12 }}
-              onClick={onUpgrade}
-            >
-              Fazer upgrade de plano
-            </button>
-          )}
+          <span style={{ fontSize: 13 }}>Faltam <b>{(selTokens - left).toLocaleString("pt-BR")} créditos</b>. Remova veículos ou adquira mais créditos.</span>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {onBuyCredits && (
+              <button
+                className="btn btn-sm"
+                style={{ background: "var(--red)", color: "#fff", border: "none", fontSize: 12 }}
+                onClick={onBuyCredits}
+              >
+                Comprar créditos avulsos
+              </button>
+            )}
+            {onUpgrade && sub.plan !== "PROFESSIONAL" && (
+              <button
+                className="btn btn-sm"
+                style={{ background: "transparent", color: "var(--red)", border: "1.5px solid var(--red)", fontSize: 12 }}
+                onClick={onUpgrade}
+              >
+                Fazer upgrade de plano
+              </button>
+            )}
+          </div>
         </div>
       )}
       </div>
@@ -1402,6 +1414,7 @@ export default function NovoReleasePage() {
   const [submitting, setSubmitting] = useState(false);
   const [showPolicyModal, setShowPolicyModal] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [showBuyCreditsModal, setShowBuyCreditsModal] = useState(false);
 
   // ── Autosave ─────────────────────────────────────────────────────────────
   const draftIdRef  = useRef<string | null>(null);
@@ -1637,7 +1650,7 @@ export default function NovoReleasePage() {
 
         {step === 0 && <StepBrand selected={brand} onSelect={setBrand} brands={brands} brandsLimit={sub.brandsLimit} onAddBrand={b => setBrands(prev => [...prev, b])} onLimitReached={() => setShowUpgradeModal(true)} />}
         {step === 1 && <StepContent content={content} setContent={setContent} brand={brand} ownerName={ownerName} />}
-        {step === 2 && <StepVehicles selected={selected} setSelected={setSelected} vehicles={vehicles} sub={sub} onUpgrade={() => setShowUpgradeModal(true)} />}
+        {step === 2 && <StepVehicles selected={selected} setSelected={setSelected} vehicles={vehicles} sub={sub} onBuyCredits={() => setShowBuyCreditsModal(true)} onUpgrade={() => setShowUpgradeModal(true)} />}
         {step === 3 && <StepReview content={content} selected={selected} when={when} setWhen={setWhen} brand={brand} onSaveDraft={autosave} vehicles={vehicles} />}
       </div>
     </div>
@@ -1652,6 +1665,12 @@ export default function NovoReleasePage() {
       <UpgradeModal
         currentPlan={sub.plan ?? "BASIC"}
         onClose={() => setShowUpgradeModal(false)}
+      />
+    )}
+    {showBuyCreditsModal && (
+      <BuyCreditsModal
+        plan={sub.plan ?? "BASIC"}
+        onClose={() => setShowBuyCreditsModal(false)}
       />
     )}
     </>

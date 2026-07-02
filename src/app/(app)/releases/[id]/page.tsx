@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { RichEditor } from "@/components/editor/RichEditor";
 import { UpgradeModal } from "@/components/UpgradeModal";
+import { BuyCreditsModal } from "@/components/BuyCreditsModal";
 
 // ── DatePicker customizado ────────────────────────────────────────────────────
 
@@ -327,7 +328,7 @@ function sortVeh(arr: VehicleItem[], col: VehSortCol, dir: VehSortDir) {
   });
 }
 
-function StepVehicles({ selected, setSelected, vehicles, sub, onUpgrade }: { selected: string[]; setSelected: (s: string[]) => void; vehicles: VehicleItem[]; sub: { credits: number; creditsUsed: number }; onUpgrade?: () => void }) {
+function StepVehicles({ selected, setSelected, vehicles, sub, onUpgrade, onBuyCredits }: { selected: string[]; setSelected: (s: string[]) => void; vehicles: VehicleItem[]; sub: { credits: number; creditsUsed: number; plan?: string | null }; onUpgrade?: () => void; onBuyCredits?: () => void }) {
   const [filterCats,  setFilterCats]  = useState<string[]>([]);
   const [filterTiers, setFilterTiers] = useState<string[]>([]);
   const [q,           setQ]           = useState("");
@@ -540,16 +541,27 @@ function StepVehicles({ selected, setSelected, vehicles, sub, onUpgrade }: { sel
 
       {over && (
         <div style={{ background: "var(--red-soft)", color: "var(--red)", borderRadius: 12, padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10, position: "relative", zIndex: 2 }}>
-          <span style={{ fontSize: 13 }}>Faltam <b>{(selTokens - left).toLocaleString("pt-BR")} créditos</b>. Remova veículos ou faça upgrade.</span>
-          {onUpgrade && (
-            <button
-              className="btn btn-sm"
-              style={{ background: "var(--red)", color: "#fff", border: "none", fontSize: 12 }}
-              onClick={onUpgrade}
-            >
-              Fazer upgrade de plano
-            </button>
-          )}
+          <span style={{ fontSize: 13 }}>Faltam <b>{(selTokens - left).toLocaleString("pt-BR")} créditos</b>. Remova veículos ou adquira mais créditos.</span>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {onBuyCredits && (
+              <button
+                className="btn btn-sm"
+                style={{ background: "var(--red)", color: "#fff", border: "none", fontSize: 12 }}
+                onClick={onBuyCredits}
+              >
+                Comprar créditos avulsos
+              </button>
+            )}
+            {onUpgrade && sub.plan !== "PROFESSIONAL" && (
+              <button
+                className="btn btn-sm"
+                style={{ background: "transparent", color: "var(--red)", border: "1.5px solid var(--red)", fontSize: 12 }}
+                onClick={onUpgrade}
+              >
+                Fazer upgrade de plano
+              </button>
+            )}
+          </div>
         </div>
       )}
       </div>
@@ -718,6 +730,7 @@ export default function EditReleasePage() {
   const [deleting,   setDeleting]   = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [showBuyCreditsModal, setShowBuyCreditsModal] = useState(false);
   const [err,        setErr]        = useState("");
   const [toast,      setToast]      = useState<string | null>(null);
   const [sub, setSub] = useState({ credits: 0, creditsUsed: 0, plan: null as string | null });
@@ -921,7 +934,7 @@ export default function EditReleasePage() {
             brand={brand}
           />
         )}
-        {step === 1 && <StepVehicles selected={selectedVeh} setSelected={setSelectedVeh} vehicles={vehicles} sub={sub} onUpgrade={() => setShowUpgradeModal(true)} />}
+        {step === 1 && <StepVehicles selected={selectedVeh} setSelected={setSelectedVeh} vehicles={vehicles} sub={sub} onBuyCredits={() => setShowBuyCreditsModal(true)} onUpgrade={() => setShowUpgradeModal(true)} />}
         {step === 2 && (
           <StepSchedule
             schedDate={schedDate} setSchedDate={setSchedDate}
@@ -954,6 +967,12 @@ export default function EditReleasePage() {
         <UpgradeModal
           currentPlan={sub.plan ?? "BASIC"}
           onClose={() => setShowUpgradeModal(false)}
+        />
+      )}
+      {showBuyCreditsModal && (
+        <BuyCreditsModal
+          plan={sub.plan ?? "BASIC"}
+          onClose={() => setShowBuyCreditsModal(false)}
         />
       )}
     </div>

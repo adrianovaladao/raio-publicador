@@ -222,11 +222,7 @@ export default function ReleasesPage() {
                   <th style={thStyle("date")} onClick={() => handleSort("date")}>{thInner("Data", "date")}</th>
                   <th style={thStyle("author")} onClick={() => handleSort("author")}>{thInner("Autor", "author")}</th>
                   <th style={{ ...thStyle("cat"), textAlign: "right" }} onClick={() => handleSort("cat")}>{thInner("Marca", "cat", "right")}</th>
-                  <th style={{ ...thStyle("creditsUsed"), textAlign: "right", whiteSpace: "nowrap" }} onClick={() => handleSort("creditsUsed")}>
-                    Créditos{sortCol === "creditsUsed"
-                      ? (sortDir === "asc" ? <ArrowUp size={12} style={{ marginLeft: 3, color: "var(--coral-ink)", verticalAlign: "middle" }} /> : <ArrowDown size={12} style={{ marginLeft: 3, color: "var(--coral-ink)", verticalAlign: "middle" }} />)
-                      : <ArrowUpDown size={12} style={{ opacity: 0.3, marginLeft: 3, verticalAlign: "middle" }} />}
-                  </th>
+                  <th style={{ ...thStyle("creditsUsed"), textAlign: "right" }} onClick={() => handleSort("creditsUsed")}>{thInner("Créditos", "creditsUsed", "right")}</th>
                   <th style={{ width: 40 }} />
                 </tr>
               </thead>
