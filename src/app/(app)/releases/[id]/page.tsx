@@ -763,6 +763,10 @@ export default function EditReleasePage() {
       const scheduledAt = schedDate
         ? new Date(`${schedDate}T09:00:00`).toISOString()
         : null;
+      const creditsUsed = selectedVeh.reduce((s, vid) => {
+        const v = vehicles.find(x => x.id === vid);
+        return s + (v ? (TIER_TOKENS_MAP[v.tier] ?? 0) : 0);
+      }, 0);
       const res = await fetch(`/api/releases/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -774,6 +778,7 @@ export default function EditReleasePage() {
           scheduledAt,
           imageUrl: null,
           vehicles: selectedVeh,
+          creditsUsed,
         }),
       });
       if (!res.ok) { setErr("Erro ao salvar. Tente novamente."); return; }
