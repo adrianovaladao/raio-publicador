@@ -385,6 +385,11 @@ function StepContent({ content, setContent, brand, ownerName }: { content: Conte
   const brandAuthors = brand?.authors ?? [];
   const authors = brandAuthors.length > 0 ? brandAuthors : [ownerName].filter(Boolean);
   const up = (k: keyof Content, v: string | string[]) => setContent({ ...content, [k]: v });
+
+  useEffect(() => {
+    if (!content.author && authors.length > 0) up("author", authors[0]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authors[0]]);
   const cats = VEH_CATS_ALL;
 
   return (
