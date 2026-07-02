@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 import { auth } from "@clerk/nextjs/server";
 import { getPrisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { ReleaseStatus } from "@prisma/client";
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { userId } = await auth();
@@ -19,11 +20,24 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { id } = await params;
-  const body = await req.json() as { status: string; creditsUsed: number; [k: string]: unknown };
+  const body = await req.json() as { status: string; creditsUsed: number; title?: string; body?: string; summary?: string; scheduledAt?: string | null; brandId?: string; imageUrl?: string | null; vehicles?: string[] };
   const prisma = getPrisma();
   const prev = await prisma.release.findUnique({ where: { id }, select: { status: true } });
   console.log("[releases PUT] prevStatus:", prev?.status, "newStatus:", body.status, "creditsUsed:", body.creditsUsed);
-  const release = await prisma.release.update({ where: { id }, data: body });
+  const release = await prisma.release.update({
+    where: { id },
+    data: {
+      ...(body.title       !== undefined && { title:       body.title }),
+      ...(body.body        !== undefined && { body:        body.body }),
+      ...(body.summary     !== undefined && { summary:     body.summary }),
+      ...(body.imageUrl    !== undefined && { imageUrl:    body.imageUrl }),
+      ...(body.vehicles    !== undefined && { vehicles:    body.vehicles }),
+      ...(body.brandId     !== undefined && { brandId:     body.brandId }),
+      ...(body.scheduledAt !== undefined && { scheduledAt: body.scheduledAt ? new Date(body.scheduledAt) : null }),
+      ...(body.creditsUsed !== undefined && { creditsUsed: body.creditsUsed }),
+      ...(body.status      !== undefined && { status:      body.status as ReleaseStatus }),
+    },
+  });
   const becomingScheduled = body.status === "SCHEDULED" && prev?.status !== "SCHEDULED";
   if (becomingScheduled && body.creditsUsed > 0) {
     const sub = await prisma.subscription.updateMany({

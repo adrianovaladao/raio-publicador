@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 import { auth } from "@clerk/nextjs/server";
 import { getPrisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { ReleaseStatus } from "@prisma/client";
 
 export async function GET() {
   const { userId } = await auth();
@@ -17,10 +18,23 @@ export async function GET() {
 export async function POST(req: Request) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const body = await req.json() as { status: string; creditsUsed: number; vehicles: string[]; [k: string]: unknown };
+  const body = await req.json() as { status: string; creditsUsed: number; title: string; body: string; summary?: string; scheduledAt?: string | null; brandId: string; imageUrl?: string | null; vehicles: string[] };
   console.log("[releases POST] status:", body.status, "creditsUsed:", body.creditsUsed, "vehicles:", body.vehicles?.length);
   const prisma = getPrisma();
-  const release = await prisma.release.create({ data: { ...body, authorId: userId } });
+  const release = await prisma.release.create({
+    data: {
+      title:       body.title,
+      body:        body.body,
+      summary:     body.summary,
+      status:      body.status as ReleaseStatus,
+      scheduledAt: body.scheduledAt ? new Date(body.scheduledAt) : null,
+      brandId:     body.brandId,
+      imageUrl:    body.imageUrl,
+      vehicles:    body.vehicles,
+      creditsUsed: body.creditsUsed,
+      authorId:    userId,
+    },
+  });
   if (body.status === "SCHEDULED" && body.creditsUsed > 0) {
     const sub = await prisma.subscription.updateMany({
       where: { ownerId: userId },

@@ -41,6 +41,7 @@ export function SupportWidget({ plan }: SupportWidgetProps) {
   const businessHours = isBusinessHours();
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     if (open && messages.length === 0) {
       setMessages([{
         role: "assistant",
