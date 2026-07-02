@@ -243,9 +243,6 @@ function StepBrand({ selected, onSelect, brands, brandsLimit, onAddBrand, onLimi
           onChange={e => setQ(e.target.value)}
           style={{ width: 200, padding: "8px 14px", fontSize: 13 }}
         />
-        <button className="btn btn-ghost btn-sm" onClick={handleNewBrand}>
-          <Plus size={15} /> Nova marca
-        </button>
         <div className="seg">
           <button className={mode === "list" ? "active" : ""} onClick={() => setMode("list")}><List size={15} /> Lista</button>
           <button className={mode === "grid" ? "active" : ""} onClick={() => setMode("grid")}><LayoutGrid size={15} /> Grade</button>
