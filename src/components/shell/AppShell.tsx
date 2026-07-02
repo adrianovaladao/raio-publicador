@@ -6,7 +6,6 @@ import { useUser, useClerk } from "@clerk/nextjs";
 import {
   LayoutDashboard, FileText, CalendarDays, Rss, Settings,
   Bell, Search, LogOut, ChevronDown, Zap, Check, X,
-  Headphones,
 } from "lucide-react";
 import { RaioLockup } from "@/components/logo/RaioLockup";
 import { SupportWidget } from "@/components/support/SupportWidget";
@@ -35,7 +34,7 @@ function getInitials(name: string | null | undefined) {
 
 // ─── PlansModal ───────────────────────────────────────────────────────────────
 
-function PlansModal({ onClose, sub, onSuccess }: { onClose: () => void; sub: SubInfo; onSuccess: (msg: string) => void }) {
+function PlansModal({ onClose, sub, onSuccess, onBuyCredits }: { onClose: () => void; sub: SubInfo; onSuccess: (msg: string) => void; onBuyCredits: () => void }) {
   const pct  = sub.credits > 0 ? Math.round((sub.creditsUsed / sub.credits) * 100) : 0;
   const left = sub.credits - sub.creditsUsed;
   const [upgrading, setUpgrading] = useState<string | null>(null);
@@ -115,9 +114,9 @@ function PlansModal({ onClose, sub, onSuccess }: { onClose: () => void; sub: Sub
             })}
           </div>
 
-          <div className="plans-note">
-            <Headphones size={16} />
-            <span>Precisa de mais créditos ou um plano anual? <b>Fale com o time comercial.</b></span>
+          <div className="plans-note" style={{ cursor: "pointer" }} onClick={() => { onClose(); onBuyCredits(); }}>
+            <Zap size={16} />
+            <span>Precisa de mais créditos? <b>Comprar créditos avulsos →</b></span>
           </div>
         </div>
       </div>
@@ -449,7 +448,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </div>
 
       {/* ── MODAIS ── */}
-      {showPlans && <PlansModal onClose={() => setShowPlans(false)} sub={sub} onSuccess={msg => { setToast(msg); setShowPlans(false); fetchSub(); }} />}
+      {showPlans && <PlansModal onClose={() => setShowPlans(false)} sub={sub} onSuccess={msg => { setToast(msg); setShowPlans(false); fetchSub(); }} onBuyCredits={() => { setShowPlans(false); setShowBuyCredits(true); }} />}
       {showBuyCredits && sub.plan && (
         <BuyCreditsModal currentPlan={sub.plan} onClose={() => setShowBuyCredits(false)} />
       )}
