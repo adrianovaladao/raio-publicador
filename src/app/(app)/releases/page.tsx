@@ -154,8 +154,8 @@ export default function ReleasesPage() {
     cursor: "pointer", userSelect: "none", whiteSpace: "nowrap",
     color: sortCol === col ? "var(--coral-ink)" : undefined,
   });
-  const thInner = (label: string, col: SortCol, align: "left" | "right" = "left") => (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: 2, justifyContent: align === "right" ? "flex-end" : "flex-start", width: "100%" }}>
+  const thInner = (label: string, col: SortCol) => (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 2, whiteSpace: "nowrap" }}>
       {label}<SortIcon col={col} active={sortCol} dir={sortDir} />
     </span>
   );
@@ -221,8 +221,8 @@ export default function ReleasesPage() {
                   <th style={thStyle("status")} onClick={() => handleSort("status")}>{thInner("Status", "status")}</th>
                   <th style={thStyle("date")} onClick={() => handleSort("date")}>{thInner("Data", "date")}</th>
                   <th style={thStyle("author")} onClick={() => handleSort("author")}>{thInner("Autor", "author")}</th>
-                  <th style={{ ...thStyle("cat"), textAlign: "right" }} onClick={() => handleSort("cat")}>{thInner("Marca", "cat", "right")}</th>
-                  <th style={{ ...thStyle("creditsUsed"), textAlign: "right" }} onClick={() => handleSort("creditsUsed")}>{thInner("Créditos", "creditsUsed", "right")}</th>
+                  <th style={{ ...thStyle("cat"), textAlign: "right" }} onClick={() => handleSort("cat")}>{thInner("Marca", "cat")}</th>
+                  <th style={{ ...thStyle("creditsUsed"), textAlign: "right" }} onClick={() => handleSort("creditsUsed")}>{thInner("Créditos", "creditsUsed")}</th>
                   <th style={{ width: 40 }} />
                 </tr>
               </thead>
