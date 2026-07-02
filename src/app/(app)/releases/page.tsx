@@ -10,6 +10,9 @@ interface Release {
   title: string;
   status: string;
   createdAt: string;
+  scheduledAt?: string | null;
+  publishedAt?: string | null;
+  creditsUsed: number;
   authorId: string;
   imageUrl?: string | null;
   brand: { name: string; color: string | null } | null;
@@ -22,6 +25,7 @@ interface ReleaseRow {
   author: string;
   status: string;
   date: string;
+  creditsUsed: number;
   imageUrl?: string | null;
   brandColor?: string | null;
 }
@@ -122,6 +126,7 @@ export default function ReleasesPage() {
           author: "Você",
           status: r.status.toLowerCase(),
           date: r.scheduledAt ?? r.publishedAt ?? r.createdAt,
+          creditsUsed: r.creditsUsed ?? 0,
           imageUrl: r.imageUrl,
           brandColor: r.brand?.color,
         }));
@@ -211,6 +216,7 @@ export default function ReleasesPage() {
                   <th style={thStyle("date")} onClick={() => handleSort("date")}>{thInner("Data", "date")}</th>
                   <th style={thStyle("author")} onClick={() => handleSort("author")}>{thInner("Autor", "author")}</th>
                   <th style={{ ...thStyle("cat"), textAlign: "right" }} onClick={() => handleSort("cat")}>{thInner("Marca", "cat", "right")}</th>
+                  <th style={{ textAlign: "right", whiteSpace: "nowrap" }}>Créditos</th>
                   <th style={{ width: 40 }} />
                 </tr>
               </thead>
@@ -225,6 +231,11 @@ export default function ReleasesPage() {
                     <td className="muted num">{fmtDate(r.date)}</td>
                     <td className="muted">{r.author}</td>
                     <td className="num" style={{ textAlign: "right", fontWeight: 600 }}>{r.cat}</td>
+                    <td className="num" style={{ textAlign: "right" }}>
+                      {r.creditsUsed > 0
+                        ? <span style={{ fontSize: 12, fontWeight: 600, color: "var(--coral-ink)", background: "var(--amber-soft)", padding: "2px 8px", borderRadius: 99 }}>{r.creditsUsed} cr</span>
+                        : <span style={{ fontSize: 12, color: "var(--stone)" }}>—</span>}
+                    </td>
                     <td onClick={e => e.stopPropagation()}>
                       <button
                         onClick={() => setConfirmId(r.id)}
@@ -266,6 +277,13 @@ export default function ReleasesPage() {
                     <StatusBadge status={r.status} />
                     <span className="when">{fmtDate(r.date)}</span>
                   </div>
+                  {r.creditsUsed > 0 && (
+                    <div style={{ marginTop: 8 }}>
+                      <span style={{ fontSize: 11, fontWeight: 600, color: "var(--coral-ink)", background: "var(--amber-soft)", padding: "2px 8px", borderRadius: 99 }}>
+                        {r.creditsUsed} créditos
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
