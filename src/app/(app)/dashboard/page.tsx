@@ -440,12 +440,15 @@ export default function DashboardPage() {
   const [brandsLimit, setBrandsLimit] = useState<number | null>(null);
   const [currentPlan, setCurrentPlan] = useState<string | null>(null);
 
+  const [creditsLeft, setCreditsLeft] = useState<number | null>(null);
+
   useEffect(() => {
     fetch("/api/stripe/subscription")
       .then(r => r.json())
-      .then((d: { brandsLimit?: number | null; plan?: string | null }) => {
+      .then((d: { brandsLimit?: number | null; plan?: string | null; credits?: number; creditsUsed?: number }) => {
         setBrandsLimit(d.brandsLimit ?? null);
         setCurrentPlan(d.plan ?? null);
+        if (d.credits != null) setCreditsLeft((d.credits ?? 0) - (d.creditsUsed ?? 0));
       })
       .catch(() => {});
   }, []);
@@ -487,7 +490,7 @@ export default function DashboardPage() {
     { id: "k1", icon: Send,      label: "Releases publicados", val: String(stats?.published ?? 0), accent: true },
     { id: "k2", icon: Eye,       label: "Alcance estimado",    val: "—" },
     { id: "k3", icon: Newspaper, label: "Veículos ativos",     val: "—" },
-    { id: "k4", icon: Zap,       label: "Créditos restantes",  val: "1.800" },
+    { id: "k4", icon: Zap,       label: "Créditos restantes",  val: creditsLeft !== null ? creditsLeft.toLocaleString("pt-BR") : "—" },
   ];
 
   return (
