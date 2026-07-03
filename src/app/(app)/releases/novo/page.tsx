@@ -355,7 +355,7 @@ function StepBrand({ selected, onSelect, brands, brandsLimit, onAddBrand, onLimi
 
 // ── Passo 1: Conteúdo ────────────────────────────────────────────────────────
 
-interface Content { title: string; subtitle: string; body: string; cat: string; author: string; imageUrls: string[]; imageSource: string }
+interface Content { title: string; subtitle: string; body: string; cat: string; author: string; imageUrls: string[] }
 
 function SelectBox({ value, options, onChange }: { value: string; options: string[]; onChange: (v: string) => void }) {
   const [open, setOpen] = useState(false);
@@ -430,20 +430,6 @@ function StepContent({ content, setContent, brand, ownerName }: { content: Conte
               <label>Autor</label>
               <SelectBox value={content.author} options={authors} onChange={v => up("author", v)} />
             </div>
-            {content.body.includes("<img") && (
-              <div className="field-row" style={{ marginTop: 4 }}>
-                <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  Fonte da imagem
-                </label>
-                <input
-                  className="input"
-                  placeholder="Ex.: Getty Images, Divulgação, Arquivo pessoal"
-                  value={content.imageSource}
-                  onChange={e => up("imageSource", e.target.value)}
-                  style={{ fontSize: 13 }}
-                />
-              </div>
-            )}
           </div>
         </div>
       </div>
@@ -1417,7 +1403,7 @@ export default function NovoReleasePage() {
   const [done, setDone] = useState(false);
   const [brand, setBrand] = useState<Brand | null>(null);
   const [brands, setBrands] = useState<Brand[]>([]);
-  const [content, setContent] = useState<Content>({ title: "", subtitle: "", body: "", cat: "Negócios", author: "", imageUrls: [], imageSource: "" });
+  const [content, setContent] = useState<Content>({ title: "", subtitle: "", body: "", cat: "Negócios", author: "", imageUrls: [] });
   const [selected, setSelected] = useState<string[]>([]);
   const [vehicles, setVehicles] = useState<VehicleItem[]>([]);
   useEffect(() => {

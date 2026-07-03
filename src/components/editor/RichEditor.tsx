@@ -1,17 +1,78 @@
 "use client";
 
 import { useEditor, EditorContent } from "@tiptap/react";
+import { ReactNodeViewRenderer, NodeViewWrapper } from "@tiptap/react";
+import { Node, mergeAttributes } from "@tiptap/core";
+import type { NodeViewProps } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import Link from "@tiptap/extension-link";
 import Underline from "@tiptap/extension-underline";
-import { Image as TiptapImage } from "@tiptap/extension-image";
 import { useState, useCallback, useRef, useEffect } from "react";
 import {
   Bold, Italic, Underline as UnderlineIcon, Heading2,
   List, ListOrdered, Quote, Link as LinkIcon, Undo, Redo,
   Sparkles, Loader, X, Image as ImageIcon,
 } from "lucide-react";
+
+// ── Figure NodeView ──────────────────────────────────────────────────────────
+
+function FigureView({ node, updateAttributes }: NodeViewProps) {
+  return (
+    <NodeViewWrapper>
+      <figure className="editor-figure" contentEditable={false}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={node.attrs.src as string} className="editor-img" alt={node.attrs.caption as string || ""} />
+        <figcaption>
+          <input
+            className="figure-caption-input"
+            placeholder="Fonte: Getty Images, Divulgação, Arquivo pessoal…"
+            value={(node.attrs.caption as string) || ""}
+            onChange={e => updateAttributes({ caption: e.target.value })}
+          />
+        </figcaption>
+      </figure>
+    </NodeViewWrapper>
+  );
+}
+
+const FigureExtension = Node.create({
+  name: "figure",
+  group: "block",
+  atom: true,
+  draggable: true,
+
+  addAttributes() {
+    return {
+      src:     { default: null },
+      caption: { default: "" },
+    };
+  },
+
+  parseHTML() {
+    return [{
+      tag: "figure",
+      getAttrs: (node) => ({
+        src:     (node as HTMLElement).querySelector("img")?.getAttribute("src") ?? null,
+        caption: (node as HTMLElement).querySelector("figcaption")?.textContent ?? "",
+      }),
+    }];
+  },
+
+  renderHTML({ HTMLAttributes }) {
+    return [
+      "figure", mergeAttributes({ class: "editor-figure" }),
+      ["img", { src: HTMLAttributes.src, class: "editor-img", alt: HTMLAttributes.caption || "" }],
+      ["figcaption", {}, HTMLAttributes.caption || ""],
+    ];
+  },
+
+  addNodeView() {
+    return ReactNodeViewRenderer(FigureView);
+  },
+});
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
 
 interface RichEditorProps {
   title: string;
@@ -45,6 +106,8 @@ function AutoTextarea({ className, value, onChange, placeholder, style }: {
   );
 }
 
+// ── Editor ───────────────────────────────────────────────────────────────────
+
 export function RichEditor({
   title, onTitleChange,
   subtitle, onSubtitleChange,
@@ -68,7 +131,7 @@ export function RichEditor({
       Underline,
       Placeholder.configure({ placeholder: "Escreva o corpo do release… Comece com o lide: o quê, quem, quando, onde e por quê." }),
       Link.configure({ openOnClick: false, HTMLAttributes: { class: "editor-link" } }),
-      TiptapImage.configure({ HTMLAttributes: { class: "editor-img" } }),
+      FigureExtension,
     ],
     content: content || "",
     onUpdate: ({ editor }) => {
@@ -105,7 +168,10 @@ export function RichEditor({
       const res = await fetch("/api/upload", { method: "POST", body: form });
       const data = await res.json() as { url?: string; error?: string };
       if (!res.ok || !data.url) { setAiErr(data.error ?? "Falha no upload da imagem."); return; }
-      const ok = editor.chain().focus().insertContent(`<img src="${data.url}" />`).run();
+      const ok = editor.chain().focus().insertContent({
+        type: "figure",
+        attrs: { src: data.url, caption: "" },
+      }).run();
       if (!ok) setAiErr("Não foi possível inserir a imagem no editor.");
       else onContentChange(editor.getHTML());
     } catch (e) {
@@ -122,7 +188,6 @@ export function RichEditor({
     const fullText = editor.getText();
     const hasContent = fullText.trim().length > 0;
 
-    // Has content but nothing selected → hint user to select text
     if (hasContent && empty) {
       setAiErr("Selecione um trecho para a IA editar, ou apague o conteúdo para gerar do zero.");
       return;
@@ -131,7 +196,6 @@ export function RichEditor({
     setAiLoading(true);
     try {
       if (!hasContent) {
-        // Empty editor → generate full release
         const res = await fetch("/api/ai", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -142,7 +206,6 @@ export function RichEditor({
         editor.commands.setContent(data.text);
         onContentChange(editor.getHTML());
       } else {
-        // Selection exists → rewrite only the selected text
         const selectedText = editor.state.doc.textBetween(from, to, " ");
         const res = await fetch("/api/ai", {
           method: "POST",
@@ -151,7 +214,6 @@ export function RichEditor({
         });
         const data = await res.json() as { text?: string; error?: string };
         if (!res.ok || !data.text) { setAiErr(data.error ?? "Erro na IA."); return; }
-        // Replace selection with rewritten text (plain text, preserving inline marks)
         editor.chain().focus().deleteRange({ from, to }).insertContentAt(from, data.text).run();
         onContentChange(editor.getHTML());
       }
@@ -190,14 +252,12 @@ export function RichEditor({
     />
     <div className="card editor">
       <div className="toolbtns">
-        {/* Text style */}
         {btn(editor.isActive("bold"),      () => editor.chain().focus().toggleBold().run(),      <Bold size={15} />,          "Negrito (Ctrl+B)")}
         {btn(editor.isActive("italic"),    () => editor.chain().focus().toggleItalic().run(),    <Italic size={15} />,        "Itálico (Ctrl+I)")}
         {btn(editor.isActive("underline"), () => editor.chain().focus().toggleUnderline().run(), <UnderlineIcon size={15} />, "Sublinhado (Ctrl+U)")}
 
         <span className="div" />
 
-        {/* Headings & lists */}
         {btn(editor.isActive("heading", { level: 2 }), () => editor.chain().focus().toggleHeading({ level: 2 }).run(), <Heading2 size={15} />, "Subtítulo")}
         {btn(editor.isActive("bulletList"),   () => editor.chain().focus().toggleBulletList().run(),  <List size={15} />,        "Lista")}
         {btn(editor.isActive("orderedList"),  () => editor.chain().focus().toggleOrderedList().run(), <ListOrdered size={15} />, "Lista numerada")}
@@ -206,7 +266,6 @@ export function RichEditor({
 
         <span className="div" />
 
-        {/* History */}
         <button type="button" className="tb" onClick={() => editor.chain().focus().undo().run()} disabled={!editor.can().undo()} title="Desfazer">
           <Undo size={15} />
         </button>
@@ -227,7 +286,6 @@ export function RichEditor({
 
         <div style={{ flex: 1 }} />
 
-        {/* AI */}
         <button
           type="button"
           className="tb ai-btn"
@@ -263,7 +321,6 @@ export function RichEditor({
         <EditorContent editor={editor} />
       </div>
 
-      {/* Word count bar */}
       <div style={{ padding: "10px 26px 14px", borderTop: "1px solid var(--line)" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
           <span style={{ fontSize: 12, color: "var(--stone)" }}>Contagem de palavras</span>
@@ -327,7 +384,6 @@ function LinkModal({ initial, onConfirm, onClose }: {
         style={{ background: "#fff", borderRadius: 16, width: 420, maxWidth: "calc(100vw - 32px)", boxShadow: "0 24px 64px rgba(0,0,0,0.18)", overflow: "hidden" }}
         onClick={e => e.stopPropagation()}
       >
-        {/* Header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 20px 14px", borderBottom: "1px solid var(--line)" }}>
           <h3 style={{ margin: 0, fontFamily: "var(--sans)", fontWeight: 700, fontSize: 16, letterSpacing: "-0.01em" }}>
             Inserir link
@@ -337,7 +393,6 @@ function LinkModal({ initial, onConfirm, onClose }: {
           </button>
         </div>
 
-        {/* Body */}
         <div style={{ padding: "18px 20px" }}>
           <label style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--stone)", display: "block", marginBottom: 8 }}>
             URL
@@ -353,7 +408,6 @@ function LinkModal({ initial, onConfirm, onClose }: {
           />
         </div>
 
-        {/* Footer */}
         <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", padding: "0 20px 18px" }}>
           {url && url !== "https://" && (
             <button className="btn btn-ghost btn-sm" onClick={() => onConfirm("")}>
