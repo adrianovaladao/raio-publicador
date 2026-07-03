@@ -291,11 +291,11 @@ export function RichEditor({
           className="tb ai-btn"
           onClick={runAI}
           disabled={aiLoading}
-          title="Melhorar com IA"
+          title="Gerar ou reescrever com IA (custa 25 créditos)"
           style={{ display: "flex", alignItems: "center", gap: 5, padding: "0 10px", width: "auto", color: "var(--coral-ink)", fontWeight: 600, fontSize: 13 }}
         >
           {aiLoading ? <Loader size={14} className="spin" /> : <Sparkles size={14} />}
-          {aiLoading ? "Gerando…" : "✦ IA"}
+          {aiLoading ? "Gerando…" : "✦ IA · 25 créditos"}
         </button>
       </div>
 

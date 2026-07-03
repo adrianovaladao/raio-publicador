@@ -1,13 +1,33 @@
 export const dynamic = "force-dynamic";
 import { auth } from "@clerk/nextjs/server";
+import { getPrisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 
 const client = new Anthropic();
+const AI_CREDIT_COST = 25;
 
 export async function POST(req: Request) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const prisma = getPrisma();
+  const sub = await prisma.subscription.findUnique({
+    where: { ownerId: userId },
+    select: { creditsTotal: true, creditsUsed: true, status: true },
+  });
+
+  if (!sub || ["PAST_DUE", "CANCELLED", "INACTIVE"].includes(sub.status)) {
+    return NextResponse.json({ error: "Assinatura inativa." }, { status: 403 });
+  }
+
+  const available = sub.creditsTotal - sub.creditsUsed;
+  if (available < AI_CREDIT_COST) {
+    return NextResponse.json(
+      { error: `Créditos insuficientes. Esta ação custa ${AI_CREDIT_COST} créditos e você tem ${available} disponíveis.` },
+      { status: 402 }
+    );
+  }
 
   const { title, subtitle, body, brandName, mode } = await req.json() as {
     title?: string;
@@ -52,7 +72,12 @@ Escreva com lide (quem, o quê, quando, onde, por quê) seguido de 3-4 parágraf
       .map(p => `<p>${p.trim().replace(/\n/g, "<br>")}</p>`)
       .join("");
 
-    return NextResponse.json({ text: html });
+    await prisma.subscription.update({
+      where: { ownerId: userId },
+      data: { creditsUsed: { increment: AI_CREDIT_COST } },
+    });
+
+    return NextResponse.json({ text: html, creditsDebited: AI_CREDIT_COST });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Erro interno";
     return NextResponse.json({ error: msg }, { status: 500 });
