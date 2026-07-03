@@ -175,7 +175,7 @@ interface ReleaseData {
 
 function StepContent({
   title, setTitle, subtitle, setSubtitle, body, setBody,
-  cat, setCat, author, setAuthor, brand,
+  cat, setCat, author, setAuthor, brand, imageSource, setImageSource,
 }: {
   title: string; setTitle: (v: string) => void;
   subtitle: string; setSubtitle: (v: string) => void;
@@ -183,6 +183,7 @@ function StepContent({
   cat: string; setCat: (v: string) => void;
   author: string; setAuthor: (v: string) => void;
   brand: Brand | null;
+  imageSource: string; setImageSource: (v: string) => void;
 }) {
   const [teamMembers, setTeamMembers] = useState<{ id: string; name: string }[]>([]);
   useEffect(() => {
@@ -249,6 +250,18 @@ function StepContent({
                 <ChevronDown size={16} />
               </div>
             </div>
+            {body.includes("<img") && (
+              <div className="field-row" style={{ marginTop: 4 }}>
+                <label style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--stone)" }}>Fonte da imagem</label>
+                <input
+                  className="input"
+                  placeholder="Ex.: Getty Images, Divulgação, Arquivo pessoal"
+                  value={imageSource}
+                  onChange={e => setImageSource(e.target.value)}
+                  style={{ fontSize: 13 }}
+                />
+              </div>
+            )}
           </div>
         </div>
 
@@ -486,7 +499,7 @@ function StepVehicles({ selected, setSelected, vehicles, sub, onUpgrade, onBuyCr
       </div>
 
       {/* Carrinho */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 12, position: "sticky", top: 0 }}>
       <div className="card cart">
         <div className="cart-head">
           <span className="lbl">Seleção atual</span>
@@ -752,6 +765,7 @@ export default function EditReleasePage() {
   const [body,       setBody]       = useState("");
   const [cat,        setCat]        = useState("Negócios");
   const [author,     setAuthor]     = useState("");
+  const [imageSource, setImageSource] = useState("");
   const [schedDate,  setSchedDate]  = useState("");
   const [selectedVeh, setSelectedVeh] = useState<string[]>([]);
   const [vehicles, setVehicles] = useState<VehicleItem[]>([]);
@@ -932,6 +946,7 @@ export default function EditReleasePage() {
             cat={cat} setCat={setCat}
             author={author} setAuthor={setAuthor}
             brand={brand}
+            imageSource={imageSource} setImageSource={setImageSource}
           />
         )}
         {step === 1 && <StepVehicles selected={selectedVeh} setSelected={setSelectedVeh} vehicles={vehicles} sub={sub} onBuyCredits={() => setShowBuyCreditsModal(true)} onUpgrade={() => setShowUpgradeModal(true)} />}

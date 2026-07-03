@@ -8,7 +8,7 @@ import {
   Rocket, Calendar, X, Search,
   List, LayoutGrid, Plus, Download, Upload, Cloud, CloudOff,
   SlidersHorizontal, ArrowUpDown, ArrowUp, ArrowDown,
-  Sparkles, Loader, AlertTriangle, AlertCircle, ShieldCheck,
+  Sparkles, Loader, AlertTriangle, AlertCircle, ShieldCheck, Info,
 } from "lucide-react";
 import { extractDominantColor } from "@/lib/color";
 import { UpgradeModal } from "@/components/UpgradeModal";
@@ -355,7 +355,7 @@ function StepBrand({ selected, onSelect, brands, brandsLimit, onAddBrand, onLimi
 
 // ── Passo 1: Conteúdo ────────────────────────────────────────────────────────
 
-interface Content { title: string; subtitle: string; body: string; cat: string; author: string; imageUrls: string[] }
+interface Content { title: string; subtitle: string; body: string; cat: string; author: string; imageUrls: string[]; imageSource: string }
 
 function SelectBox({ value, options, onChange }: { value: string; options: string[]; onChange: (v: string) => void }) {
   const [open, setOpen] = useState(false);
@@ -430,6 +430,20 @@ function StepContent({ content, setContent, brand, ownerName }: { content: Conte
               <label>Autor</label>
               <SelectBox value={content.author} options={authors} onChange={v => up("author", v)} />
             </div>
+            {content.body.includes("<img") && (
+              <div className="field-row" style={{ marginTop: 4 }}>
+                <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  Fonte da imagem
+                </label>
+                <input
+                  className="input"
+                  placeholder="Ex.: Getty Images, Divulgação, Arquivo pessoal"
+                  value={content.imageSource}
+                  onChange={e => up("imageSource", e.target.value)}
+                  style={{ fontSize: 13 }}
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -666,7 +680,7 @@ function StepVehicles({ selected, setSelected, vehicles, sub, onUpgrade, onBuyCr
       </div>
 
       {/* Carrinho */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 12, position: "sticky", top: 0 }}>
       <div className="card cart">
         <div className="cart-head">
           <span className="lbl">Seleção atual</span>
@@ -1292,6 +1306,12 @@ function StepReview({ content, selected, when, setWhen, brand, onSaveDraft, vehi
         <div className="card side-card" style={{ marginTop: 12 }}>
           <div className="card-head">
             <h3>Validação <em>editorial</em></h3>
+            <div style={{ position: "relative", display: "inline-flex" }} className="ai-info-wrap">
+              <Info size={14} style={{ color: "var(--stone)", cursor: "default", flexShrink: 0 }} />
+              <div className="ai-info-tip">
+                A validação com IA sugere melhorias baseadas nas diretrizes editoriais dos veículos parceiros. Não é um bloqueio — você pode publicar mesmo com alertas. Conteúdos com muitos pontos de atenção podem levar mais tempo para aprovação.
+              </div>
+            </div>
           </div>
           <div className="sc-body">
             <button
@@ -1397,7 +1417,7 @@ export default function NovoReleasePage() {
   const [done, setDone] = useState(false);
   const [brand, setBrand] = useState<Brand | null>(null);
   const [brands, setBrands] = useState<Brand[]>([]);
-  const [content, setContent] = useState<Content>({ title: "", subtitle: "", body: "", cat: "Negócios", author: "", imageUrls: [] });
+  const [content, setContent] = useState<Content>({ title: "", subtitle: "", body: "", cat: "Negócios", author: "", imageUrls: [], imageSource: "" });
   const [selected, setSelected] = useState<string[]>([]);
   const [vehicles, setVehicles] = useState<VehicleItem[]>([]);
   useEffect(() => {

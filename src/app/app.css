@@ -626,7 +626,9 @@ select.input { appearance: none; -webkit-appearance: none; padding-right: 36px; 
 .tier.t-e   { background: #D0DFF0; color: #3A5A80; }
 
 /* carrinho de seleção */
-.cart { position: sticky; top: 0; }
+.cart { }
+.ai-info-tip { display: none; position: absolute; right: 0; top: calc(100% + 6px); width: 240px; background: var(--ink); color: var(--paper); font-size: 12px; line-height: 1.55; padding: 10px 12px; border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.18); z-index: 999; pointer-events: none; font-weight: 400; }
+.ai-info-wrap:hover .ai-info-tip { display: block; }
 .cart .cart-head { padding: 18px 20px 14px; border-bottom: 1px solid var(--line); }
 .cart .cart-head .lbl { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--stone); }
 .cart .cart-head .big { display: flex; align-items: baseline; gap: 8px; margin-top: 6px; }
