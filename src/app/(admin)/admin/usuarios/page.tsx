@@ -179,7 +179,7 @@ export default function AdminUsuarios() {
   }
 
   function toggleSelect(id: string) {
-    setSelected(prev => { const s = new Set(prev); s.has(id) ? s.delete(id) : s.add(id); return s; });
+    setSelected(prev => { const s = new Set(prev); if (s.has(id)) s.delete(id); else s.add(id); return s; });
   }
 
   function toggleAll(ids: string[]) {
