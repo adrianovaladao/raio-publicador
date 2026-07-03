@@ -72,12 +72,15 @@ Escreva com lide (quem, o quê, quando, onde, por quê) seguido de 3-4 parágraf
       .map(p => `<p>${p.trim().replace(/\n/g, "<br>")}</p>`)
       .join("");
 
-    await prisma.subscription.update({
+    const updated = await prisma.subscription.update({
       where: { ownerId: userId },
       data: { creditsUsed: { increment: AI_CREDIT_COST } },
+      select: { creditsUsed: true, creditsTotal: true },
     });
 
-    return NextResponse.json({ text: html, creditsDebited: AI_CREDIT_COST });
+    console.log(`[ai] debitou ${AI_CREDIT_COST} créditos de ${userId} — novo saldo: ${updated.creditsTotal - updated.creditsUsed}`);
+
+    return NextResponse.json({ text: html, creditsDebited: AI_CREDIT_COST, creditsRemaining: updated.creditsTotal - updated.creditsUsed });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Erro interno";
     return NextResponse.json({ error: msg }, { status: 500 });
