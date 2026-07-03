@@ -395,7 +395,7 @@ function SelectBox({ value, options, onChange }: { value: string; options: strin
 }
 
 
-function StepContent({ content, setContent, brand, ownerName }: { content: Content; setContent: (c: Content) => void; brand: Brand | null; ownerName: string }) {
+function StepContent({ content, setContent, brand, ownerName, onAIUsed }: { content: Content; setContent: (c: Content) => void; brand: Brand | null; ownerName: string; onAIUsed?: () => void }) {
   const brandAuthors = brand?.authors ?? [];
   const authors = brandAuthors.length > 0 ? brandAuthors : [ownerName].filter(Boolean);
   const up = (k: keyof Content, v: string | string[]) => setContent({ ...content, [k]: v });
@@ -416,7 +416,7 @@ function StepContent({ content, setContent, brand, ownerName }: { content: Conte
         content={content.body}
         onContentChange={v => up("body", v)}
         brandName={brand?.name}
-        onAIUsed={refreshSub}
+        onAIUsed={onAIUsed}
       />
 
       <div>
@@ -1657,7 +1657,7 @@ export default function NovoReleasePage() {
         </div>
 
         {step === 0 && <StepBrand selected={brand} onSelect={setBrand} brands={brands} brandsLimit={sub.brandsLimit} onAddBrand={b => setBrands(prev => [...prev, b])} onLimitReached={() => setShowUpgradeModal(true)} />}
-        {step === 1 && <StepContent content={content} setContent={setContent} brand={brand} ownerName={ownerName} />}
+        {step === 1 && <StepContent content={content} setContent={setContent} brand={brand} ownerName={ownerName} onAIUsed={refreshSub} />}
         {step === 2 && <StepVehicles selected={selected} setSelected={setSelected} vehicles={vehicles} sub={sub} onBuyCredits={() => setShowBuyCreditsModal(true)} onUpgrade={() => setShowUpgradeModal(true)} />}
         {step === 3 && <StepReview content={content} selected={selected} when={when} setWhen={setWhen} brand={brand} onSaveDraft={autosave} vehicles={vehicles} />}
       </div>
