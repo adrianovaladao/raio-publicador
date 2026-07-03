@@ -83,8 +83,8 @@ export default clerkMiddleware(async (auth, req) => {
       return betaGatePage(req, true);
     }
 
-    // Stripe webhook always bypasses the gate
-    if (pathname !== "/api/stripe/webhook" && !isBetaUnlocked(req)) {
+    // Only the Stripe webhook bypasses the gate — everything else requires the password
+    if (!pathname.startsWith("/api/stripe/webhook") && !isBetaUnlocked(req)) {
       return betaGatePage(req);
     }
   }
