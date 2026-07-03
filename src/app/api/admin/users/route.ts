@@ -53,6 +53,19 @@ export async function GET() {
   return NextResponse.json(rows);
 }
 
+// DELETE /api/admin/users — remove subscriptions for given clerkIds
+export async function DELETE(req: NextRequest) {
+  if (!await assertRaioAdmin())
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  const { clerkIds } = await req.json() as { clerkIds: string[] };
+  if (!Array.isArray(clerkIds) || clerkIds.length === 0)
+    return NextResponse.json({ error: "clerkIds obrigatório" }, { status: 400 });
+
+  const { count } = await getPrisma().subscription.deleteMany({ where: { ownerId: { in: clerkIds } } });
+  return NextResponse.json({ deleted: count });
+}
+
 // PATCH /api/admin/users — adjust credits or plan for a user
 export async function PATCH(req: NextRequest) {
   if (!await assertRaioAdmin())

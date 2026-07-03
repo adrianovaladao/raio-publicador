@@ -5,7 +5,7 @@ import { useUser } from "@clerk/nextjs";
 import { PLANS, type PlanId } from "@/lib/plans";
 import {
   ArrowUp, ArrowDown, ArrowUpDown,
-  Pencil, Check, X, RefreshCw, ExternalLink, ChevronDown, Crown,
+  Pencil, Check, X, RefreshCw, ExternalLink, ChevronDown, Crown, Trash2,
 } from "lucide-react";
 
 interface UserRow {
@@ -129,6 +129,8 @@ export default function AdminUsuarios() {
   const [sortDir, setSortDir]   = useState<SortDir>("desc");
   const [editing, setEditing]   = useState<UserRow | null>(null);
   const [tick, setTick]         = useState(0);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkDel, setBulkDel]   = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -168,6 +170,23 @@ export default function AdminUsuarios() {
       return 0;
     });
 
+  async function handleBulkDelete() {
+    setBulkDel(true);
+    const clerkIds = [...selected];
+    await fetch("/api/admin/users", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ clerkIds }) });
+    setRows(prev => prev.filter(r => !selected.has(r.clerkId)));
+    setSelected(new Set()); setBulkDel(false);
+  }
+
+  function toggleSelect(id: string) {
+    setSelected(prev => { const s = new Set(prev); s.has(id) ? s.delete(id) : s.add(id); return s; });
+  }
+
+  function toggleAll(ids: string[]) {
+    const allSelected = ids.every(id => selected.has(id));
+    setSelected(allSelected ? new Set() : new Set(ids));
+  }
+
   function toggleSort(col: SortCol) {
     if (sortCol === col) setSortDir(d => d === "asc" ? "desc" : "asc");
     else { setSortCol(col); setSortDir("asc"); }
@@ -193,6 +212,20 @@ export default function AdminUsuarios() {
             </button>
           </div>
         </div>
+
+        {/* Bulk action bar */}
+        {selected.size > 0 && (
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14, padding: "12px 16px", background: "var(--ink)", color: "#fff", borderRadius: 10 }}>
+            <span style={{ fontSize: 13, fontWeight: 600 }}>{selected.size} selecionado{selected.size !== 1 ? "s" : ""}</span>
+            <button onClick={() => setSelected(new Set())} className="btn btn-sm" style={{ background: "rgba(255,255,255,0.12)", color: "#fff", border: "none", gap: 5 }}>
+              <X size={13} /> Limpar seleção
+            </button>
+            <div style={{ flex: 1 }} />
+            <button onClick={handleBulkDelete} disabled={bulkDel} className="btn btn-sm" style={{ background: "#DC2626", color: "#fff", border: "none", gap: 5 }}>
+              <Trash2 size={13} /> {bulkDel ? "Removendo…" : `Remover ${selected.size}`}
+            </button>
+          </div>
+        )}
 
         {/* Filters */}
         <div style={{ display: "flex", gap: 10, marginBottom: 18, flexWrap: "wrap" }}>
@@ -225,6 +258,14 @@ export default function AdminUsuarios() {
               <table className="tbl">
                 <thead>
                   <tr>
+                    <th style={{ width: 40 }}>
+                      <input type="checkbox"
+                        checked={filtered.length > 0 && filtered.every(r => selected.has(r.clerkId))}
+                        ref={el => { if (el) el.indeterminate = filtered.some(r => selected.has(r.clerkId)) && !filtered.every(r => selected.has(r.clerkId)); }}
+                        onChange={() => toggleAll(filtered.map(r => r.clerkId))}
+                        style={{ cursor: "pointer", width: 15, height: 15 }}
+                      />
+                    </th>
                     {[
                       { col: "name" as SortCol,      label: "Nome"           },
                       { col: "plan" as SortCol,      label: "Plano"          },
@@ -245,13 +286,18 @@ export default function AdminUsuarios() {
                 </thead>
                 <tbody>
                   {filtered.length === 0 ? (
-                    <tr><td colSpan={8} style={{ padding: 40, textAlign: "center", color: "var(--stone)" }}>Nenhum usuário encontrado.</td></tr>
+                    <tr><td colSpan={9} style={{ padding: 40, textAlign: "center", color: "var(--stone)" }}>Nenhum usuário encontrado.</td></tr>
                   ) : filtered.map(row => {
                     const planC = PLAN_COLOR[row.plan]    ?? { bg: "#F3F4F6", fg: "#374151" };
                     const statC = STATUS_COLOR[row.status] ?? { bg: "#F3F4F6", fg: "#374151" };
                     const pct   = row.creditsTotal > 0 ? Math.round((row.creditsUsed / row.creditsTotal) * 100) : 0;
+                    const sel = selected.has(row.clerkId);
                     return (
-                      <tr key={row.clerkId}>
+                      <tr key={row.clerkId} style={{ background: sel ? "var(--cream)" : "" }}>
+                        <td style={{ padding: "12px 14px", verticalAlign: "middle" }}>
+                          <input type="checkbox" checked={sel} onChange={() => toggleSelect(row.clerkId)}
+                            style={{ cursor: "pointer", width: 15, height: 15 }} />
+                        </td>
                         <td className="title-cell">
                           {fmtName(row)}
                           <span className="ph">{row.email}</span>
