@@ -228,13 +228,24 @@ function Brand({ go, data, setData }: { go: (s: Stage) => void; data: OnbData; s
       <div className="onb-form">
         <div className="fgrid">
           <div className="logo-up">
-            <div className="logo-slot" onClick={() => fileRef.current?.click()}>
-              {data.logoUrl
-                ? <img src={data.logoUrl} alt="logo" style={{ width: "100%", height: "100%", objectFit: "contain", borderRadius: "var(--r-lg)", padding: 8 }} />
-                : <ImageIcon size={32} style={{ color: "var(--tx-4)" }} />}
+            <div className="logo-slot" onClick={() => !data.logoUrl && fileRef.current?.click()}>
+              {data.logoUrl ? (
+                <>
+                  <img src={data.logoUrl} alt="logo" style={{ width: "100%", height: "100%", objectFit: "contain", padding: 8 }} />
+                  <button
+                    className="logo-del"
+                    onClick={e => { e.stopPropagation(); setData({ ...data, logoUrl: "" }); if (fileRef.current) fileRef.current.value = ""; }}
+                    title="Remover imagem"
+                  >
+                    <X size={13} />
+                  </button>
+                </>
+              ) : (
+                <ImageIcon size={32} style={{ color: "var(--tx-4)" }} />
+              )}
             </div>
             <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleLogo} />
-            <span className="hint">Clique para enviar o logo<br/>PNG ou SVG · fundo transparente</span>
+            <span className="hint">{data.logoUrl ? "Clique no × para remover" : "Clique para enviar o logo"}<br/>PNG ou SVG · fundo transparente</span>
           </div>
           <div>
             <div className="fld">
