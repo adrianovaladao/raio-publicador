@@ -34,8 +34,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       }}>
         {/* Brand */}
         <div style={{ padding: "20px 20px 16px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-          <RaioLockup height={20} variant="dark" />
-          <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 8 }}>
+          <RaioLockup height={28} variant="dark" />
+          <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 14 }}>
             <ShieldCheck size={11} style={{ color: "#F59E0B" }} />
             <span style={{ fontSize: 10, fontFamily: "var(--mono)", letterSpacing: "0.14em", textTransform: "uppercase", color: "#F59E0B" }}>
               Master Admin
