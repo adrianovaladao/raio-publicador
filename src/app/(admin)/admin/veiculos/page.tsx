@@ -78,11 +78,11 @@ function VehicleModal({ initial, onSave, onClose }: {
   }
 
   const labelStyle: React.CSSProperties = { fontSize: 11, fontFamily: "var(--mono)", letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--stone)", display: "block", marginBottom: 6 };
-  const inputStyle: React.CSSProperties = { width: "100%", padding: "10px 12px", borderRadius: 8, border: "1.5px solid var(--border)", background: "var(--bg)", fontSize: 14, boxSizing: "border-box" };
+  const inputStyle: React.CSSProperties = { width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid var(--line)", background: "var(--bg)", fontSize: 14, boxSizing: "border-box" };
 
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <div style={{ background: "var(--card)", borderRadius: 16, padding: 28, width: 480, boxShadow: "0 8px 40px rgba(0,0,0,0.2)", maxHeight: "90vh", overflowY: "auto" }}>
+      <div style={{ background: "var(--paper)", borderRadius: 16, padding: 28, width: 480, boxShadow: "0 8px 40px rgba(0,0,0,0.2)", maxHeight: "90vh", overflowY: "auto" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
           <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>{initial ? "Editar veículo" : "Novo veículo"}</h3>
           <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--stone)" }}><X size={18} /></button>
@@ -146,7 +146,7 @@ function VehicleModal({ initial, onSave, onClose }: {
 function DeleteModal({ name, onConfirm, onClose, loading }: { name: string; onConfirm: () => void; onClose: () => void; loading: boolean }) {
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <div style={{ background: "var(--card)", borderRadius: 16, padding: 28, width: 380, boxShadow: "0 8px 40px rgba(0,0,0,0.2)" }}>
+      <div style={{ background: "var(--paper)", borderRadius: 16, padding: 28, width: 380, boxShadow: "0 8px 40px rgba(0,0,0,0.2)" }}>
         <h3 style={{ margin: "0 0 12px", fontSize: 16, fontWeight: 700 }}>Remover veículo</h3>
         <p style={{ fontSize: 14, color: "var(--stone)", marginBottom: 24 }}>Tem certeza que deseja remover <strong style={{ color: "var(--fg)" }}>{name}</strong>? Esta ação não pode ser desfeita.</p>
         <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
@@ -167,7 +167,7 @@ function FilterModal({ cats, tiers, onApply, onClose }: { cats: string[]; tiers:
   const [selTiers, setSelTiers] = useState<string[]>(tiers);
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <div style={{ background: "var(--card)", borderRadius: 16, padding: 28, width: 440, boxShadow: "0 8px 40px rgba(0,0,0,0.2)", maxHeight: "80vh", overflowY: "auto" }}>
+      <div style={{ background: "var(--paper)", borderRadius: 16, padding: 28, width: 440, boxShadow: "0 8px 40px rgba(0,0,0,0.2)", maxHeight: "80vh", overflowY: "auto" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
           <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>Filtrar veículos</h3>
           <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--stone)" }}><X size={18} /></button>
@@ -372,12 +372,12 @@ export default function AdminVeiculos() {
           </button>
         )}
         <input placeholder="Buscar veículo…" value={q} onChange={e => { setQ(e.target.value); setPage(1); }}
-          style={{ flex: 1, minWidth: 200, padding: "9px 12px", borderRadius: 8, border: "1.5px solid var(--border)", background: "var(--bg)", fontSize: 13 }} />
+          style={{ flex: 1, minWidth: 200, padding: "9px 12px", borderRadius: 8, border: "1px solid var(--line)", background: "var(--bg)", fontSize: 13 }} />
         <span style={{ fontSize: 12, color: "var(--stone)", alignSelf: "center" }}>{sorted.length} de {vehicles.length}</span>
       </div>
 
       {/* Table */}
-      <div style={{ background: "var(--card)", border: "1.5px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
+      <div style={{ background: "var(--paper)", border: "1px solid var(--line)", borderRadius: 12, overflow: "hidden" }}>
         {loading ? (
           <div style={{ padding: 48, textAlign: "center", color: "var(--stone)" }}>Carregando…</div>
         ) : (
@@ -434,11 +434,11 @@ export default function AdminVeiculos() {
                     <td style={{ ...tdS, background: selected.has(v.id) ? "var(--cream)" : "" }}>
                       <div style={{ display: "flex", gap: 4, justifyContent: "flex-end" }}>
                         <button title="Editar" onClick={() => setEditing(v)}
-                          style={{ background: "none", border: "1.5px solid var(--border)", borderRadius: 6, padding: "5px 8px", cursor: "pointer", color: "var(--stone)", display: "flex" }}>
+                          style={{ background: "none", border: "1px solid var(--line)", borderRadius: 6, padding: "5px 8px", cursor: "pointer", color: "var(--stone)", display: "flex" }}>
                           <Pencil size={13} />
                         </button>
                         <button title="Remover" onClick={() => setDeleting(v)}
-                          style={{ background: "none", border: "1.5px solid var(--border)", borderRadius: 6, padding: "5px 8px", cursor: "pointer", color: "#DC2626", display: "flex" }}>
+                          style={{ background: "none", border: "1px solid var(--line)", borderRadius: 6, padding: "5px 8px", cursor: "pointer", color: "#DC2626", display: "flex" }}>
                           <Trash2 size={13} />
                         </button>
                       </div>
