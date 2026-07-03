@@ -136,6 +136,12 @@ export function RichEditor({
       FigureExtension,
     ],
     content: content || "",
+    onCreate: ({ editor }) => {
+      // Restore content when editor remounts (e.g. navigating between steps)
+      if (content && editor.isEmpty) {
+        editor.commands.setContent(content, false);
+      }
+    },
     onUpdate: ({ editor }) => {
       onContentChange(editor.getHTML());
       const words = editor.getText().trim().split(/\s+/).filter(Boolean).length;

@@ -17,8 +17,8 @@ export async function POST(req: Request) {
     select: { creditsTotal: true, creditsUsed: true, status: true },
   });
 
-  if (!sub || ["PAST_DUE", "CANCELLED", "INACTIVE"].includes(sub.status)) {
-    return NextResponse.json({ error: "Assinatura inativa." }, { status: 403 });
+  if (!sub || ["PAST_DUE", "CANCELLED"].includes(sub.status)) {
+    return NextResponse.json({ error: "Assinatura suspensa. Regularize seu plano para usar a IA." }, { status: 403 });
   }
 
   const available = sub.creditsTotal - sub.creditsUsed;
