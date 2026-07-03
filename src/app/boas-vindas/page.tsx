@@ -178,12 +178,14 @@ const SEGMENTS = ["Franquias","Varejo","Tecnologia","Alimentação","Saúde","Se
 function Brand({ go, data, setData }: { go: (s: Stage) => void; data: OnbData; setData: (d: OnbData) => void }) {
   const up = (k: keyof OnbData, v: string) => setData({ ...data, [k]: v });
   const fileRef = useRef<HTMLInputElement>(null);
+  const logoFileRef = useRef<File | null>(null);
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState("");
 
   function handleLogo(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
+    logoFileRef.current = file;
     const url = URL.createObjectURL(file);
     setData({ ...data, logoUrl: url });
   }
@@ -192,6 +194,17 @@ function Brand({ go, data, setData }: { go: (s: Stage) => void; data: OnbData; s
     setSaving(true);
     setErr("");
     try {
+      let logoUrl: string | undefined;
+      if (logoFileRef.current) {
+        const form = new FormData();
+        form.append("file", logoFileRef.current);
+        const upRes = await fetch("/api/upload", { method: "POST", body: form });
+        if (upRes.ok) {
+          const { url } = await upRes.json();
+          logoUrl = url;
+        }
+      }
+
       const res = await fetch("/api/brands", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -201,6 +214,7 @@ function Brand({ go, data, setData }: { go: (s: Stage) => void; data: OnbData; s
           site: data.site.trim() || undefined,
           contact: data.contact.trim() || undefined,
           description: data.desc.trim() || undefined,
+          logoUrl,
         }),
       });
       const text = await res.text();
