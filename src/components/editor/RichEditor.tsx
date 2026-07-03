@@ -139,7 +139,7 @@ export function RichEditor({
     onCreate: ({ editor }) => {
       // Restore content when editor remounts (e.g. navigating between steps)
       if (content && editor.isEmpty) {
-        editor.commands.setContent(content, false);
+        editor.commands.setContent(content, { emitUpdate: false });
       }
     },
     onUpdate: ({ editor }) => {
