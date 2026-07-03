@@ -224,6 +224,8 @@ export default function AdminVeiculos() {
   const [deleting,    setDeleting]   = useState<VehicleRow | null>(null);
   const [isDel,       setIsDel]      = useState(false);
   const [toast,       setToast]      = useState<string | null>(null);
+  const [selected,    setSelected]   = useState<Set<string>>(new Set());
+  const [bulkDel,     setBulkDel]    = useState(false);
 
   useEffect(() => {
     if (!isAdmin) return;
@@ -270,6 +272,24 @@ export default function AdminVeiculos() {
     setVehicles(prev => prev.filter(v => v.id !== deleting.id));
     setDeleting(null); setIsDel(false);
     showToast("Veículo removido.");
+  }
+
+  async function handleBulkDelete() {
+    setBulkDel(true);
+    const ids = [...selected];
+    await fetch("/api/admin/vehicles", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ids }) });
+    setVehicles(prev => prev.filter(v => !selected.has(v.id)));
+    setSelected(new Set()); setBulkDel(false);
+    showToast(`${ids.length} veículo${ids.length !== 1 ? "s" : ""} removido${ids.length !== 1 ? "s" : ""}.`);
+  }
+
+  function toggleSelect(id: string) {
+    setSelected(prev => { const s = new Set(prev); s.has(id) ? s.delete(id) : s.add(id); return s; });
+  }
+
+  function toggleAll(ids: string[]) {
+    const allSelected = ids.every(id => selected.has(id));
+    setSelected(allSelected ? new Set() : new Set(ids));
   }
 
   function toggleSort(col: SortCol) {
@@ -326,6 +346,20 @@ export default function AdminVeiculos() {
         </div>
       </div>
 
+      {/* Bulk action bar */}
+      {selected.size > 0 && (
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14, padding: "12px 16px", background: "var(--ink)", color: "#fff", borderRadius: 10 }}>
+          <span style={{ fontSize: 13, fontWeight: 600 }}>{selected.size} selecionado{selected.size !== 1 ? "s" : ""}</span>
+          <button onClick={() => setSelected(new Set())} className="btn btn-sm" style={{ background: "rgba(255,255,255,0.12)", color: "#fff", border: "none", gap: 5 }}>
+            <X size={13} /> Limpar seleção
+          </button>
+          <div style={{ flex: 1 }} />
+          <button onClick={handleBulkDelete} disabled={bulkDel} className="btn btn-sm" style={{ background: "#DC2626", color: "#fff", border: "none", gap: 5 }}>
+            <Trash2 size={13} /> {bulkDel ? "Removendo…" : `Remover ${selected.size}`}
+          </button>
+        </div>
+      )}
+
       {/* Toolbar */}
       <div style={{ display: "flex", gap: 10, marginBottom: 18, flexWrap: "wrap" }}>
         <button className={`btn btn-ghost btn-sm${activeFilters > 0 ? " active" : ""}`} onClick={() => setShowFilter(true)} style={{ gap: 6 }}>
@@ -351,6 +385,14 @@ export default function AdminVeiculos() {
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr>
+                  <th style={{ ...thS, width: 40, cursor: "default" }}>
+                    <input type="checkbox"
+                      checked={list.length > 0 && list.every(v => selected.has(v.id))}
+                      ref={el => { if (el) el.indeterminate = list.some(v => selected.has(v.id)) && !list.every(v => selected.has(v.id)); }}
+                      onChange={() => toggleAll(list.map(v => v.id))}
+                      style={{ cursor: "pointer", width: 15, height: 15 }}
+                    />
+                  </th>
                   <th style={{ ...thS, width: "35%" }} onClick={() => toggleSort("name")}><span style={{ display: "flex", alignItems: "center", gap: 4 }}>Veículo <SortIcon col="name" /></span></th>
                   <th style={thS} onClick={() => toggleSort("category")}><span style={{ display: "flex", alignItems: "center", gap: 4 }}>Editoria <SortIcon col="category" /></span></th>
                   <th style={thS} onClick={() => toggleSort("tier")}><span style={{ display: "flex", alignItems: "center", gap: 4 }}>Tier <SortIcon col="tier" /></span></th>
@@ -361,12 +403,16 @@ export default function AdminVeiculos() {
               </thead>
               <tbody>
                 {list.length === 0 ? (
-                  <tr><td colSpan={6} style={{ padding: 40, textAlign: "center", color: "var(--stone)" }}>Nenhum veículo encontrado.</td></tr>
+                  <tr><td colSpan={7} style={{ padding: 40, textAlign: "center", color: "var(--stone)" }}>Nenhum veículo encontrado.</td></tr>
                 ) : list.map(v => (
                   <tr key={v.id}
                     onMouseEnter={e => (e.currentTarget.style.background = "var(--bg)")}
-                    onMouseLeave={e => (e.currentTarget.style.background = "")}>
-                    <td style={tdS}>
+                    onMouseLeave={e => (e.currentTarget.style.background = selected.has(v.id) ? "var(--cream)" : "")}>
+                    <td style={{ ...tdS, background: selected.has(v.id) ? "var(--cream)" : "" }}>
+                      <input type="checkbox" checked={selected.has(v.id)} onChange={() => toggleSelect(v.id)}
+                        style={{ cursor: "pointer", width: 15, height: 15 }} />
+                    </td>
+                    <td style={{ ...tdS, background: selected.has(v.id) ? "var(--cream)" : "" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                         <div style={{ width: 34, height: 34, borderRadius: 8, background: TIER_COLORS[v.tier] ?? "#ccc", color: TIER_FG[v.tier] ?? "#fff", display: "grid", placeItems: "center", fontFamily: "var(--mono)", fontWeight: 700, fontSize: 11, flexShrink: 0, overflow: "hidden" }}>
                           {v.logoUrl ? <img src={v.logoUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : initials(v.name)}
@@ -377,15 +423,15 @@ export default function AdminVeiculos() {
                         </div>
                       </div>
                     </td>
-                    <td style={{ ...tdS, color: "var(--stone)" }}>{v.category}</td>
-                    <td style={tdS}>
+                    <td style={{ ...tdS, color: "var(--stone)", background: selected.has(v.id) ? "var(--cream)" : "" }}>{v.category}</td>
+                    <td style={{ ...tdS, background: selected.has(v.id) ? "var(--cream)" : "" }}>
                       <span style={{ display: "inline-block", padding: "3px 8px", borderRadius: 6, fontSize: 11, fontWeight: 700, background: TIER_COLORS[v.tier] + "22", color: TIER_COLORS[v.tier] }}>
                         {v.tier}
                       </span>
                     </td>
-                    <td style={{ ...tdS, textAlign: "right", fontFamily: "var(--mono)", fontWeight: 700 }}>{fmtReach(v.reach)}</td>
-                    <td style={{ ...tdS, textAlign: "right", fontFamily: "var(--mono)", fontWeight: 700 }}>{TIER_TOKENS[v.tier] ?? 0} ⚡</td>
-                    <td style={tdS}>
+                    <td style={{ ...tdS, textAlign: "right", fontFamily: "var(--mono)", fontWeight: 700, background: selected.has(v.id) ? "var(--cream)" : "" }}>{fmtReach(v.reach)}</td>
+                    <td style={{ ...tdS, textAlign: "right", fontFamily: "var(--mono)", fontWeight: 700, background: selected.has(v.id) ? "var(--cream)" : "" }}>{TIER_TOKENS[v.tier] ?? 0} ⚡</td>
+                    <td style={{ ...tdS, background: selected.has(v.id) ? "var(--cream)" : "" }}>
                       <div style={{ display: "flex", gap: 4, justifyContent: "flex-end" }}>
                         <button title="Editar" onClick={() => setEditing(v)}
                           style={{ background: "none", border: "1.5px solid var(--border)", borderRadius: 6, padding: "5px 8px", cursor: "pointer", color: "var(--stone)", display: "flex" }}>

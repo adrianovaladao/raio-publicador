@@ -18,6 +18,18 @@ export async function GET() {
   return NextResponse.json(vehicles);
 }
 
+export async function DELETE(req: Request) {
+  if (!await assertRaioAdmin())
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  const { ids } = await req.json() as { ids: string[] };
+  if (!Array.isArray(ids) || ids.length === 0)
+    return NextResponse.json({ error: "ids obrigatório" }, { status: 400 });
+
+  const { count } = await getPrisma().vehicle.deleteMany({ where: { id: { in: ids } } });
+  return NextResponse.json({ deleted: count });
+}
+
 export async function POST(req: Request) {
   if (!await assertRaioAdmin())
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
