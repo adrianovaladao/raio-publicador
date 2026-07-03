@@ -101,11 +101,19 @@ export async function POST(req: NextRequest) {
       const planId = subscription.metadata?.planId as PlanId | undefined;
       if (!clerkId || !planId || !PLANS[planId]) break;
 
+      // Detect downgrade: compare new plan price with current plan in DB
+      const currentSub = await prisma.subscription.findUnique({ where: { ownerId: clerkId }, select: { plan: true, creditsTotal: true } });
+      const currentPlanId = currentSub?.plan as PlanId | null;
+      const currentPriceCents = currentPlanId ? (PLANS[currentPlanId]?.priceCents ?? 0) : 0;
+      const isDowngrade = PLANS[planId].priceCents < currentPriceCents;
+
       await prisma.subscription.update({
         where: { ownerId: clerkId },
         data: {
           plan: planId,
-          creditsTotal: PLANS[planId].credits,
+          // On downgrade: keep current credits until renewal (invoice.payment_succeeded resets them)
+          // On upgrade: reset to new plan's credits immediately
+          ...(isDowngrade ? {} : { creditsTotal: PLANS[planId].credits }),
           stripeSubscriptionId: subscription.id,
           currentPeriodStart: new Date(subscription.items.data[0].current_period_start * 1000),
           currentPeriodEnd: new Date(subscription.items.data[0].current_period_end * 1000),

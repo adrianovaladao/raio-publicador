@@ -21,6 +21,14 @@ export async function POST(req: Request) {
   const body = await req.json() as { status: string; creditsUsed: number; title: string; body: string; summary?: string; scheduledAt?: string | null; brandId: string; imageUrl?: string | null; vehicles: string[] };
   console.log("[releases POST] status:", body.status, "creditsUsed:", body.creditsUsed, "vehicles:", body.vehicles?.length);
   const prisma = getPrisma();
+
+  if (body.status === "SCHEDULED") {
+    const sub = await prisma.subscription.findUnique({ where: { ownerId: userId }, select: { status: true } });
+    if (!sub || ["PAST_DUE", "CANCELLED", "INACTIVE"].includes(sub.status)) {
+      return NextResponse.json({ error: "Assinatura inativa. Regularize seu plano para agendar releases." }, { status: 403 });
+    }
+  }
+
   const creditsToDebit = body.status === "SCHEDULED" ? (body.creditsUsed ?? 0) : 0;
 
   const [release] = await prisma.$transaction([

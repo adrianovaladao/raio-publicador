@@ -86,35 +86,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true });
     }
 
-    // Upgrade — redirect to Stripe checkout for payment
-    const user = await currentUser();
-    const email = user?.emailAddresses[0]?.emailAddress;
+    // Upgrade — update existing subscription directly and invoice immediately
+    const stripeSub = await stripe.subscriptions.retrieve(sub.stripeSubscriptionId);
+    const itemId = stripeSub.items.data[0]?.id;
+    if (!itemId) return NextResponse.json({ error: "Item de assinatura não encontrado" }, { status: 500 });
 
-    let customerId = sub.stripeCustomerId ?? undefined;
-    if (!customerId) {
-      const customer = await stripe.customers.create({ email, metadata: { clerkId: userId } });
-      customerId = customer.id;
-      await prisma.subscription.update({ where: { ownerId: userId }, data: { stripeCustomerId: customerId } });
-    }
-
-    const origin = req.nextUrl.origin;
-    const session = await stripe.checkout.sessions.create({
-      mode: "subscription",
-      customer: customerId,
-      currency: "brl",
-      line_items: [{ price: plan.stripePriceId, quantity: 1 }],
-      success_url: `${origin}/configuracoes?upgrade=success`,
-      cancel_url: `${origin}/configuracoes`,
-      locale: "pt-BR",
+    await stripe.subscriptions.update(sub.stripeSubscriptionId, {
+      items: [{ id: itemId, price: plan.stripePriceId }],
+      proration_behavior: "always_invoice",
       metadata: { clerkId: userId, planId },
-      subscription_data: { metadata: { clerkId: userId, planId } },
     });
 
-    if (!session.url) {
-      return NextResponse.json({ error: "Não foi possível criar a sessão de pagamento." }, { status: 500 });
-    }
-
-    return NextResponse.json({ redirect: true, url: session.url });
+    // DB updated by invoice.payment_succeeded webhook after Stripe charges the difference
+    return NextResponse.json({ ok: true });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Erro interno";
     console.error("[stripe/upgrade]", message);

@@ -24,6 +24,13 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   const prisma = getPrisma();
   const prev = await prisma.release.findUnique({ where: { id }, select: { status: true, creditsUsed: true } });
   const becomingScheduled   = body.status === "SCHEDULED" && prev?.status !== "SCHEDULED";
+
+  if (becomingScheduled) {
+    const sub = await prisma.subscription.findUnique({ where: { ownerId: userId }, select: { status: true } });
+    if (!sub || ["PAST_DUE", "CANCELLED", "INACTIVE"].includes(sub.status)) {
+      return NextResponse.json({ error: "Assinatura inativa. Regularize seu plano para agendar releases." }, { status: 403 });
+    }
+  }
   const leavingScheduled    = prev?.status === "SCHEDULED" && body.status !== undefined && body.status !== "SCHEDULED";
   const updateData = {
     ...(body.title       !== undefined && { title:       body.title }),
