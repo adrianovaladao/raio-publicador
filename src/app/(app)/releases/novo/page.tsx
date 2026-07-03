@@ -736,11 +736,11 @@ function StepVehicles({ selected, setSelected, vehicles, sub, onUpgrade, onBuyCr
       {over && (
         <div style={{ background: "var(--red-soft)", color: "var(--red)", borderRadius: 12, padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10, position: "relative", zIndex: 2 }}>
           <span style={{ fontSize: 13 }}>Faltam <b>{(selTokens - left).toLocaleString("pt-BR")} créditos</b>. Remova veículos ou adquira mais créditos.</span>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {onBuyCredits && (
               <button
                 className="btn btn-sm"
-                style={{ background: "var(--red)", color: "#fff", border: "none", fontSize: 12 }}
+                style={{ background: "var(--red)", color: "#fff", border: "none", fontSize: 12, width: "100%", justifyContent: "center" }}
                 onClick={onBuyCredits}
               >
                 Comprar créditos avulsos
@@ -749,7 +749,7 @@ function StepVehicles({ selected, setSelected, vehicles, sub, onUpgrade, onBuyCr
             {onUpgrade && sub.plan !== "PROFESSIONAL" && (
               <button
                 className="btn btn-sm"
-                style={{ background: "transparent", color: "var(--red)", border: "1.5px solid var(--red)", fontSize: 12 }}
+                style={{ background: "transparent", color: "var(--red)", border: "1.5px solid var(--red)", fontSize: 12, width: "100%", justifyContent: "center" }}
                 onClick={onUpgrade}
               >
                 Fazer upgrade de plano
