@@ -47,6 +47,14 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   const creditsToDebit  = becomingScheduled ? (body.creditsUsed ?? 0) : 0;
   const creditsToReturn = leavingScheduled  ? (prev?.creditsUsed ?? 0) : 0;
 
+  // Fetch current creditsUsed to avoid going negative across plan/cycle boundaries
+  const currentSub = creditsToReturn > 0
+    ? await prisma.subscription.findUnique({ where: { ownerId: userId }, select: { creditsUsed: true } })
+    : null;
+  const safeReturn = creditsToReturn > 0
+    ? Math.min(creditsToReturn, currentSub?.creditsUsed ?? 0)
+    : 0;
+
   const [release] = await prisma.$transaction([
     prisma.release.update({ where: { id }, data: updateData }),
     ...(creditsToDebit > 0
@@ -55,10 +63,10 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
           data: { creditsUsed: { increment: creditsToDebit } },
         })]
       : []),
-    ...(creditsToReturn > 0
+    ...(safeReturn > 0
       ? [prisma.subscription.update({
           where: { ownerId: userId },
-          data: { creditsUsed: { decrement: creditsToReturn } },
+          data: { creditsUsed: { decrement: safeReturn } },
         })]
       : []),
   ]);
@@ -73,12 +81,21 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
   const prisma = getPrisma();
   const release = await prisma.release.findUnique({ where: { id }, select: { status: true, creditsUsed: true } });
   const creditsToReturn = release?.status === "SCHEDULED" ? (release.creditsUsed ?? 0) : 0;
+
+  // Clamp return to current creditsUsed to avoid going negative across plan/cycle boundaries
+  const currentSub = creditsToReturn > 0
+    ? await prisma.subscription.findUnique({ where: { ownerId: userId }, select: { creditsUsed: true } })
+    : null;
+  const safeReturn = creditsToReturn > 0
+    ? Math.min(creditsToReturn, currentSub?.creditsUsed ?? 0)
+    : 0;
+
   await prisma.$transaction([
     prisma.release.delete({ where: { id } }),
-    ...(creditsToReturn > 0
+    ...(safeReturn > 0
       ? [prisma.subscription.update({
           where: { ownerId: userId },
-          data: { creditsUsed: { decrement: creditsToReturn } },
+          data: { creditsUsed: { decrement: safeReturn } },
         })]
       : []),
   ]);
