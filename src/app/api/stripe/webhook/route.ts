@@ -9,7 +9,6 @@ import {
   sendWelcomeEmail,
   sendRenewalEmail,
   sendPaymentFailedEmail,
-  sendUpgradeEmail,
 } from "@/lib/email";
 
 async function getClerkUser(clerkId: string) {

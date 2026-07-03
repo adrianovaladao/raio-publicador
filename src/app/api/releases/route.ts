@@ -23,7 +23,7 @@ export async function POST(req: Request) {
   console.log("[releases POST] status:", body.status, "creditsUsed:", body.creditsUsed, "vehicles:", body.vehicles?.length);
   const prisma = getPrisma();
 
-  let sub = await prisma.subscription.findUnique({
+  const sub = await prisma.subscription.findUnique({
     where: { ownerId: userId },
     select: { status: true, creditsTotal: true, creditsUsed: true },
   });
