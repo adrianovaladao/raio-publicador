@@ -42,7 +42,6 @@ export async function POST(req: NextRequest) {
     const origin = req.nextUrl.origin;
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
-      payment_method_types: ["card", "pix"],
       customer: customerId,
       currency: "brl",
       line_items: [{
