@@ -2,8 +2,23 @@ export const dynamic = "force-dynamic";
 import { getStripe } from "@/lib/stripe";
 import { PLANS, type PlanId } from "@/lib/plans";
 import { getPrisma } from "@/lib/prisma";
+import { clerkClient } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
+import {
+  sendWelcomeEmail,
+  sendRenewalEmail,
+  sendPaymentFailedEmail,
+  sendUpgradeEmail,
+} from "@/lib/email";
+
+async function getClerkUser(clerkId: string) {
+  const clerk = await clerkClient();
+  const user = await clerk.users.getUser(clerkId);
+  const firstName = user.firstName ?? user.emailAddresses[0]?.emailAddress?.split("@")[0] ?? "usuário";
+  const email = user.emailAddresses[0]?.emailAddress ?? "";
+  return { firstName, email };
+}
 
 export async function POST(req: NextRequest) {
   const stripe = getStripe();
@@ -56,6 +71,11 @@ export async function POST(req: NextRequest) {
           currentPeriodEnd: new Date(subscription.items.data[0].current_period_end * 1000),
         },
       });
+
+      const { firstName, email } = await getClerkUser(clerkId);
+      if (email) {
+        await sendWelcomeEmail(email, firstName).catch(console.error);
+      }
       break;
     }
 
@@ -73,6 +93,8 @@ export async function POST(req: NextRequest) {
       const billingReason = (invoice as unknown as { billing_reason?: string }).billing_reason;
       const isRenewal = billingReason === "subscription_cycle";
 
+      const periodEnd = new Date(subscription.items.data[0].current_period_end * 1000);
+
       await prisma.subscription.update({
         where: { ownerId: clerkId },
         data: {
@@ -81,9 +103,16 @@ export async function POST(req: NextRequest) {
           creditsTotal: PLANS[planId].credits,
           ...(isRenewal ? { creditsUsed: 0 } : {}),
           currentPeriodStart: new Date(subscription.items.data[0].current_period_start * 1000),
-          currentPeriodEnd: new Date(subscription.items.data[0].current_period_end * 1000),
+          currentPeriodEnd: periodEnd,
         },
       });
+
+      if (isRenewal) {
+        const { firstName, email } = await getClerkUser(clerkId);
+        if (email) {
+          await sendRenewalEmail(email, firstName, PLANS[planId].label, PLANS[planId].credits, periodEnd).catch(console.error);
+        }
+      }
       break;
     }
 
@@ -97,6 +126,12 @@ export async function POST(req: NextRequest) {
       if (!clerkId) break;
 
       await prisma.subscription.update({ where: { ownerId: clerkId }, data: { status: "PAST_DUE" } });
+
+      const planId = subscription.metadata?.planId as PlanId | undefined;
+      const { firstName, email } = await getClerkUser(clerkId);
+      if (email) {
+        await sendPaymentFailedEmail(email, firstName, planId ? PLANS[planId]?.label : "atual").catch(console.error);
+      }
       break;
     }
 

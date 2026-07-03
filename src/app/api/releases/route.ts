@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic";
-import { auth } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { getPrisma } from "@/lib/prisma";
+import { sendReleaseScheduledEmail, sendLowCreditsEmail, sendZeroCreditsEmail } from "@/lib/email";
 import { NextResponse } from "next/server";
 import { ReleaseStatus } from "@prisma/client";
 
@@ -22,8 +23,12 @@ export async function POST(req: Request) {
   console.log("[releases POST] status:", body.status, "creditsUsed:", body.creditsUsed, "vehicles:", body.vehicles?.length);
   const prisma = getPrisma();
 
+  let sub = await prisma.subscription.findUnique({
+    where: { ownerId: userId },
+    select: { status: true, creditsTotal: true, creditsUsed: true },
+  });
+
   if (body.status === "SCHEDULED") {
-    const sub = await prisma.subscription.findUnique({ where: { ownerId: userId }, select: { status: true } });
     if (!sub || ["PAST_DUE", "CANCELLED", "INACTIVE"].includes(sub.status)) {
       return NextResponse.json({ error: "Assinatura inativa. Regularize seu plano para agendar releases." }, { status: 403 });
     }
@@ -53,6 +58,32 @@ export async function POST(req: Request) {
         })]
       : []),
   ]);
+
+  // Email notifications (fire-and-forget)
+  if (body.status === "SCHEDULED" && sub) {
+    const user = await currentUser();
+    const firstName = user?.firstName ?? user?.emailAddresses[0]?.emailAddress?.split("@")[0] ?? "usuário";
+    const email = user?.emailAddresses[0]?.emailAddress;
+
+    if (email) {
+      // Release agendado
+      await sendReleaseScheduledEmail(
+        email, firstName, body.title,
+        body.scheduledAt ? new Date(body.scheduledAt) : new Date(),
+        body.vehicles?.length ?? 0,
+        release.id,
+      ).catch(console.error);
+
+      // Créditos baixos ou zerados após débito
+      const remaining = (sub.creditsTotal - sub.creditsUsed) - creditsToDebit;
+      const threshold = Math.floor(sub.creditsTotal * 0.2);
+      if (remaining <= 0) {
+        await sendZeroCreditsEmail(email, firstName).catch(console.error);
+      } else if (remaining <= threshold) {
+        await sendLowCreditsEmail(email, firstName, remaining).catch(console.error);
+      }
+    }
+  }
 
   return NextResponse.json(release, { status: 201 });
 }

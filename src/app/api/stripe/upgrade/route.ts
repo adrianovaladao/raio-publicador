@@ -3,6 +3,7 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { getStripe } from "@/lib/stripe";
 import { PLANS, type PlanId } from "@/lib/plans";
 import { getPrisma } from "@/lib/prisma";
+import { sendUpgradeEmail } from "@/lib/email";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
@@ -103,6 +104,13 @@ export async function POST(req: NextRequest) {
       where: { ownerId: userId },
       data: { plan: planId, creditsTotal: plan.credits },
     });
+
+    const user = await currentUser();
+    const firstName = user?.firstName ?? user?.emailAddresses[0]?.emailAddress?.split("@")[0] ?? "usuário";
+    const email = user?.emailAddresses[0]?.emailAddress;
+    if (email) {
+      await sendUpgradeEmail(email, firstName, plan.label, plan.credits).catch(console.error);
+    }
 
     return NextResponse.json({ ok: true });
   } catch (err) {
