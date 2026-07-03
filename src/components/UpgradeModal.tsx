@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useEscapeKey } from "@/hooks/useEscapeKey";
 import { X, ArrowRight } from "lucide-react";
 
 const UPGRADE_OPTIONS: Record<string, Array<{ id: string; label: string; brandsLimit: number; price: string }>> = {
@@ -14,6 +15,7 @@ const UPGRADE_OPTIONS: Record<string, Array<{ id: string; label: string; brandsL
 };
 
 export function UpgradeModal({ currentPlan, onClose }: { currentPlan: string; onClose: () => void }) {
+  useEscapeKey(onClose);
   const options = UPGRADE_OPTIONS[currentPlan] ?? [];
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);

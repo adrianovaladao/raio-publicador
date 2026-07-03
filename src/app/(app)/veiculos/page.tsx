@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useEscapeKey } from "@/hooks/useEscapeKey";
 import { ArrowUpDown, ArrowUp, ArrowDown, SlidersHorizontal, X } from "lucide-react";
 
 type VehicleItem = { id: string; name: string; domain: string; cat: string; tier: string; reach: number; logoUrl?: string | null };
@@ -61,6 +62,7 @@ function FilterModal({ cats, tiers, onApply, onClose }: {
   onApply: (cats: string[], tiers: string[]) => void;
   onClose: () => void;
 }) {
+  useEscapeKey(onClose);
   const [selCats,  setSelCats]  = useState<string[]>(cats);
   const [selTiers, setSelTiers] = useState<string[]>(tiers);
 

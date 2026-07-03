@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useEscapeKey } from "@/hooks/useEscapeKey";
 import { X, Zap } from "lucide-react";
 
 interface PackageDef { qty: number; label: string }
@@ -40,6 +41,7 @@ function fmtBRL(cents: number) {
 }
 
 export function BuyCreditsModal({ currentPlan, onClose }: { currentPlan: string; onClose: () => void }) {
+  useEscapeKey(onClose);
   const config = PACKAGES[currentPlan];
   const [selected, setSelected] = useState<number | null>(null);
   const [custom, setCustom] = useState("");

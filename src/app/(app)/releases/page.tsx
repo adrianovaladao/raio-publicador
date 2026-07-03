@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useEscapeKey } from "@/hooks/useEscapeKey";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { List, LayoutGrid, Plus, Inbox, Trash2, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
@@ -89,6 +90,7 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 function ConfirmModal({ title, desc, onConfirm, onCancel }: { title: string; desc: string; onConfirm: () => void; onCancel: () => void }) {
+  useEscapeKey(onCancel);
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 9999, display: "grid", placeItems: "center" }}>
       <div style={{ background: "#fff", borderRadius: 16, padding: "32px 28px", maxWidth: 400, width: "90%", boxShadow: "0 8px 40px rgba(0,0,0,0.15)" }}>
