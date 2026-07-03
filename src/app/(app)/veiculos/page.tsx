@@ -80,7 +80,7 @@ function FilterModal({ cats, tiers, onApply, onClose }: {
         </div>
         <div className="m-body" style={{ display: "flex", flexDirection: "column", gap: 20 }}>
           <div>
-            <p style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 10 }}>Categoria</p>
+            <p style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 10 }}>Editoria</p>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
               {VEH_CATS.map(c => (
                 <button key={c} onClick={() => toggleCat(c)}
@@ -238,7 +238,7 @@ export default function VeiculosPage() {
                   {thInner("Veículo", "name")}
                 </th>
                 <th style={thStyle("cat")} onClick={() => handleSort("cat")}>
-                  {thInner("Categoria", "cat")}
+                  {thInner("Editoria", "cat")}
                 </th>
                 <th style={thStyle("tier")} onClick={() => handleSort("tier")}>
                   {thInner("Tier", "tier")}

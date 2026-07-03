@@ -424,7 +424,7 @@ function StepContent({ content, setContent, brand, ownerName, onAIUsed }: { cont
           <div className="card-head"><h3>Detalhes</h3></div>
           <div className="sc-body">
             <div className="field-row">
-              <label>Categoria</label>
+              <label>Editoria</label>
               <SelectBox value={content.cat} options={cats} onChange={v => up("cat", v)} />
             </div>
             <div className="field-row">
@@ -459,7 +459,7 @@ function VehFilterModal({ cats, tiers, onApply, onClose }: {
         </div>
         <div className="m-body" style={{ display: "flex", flexDirection: "column", gap: 20 }}>
           <div>
-            <p style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 10 }}>Categoria</p>
+            <p style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 10 }}>Editoria</p>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
               {VEH_CATS_ALL.map(c => (
                 <button key={c} onClick={() => toggleCat(c)} className={`chip${selCats.includes(c) ? " active" : ""}`}>{c}</button>

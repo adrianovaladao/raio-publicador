@@ -3,7 +3,6 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { getStripe } from "@/lib/stripe";
 import { PLANS, type PlanId } from "@/lib/plans";
 import { getPrisma } from "@/lib/prisma";
-import { sendUpgradeEmail } from "@/lib/email";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
@@ -87,31 +86,43 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true });
     }
 
-    // Upgrade — update existing subscription directly and invoice immediately
+    // Upgrade — update existing subscription and invoice the proration immediately
     const stripeSub = await stripe.subscriptions.retrieve(sub.stripeSubscriptionId);
     const itemId = stripeSub.items.data[0]?.id;
     if (!itemId) return NextResponse.json({ error: "Item de assinatura não encontrado" }, { status: 500 });
 
-    await stripe.subscriptions.update(sub.stripeSubscriptionId, {
+    const updatedSub = await stripe.subscriptions.update(sub.stripeSubscriptionId, {
       items: [{ id: itemId, price: plan.stripePriceId }],
       proration_behavior: "always_invoice",
       metadata: { clerkId: userId, planId },
     });
 
-    // Update DB immediately — don't wait for webhook (may not arrive in some envs).
-    // creditsUsed intentionally NOT reset: user keeps current-cycle usage.
-    await prisma.subscription.update({
-      where: { ownerId: userId },
-      data: { plan: planId, creditsTotal: plan.credits },
-    });
+    // Find the latest open invoice for this subscription (the proration invoice just created)
+    const invoices = await stripe.invoices.list({ subscription: sub.stripeSubscriptionId, limit: 1 });
+    const latestInvoice = invoices.data[0];
 
-    const user = await currentUser();
-    const firstName = user?.firstName ?? user?.emailAddresses[0]?.emailAddress?.split("@")[0] ?? "usuário";
-    const email = user?.emailAddresses[0]?.emailAddress;
-    if (email) {
-      await sendUpgradeEmail(email, firstName, plan.label, plan.credits).catch(console.error);
+    // If invoice is open (not yet paid), redirect user to hosted payment page
+    if (latestInvoice && latestInvoice.status === "open") {
+      const hostedUrl = latestInvoice.hosted_invoice_url;
+      const origin = req.nextUrl.origin;
+      if (hostedUrl) {
+        return NextResponse.json({ redirect: true, url: hostedUrl });
+      }
+      // Fallback: create a checkout session to collect payment
+      const session = await stripe.checkout.sessions.create({
+        mode: "payment",
+        customer: updatedSub.customer as string,
+        currency: "brl",
+        line_items: [{ price: plan.stripePriceId, quantity: 1 }],
+        success_url: `${origin}/configuracoes?upgrade=success`,
+        cancel_url: `${origin}/configuracoes`,
+        locale: "pt-BR",
+        metadata: { clerkId: userId, planId },
+      });
+      return NextResponse.json({ redirect: true, url: session.url });
     }
 
+    // Invoice already paid (auto-charged) — webhook invoice.payment_succeeded will update DB with prorated credits
     return NextResponse.json({ ok: true });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Erro interno";

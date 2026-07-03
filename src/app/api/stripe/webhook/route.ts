@@ -9,6 +9,7 @@ import {
   sendWelcomeEmail,
   sendRenewalEmail,
   sendPaymentFailedEmail,
+  sendUpgradeEmail,
 } from "@/lib/email";
 
 async function getClerkUser(clerkId: string) {
@@ -88,30 +89,55 @@ export async function POST(req: NextRequest) {
       const planId = subscription.metadata?.planId as PlanId | undefined;
       if (!clerkId || !planId) break;
 
-      // Only reset creditsUsed on renewal — not on upgrade proration invoices.
       const billingReason = (invoice as unknown as { billing_reason?: string }).billing_reason;
-      const isRenewal = billingReason === "subscription_cycle";
+      const periodStartMs = subscription.items.data[0].current_period_start * 1000;
+      const periodEndMs = subscription.items.data[0].current_period_end * 1000;
+      const periodEnd = new Date(periodEndMs);
 
-      const periodEnd = new Date(subscription.items.data[0].current_period_end * 1000);
-
-      await prisma.subscription.update({
-        where: { ownerId: clerkId },
-        data: {
-          plan: planId,
-          status: "ACTIVE",
-          creditsTotal: PLANS[planId].credits,
-          ...(isRenewal ? { creditsUsed: 0 } : {}),
-          currentPeriodStart: new Date(subscription.items.data[0].current_period_start * 1000),
-          currentPeriodEnd: periodEnd,
-        },
-      });
-
-      if (isRenewal) {
+      if (billingReason === "subscription_cycle") {
+        // Renewal: reset credits fully to new plan allocation
+        await prisma.subscription.update({
+          where: { ownerId: clerkId },
+          data: {
+            plan: planId,
+            status: "ACTIVE",
+            creditsTotal: PLANS[planId].credits,
+            creditsUsed: 0,
+            currentPeriodStart: new Date(periodStartMs),
+            currentPeriodEnd: periodEnd,
+          },
+        });
         const { firstName, email } = await getClerkUser(clerkId);
         if (email) {
           await sendRenewalEmail(email, firstName, PLANS[planId].label, PLANS[planId].credits, periodEnd).catch(console.error);
         }
+      } else if (billingReason === "subscription_update") {
+        // Mid-cycle upgrade: add only the prorated credit difference
+        const currentSub = await prisma.subscription.findUnique({
+          where: { ownerId: clerkId },
+          select: { creditsTotal: true },
+        });
+        const oldCreditsTotal = currentSub?.creditsTotal ?? 0;
+        const newPlanCredits = PLANS[planId].credits;
+        const fraction = Math.max(0, Math.min(1, (periodEndMs - Date.now()) / (periodEndMs - periodStartMs)));
+        const addition = Math.max(0, Math.round((newPlanCredits - oldCreditsTotal) * fraction));
+
+        await prisma.subscription.update({
+          where: { ownerId: clerkId },
+          data: {
+            plan: planId,
+            status: "ACTIVE",
+            ...(addition > 0 ? { creditsTotal: { increment: addition } } : {}),
+            currentPeriodStart: new Date(periodStartMs),
+            currentPeriodEnd: periodEnd,
+          },
+        });
+        const { firstName, email } = await getClerkUser(clerkId);
+        if (email) {
+          await sendUpgradeEmail(email, firstName, PLANS[planId].label, newPlanCredits).catch(console.error);
+        }
       }
+      // billing_reason === "subscription_create" is handled by checkout.session.completed
       break;
     }
 
@@ -140,19 +166,11 @@ export async function POST(req: NextRequest) {
       const planId = subscription.metadata?.planId as PlanId | undefined;
       if (!clerkId || !planId || !PLANS[planId]) break;
 
-      // Detect downgrade: compare new plan price with current plan in DB
-      const currentSub = await prisma.subscription.findUnique({ where: { ownerId: clerkId }, select: { plan: true, creditsTotal: true } });
-      const currentPlanId = currentSub?.plan as PlanId | null;
-      const currentPriceCents = currentPlanId ? (PLANS[currentPlanId]?.priceCents ?? 0) : 0;
-      const isDowngrade = PLANS[planId].priceCents < currentPriceCents;
-
+      // Only update plan and dates here — credits are handled by invoice.payment_succeeded
       await prisma.subscription.update({
         where: { ownerId: clerkId },
         data: {
           plan: planId,
-          // On downgrade: keep current credits until renewal (invoice.payment_succeeded resets them)
-          // On upgrade: reset to new plan's credits immediately
-          ...(isDowngrade ? {} : { creditsTotal: PLANS[planId].credits }),
           stripeSubscriptionId: subscription.id,
           currentPeriodStart: new Date(subscription.items.data[0].current_period_start * 1000),
           currentPeriodEnd: new Date(subscription.items.data[0].current_period_end * 1000),

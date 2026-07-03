@@ -232,7 +232,7 @@ function StepContent({
           <div className="card-head"><h3>Detalhes</h3></div>
           <div className="sc-body">
             <div className="field-row">
-              <label style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--stone)" }}>Categoria</label>
+              <label style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--stone)" }}>Editoria</label>
               <div className="select-wrap">
                 <select className="input" value={cat} onChange={e => setCat(e.target.value)}>
                   {CONTENT_CATS.map(c => <option key={c}>{c}</option>)}
@@ -278,7 +278,7 @@ function VehFilterModal({ cats, tiers, onApply, onClose }: {
         </div>
         <div className="m-body" style={{ display: "flex", flexDirection: "column", gap: 20 }}>
           <div>
-            <p style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 10 }}>Categoria</p>
+            <p style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 10 }}>Editoria</p>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
               {VEH_CATS_ALL.map(c => (
                 <button key={c} onClick={() => toggleCat(c)} className={`chip${selCats.includes(c) ? " active" : ""}`}>{c}</button>

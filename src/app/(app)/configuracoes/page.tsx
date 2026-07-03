@@ -1074,11 +1074,11 @@ function CobrancaPanel({ onToast }: { onToast: (m: string) => void }) {
 
 // ─── VeiculosPanel (Raio admin only) ─────────────────────────────────────────
 
-const TIER_TOKENS_ADM: Record<string, number> = { A: 100, B: 60, C: 40, D: 20, E: 0 };
-const TIER_COLORS_ADM: Record<string, string> = { A: "#C0392B", B: "#E07B2A", C: "#D4A017", D: "#3A7DC9", E: "#D0DFF0" };
-const TIER_FG_ADM:     Record<string, string> = { A: "#fff",    B: "#fff",    C: "#fff",    D: "#fff",    E: "#3A5A80" };
+const TIER_TOKENS_ADM: Record<string, number> = { A: 100, B: 50, C: 25 };
+const TIER_COLORS_ADM: Record<string, string> = { A: "#C0392B", B: "#E07B2A", C: "#D4A017" };
+const TIER_FG_ADM:     Record<string, string> = { A: "#fff",    B: "#fff",    C: "#fff"    };
 const VEH_CATS_ADM = ["Negócios","Tecnologia","Cultura","Esportes","Saúde","Entretenimento","Política","Educação","Lifestyle","Gastronomia","Moda","Sustentabilidade","Finanças","Variedades","Automotivo","Imóveis"];
-const TIERS_ADM = ["A","B","C","D","E"];
+const TIERS_ADM = ["A","B","C"];
 
 interface VehicleRow { id: string; name: string; domain: string; category: string; tier: string; reach: number; logoUrl?: string | null }
 type VAdmSortCol = "name" | "category" | "tier" | "reach";
@@ -1123,7 +1123,7 @@ function VAdmFilterModal({ cats, tiers, onApply, onClose }: { cats: string[]; ti
         </div>
         <div className="m-body" style={{ display: "flex", flexDirection: "column", gap: 20 }}>
           <div>
-            <p style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 10 }}>Categoria</p>
+            <p style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 10 }}>Editoria</p>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
               {VEH_CATS_ADM.map(c => <button key={c} onClick={() => setSelCats(p => p.includes(c) ? p.filter(x => x !== c) : [...p, c])} className={`chip${selCats.includes(c) ? " active" : ""}`}>{c}</button>)}
             </div>
@@ -1213,7 +1213,7 @@ function VehicleModal({ initial, onSave, onClose }: {
           <div className="field"><label>Domínio</label><input className="input" value={domain} onChange={e => setDomain(e.target.value)} placeholder="folha.uol.com.br" /></div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             <div className="field">
-              <label>Categoria</label>
+              <label>Editoria</label>
               <div className="select-wrap">
                 <select className="input" value={category} onChange={e => setCategory(e.target.value)}>
                   {VEH_CATS_ADM.map(c => <option key={c}>{c}</option>)}
@@ -1380,7 +1380,7 @@ function VeiculosPanel({ onToast }: { onToast: (m: string) => void }) {
             <thead>
               <tr>
                 <th style={{ ...thStyle("name"), width: "34%" }} onClick={() => handleSort("name")}>{thInner("Veículo", "name")}</th>
-                <th style={thStyle("category")} onClick={() => handleSort("category")}>{thInner("Categoria", "category")}</th>
+                <th style={thStyle("category")} onClick={() => handleSort("category")}>{thInner("Editoria", "category")}</th>
                 <th style={thStyle("tier")} onClick={() => handleSort("tier")}>{thInner("Tier", "tier")}</th>
                 <th style={{ ...thStyle("reach"), textAlign: "right" }} onClick={() => handleSort("reach")}>{thInner("Alcance/mês", "reach", "right")}</th>
                 <th style={{ textAlign: "right" }}>Créditos</th>

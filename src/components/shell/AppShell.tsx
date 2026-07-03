@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useUser, useClerk } from "@clerk/nextjs";
 import {
-  LayoutDashboard, FileText, CalendarDays, Rss, Settings,
+  LayoutDashboard, FileText, CalendarDays, Rss, Settings, ShieldCheck,
   Bell, Search, LogOut, ChevronDown, Zap, Check, X,
 } from "lucide-react";
 import { RaioLockup } from "@/components/logo/RaioLockup";
@@ -363,6 +363,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <Settings size={18} />
               <span>Gerenciamento</span>
             </Link>
+            {user?.publicMetadata?.raioAdmin === true && (
+              <Link href="/admin" className={`sb-item${pathname.startsWith("/admin") ? " active" : ""}`}>
+                <ShieldCheck size={18} />
+                <span>Master Admin</span>
+              </Link>
+            )}
           </nav>
         </div>
 
@@ -475,5 +481,6 @@ function getPageTitle(pathname: string): string {
   if (pathname.startsWith("/calendario")) return "Calendário";
   if (pathname.startsWith("/veiculos")) return "Veículos";
   if (pathname.startsWith("/configuracoes")) return "Gerenciamento";
+  if (pathname.startsWith("/admin")) return "Master Admin";
   return "Visão geral";
 }
