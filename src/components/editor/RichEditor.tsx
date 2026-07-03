@@ -214,6 +214,7 @@ export function RichEditor({
         editor.commands.setContent(data.text);
         onContentChange(editor.getHTML());
         onAIUsed?.();
+        window.dispatchEvent(new Event("credits-changed"));
       } else {
         const selectedText = editor.state.doc.textBetween(from, to, " ");
         const res = await fetch("/api/ai", {
@@ -226,6 +227,7 @@ export function RichEditor({
         editor.chain().focus().deleteRange({ from, to }).insertContentAt(from, data.text).run();
         onContentChange(editor.getHTML());
         onAIUsed?.();
+        window.dispatchEvent(new Event("credits-changed"));
       }
     } catch { setAiErr("Falha de conexão com a IA."); }
     finally { setAiLoading(false); }
