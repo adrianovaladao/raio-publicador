@@ -69,12 +69,17 @@ export async function POST(req: NextRequest) {
       const planId = subscription.metadata?.planId as PlanId | undefined;
       if (!clerkId || !planId) break;
 
+      // Only reset creditsUsed on renewal — not on upgrade proration invoices.
+      const billingReason = (invoice as unknown as { billing_reason?: string }).billing_reason;
+      const isRenewal = billingReason === "subscription_cycle";
+
       await prisma.subscription.update({
         where: { ownerId: clerkId },
         data: {
+          plan: planId,
           status: "ACTIVE",
           creditsTotal: PLANS[planId].credits,
-          creditsUsed: 0,
+          ...(isRenewal ? { creditsUsed: 0 } : {}),
           currentPeriodStart: new Date(subscription.items.data[0].current_period_start * 1000),
           currentPeriodEnd: new Date(subscription.items.data[0].current_period_end * 1000),
         },

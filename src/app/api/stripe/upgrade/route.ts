@@ -97,7 +97,13 @@ export async function POST(req: NextRequest) {
       metadata: { clerkId: userId, planId },
     });
 
-    // DB updated by invoice.payment_succeeded webhook after Stripe charges the difference
+    // Update DB immediately — don't wait for webhook (may not arrive in some envs).
+    // creditsUsed intentionally NOT reset: user keeps current-cycle usage.
+    await prisma.subscription.update({
+      where: { ownerId: userId },
+      data: { plan: planId, creditsTotal: plan.credits },
+    });
+
     return NextResponse.json({ ok: true });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Erro interno";
