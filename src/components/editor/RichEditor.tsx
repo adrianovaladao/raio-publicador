@@ -82,6 +82,7 @@ interface RichEditorProps {
   content: string;
   onContentChange: (html: string) => void;
   brandName?: string;
+  onAIUsed?: () => void;
 }
 
 function AutoTextarea({ className, value, onChange, placeholder, style }: {
@@ -113,6 +114,7 @@ export function RichEditor({
   subtitle, onSubtitleChange,
   content, onContentChange,
   brandName,
+  onAIUsed,
 }: RichEditorProps) {
   const imageFileRef = useRef<HTMLInputElement>(null);
   const [imgUploading, setImgUploading] = useState(false);
@@ -205,6 +207,7 @@ export function RichEditor({
         if (!res.ok || !data.text) { setAiErr(data.error ?? "Erro na IA."); return; }
         editor.commands.setContent(data.text);
         onContentChange(editor.getHTML());
+        onAIUsed?.();
       } else {
         const selectedText = editor.state.doc.textBetween(from, to, " ");
         const res = await fetch("/api/ai", {
@@ -216,6 +219,7 @@ export function RichEditor({
         if (!res.ok || !data.text) { setAiErr(data.error ?? "Erro na IA."); return; }
         editor.chain().focus().deleteRange({ from, to }).insertContentAt(from, data.text).run();
         onContentChange(editor.getHTML());
+        onAIUsed?.();
       }
     } catch { setAiErr("Falha de conexão com a IA."); }
     finally { setAiLoading(false); }

@@ -416,6 +416,7 @@ function StepContent({ content, setContent, brand, ownerName }: { content: Conte
         content={content.body}
         onContentChange={v => up("body", v)}
         brandName={brand?.name}
+        onAIUsed={refreshSub}
       />
 
       <div>
@@ -1393,11 +1394,12 @@ export default function NovoReleasePage() {
   }, []);
 
   const [sub, setSub] = useState<SubInfo>({ credits: 0, creditsUsed: 0 });
-  useEffect(() => {
+  const refreshSub = () => {
     fetch("/api/stripe/subscription").then(r => r.json()).then((d: SubInfo) => {
       if (d.credits != null) setSub({ credits: d.credits, creditsUsed: d.creditsUsed ?? 0, plan: d.plan, brandsLimit: d.brandsLimit });
     }).catch(() => {});
-  }, []);
+  };
+  useEffect(() => { refreshSub(); }, []);
 
   const [step, setStep] = useState(0);
   const [done, setDone] = useState(false);
