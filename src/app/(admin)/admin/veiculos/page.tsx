@@ -330,13 +330,15 @@ export default function AdminVeiculos() {
   const tdS: React.CSSProperties = { padding: "12px 14px", fontSize: 13, borderBottom: "1px solid var(--border)", verticalAlign: "middle" };
 
   return (
-    <div style={{ padding: "32px 36px" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 28 }}>
+    <div className="content scroll">
+      <div className="content-inner">
+      <div className="page-head">
         <div>
-          <h1 style={{ fontSize: 22, fontWeight: 800, margin: 0 }}>Veículos</h1>
-          <p style={{ fontSize: 13, color: "var(--stone)", marginTop: 4 }}>{vehicles.length} veículos na plataforma</p>
+          <p className="eyebrow">Master Admin · Raio Publicador</p>
+          <h2><em>Veículos</em></h2>
+          <p className="sub">{vehicles.length} veículos na plataforma</p>
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
+        <div className="actions">
           {vehicles.length === 0 && !loading && (
             <button className="btn btn-ghost btn-sm" disabled={seeding} onClick={handleSeed}>
               <Upload size={14} /> {seeding ? "Importando…" : "Importar padrão"}
@@ -377,7 +379,7 @@ export default function AdminVeiculos() {
       </div>
 
       {/* Table */}
-      <div style={{ background: "var(--paper)", border: "1px solid var(--line)", borderRadius: 12, overflow: "hidden" }}>
+      <div className="card" style={{ overflow: "hidden" }}>
         {loading ? (
           <div style={{ padding: 48, textAlign: "center", color: "var(--stone)" }}>Carregando…</div>
         ) : (
@@ -476,6 +478,7 @@ export default function AdminVeiculos() {
           {toast}
         </div>
       )}
+      </div>
     </div>
   );
 }
