@@ -34,21 +34,24 @@ export async function GET() {
   const rows: TxRow[] = [];
 
   const PLAN_LABELS: Record<string, string> = { BASIC: "Básico", ADVANCED: "Avançado", PROFESSIONAL: "Profissional" };
+  // Price in cents → plan name (fallback when metadata is missing)
+  const PRICE_TO_PLAN: Record<number, string> = { 100000: "Básico", 300000: "Avançado", 500000: "Profissional" };
 
   for (const inv of invoices.data) {
     if (inv.amount_paid === 0) continue;
     const billingReason = (inv as unknown as { billing_reason?: string }).billing_reason ?? "";
 
-    // Extract plan from subscription metadata
+    // Try subscription metadata first, then fall back to invoice amount, then current plan
     const subscriptionId = (inv as unknown as { subscription?: string }).subscription;
     let planLabel = "";
     if (subscriptionId) {
       try {
         const stripeSub = await stripe.subscriptions.retrieve(subscriptionId);
         const planId = stripeSub.metadata?.planId ?? "";
-        planLabel = PLAN_LABELS[planId] ?? planId;
+        planLabel = PLAN_LABELS[planId] ?? "";
       } catch { /* ignore */ }
     }
+    if (!planLabel) planLabel = PRICE_TO_PLAN[inv.amount_paid] ?? PLAN_LABELS[sub.plan] ?? "";
 
     const planSuffix = planLabel ? ` · Plano ${planLabel}` : "";
     let description = `Assinatura${planSuffix}`;
