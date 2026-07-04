@@ -45,10 +45,6 @@ const INVITE_ROLES = Object.fromEntries(Object.entries(ROLES).filter(([k]) => k 
 
 
 
-const CONSUMPTION = [
-  { m: "Jan", credits: 2100 }, { m: "Fev", credits: 2600 }, { m: "Mar", credits: 1900 },
-  { m: "Abr", credits: 3400 }, { m: "Mai", credits: 4200 }, { m: "Jun", credits: 3200 },
-];
 
 function fmtDate(iso: string | null | undefined) {
   if (!iso) return "—";
@@ -1213,7 +1209,6 @@ function CobrancaPanel({ onToast }: { onToast: (m: string) => void }) {
 
   const pct  = credits > 0 ? Math.round((creditsUsed / credits) * 100) : 0;
   const left = credits - creditsUsed;
-  const maxC = Math.max(...CONSUMPTION.map(c => c.credits));
 
   const priceStr = priceCents != null
     ? (priceCents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0, maximumFractionDigits: 0 })
@@ -1244,43 +1239,128 @@ function CobrancaPanel({ onToast }: { onToast: (m: string) => void }) {
         </div>
       </div>
 
-      <div className="card" style={{ marginTop: 16 }}>
-        <div className="card-head"><h3>Consumo por <em>mês</em></h3><span className="muted" style={{ fontSize: 13 }}>créditos</span></div>
-        <div className="card-pad">
-          <div className="cons-chart">
-            {CONSUMPTION.map(c => (
-              <div className="cons-col" key={c.m} title={`${c.credits.toLocaleString("pt-BR")} créditos`}>
-                <div className="cons-bar-wrap"><div className="cons-bar" style={{ height: `${(c.credits / maxC) * 100}%` }} /></div>
-                <span className="cons-val">{(c.credits / 1000).toFixed(1).replace(".",",")}k</span>
-                <span className="cons-m">{c.m}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+      <BillingData onToast={onToast} />
 
-      <div className="set-grid2" style={{ marginTop: 16, alignItems: "start" }}>
-        <div className="card">
-          <div className="card-head"><h3>Forma de pagamento</h3></div>
-          <div className="card-pad">
-            <div className="pay-card">
-              <div className="pay-brand"><CreditCard size={20} /></div>
-              <div><div className="sir-title">Visa •••• 4218</div><div className="sir-sub">Expira em 09/2028</div></div>
-              <button className="btn btn-quiet btn-sm" style={{ marginLeft: "auto" }} onClick={() => onToast("Editar cartão")}>Trocar</button>
+      <TransactionHistory />
+    </div>
+  );
+}
+
+// ─── Billing Data ─────────────────────────────────────────────────────────────
+
+interface BillingInfo { name: string; email: string; taxId: string; address: string; }
+
+function BillingData({ onToast }: { onToast: (m: string) => void }) {
+  const [data, setData] = useState<BillingInfo>({ name: "", email: "", taxId: "", address: "" });
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState({ name: "", email: "", taxId: "", line1: "", line2: "", city: "", state: "", postalCode: "" });
+  const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/stripe/billing")
+      .then(r => r.json())
+      .then((d: BillingInfo) => { setData(d); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, []);
+
+  function openEdit() {
+    const parts = data.address.split("·").map(s => s.trim());
+    const [street, cityState] = parts;
+    const [city, state] = (cityState ?? "").split(",").map(s => s.trim());
+    setForm({ name: data.name, email: data.email, taxId: data.taxId, line1: street ?? "", line2: "", city: city ?? "", state: state ?? "", postalCode: "" });
+    setEditing(true);
+  }
+
+  async function handleSave() {
+    setSaving(true);
+    try {
+      const res = await fetch("/api/stripe/billing", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      if (!res.ok) throw new Error();
+      const addressStr = [form.line1, form.line2].filter(Boolean).join(", ") + (form.city ? ` · ${form.city}` : "") + (form.state ? `, ${form.state}` : "");
+      setData({ name: form.name, email: form.email, taxId: form.taxId, address: addressStr });
+      setEditing(false);
+      onToast("Dados de cobrança atualizados");
+    } catch {
+      onToast("Erro ao salvar. Tente novamente.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const hasData = data.name || data.taxId || data.address;
+
+  return (
+    <div className="card" style={{ marginTop: 16 }}>
+      <div className="card-head">
+        <h3>Dados de cobrança</h3>
+        {!editing && <button className="link" onClick={openEdit}>Editar</button>}
+      </div>
+      <div className="card-pad" style={{ paddingTop: 16 }}>
+        {editing ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <div className="set-grid2">
+              <div className="field">
+                <label>Razão social / Nome</label>
+                <input className="input" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Ex.: Empresa Ltda." />
+              </div>
+              <div className="field">
+                <label>CNPJ / CPF</label>
+                <input className="input" value={form.taxId} onChange={e => setForm(f => ({ ...f, taxId: e.target.value }))} placeholder="00.000.000/0001-00" />
+              </div>
+            </div>
+            <div className="field">
+              <label>E-mail fiscal</label>
+              <input className="input" type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="financeiro@empresa.com.br" />
+            </div>
+            <div className="field">
+              <label>Endereço</label>
+              <input className="input" value={form.line1} onChange={e => setForm(f => ({ ...f, line1: e.target.value }))} placeholder="Rua / Av., número" />
+            </div>
+            <div className="set-grid2">
+              <div className="field">
+                <label>Complemento</label>
+                <input className="input" value={form.line2} onChange={e => setForm(f => ({ ...f, line2: e.target.value }))} placeholder="Sala, andar…" />
+              </div>
+              <div className="field">
+                <label>CEP</label>
+                <input className="input" value={form.postalCode} onChange={e => setForm(f => ({ ...f, postalCode: e.target.value }))} placeholder="00000-000" />
+              </div>
+            </div>
+            <div className="set-grid2">
+              <div className="field">
+                <label>Cidade</label>
+                <input className="input" value={form.city} onChange={e => setForm(f => ({ ...f, city: e.target.value }))} placeholder="São Paulo" />
+              </div>
+              <div className="field">
+                <label>Estado</label>
+                <input className="input" value={form.state} onChange={e => setForm(f => ({ ...f, state: e.target.value }))} placeholder="SP" />
+              </div>
+            </div>
+            <div className="row" style={{ gap: 10 }}>
+              <button className="btn btn-primary btn-sm" onClick={handleSave} disabled={saving}>{saving ? "Salvando…" : <><Check size={15} /> Salvar</>}</button>
+              <button className="btn btn-quiet btn-sm" onClick={() => setEditing(false)}>Cancelar</button>
             </div>
           </div>
-        </div>
-        <div className="card">
-          <div className="card-head"><h3>Dados de cobrança</h3><button className="link" onClick={() => onToast("Editar dados")}>Editar</button></div>
-          <div className="card-pad" style={{ paddingTop: 16 }}>
-            {[["Razão social","Markable Assessoria Ltda."],["CNPJ","23.456.789/0001-12"],["Endereço","Av. Paulista, 1000 · São Paulo, SP"],["E-mail fiscal","financeiro@markable.com.br"]].map(([k,v]) => (
+        ) : loading ? (
+          <div className="muted">Carregando…</div>
+        ) : hasData ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+            {[["Razão social", data.name], ["CNPJ / CPF", data.taxId], ["E-mail fiscal", data.email], ["Endereço", data.address]].filter(([, v]) => v).map(([k, v]) => (
               <div className="billdata-row" key={k}><span className="bd-k">{k}</span><span className="bd-v">{v}</span></div>
             ))}
           </div>
-        </div>
+        ) : (
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span className="muted" style={{ fontSize: 13 }}>Nenhum dado de cobrança cadastrado.</span>
+            <button className="btn btn-ghost btn-sm" onClick={openEdit}>Adicionar</button>
+          </div>
+        )}
       </div>
-
-      <TransactionHistory />
     </div>
   );
 }

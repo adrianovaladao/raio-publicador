@@ -993,7 +993,7 @@ select.input { appearance: none; -webkit-appearance: none; padding-right: 36px; 
 .bp-right { padding: 24px; background: var(--cream); border-left: 1px solid var(--line); display: flex; flex-direction: column; justify-content: center; }
 @media (max-width: 700px) { .bp-right { border-left: none; border-top: 1px solid var(--line); } }
 .bp-credit-top { display: flex; align-items: baseline; gap: 8px; }
-.bp-credit-num { font-family: var(--sans); font-weight: 700; font-size: 30px; letter-spacing: -0.03em; color: var(--coral-ink); }
+.bp-credit-num { font-family: var(--sans); font-weight: 700; font-size: 30px; letter-spacing: -0.03em; color: var(--stone); }
 .bp-credit-of { font-size: 13px; color: var(--stone); }
 .bp-bar { height: 8px; border-radius: 99px; background: var(--sand); overflow: hidden; margin: 12px 0 8px; }
 .bp-bar > i { display: block; height: 100%; background: var(--coral); border-radius: 99px; }
