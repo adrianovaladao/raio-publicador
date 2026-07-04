@@ -1372,9 +1372,12 @@ interface TxRow {
   description: string; amount: number; currency: string; status: string; receiptUrl: string | null;
 }
 
+const TX_PER_PAGE = 10;
+
 function TransactionHistory() {
   const [txs, setTxs] = useState<TxRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     fetch("/api/stripe/transactions")
@@ -1393,8 +1396,11 @@ function TransactionHistory() {
     refund:       { label: "Reembolso",  icon: "↩️", color: "#2F8A5B", bg: "#E3F2E9" },
   };
 
+  const totalPages = Math.max(1, Math.ceil(txs.length / TX_PER_PAGE));
+  const paginated = txs.slice((page - 1) * TX_PER_PAGE, page * TX_PER_PAGE);
+
   return (
-    <div className="card" style={{ marginTop: 16 }}>
+    <div className="card" style={{ marginTop: 16, marginBottom: 48 }}>
       <div className="card-head">
         <h3>Histórico de <em>transações</em></h3>
         <span className="muted" style={{ fontSize: 12 }}>{loading ? "Carregando…" : `${txs.length} registros`}</span>
@@ -1404,54 +1410,63 @@ function TransactionHistory() {
       ) : txs.length === 0 ? (
         <div className="card-pad muted" style={{ textAlign: "center", padding: 32 }}>Nenhuma transação encontrada.</div>
       ) : (
-        <div style={{ overflowX: "auto" }}>
-          <table className="tbl">
-            <thead>
-              <tr>
-                <th>Data</th>
-                <th>Tipo</th>
-                <th>Descrição</th>
-                <th style={{ textAlign: "right" }}>Valor</th>
-                <th>Status</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {txs.map(tx => {
-                const cfg = typeConfig[tx.type] ?? typeConfig.subscription;
-                const isPaid = tx.status === "paid" || tx.status === "succeeded";
-                return (
-                  <tr key={tx.id}>
-                    <td className="muted" style={{ whiteSpace: "nowrap", fontFamily: "var(--mono)", fontSize: 12.5 }}>
-                      {fmtDate(tx.date)}
-                    </td>
-                    <td>
-                      <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 600, color: cfg.color, background: cfg.bg, borderRadius: 6, padding: "2px 8px" }}>
-                        {cfg.icon} {cfg.label}
-                      </span>
-                    </td>
-                    <td style={{ fontSize: 13 }}>{tx.description}</td>
-                    <td style={{ textAlign: "right", fontWeight: 700, fontFamily: "var(--mono)", fontSize: 13, whiteSpace: "nowrap" }}>
-                      {fmtBRL(tx.amount)}
-                    </td>
-                    <td>
-                      <span className={`dot-status ${isPaid ? "active" : "inactive"}`}>
-                        {isPaid ? "Pago" : tx.status}
-                      </span>
-                    </td>
-                    <td style={{ textAlign: "right" }}>
-                      {tx.receiptUrl && (
-                        <a href={tx.receiptUrl} target="_blank" rel="noreferrer" className="btn btn-quiet btn-sm">
-                          <Download size={14} /> Recibo
-                        </a>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        <>
+          <div style={{ overflowX: "auto" }}>
+            <table className="tbl">
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Tipo</th>
+                  <th>Descrição</th>
+                  <th style={{ textAlign: "right" }}>Valor</th>
+                  <th>Status</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {paginated.map(tx => {
+                  const cfg = typeConfig[tx.type] ?? typeConfig.subscription;
+                  const isPaid = tx.status === "paid" || tx.status === "succeeded";
+                  return (
+                    <tr key={tx.id}>
+                      <td className="muted" style={{ whiteSpace: "nowrap", fontFamily: "var(--mono)", fontSize: 12.5 }}>
+                        {fmtDate(tx.date)}
+                      </td>
+                      <td>
+                        <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 600, color: cfg.color, background: cfg.bg, borderRadius: 6, padding: "2px 8px" }}>
+                          {cfg.icon} {cfg.label}
+                        </span>
+                      </td>
+                      <td style={{ fontSize: 13 }}>{tx.description}</td>
+                      <td style={{ textAlign: "right", fontWeight: 700, fontFamily: "var(--mono)", fontSize: 13, whiteSpace: "nowrap" }}>
+                        {fmtBRL(tx.amount)}
+                      </td>
+                      <td>
+                        <span className={`dot-status ${isPaid ? "active" : "inactive"}`}>
+                          {isPaid ? "Pago" : tx.status}
+                        </span>
+                      </td>
+                      <td style={{ textAlign: "right" }}>
+                        {tx.receiptUrl && (
+                          <a href={tx.receiptUrl} target="_blank" rel="noreferrer" className="btn btn-quiet btn-sm">
+                            <Download size={14} /> Recibo
+                          </a>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          {totalPages > 1 && (
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, padding: "16px 0 4px" }}>
+              <button className="btn btn-ghost btn-sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>← Anterior</button>
+              <span style={{ fontSize: 13, color: "var(--stone)", fontFamily: "var(--mono)" }}>{page} / {totalPages}</span>
+              <button className="btn btn-ghost btn-sm" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>Próxima →</button>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
