@@ -54,7 +54,7 @@ export async function GET() {
 
   for (const charge of charges.data) {
     // Skip charges already covered by invoices
-    if (charge.invoice) continue;
+    if ((charge as unknown as { invoice?: string }).invoice) continue;
     const meta = charge.metadata ?? {};
     const qty = meta.creditQty ? parseInt(meta.creditQty, 10) : null;
     rows.push({
