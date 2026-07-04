@@ -40,7 +40,7 @@ function fmtBRL(cents: number) {
   return (cents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
-export function BuyCreditsModal({ currentPlan, onClose }: { currentPlan: string; onClose: () => void }) {
+export function BuyCreditsModal({ currentPlan, onClose, returnUrl }: { currentPlan: string; onClose: () => void; returnUrl?: string }) {
   useEscapeKey(onClose);
   const config = PACKAGES[currentPlan];
   const [selected, setSelected] = useState<number | null>(null);
@@ -63,7 +63,7 @@ export function BuyCreditsModal({ currentPlan, onClose }: { currentPlan: string;
       const res = await fetch("/api/stripe/credits", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ quantity: effectiveQty }),
+        body: JSON.stringify({ quantity: effectiveQty, returnUrl: returnUrl ?? window.location.href }),
       });
       const data = await res.json() as { redirect?: boolean; url?: string; error?: string };
       if (data.redirect && data.url) { window.location.href = data.url; return; }

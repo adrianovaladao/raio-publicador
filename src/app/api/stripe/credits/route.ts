@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
-    const { quantity } = (await req.json()) as { quantity: number };
+    const { quantity, returnUrl } = (await req.json()) as { quantity: number; returnUrl?: string };
     if (!quantity || quantity < 1) return NextResponse.json({ error: "Quantidade inválida" }, { status: 400 });
 
     const prisma = getPrisma();
@@ -55,8 +55,8 @@ export async function POST(req: NextRequest) {
         },
         quantity: 1,
       }],
-      success_url: `${origin}/configuracoes?credits=success`,
-      cancel_url: `${origin}/configuracoes`,
+      success_url: returnUrl ? `${returnUrl}${returnUrl.includes("?") ? "&" : "?"}credits=success` : `${origin}/configuracoes?credits=success`,
+      cancel_url: returnUrl ?? `${origin}/configuracoes`,
       locale: "pt-BR",
       metadata: { clerkId: userId, creditQty: String(quantity), type: "credit_purchase" },
     });

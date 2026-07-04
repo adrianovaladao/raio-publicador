@@ -1401,12 +1401,23 @@ export default function NovoReleasePage() {
   };
   useEffect(() => { refreshSub(); }, []);
 
-  const [step, setStep] = useState(0);
+  // Restore credits=success state and saved vehicle selection after Stripe redirect
+  const searchParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+  const returningFromCredits = searchParams?.get("credits") === "success";
+
+  const [step, setStep] = useState(returningFromCredits ? 2 : 0);
   const [done, setDone] = useState(false);
   const [brand, setBrand] = useState<Brand | null>(null);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [content, setContent] = useState<Content>({ title: "", subtitle: "", body: "", cat: "Negócios", author: "", imageUrls: [] });
-  const [selected, setSelected] = useState<string[]>([]);
+  const [selected, setSelected] = useState<string[]>(() => {
+    if (typeof window === "undefined") return [];
+    try {
+      const saved = sessionStorage.getItem("raio_draft_vehicles");
+      if (saved) { sessionStorage.removeItem("raio_draft_vehicles"); return JSON.parse(saved) as string[]; }
+    } catch { /* ignore */ }
+    return [];
+  });
   const [vehicles, setVehicles] = useState<VehicleItem[]>([]);
   useEffect(() => {
     fetch("/api/vehicles")
@@ -1658,7 +1669,7 @@ export default function NovoReleasePage() {
 
         {step === 0 && <StepBrand selected={brand} onSelect={setBrand} brands={brands} brandsLimit={sub.brandsLimit} onAddBrand={b => setBrands(prev => [...prev, b])} onLimitReached={() => setShowUpgradeModal(true)} />}
         {step === 1 && <StepContent content={content} setContent={setContent} brand={brand} ownerName={ownerName} onAIUsed={refreshSub} />}
-        {step === 2 && <StepVehicles selected={selected} setSelected={setSelected} vehicles={vehicles} sub={sub} onBuyCredits={() => setShowBuyCreditsModal(true)} onUpgrade={() => setShowUpgradeModal(true)} />}
+        {step === 2 && <StepVehicles selected={selected} setSelected={setSelected} vehicles={vehicles} sub={sub} onBuyCredits={() => { try { sessionStorage.setItem("raio_draft_vehicles", JSON.stringify(selected)); } catch { /* ignore */ } setShowBuyCreditsModal(true); }} onUpgrade={() => setShowUpgradeModal(true)} />}
         {step === 3 && <StepReview content={content} selected={selected} when={when} setWhen={setWhen} brand={brand} onSaveDraft={autosave} vehicles={vehicles} />}
       </div>
     </div>
@@ -1679,6 +1690,7 @@ export default function NovoReleasePage() {
       <BuyCreditsModal
         currentPlan={sub.plan ?? "BASIC"}
         onClose={() => setShowBuyCreditsModal(false)}
+        returnUrl={typeof window !== "undefined" ? window.location.href : undefined}
       />
     )}
     </>

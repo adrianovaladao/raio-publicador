@@ -1287,26 +1287,99 @@ function CobrancaPanel({ onToast }: { onToast: (m: string) => void }) {
         </div>
       </div>
 
-      <div className="card" style={{ marginTop: 16 }}>
-        <div className="card-head"><h3>Faturas</h3><button className="link" onClick={() => onToast("Baixando faturas")}>Baixar todas</button></div>
-        <table className="tbl">
-          <thead><tr><th>Fatura</th><th>Data</th><th>Descrição</th><th>Valor</th><th>Status</th><th></th></tr></thead>
-          <tbody>
-            {INVOICES.map(inv => (
-              <tr key={inv.id}>
-                <td className="title-cell" style={{ fontFamily: "var(--mono)", fontSize: 13 }}>{inv.id}</td>
-                <td className="muted num">{fmtDate(inv.date)}</td>
-                <td className="muted">{inv.plan}</td>
-                <td className="num" style={{ fontWeight: 600 }}>{inv.amount}</td>
-                <td><span className="dot-status active">Paga</span></td>
-                <td style={{ textAlign: "right" }}>
-                  <button className="btn btn-quiet btn-sm" onClick={() => onToast(`Baixando ${inv.id}`)}><Download size={15} /> PDF</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <TransactionHistory />
+    </div>
+  );
+}
+
+// ─── Transaction History (bank statement) ────────────────────────────────────
+
+interface TxRow {
+  id: string; date: string; type: "subscription" | "credits" | "refund";
+  description: string; amount: number; currency: string; status: string; receiptUrl: string | null;
+}
+
+function TransactionHistory() {
+  const [txs, setTxs] = useState<TxRow[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/stripe/transactions")
+      .then(r => r.json())
+      .then((d: TxRow[]) => { setTxs(d); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, []);
+
+  function fmtBRL(cents: number) {
+    return (cents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  }
+
+  const typeConfig: Record<string, { label: string; icon: string; color: string; bg: string }> = {
+    subscription: { label: "Assinatura", icon: "📅", color: "#2A6FDB", bg: "#E6EEFB" },
+    credits:      { label: "Créditos",   icon: "⚡", color: "#8A6500", bg: "#FCEFCB" },
+    refund:       { label: "Reembolso",  icon: "↩️", color: "#2F8A5B", bg: "#E3F2E9" },
+  };
+
+  return (
+    <div className="card" style={{ marginTop: 16 }}>
+      <div className="card-head">
+        <h3>Histórico de <em>transações</em></h3>
+        <span className="muted" style={{ fontSize: 12 }}>{loading ? "Carregando…" : `${txs.length} registros`}</span>
       </div>
+      {loading ? (
+        <div className="card-pad muted" style={{ textAlign: "center", padding: 32 }}>Carregando…</div>
+      ) : txs.length === 0 ? (
+        <div className="card-pad muted" style={{ textAlign: "center", padding: 32 }}>Nenhuma transação encontrada.</div>
+      ) : (
+        <div style={{ overflowX: "auto" }}>
+          <table className="tbl">
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Tipo</th>
+                <th>Descrição</th>
+                <th style={{ textAlign: "right" }}>Valor</th>
+                <th>Status</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {txs.map(tx => {
+                const cfg = typeConfig[tx.type] ?? typeConfig.subscription;
+                const isPaid = tx.status === "paid" || tx.status === "succeeded";
+                return (
+                  <tr key={tx.id}>
+                    <td className="muted" style={{ whiteSpace: "nowrap", fontFamily: "var(--mono)", fontSize: 12.5 }}>
+                      {fmtDate(tx.date)}
+                    </td>
+                    <td>
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 600, color: cfg.color, background: cfg.bg, borderRadius: 6, padding: "2px 8px" }}>
+                        {cfg.icon} {cfg.label}
+                      </span>
+                    </td>
+                    <td style={{ fontSize: 13 }}>{tx.description}</td>
+                    <td style={{ textAlign: "right", fontWeight: 700, fontFamily: "var(--mono)", fontSize: 13, whiteSpace: "nowrap" }}>
+                      {fmtBRL(tx.amount)}
+                    </td>
+                    <td>
+                      <span className={`dot-status ${isPaid ? "active" : "inactive"}`}>
+                        {isPaid ? "Pago" : tx.status}
+                      </span>
+                    </td>
+                    <td style={{ textAlign: "right" }}>
+                      {tx.receiptUrl && (
+                        <a href={tx.receiptUrl} target="_blank" rel="noreferrer" className="btn btn-quiet btn-sm">
+                          <Download size={14} /> Recibo
+                        </a>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
