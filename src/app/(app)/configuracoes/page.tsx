@@ -302,8 +302,16 @@ function CancelFlow({ plan, email, periodEnd, onDone }: {
           90%  { transform: rotate(2deg) scale(1); }
           100% { transform: rotate(0deg) scale(1); filter: brightness(1); }
         }
-        .btn-cancel-zap { transition: background 0.2s; }
-        .btn-cancel-zap:hover { background: #fee2e2 !important; }
+        @keyframes zap-hover {
+          0%   { transform: rotate(0deg) scale(1); }
+          25%  { transform: rotate(-12deg) scale(1.2); filter: brightness(1.6) drop-shadow(0 0 4px #f87171); }
+          50%  { transform: rotate(10deg) scale(0.9); }
+          75%  { transform: rotate(-6deg) scale(1.1); filter: brightness(1.3) drop-shadow(0 0 2px #f87171); }
+          100% { transform: rotate(0deg) scale(1); filter: brightness(1); }
+        }
+        .btn-cancel-zap { transition: background 0.2s, box-shadow 0.2s; }
+        .btn-cancel-zap:hover { background: #fee2e2 !important; box-shadow: 0 0 0 2px #fca5a5 !important; }
+        .btn-cancel-zap:hover .zap-icon:not(.zapping) { animation: zap-hover 0.5s ease-in-out infinite; }
         .zap-icon { display: inline-block; }
         .zap-icon.zapping { animation: zap 0.85s ease-in-out; }
       `}</style>
