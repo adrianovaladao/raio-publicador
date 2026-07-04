@@ -230,9 +230,206 @@ function PerfilPanel({ onToast }: { onToast: (m: string) => void }) {
 
 // ─── Conta ────────────────────────────────────────────────────────────────────
 
+// ─── Cancel flow ─────────────────────────────────────────────────────────────
+
+type CancelStep = "idle" | "retention" | "policy" | "confirm" | "done";
+
+function CancelFlow({ plan, email, periodEnd, onDone }: {
+  plan: string; email: string; periodEnd: string | null; onDone: () => void;
+}) {
+  const [step, setStep] = useState<CancelStep>("idle");
+  const [zapping, setZapping] = useState(false);
+  const [emailInput, setEmailInput] = useState("");
+  const [cancelling, setCancelling] = useState(false);
+  const [err, setErr] = useState("");
+
+  const isAdvanced = plan === "ADVANCED";
+  const isProfessional = plan === "PROFESSIONAL";
+  const hasRetention = isAdvanced || isProfessional;
+
+  const discountPct = isProfessional ? 50 : 25;
+  const periodEndFmt = periodEnd ? fmtDate(periodEnd) : "fim do ciclo";
+
+  function handleButtonClick() {
+    setZapping(true);
+    setTimeout(() => {
+      setZapping(false);
+      setStep(hasRetention ? "retention" : "policy");
+    }, 900);
+  }
+
+  async function handleConfirmCancel() {
+    if (emailInput.trim().toLowerCase() !== email.toLowerCase()) {
+      setErr("E-mail incorreto. Digite exatamente seu e-mail de cadastro.");
+      return;
+    }
+    setCancelling(true);
+    setErr("");
+    try {
+      const res = await fetch("/api/stripe/cancel", { method: "POST" });
+      if (!res.ok) throw new Error("Erro ao cancelar");
+      setStep("done");
+      onDone();
+    } catch {
+      setErr("Falha ao cancelar. Tente novamente ou entre em contato com o suporte.");
+    } finally {
+      setCancelling(false);
+    }
+  }
+
+  if (step === "done") {
+    return (
+      <div style={{ textAlign: "center", padding: "28px 0 8px" }}>
+        <div style={{ fontSize: 40, marginBottom: 12 }}>😔</div>
+        <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 6 }}>Assinatura cancelada</div>
+        <div style={{ fontSize: 13, color: "var(--stone)", maxWidth: 380, margin: "0 auto" }}>
+          Seu acesso permanece ativo até <b>{periodEndFmt}</b>. Use seus créditos até lá — eles não serão reembolsados.
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <style>{`
+        @keyframes zap {
+          0%   { transform: rotate(0deg) scale(1); }
+          15%  { transform: rotate(-8deg) scale(1.15); filter: brightness(1.8); }
+          30%  { transform: rotate(8deg) scale(0.9); }
+          45%  { transform: rotate(-6deg) scale(1.2); filter: brightness(2.2); }
+          60%  { transform: rotate(6deg) scale(0.95); }
+          75%  { transform: rotate(-4deg) scale(1.1); filter: brightness(1.5); }
+          90%  { transform: rotate(2deg) scale(1); }
+          100% { transform: rotate(0deg) scale(1); filter: brightness(1); }
+        }
+        .btn-cancel-zap { transition: background 0.2s; }
+        .btn-cancel-zap:hover { background: #fee2e2 !important; }
+        .zap-icon { display: inline-block; }
+        .zap-icon.zapping { animation: zap 0.85s ease-in-out; }
+      `}</style>
+
+      <div className="card danger-card" style={{ marginTop: 16 }}>
+        <div className="card-pad set-inline-row" style={{ padding: 22 }}>
+          <div>
+            <div className="sir-title">Cancelar assinatura</div>
+            <div className="sir-sub">Você mantém o acesso até o fim do ciclo atual. Créditos não são reembolsados.</div>
+          </div>
+          <button
+            className="btn btn-danger btn-sm btn-cancel-zap"
+            onClick={handleButtonClick}
+            disabled={zapping}
+          >
+            <span className={`zap-icon${zapping ? " zapping" : ""}`}>
+              <Zap size={15} fill="currentColor" />
+            </span>
+            {zapping ? "…" : "Cancelar assinatura"}
+          </button>
+        </div>
+      </div>
+
+      {/* Retention modal */}
+      {step === "retention" && (
+        <div className="overlay" onClick={() => setStep("idle")}>
+          <div className="modal" style={{ maxWidth: 460 }} onClick={e => e.stopPropagation()}>
+            <div className="m-head">
+              <span style={{ fontSize: 28 }}>⚡</span>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 17 }}>Espera — temos uma oferta para você</div>
+                <div style={{ fontSize: 13, color: "var(--stone)", marginTop: 2 }}>Antes de ir, que tal continuar com desconto?</div>
+              </div>
+            </div>
+            <div className="m-body">
+              <div style={{ background: "var(--cream)", borderRadius: 12, padding: "18px 20px", marginBottom: 16 }}>
+                <div style={{ fontSize: 13, color: "var(--stone)", marginBottom: 4 }}>Sua oferta exclusiva</div>
+                <div style={{ fontSize: 22, fontWeight: 800, color: "var(--ink)" }}>
+                  {discountPct}% de desconto
+                </div>
+                <div style={{ fontSize: 13, color: "var(--stone)", marginTop: 4 }}>
+                  no Plano {isProfessional ? "Profissional" : "Avançado"} pelos próximos 30 dias. Seus créditos continuam válidos.
+                </div>
+              </div>
+              <p style={{ fontSize: 13, color: "var(--stone)" }}>
+                Se ainda assim quiser cancelar, podemos fazer isso — mas essa oferta não estará disponível depois.
+              </p>
+            </div>
+            <div className="m-foot">
+              <button className="btn btn-ghost btn-sm" onClick={() => setStep("policy")}>Não, quero cancelar</button>
+              <button className="btn btn-primary btn-sm" onClick={() => setStep("idle")}>
+                Quero o desconto de {discountPct}%
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Policy modal */}
+      {step === "policy" && (
+        <div className="overlay" onClick={() => setStep("idle")}>
+          <div className="modal" style={{ maxWidth: 460 }} onClick={e => e.stopPropagation()}>
+            <div className="m-head">
+              <div style={{ fontWeight: 700, fontSize: 17 }}>Política de cancelamento</div>
+            </div>
+            <div className="m-body">
+              <ul style={{ fontSize: 13, color: "var(--stone)", lineHeight: 1.7, paddingLeft: 18, margin: 0 }}>
+                <li><b>Sem reembolso</b> — o valor pago não é devolvido.</li>
+                <li><b>Créditos</b> — devem ser usados até o fim do ciclo atual ({periodEndFmt}). Após isso, expiram.</li>
+                <li><b>Releases não publicados</b> — podem ser editados até o fim do ciclo. Após o cancelamento, ficam arquivados e não serão mais distribuídos.</li>
+                <li><b>Releases já publicados</b> — permanecem nos veículos normalmente.</li>
+                <li><b>Acesso</b> — sua conta será suspensa automaticamente em {periodEndFmt}.</li>
+              </ul>
+            </div>
+            <div className="m-foot">
+              <button className="btn btn-ghost btn-sm" onClick={() => setStep("idle")}>Voltar</button>
+              <button className="btn btn-danger btn-sm" onClick={() => setStep("confirm")}>Entendi, continuar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirm modal */}
+      {step === "confirm" && (
+        <div className="overlay" onClick={() => setStep("idle")}>
+          <div className="modal" style={{ maxWidth: 420 }} onClick={e => e.stopPropagation()}>
+            <div className="m-head">
+              <div style={{ fontWeight: 700, fontSize: 17 }}>Confirmar cancelamento</div>
+            </div>
+            <div className="m-body">
+              <p style={{ fontSize: 13, color: "var(--stone)", marginBottom: 16 }}>
+                Para confirmar, digite seu e-mail de cadastro:
+              </p>
+              <div className="field">
+                <input
+                  className="input"
+                  type="email"
+                  placeholder={email}
+                  value={emailInput}
+                  onChange={e => { setEmailInput(e.target.value); setErr(""); }}
+                  autoFocus
+                />
+              </div>
+              {err && <p style={{ fontSize: 12, color: "#c0392b", marginTop: 8 }}>{err}</p>}
+            </div>
+            <div className="m-foot">
+              <button className="btn btn-ghost btn-sm" onClick={() => setStep("policy")}>Voltar</button>
+              <button
+                className="btn btn-danger btn-sm"
+                disabled={cancelling || !emailInput}
+                onClick={handleConfirmCancel}
+              >
+                {cancelling ? "Cancelando…" : "Cancelar minha assinatura"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
 function ContaPanel({ onToast }: { onToast: (m: string) => void }) {
   const { user, isLoaded } = useUser();
   const [notif, setNotif] = useState({ sent: true, queued: true, published: true, review: false });
+  const [subInfo, setSubInfo] = useState<{ plan: string; periodEnd: string | null } | null>(null);
 
   // troca de senha
   const [showPwForm, setShowPwForm] = useState(false);
@@ -244,6 +441,13 @@ function ContaPanel({ onToast }: { onToast: (m: string) => void }) {
     (params: { currentPassword: string; newPassword: string }) =>
       user!.updatePassword(params)
   );
+
+  useEffect(() => {
+    fetch("/api/stripe/subscription")
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d) setSubInfo({ plan: d.plan ?? "BASIC", periodEnd: d.currentPeriodEnd ?? null }); })
+      .catch(() => {});
+  }, []);
 
   async function handleChangePassword() {
     if (!user || !newPw) return;
@@ -324,12 +528,12 @@ function ContaPanel({ onToast }: { onToast: (m: string) => void }) {
         </div>
       </div>
 
-      <div className="card danger-card" style={{ marginTop: 16 }}>
-        <div className="card-pad set-inline-row" style={{ padding: 22 }}>
-          <div><div className="sir-title">Encerrar conta</div><div className="sir-sub">Remove seu acesso e dados pessoais. Releases publicados permanecem.</div></div>
-          <button className="btn btn-danger btn-sm">Encerrar conta</button>
-        </div>
-      </div>
+      <CancelFlow
+        plan={subInfo?.plan ?? "BASIC"}
+        email={email}
+        periodEnd={subInfo?.periodEnd ?? null}
+        onDone={() => onToast("Assinatura cancelada. Seu acesso permanece até o fim do ciclo.")}
+      />
     </div>
   );
 }

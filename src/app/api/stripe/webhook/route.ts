@@ -185,6 +185,14 @@ export async function POST(req: NextRequest) {
       if (!clerkId) break;
 
       await prisma.subscription.update({ where: { ownerId: clerkId }, data: { status: "CANCELLED" } });
+
+      // Suspend the Clerk account so the user can't log in anymore
+      try {
+        const clerk = await clerkClient();
+        await clerk.users.banUser(clerkId);
+      } catch (e) {
+        console.error("[webhook] Failed to ban Clerk user:", e);
+      }
       break;
     }
   }
