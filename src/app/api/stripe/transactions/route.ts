@@ -33,13 +33,29 @@ export async function GET() {
 
   const rows: TxRow[] = [];
 
+  const PLAN_LABELS: Record<string, string> = { BASIC: "Básico", ADVANCED: "Avançado", PROFESSIONAL: "Profissional" };
+
   for (const inv of invoices.data) {
     if (inv.amount_paid === 0) continue;
     const billingReason = (inv as unknown as { billing_reason?: string }).billing_reason ?? "";
-    let description = "Assinatura";
-    if (billingReason === "subscription_cycle") description = "Renovação de assinatura";
-    else if (billingReason === "subscription_create") description = "Assinatura — primeiro pagamento";
-    else if (billingReason === "subscription_update") description = "Upgrade de plano";
+
+    // Extract plan from subscription metadata
+    const subscriptionId = (inv as unknown as { subscription?: string }).subscription;
+    let planLabel = "";
+    if (subscriptionId) {
+      try {
+        const stripeSub = await stripe.subscriptions.retrieve(subscriptionId);
+        const planId = stripeSub.metadata?.planId ?? "";
+        planLabel = PLAN_LABELS[planId] ?? planId;
+      } catch { /* ignore */ }
+    }
+
+    const planSuffix = planLabel ? ` · Plano ${planLabel}` : "";
+    let description = `Assinatura${planSuffix}`;
+    if (billingReason === "subscription_cycle") description = `Renovação de assinatura${planSuffix}`;
+    else if (billingReason === "subscription_create") description = `Primeiro pagamento${planSuffix}`;
+    else if (billingReason === "subscription_update") description = `Upgrade de plano${planSuffix}`;
+
     rows.push({
       id: inv.id,
       date: new Date((inv.created) * 1000).toISOString(),
@@ -57,11 +73,14 @@ export async function GET() {
     if ((charge as unknown as { invoice?: string }).invoice) continue;
     const meta = charge.metadata ?? {};
     const qty = meta.creditQty ? parseInt(meta.creditQty, 10) : null;
+    const planId = meta.planId ?? sub.plan ?? "";
+    const planLabel = PLAN_LABELS[planId] ?? "";
+    const planSuffix = planLabel ? ` · Plano ${planLabel}` : "";
     rows.push({
       id: charge.id,
       date: new Date(charge.created * 1000).toISOString(),
       type: charge.refunded ? "refund" : "credits",
-      description: qty ? `Compra de ${qty.toLocaleString("pt-BR")} créditos avulsos` : "Créditos avulsos",
+      description: qty ? `${qty.toLocaleString("pt-BR")} créditos avulsos${planSuffix}` : `Créditos avulsos${planSuffix}`,
       amount: charge.amount,
       currency: charge.currency,
       status: charge.status,
