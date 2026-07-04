@@ -1400,17 +1400,16 @@ function TransactionHistory() {
   const paginated = txs.slice((page - 1) * TX_PER_PAGE, page * TX_PER_PAGE);
 
   return (
-    <div className="card" style={{ marginTop: 16, marginBottom: 48 }}>
-      <div className="card-head">
-        <h3>Histórico de <em>transações</em></h3>
-        <span className="muted" style={{ fontSize: 12 }}>{loading ? "Carregando…" : `${txs.length} registros`}</span>
-      </div>
-      {loading ? (
-        <div className="card-pad muted" style={{ textAlign: "center", padding: 32 }}>Carregando…</div>
-      ) : txs.length === 0 ? (
-        <div className="card-pad muted" style={{ textAlign: "center", padding: 32 }}>Nenhuma transação encontrada.</div>
-      ) : (
-        <>
+    <div style={{ marginTop: 16 }}>
+      <div className="card">
+        <div className="card-head">
+          <h3>Histórico de <em>transações</em></h3>
+        </div>
+        {loading ? (
+          <div className="card-pad muted" style={{ textAlign: "center", padding: 32 }}>Carregando…</div>
+        ) : txs.length === 0 ? (
+          <div className="card-pad muted" style={{ textAlign: "center", padding: 32 }}>Nenhuma transação encontrada.</div>
+        ) : (
           <div style={{ overflowX: "auto" }}>
             <table className="tbl">
               <thead>
@@ -1459,14 +1458,21 @@ function TransactionHistory() {
               </tbody>
             </table>
           </div>
-          {totalPages > 1 && (
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, padding: "16px 0 4px" }}>
-              <button className="btn btn-ghost btn-sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>← Anterior</button>
-              <span style={{ fontSize: 13, color: "var(--stone)", fontFamily: "var(--mono)" }}>{page} / {totalPages}</span>
-              <button className="btn btn-ghost btn-sm" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>Próxima →</button>
-            </div>
-          )}
-        </>
+        )}
+      </div>
+
+      {!loading && totalPages > 1 && (
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 4px 8px", fontSize: 13 }}>
+          <button className="btn btn-ghost btn-sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>← Anterior</button>
+          <span style={{ color: "var(--stone)" }}>{page} / {totalPages}</span>
+          <button className="btn btn-ghost btn-sm" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>Próxima →</button>
+        </div>
+      )}
+
+      {!loading && (
+        <div style={{ padding: "8px 4px 48px", fontSize: 12, color: "var(--stone)" }}>
+          {txs.length} {txs.length === 1 ? "transação" : "transações"} no total
+        </div>
       )}
     </div>
   );
