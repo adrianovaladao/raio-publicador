@@ -338,33 +338,37 @@ function CancelFlow({ plan, email, periodEnd, onDone }: {
       {/* Retention modal */}
       {step === "retention" && (
         <div className="overlay" onClick={() => setStep("idle")}>
-          <div className="modal" style={{ maxWidth: 460 }} onClick={e => e.stopPropagation()}>
-            <div className="m-head">
-              <span style={{ fontSize: 28 }}>⚡</span>
-              <div>
-                <div style={{ fontWeight: 700, fontSize: 17 }}>Espera — temos uma oferta para você</div>
-                <div style={{ fontSize: 13, color: "var(--stone)", marginTop: 2 }}>Antes de ir, que tal continuar com desconto?</div>
-              </div>
-            </div>
-            <div className="m-body">
-              <div style={{ background: "var(--cream)", borderRadius: 12, padding: "18px 20px", marginBottom: 16 }}>
-                <div style={{ fontSize: 13, color: "var(--stone)", marginBottom: 4 }}>Sua oferta exclusiva</div>
-                <div style={{ fontSize: 22, fontWeight: 800, color: "var(--ink)" }}>
-                  {discountPct}% de desconto
-                </div>
-                <div style={{ fontSize: 13, color: "var(--stone)", marginTop: 4 }}>
-                  no Plano {isProfessional ? "Profissional" : "Avançado"} pelos próximos 30 dias. Seus créditos continuam válidos.
-                </div>
-              </div>
-              <p style={{ fontSize: 13, color: "var(--stone)" }}>
-                Se ainda assim quiser cancelar, podemos fazer isso — mas essa oferta não estará disponível depois.
-              </p>
-            </div>
-            <div className="m-foot">
-              <button className="btn btn-ghost btn-sm" onClick={() => setStep("policy")}>Não, quero cancelar</button>
-              <button className="btn btn-primary btn-sm" onClick={() => setStep("idle")}>
-                Quero o desconto de {discountPct}%
+          <div className="modal" style={{ maxWidth: 480, borderRadius: 20, padding: 0, overflow: "hidden" }} onClick={e => e.stopPropagation()}>
+            {/* Hero */}
+            <div style={{ background: "linear-gradient(135deg, #FAB500 0%, #f97316 100%)", padding: "32px 32px 28px", position: "relative", textAlign: "center" }}>
+              <button onClick={() => setStep("idle")} style={{ position: "absolute", top: 14, right: 14, background: "rgba(0,0,0,0.15)", border: "none", borderRadius: "50%", width: 30, height: 30, display: "grid", placeItems: "center", cursor: "pointer", color: "#fff" }}>
+                <X size={15} />
               </button>
+              <div style={{ fontSize: 48, lineHeight: 1, marginBottom: 10 }}>⚡</div>
+              <div style={{ fontWeight: 800, fontSize: 20, color: "#fff", letterSpacing: "-0.3px" }}>Espera — temos uma oferta para você</div>
+              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", marginTop: 6 }}>Antes de ir, que tal continuar com desconto?</div>
+            </div>
+            {/* Body */}
+            <div style={{ padding: "24px 32px" }}>
+              <div style={{ background: "#fffbeb", border: "1.5px solid #fde68a", borderRadius: 12, padding: "18px 20px", marginBottom: 18, display: "flex", alignItems: "center", gap: 16 }}>
+                <div style={{ fontSize: 36, lineHeight: 1 }}>🎁</div>
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#92400e", marginBottom: 2 }}>Sua oferta exclusiva</div>
+                  <div style={{ fontSize: 26, fontWeight: 900, color: "#78350f", letterSpacing: "-0.5px" }}>{discountPct}% de desconto</div>
+                  <div style={{ fontSize: 13, color: "#92400e", marginTop: 2 }}>no Plano {isProfessional ? "Profissional" : "Avançado"} pelos próximos 30 dias</div>
+                </div>
+              </div>
+              <p style={{ fontSize: 13, color: "var(--stone)", lineHeight: 1.6, margin: "0 0 24px" }}>
+                Seus créditos continuam válidos e você mantém todos os recursos. Essa oferta não estará disponível depois de cancelar.
+              </p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                <button className="btn btn-primary" style={{ width: "100%", justifyContent: "center", fontWeight: 700 }} onClick={() => setStep("idle")}>
+                  Quero o desconto de {discountPct}% ✨
+                </button>
+                <button className="btn btn-ghost btn-sm" style={{ width: "100%", justifyContent: "center", color: "var(--stone)" }} onClick={() => setStep("policy")}>
+                  Não, quero cancelar mesmo assim
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -373,21 +377,36 @@ function CancelFlow({ plan, email, periodEnd, onDone }: {
       {/* Policy modal */}
       {step === "policy" && (
         <div className="overlay" onClick={() => setStep("idle")}>
-          <div className="modal" style={{ maxWidth: 460 }} onClick={e => e.stopPropagation()}>
-            <div className="m-head">
-              <div style={{ fontWeight: 700, fontSize: 17 }}>Política de cancelamento</div>
+          <div className="modal" style={{ maxWidth: 480, borderRadius: 20, padding: 0, overflow: "hidden" }} onClick={e => e.stopPropagation()}>
+            <div style={{ padding: "28px 32px 0", position: "relative" }}>
+              <button onClick={() => setStep("idle")} style={{ position: "absolute", top: 20, right: 20, background: "var(--cream)", border: "none", borderRadius: "50%", width: 30, height: 30, display: "grid", placeItems: "center", cursor: "pointer", color: "var(--stone)" }}>
+                <X size={15} />
+              </button>
+              <div style={{ fontSize: 28, marginBottom: 10 }}>📋</div>
+              <div style={{ fontWeight: 800, fontSize: 18, color: "var(--ink)", letterSpacing: "-0.3px", marginBottom: 4 }}>Política de cancelamento</div>
+              <div style={{ fontSize: 13, color: "var(--stone)" }}>Leia com atenção antes de prosseguir.</div>
             </div>
-            <div className="m-body">
-              <ul style={{ fontSize: 13, color: "var(--stone)", lineHeight: 1.7, paddingLeft: 18, margin: 0 }}>
-                <li><b>Sem reembolso</b> — o valor pago não é devolvido.</li>
-                <li><b>Créditos</b> — devem ser usados até o fim do ciclo atual ({periodEndFmt}). Após isso, expiram.</li>
-                <li><b>Releases não publicados</b> — podem ser editados até o fim do ciclo. Após o cancelamento, ficam arquivados e não serão mais distribuídos.</li>
-                <li><b>Releases já publicados</b> — permanecem nos veículos normalmente.</li>
-                <li><b>Acesso</b> — sua conta será suspensa automaticamente em {periodEndFmt}.</li>
-              </ul>
+            <div style={{ padding: "20px 32px" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                {[
+                  { icon: "🚫", title: "Sem reembolso", desc: "O valor pago não será devolvido." },
+                  { icon: "⏳", title: "Créditos", desc: `Use seus créditos até ${periodEndFmt}. Após isso, expiram.` },
+                  { icon: "📝", title: "Releases não publicados", desc: `Podem ser editados até ${periodEndFmt}. Depois ficam arquivados.` },
+                  { icon: "✅", title: "Releases já publicados", desc: "Permanecem nos veículos normalmente." },
+                  { icon: "🔒", title: "Acesso", desc: `Sua conta será suspensa automaticamente em ${periodEndFmt}.` },
+                ].map(({ icon, title, desc }) => (
+                  <div key={title} style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: "12px 14px", background: "var(--cream)", borderRadius: 10 }}>
+                    <span style={{ fontSize: 18, lineHeight: 1, marginTop: 1, flexShrink: 0 }}>{icon}</span>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: 13, color: "var(--ink)", marginBottom: 1 }}>{title}</div>
+                      <div style={{ fontSize: 12.5, color: "var(--stone)", lineHeight: 1.5 }}>{desc}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="m-foot">
-              <button className="btn btn-ghost btn-sm" onClick={() => setStep("idle")}>Voltar</button>
+            <div style={{ padding: "0 32px 28px", display: "flex", gap: 10, justifyContent: "flex-end" }}>
+              <button className="btn btn-ghost btn-sm" onClick={() => setStep(hasRetention ? "retention" : "idle")}>Voltar</button>
               <button className="btn btn-danger btn-sm" onClick={() => setStep("confirm")}>Entendi, continuar</button>
             </div>
           </div>
@@ -397,15 +416,23 @@ function CancelFlow({ plan, email, periodEnd, onDone }: {
       {/* Confirm modal */}
       {step === "confirm" && (
         <div className="overlay" onClick={() => setStep("idle")}>
-          <div className="modal" style={{ maxWidth: 420 }} onClick={e => e.stopPropagation()}>
-            <div className="m-head">
-              <div style={{ fontWeight: 700, fontSize: 17 }}>Confirmar cancelamento</div>
+          <div className="modal" style={{ maxWidth: 440, borderRadius: 20, padding: 0, overflow: "hidden" }} onClick={e => e.stopPropagation()}>
+            <div style={{ padding: "28px 32px 0", position: "relative" }}>
+              <button onClick={() => setStep("idle")} style={{ position: "absolute", top: 20, right: 20, background: "var(--cream)", border: "none", borderRadius: "50%", width: 30, height: 30, display: "grid", placeItems: "center", cursor: "pointer", color: "var(--stone)" }}>
+                <X size={15} />
+              </button>
+              <div style={{ fontSize: 28, marginBottom: 10 }}>😔</div>
+              <div style={{ fontWeight: 800, fontSize: 18, color: "var(--ink)", letterSpacing: "-0.3px", marginBottom: 4 }}>Confirmar cancelamento</div>
+              <div style={{ fontSize: 13, color: "var(--stone)" }}>Essa ação não pode ser desfeita.</div>
             </div>
-            <div className="m-body">
-              <p style={{ fontSize: 13, color: "var(--stone)", marginBottom: 16 }}>
-                Para confirmar, digite seu e-mail de cadastro:
-              </p>
-              <div className="field">
+            <div style={{ padding: "20px 32px" }}>
+              <div style={{ background: "#fff5f5", border: "1.5px solid #fecaca", borderRadius: 10, padding: "12px 14px", marginBottom: 18, fontSize: 13, color: "#991b1b", lineHeight: 1.5 }}>
+                Seus créditos não serão reembolsados e seu acesso encerrará em <b>{periodEndFmt}</b>.
+              </div>
+              <div className="field" style={{ marginBottom: 4 }}>
+                <label style={{ fontSize: 12, fontWeight: 600, color: "var(--stone)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                  Digite seu e-mail para confirmar
+                </label>
                 <input
                   className="input"
                   type="email"
@@ -415,9 +442,9 @@ function CancelFlow({ plan, email, periodEnd, onDone }: {
                   autoFocus
                 />
               </div>
-              {err && <p style={{ fontSize: 12, color: "#c0392b", marginTop: 8 }}>{err}</p>}
+              {err && <p style={{ fontSize: 12, color: "#c0392b", marginTop: 6 }}>{err}</p>}
             </div>
-            <div className="m-foot">
+            <div style={{ padding: "0 32px 28px", display: "flex", gap: 10, justifyContent: "flex-end" }}>
               <button className="btn btn-ghost btn-sm" onClick={() => setStep("policy")}>Voltar</button>
               <button
                 className="btn btn-danger btn-sm"
