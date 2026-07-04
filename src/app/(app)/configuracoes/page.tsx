@@ -44,13 +44,6 @@ const ROLES: Record<string, { label: string; desc: string; color: string; bg: st
 const INVITE_ROLES = Object.fromEntries(Object.entries(ROLES).filter(([k]) => k !== "admin"));
 
 
-const INVOICES = [
-  { id: "INV-2026-06", date: "2026-06-01", amount: "R$ 1.500,00", plan: "Plano Pro · Junho 2026",     status: "paid" },
-  { id: "INV-2026-05", date: "2026-05-01", amount: "R$ 1.500,00", plan: "Plano Pro · Maio 2026",      status: "paid" },
-  { id: "INV-2026-04", date: "2026-04-01", amount: "R$ 1.500,00", plan: "Plano Pro · Abril 2026",     status: "paid" },
-  { id: "INV-2026-03", date: "2026-03-01", amount: "R$ 1.500,00", plan: "Plano Pro · Março 2026",     status: "paid" },
-  { id: "INV-2026-02", date: "2026-02-01", amount: "R$ 1.500,00", plan: "Plano Pro · Fevereiro 2026", status: "paid" },
-];
 
 const CONSUMPTION = [
   { m: "Jan", credits: 2100 }, { m: "Fev", credits: 2600 }, { m: "Mar", credits: 1900 },
