@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
-    const { planId } = (await req.json()) as { planId: PlanId };
+    const { planId, returnUrl, cancelUrl } = (await req.json()) as { planId: PlanId; returnUrl?: string; cancelUrl?: string };
     const plan = PLANS[planId];
     if (!plan) return NextResponse.json({ error: "Plano inválido" }, { status: 400 });
 
@@ -36,8 +36,8 @@ export async function POST(req: NextRequest) {
         customer: customerId,
         currency: "brl",
         line_items: [{ price: plan.stripePriceId, quantity: 1 }],
-        success_url: `${origin}/configuracoes?upgrade=success`,
-        cancel_url: `${origin}/configuracoes`,
+        success_url: returnUrl ?? `${origin}/configuracoes?upgrade=success`,
+        cancel_url: cancelUrl ?? `${origin}/configuracoes`,
         locale: "pt-BR",
         metadata: { clerkId: userId, planId },
         subscription_data: { metadata: { clerkId: userId, planId } },
@@ -77,10 +77,10 @@ export async function POST(req: NextRequest) {
         metadata: { clerkId: userId, planId },
       });
 
-      // DB: update plan only — keep current credits until renewal cycle
+      // DB: update plan and reactivate if was cancelled
       await prisma.subscription.update({
         where: { ownerId: userId },
-        data: { plan: planId },
+        data: { plan: planId, status: "ACTIVE" },
       });
 
       return NextResponse.json({ ok: true });
@@ -114,15 +114,34 @@ export async function POST(req: NextRequest) {
         customer: updatedSub.customer as string,
         currency: "brl",
         line_items: [{ price: plan.stripePriceId, quantity: 1 }],
-        success_url: `${origin}/configuracoes?upgrade=success`,
-        cancel_url: `${origin}/configuracoes`,
+        success_url: returnUrl ?? `${origin}/configuracoes?upgrade=success`,
+        cancel_url: cancelUrl ?? `${origin}/configuracoes`,
         locale: "pt-BR",
         metadata: { clerkId: userId, planId },
       });
       return NextResponse.json({ redirect: true, url: session.url });
     }
 
-    // Invoice already paid (auto-charged) — webhook invoice.payment_succeeded will update DB with prorated credits
+    // Invoice already paid (auto-charged) — update DB immediately (webhook may arrive later and is idempotent)
+    const currentSub = await prisma.subscription.findUnique({ where: { ownerId: userId }, select: { creditsTotal: true, creditsUsed: true } });
+    const oldCreditsTotal = currentSub?.creditsTotal ?? 0;
+    const newPlanCredits = plan.credits;
+    const periodStartMs = updatedSub.items.data[0].current_period_start * 1000;
+    const periodEndMs = updatedSub.items.data[0].current_period_end * 1000;
+    const fraction = Math.max(0, Math.min(1, (periodEndMs - Date.now()) / (periodEndMs - periodStartMs)));
+    const addition = Math.max(0, Math.round((newPlanCredits - oldCreditsTotal) * fraction));
+
+    await prisma.subscription.update({
+      where: { ownerId: userId },
+      data: {
+        plan: planId,
+        status: "ACTIVE",
+        ...(addition > 0 ? { creditsTotal: { increment: addition } } : {}),
+        currentPeriodStart: new Date(periodStartMs),
+        currentPeriodEnd: new Date(periodEndMs),
+      },
+    });
+
     return NextResponse.json({ ok: true });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Erro interno";

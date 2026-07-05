@@ -14,7 +14,7 @@ const UPGRADE_OPTIONS: Record<string, Array<{ id: string; label: string; brandsL
   ],
 };
 
-export function UpgradeModal({ currentPlan, onClose }: { currentPlan: string; onClose: () => void }) {
+export function UpgradeModal({ currentPlan, onClose, returnUrl, onSuccess }: { currentPlan: string; onClose: () => void; returnUrl?: string; onSuccess?: () => void }) {
   useEscapeKey(onClose);
   const options = UPGRADE_OPTIONS[currentPlan] ?? [];
   const [loadingId, setLoadingId] = useState<string | null>(null);
@@ -23,14 +23,22 @@ export function UpgradeModal({ currentPlan, onClose }: { currentPlan: string; on
   async function handleUpgrade(planId: string) {
     setLoadingId(planId);
     setError(null);
+    const successUrl = returnUrl
+      ? (returnUrl.includes("?") ? `${returnUrl}&upgrade=success` : `${returnUrl}?upgrade=success`)
+      : "/configuracoes?upgrade=success";
+    const cancelUrl = returnUrl ?? "/configuracoes";
     try {
       const res = await fetch("/api/stripe/upgrade", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ planId }),
+        body: JSON.stringify({ planId, returnUrl: successUrl, cancelUrl }),
       });
       const data = await res.json() as { ok?: boolean; redirect?: boolean; url?: string; error?: string };
-      if (data.ok) { window.location.href = "/configuracoes?upgrade=success"; return; }
+      if (data.ok) {
+        onSuccess?.();
+        onClose();
+        return;
+      }
       if (data.redirect && data.url) { window.location.href = data.url; return; }
       setError(data.error ?? "Não foi possível processar o upgrade. Tente novamente.");
     } catch {

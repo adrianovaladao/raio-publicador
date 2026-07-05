@@ -341,7 +341,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
         <div className="sb-mid scroll">
           <div style={{ padding: "16px 12px 2px" }}>
-            <Link href="/releases/novo" className="btn btn-primary btn-block btn-lg">
+            <Link
+              href="/releases/novo"
+              className="btn btn-primary btn-block btn-lg"
+              onClick={e => {
+                if (pathname === "/releases/novo") {
+                  e.preventDefault();
+                  window.location.href = "/releases/novo";
+                }
+              }}
+            >
               <FileText size={17} /> Criar release
             </Link>
           </div>
