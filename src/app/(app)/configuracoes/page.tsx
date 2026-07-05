@@ -455,10 +455,10 @@ function CancelFlow({ plan, email, periodEnd, isCancelled, onDone, onReactivated
             <div style={{ padding: "20px 32px" }}>
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                 {[
-                  { icon: <Ban size={16} />, color: "var(--coral)", bg: "var(--coral-soft)", title: "Sem reembolso", desc: "O valor pago não será devolvido." },
-                  { icon: <Clock size={16} />, color: "var(--amber-ink)", bg: "var(--amber-soft)", title: "Créditos", desc: `Use seus créditos até ${periodEndFmt}. Após isso, expiram.` },
+                  { icon: <Ban size={16} />, color: "var(--stone)", bg: "var(--cream)", title: "Sem reembolso", desc: "O valor pago não será devolvido." },
+                  { icon: <Clock size={16} />, color: "var(--stone)", bg: "var(--cream)", title: "Créditos", desc: `Use seus créditos até ${periodEndFmt}. Após isso, expiram.` },
                   { icon: <FileText size={16} />, color: "var(--stone)", bg: "var(--cream)", title: "Releases não publicados", desc: `Podem ser editados até ${periodEndFmt}. Depois ficam arquivados.` },
-                  { icon: <CheckCircle2 size={16} />, color: "var(--green)", bg: "var(--green-soft)", title: "Releases já publicados", desc: "Permanecem nos veículos normalmente." },
+                  { icon: <CheckCircle2 size={16} />, color: "var(--stone)", bg: "var(--cream)", title: "Releases já publicados", desc: "Permanecem nos veículos normalmente." },
                   { icon: <Lock size={16} />, color: "var(--stone)", bg: "var(--cream)", title: "Acesso", desc: `Sua conta será suspensa automaticamente em ${periodEndFmt}.` },
                 ].map(({ icon, color, bg, title, desc }) => (
                   <div key={title} style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: "12px 14px", background: "var(--cream)", borderRadius: 10 }}>
