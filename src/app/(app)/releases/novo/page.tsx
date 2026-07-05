@@ -1610,7 +1610,7 @@ export default function NovoReleasePage() {
                     scheduledAt,
                     brandId: brand.id,
                     creditsUsed: selTokens,
-                    imageUrl: content.imageUrls[0] ?? null,
+                    imageUrl: content.imageUrls[0] ?? extractFirstImageUrl(content.body) ?? null,
                     vehicles: selected,
                   };
                   let res: Response;
