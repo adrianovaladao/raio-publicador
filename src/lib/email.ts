@@ -16,8 +16,8 @@ function base(content: string) {
     <tr><td align="center">
       <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;max-width:560px;width:100%">
         <tr>
-          <td style="background:#1a1a1a;padding:20px 32px">
-            <img src="${APP_URL}/assets/logo/raio-logo-email.png" alt="Raio Publicador" height="36" style="display:block;height:36px;width:auto;border:0">
+          <td style="background:#ffffff;padding:24px 32px;border-bottom:1px solid #f0f0f0">
+            <img src="${APP_URL}/assets/logo/raio-logo-email.png" alt="Raio Publicador" height="32" style="display:block;height:32px;width:auto;border:0">
           </td>
         </tr>
         <tr>
