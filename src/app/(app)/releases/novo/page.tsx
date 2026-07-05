@@ -359,10 +359,10 @@ function StepBrand({ selected, onSelect, brands, brandsLimit, onAddBrand, onLimi
 interface Content { title: string; subtitle: string; body: string; cat: string; author: string; imageUrls: string[] }
 
 
-function StepContent({ content, setContent, brand, ownerName, onAIUsed }: { content: Content; setContent: (c: Content) => void; brand: Brand | null; ownerName: string; onAIUsed?: () => void }) {
+function StepContent({ content, setContent, brand, ownerName, onAIUsed }: { content: Content; setContent: React.Dispatch<React.SetStateAction<Content>>; brand: Brand | null; ownerName: string; onAIUsed?: () => void }) {
   const brandAuthors = brand?.authors ?? [];
   const authors = brandAuthors.length > 0 ? brandAuthors : [ownerName].filter(Boolean);
-  const up = (k: keyof Content, v: string | string[]) => setContent({ ...content, [k]: v });
+  const up = (k: keyof Content, v: string | string[]) => setContent(prev => ({ ...prev, [k]: v }));
 
   useEffect(() => {
     if (!content.author && authors.length > 0) up("author", authors[0]);
