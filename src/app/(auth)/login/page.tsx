@@ -312,7 +312,7 @@ export default function LoginPage() {
 
               <p className="auth-foot">
                 Não tem conta?{" "}
-                <Link href="/cadastro">Criar conta</Link>
+                <Link href="/#planos">Escolha um plano agora.</Link>
               </p>
             </>
           )}
