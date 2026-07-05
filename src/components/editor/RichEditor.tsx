@@ -83,6 +83,7 @@ interface RichEditorProps {
   onContentChange: (html: string) => void;
   brandName?: string;
   onAIUsed?: () => void;
+  onImageInserted?: (url: string) => void;
 }
 
 function AutoTextarea({ className, value, onChange, placeholder, style }: {
@@ -115,6 +116,7 @@ export function RichEditor({
   content, onContentChange,
   brandName,
   onAIUsed,
+  onImageInserted,
 }: RichEditorProps) {
   const imageFileRef = useRef<HTMLInputElement>(null);
   const [imgUploading, setImgUploading] = useState(false);
@@ -181,7 +183,10 @@ export function RichEditor({
         attrs: { src: data.url, caption: "" },
       }).run();
       if (!ok) setAiErr("Não foi possível inserir a imagem no editor.");
-      else onContentChange(editor.getHTML());
+      else {
+        onContentChange(editor.getHTML());
+        onImageInserted?.(data.url);
+      }
     } catch (e) {
       setAiErr(e instanceof Error ? e.message : "Falha de conexão.");
     }

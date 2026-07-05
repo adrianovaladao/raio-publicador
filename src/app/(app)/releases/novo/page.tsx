@@ -381,6 +381,7 @@ function StepContent({ content, setContent, brand, ownerName, onAIUsed }: { cont
         onContentChange={v => up("body", v)}
         brandName={brand?.name}
         onAIUsed={onAIUsed}
+        onImageInserted={url => up("imageUrls", [url, ...content.imageUrls.filter(u => u !== url)])}
       />
 
       <div>
