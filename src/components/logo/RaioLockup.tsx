@@ -13,7 +13,7 @@ interface RaioLockupProps {
  * Use variant="dark" em fundos escuros e variant="light" em fundos claros.
  */
 export function RaioLockup({ variant = "dark", height = 28, className }: RaioLockupProps) {
-  const aspectRatio = 430 / 72; // dimensões originais do SVG
+  const aspectRatio = 229 / 86; // dimensões originais do SVG
   const width = Math.round(height * aspectRatio);
 
   return (

@@ -27,6 +27,10 @@ const robotoSerif = Roboto_Serif({
 export const metadata: Metadata = {
   title: "Raio Publicador",
   description: "Distribua releases para 600+ portais de notícias num único plano.",
+  icons: {
+    icon: "/favicon.png",
+    apple: "/favicon.png",
+  },
 };
 
 export default function RootLayout({
