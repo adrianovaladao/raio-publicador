@@ -794,7 +794,6 @@ export default function EditReleasePage() {
           summary: subtitle.trim() || null,
           status: "SCHEDULED",
           scheduledAt,
-          imageUrl: null,
           vehicles: selectedVeh,
           creditsUsed,
         }),
@@ -820,7 +819,6 @@ export default function EditReleasePage() {
           summary: subtitle.trim() || null,
           status: "DRAFT",
           scheduledAt: null,
-          imageUrl: null,
           vehicles: selectedVeh,
         }),
       });
