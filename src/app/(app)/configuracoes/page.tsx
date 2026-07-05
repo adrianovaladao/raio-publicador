@@ -455,9 +455,14 @@ function CancelFlow({ plan, email, periodEnd, isCancelled, onDone, onReactivated
             </div>
             <div style={{ padding: "0 32px 28px", display: "flex", flexDirection: "column", gap: 10 }}>
               {retentionDone ? (
-                <button className="btn btn-primary" style={{ width: "100%", justifyContent: "center" }} onClick={() => setStep("idle")}>
-                  Fechar
-                </button>
+                <>
+                  <button className="btn btn-primary" style={{ width: "100%", justifyContent: "center" }} onClick={() => setStep("idle")}>
+                    Fechar
+                  </button>
+                  <button className="btn btn-ghost btn-sm" style={{ width: "100%", justifyContent: "center", color: "var(--stone)" }} onClick={() => setStep("policy")}>
+                    Mudei de ideia e quero cancelar
+                  </button>
+                </>
               ) : (
                 <>
                   <button className="btn btn-primary" style={{ width: "100%", justifyContent: "center", fontWeight: 700 }} disabled={applyingRetention} onClick={handleRetention}>
