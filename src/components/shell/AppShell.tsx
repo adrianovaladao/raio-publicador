@@ -38,6 +38,7 @@ function PlansModal({ onClose, sub, onSuccess, onBuyCredits }: { onClose: () => 
   const pct  = sub.credits > 0 ? Math.round((sub.creditsUsed / sub.credits) * 100) : 0;
   const left = sub.credits - sub.creditsUsed;
   const [upgrading, setUpgrading] = useState<string | null>(null);
+  const [upgradeErr, setUpgradeErr] = useState<string | null>(null);
 
   useEffect(() => {
     const fn = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
@@ -47,6 +48,7 @@ function PlansModal({ onClose, sub, onSuccess, onBuyCredits }: { onClose: () => 
 
   async function handleUpgrade(planId: string) {
     setUpgrading(planId);
+    setUpgradeErr(null);
     try {
       const res = await fetch("/api/stripe/upgrade", {
         method: "POST",
@@ -56,7 +58,10 @@ function PlansModal({ onClose, sub, onSuccess, onBuyCredits }: { onClose: () => 
       const data = await res.json() as { ok?: boolean; redirect?: boolean; url?: string; error?: string };
       if (data.redirect && data.url) { window.location.href = data.url; return; }
       if (data.ok) { onSuccess("Plano atualizado com sucesso"); onClose(); return; }
-    } catch {}
+      setUpgradeErr(data.error ?? "Não foi possível processar o upgrade. Tente novamente.");
+    } catch {
+      setUpgradeErr("Falha de conexão. Tente novamente.");
+    }
     setUpgrading(null);
   }
 
@@ -114,6 +119,11 @@ function PlansModal({ onClose, sub, onSuccess, onBuyCredits }: { onClose: () => 
             })}
           </div>
 
+          {upgradeErr && (
+            <div style={{ margin: "0 0 8px", padding: "10px 14px", background: "var(--coral-soft, #fee2e2)", borderRadius: 10, fontSize: 13, color: "var(--coral, #dc2626)" }}>
+              {upgradeErr}
+            </div>
+          )}
           <div className="plans-note" style={{ cursor: "pointer" }} onClick={() => { onClose(); onBuyCredits(); }}>
             <Zap size={16} />
             <span>Precisa de mais créditos? <b>Comprar créditos avulsos →</b></span>
