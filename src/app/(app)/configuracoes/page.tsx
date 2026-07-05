@@ -246,6 +246,7 @@ function CancelFlow({ plan, email, periodEnd, isCancelled, onDone, onReactivated
     try {
       const res = await fetch("/api/stripe/reactivate", { method: "POST" });
       if (!res.ok) throw new Error("Erro ao reativar");
+      setStep("idle");
       onReactivated();
     } catch {
       setErr("Falha ao reativar. Tente novamente ou entre em contato com o suporte.");
@@ -360,57 +361,39 @@ function CancelFlow({ plan, email, periodEnd, isCancelled, onDone, onReactivated
       {step === "reactivate" && (
         <div className="overlay" onClick={() => setStep("idle")}>
           <div className="modal" style={{ maxWidth: 460, borderRadius: 20, padding: 0, overflow: "hidden" }} onClick={e => e.stopPropagation()}>
-            {/* Hero */}
-            <div style={{ background: "linear-gradient(135deg, #FAB500 0%, #f97316 100%)", padding: "32px 32px 28px", position: "relative", textAlign: "center" }}>
-              <button onClick={() => setStep("idle")} style={{ position: "absolute", top: 14, right: 14, background: "rgba(0,0,0,0.15)", border: "none", borderRadius: "50%", width: 30, height: 30, display: "grid", placeItems: "center", cursor: "pointer", color: "#fff" }}>
+            <div style={{ padding: "28px 32px 0", position: "relative" }}>
+              <button onClick={() => setStep("idle")} style={{ position: "absolute", top: 20, right: 20, background: "var(--cream)", border: "none", borderRadius: "50%", width: 30, height: 30, display: "grid", placeItems: "center", cursor: "pointer", color: "var(--stone)" }}>
                 <X size={15} />
               </button>
-              <div style={{ width: 56, height: 56, borderRadius: "50%", background: "rgba(255,255,255,0.2)", display: "grid", placeItems: "center", margin: "0 auto 14px" }}>
-                <Zap size={28} color="#fff" fill="#fff" />
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: "var(--amber-soft)", display: "grid", placeItems: "center", marginBottom: 14 }}>
+                <Zap size={20} color="var(--amber-ink)" fill="var(--amber-ink)" />
               </div>
-              <div style={{ fontWeight: 800, fontSize: 20, color: "#fff", letterSpacing: "-0.3px" }}>Sentimos sua falta!</div>
-              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", marginTop: 6 }}>Reative sua conta e continue distribuindo releases.</div>
+              <div style={{ fontWeight: 800, fontSize: 18, color: "var(--ink)", letterSpacing: "-0.3px", marginBottom: 4 }}>Reativar assinatura</div>
+              <div style={{ fontSize: 13, color: "var(--stone)" }}>Sua conta volta ao normal imediatamente.</div>
             </div>
-            {/* Body */}
-            <div style={{ padding: "24px 32px 28px" }}>
-              <div style={{ background: "var(--cream)", borderRadius: 12, padding: "16px 18px", marginBottom: 20 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-                  <div style={{ width: 32, height: 32, borderRadius: 8, background: "var(--amber-soft)", display: "grid", placeItems: "center", flexShrink: 0 }}>
-                    <Check size={16} color="var(--amber-ink)" />
+            <div style={{ padding: "20px 32px" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                {[
+                  { icon: <Check size={16} />, color: "var(--green)", bg: "var(--green-soft)", title: "Seus dados permanecem intactos", desc: "Marcas, releases e histórico continuam disponíveis." },
+                  { icon: <Zap size={16} />, color: "var(--amber-ink)", bg: "var(--amber-soft)", title: "Créditos renovados no próximo ciclo", desc: "Sua cota de créditos volta a partir da próxima renovação." },
+                  { icon: <Rss size={16} />, color: "var(--stone)", bg: "var(--cream)", title: "Acesso imediato", desc: "Volte a agendar releases assim que confirmar." },
+                ].map(({ icon, color, bg, title, desc }) => (
+                  <div key={title} style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: "12px 14px", background: "var(--cream)", borderRadius: 10 }}>
+                    <div style={{ width: 30, height: 30, borderRadius: 8, background: bg, display: "grid", placeItems: "center", flexShrink: 0, color }}>{icon}</div>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: 13, color: "var(--ink)", marginBottom: 1 }}>{title}</div>
+                      <div style={{ fontSize: 12.5, color: "var(--stone)", lineHeight: 1.5 }}>{desc}</div>
+                    </div>
                   </div>
-                  <div>
-                    <div style={{ fontWeight: 700, fontSize: 13 }}>Seus dados permanecem intactos</div>
-                    <div style={{ fontSize: 12, color: "var(--stone)" }}>Marcas, releases e histórico serão restaurados.</div>
-                  </div>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-                  <div style={{ width: 32, height: 32, borderRadius: 8, background: "var(--amber-soft)", display: "grid", placeItems: "center", flexShrink: 0 }}>
-                    <Zap size={16} color="var(--amber-ink)" />
-                  </div>
-                  <div>
-                    <div style={{ fontWeight: 700, fontSize: 13 }}>Créditos renovados no próximo ciclo</div>
-                    <div style={{ fontSize: 12, color: "var(--stone)" }}>Sua cota de créditos volta a partir da próxima renovação.</div>
-                  </div>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <div style={{ width: 32, height: 32, borderRadius: 8, background: "var(--amber-soft)", display: "grid", placeItems: "center", flexShrink: 0 }}>
-                    <Rss size={16} color="var(--amber-ink)" />
-                  </div>
-                  <div>
-                    <div style={{ fontWeight: 700, fontSize: 13 }}>Acesso imediato</div>
-                    <div style={{ fontSize: 12, color: "var(--stone)" }}>Volte a agendar releases assim que confirmar.</div>
-                  </div>
-                </div>
+                ))}
               </div>
-              {err && <div style={{ fontSize: 13, color: "var(--coral)", background: "var(--coral-soft)", borderRadius: 8, padding: "10px 12px", marginBottom: 14 }}>{err}</div>}
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                <button className="btn btn-primary" style={{ width: "100%", justifyContent: "center", fontWeight: 700 }} onClick={handleReactivate} disabled={reactivating}>
-                  {reactivating ? "Reativando…" : "Confirmar reativação"}
-                </button>
-                <button className="btn btn-ghost btn-sm" style={{ width: "100%", justifyContent: "center" }} onClick={() => setStep("idle")}>
-                  Agora não
-                </button>
-              </div>
+              {err && <div style={{ fontSize: 13, color: "var(--coral)", background: "var(--coral-soft)", borderRadius: 8, padding: "10px 12px", marginTop: 14 }}>{err}</div>}
+            </div>
+            <div style={{ padding: "0 32px 28px", display: "flex", gap: 10, justifyContent: "flex-end" }}>
+              <button className="btn btn-ghost btn-sm" onClick={() => setStep("idle")}>Agora não</button>
+              <button className="btn btn-primary btn-sm" onClick={handleReactivate} disabled={reactivating}>
+                {reactivating ? "Reativando…" : "Confirmar reativação"}
+              </button>
             </div>
           </div>
         </div>
