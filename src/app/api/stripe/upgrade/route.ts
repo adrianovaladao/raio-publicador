@@ -138,12 +138,37 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: `Fatura em estado inesperado: ${invoice.status}` }, { status: 500 });
     }
 
-    // Invoice was auto-charged by Stripe.
-    // Credits are handled exclusively by the invoice.payment_succeeded webhook to avoid double-crediting.
-    // We only update plan name and status here for immediate UI feedback.
+    // Invoice auto-charged by Stripe. Update DB directly as fallback for environments
+    // where the webhook may not fire (e.g. Sandbox without local webhook). The webhook
+    // handler is idempotent so double-execution is safe.
+    const billingReason = (invoice as unknown as { billing_reason?: string }).billing_reason;
+    const amountPaid = (invoice as unknown as { amount_paid?: number }).amount_paid ?? 0;
+
+    const currentSub = await prisma.subscription.findUnique({
+      where: { ownerId: userId },
+      select: { creditsTotal: true },
+    });
+    const oldCreditsTotal = currentSub?.creditsTotal ?? 0;
+    const newPlanCredits = plan.credits;
+    const periodStartMs = updatedSub.items.data[0].current_period_start * 1000;
+    const periodEndMs = updatedSub.items.data[0].current_period_end * 1000;
+
+    // Only add prorated credits when Stripe confirmed a real payment for this upgrade
+    const shouldAddCredits = billingReason === "subscription_update" && amountPaid > 0;
+    const fraction = Math.max(0, Math.min(1, (periodEndMs - Date.now()) / (periodEndMs - periodStartMs)));
+    const addition = shouldAddCredits
+      ? Math.max(0, Math.round((newPlanCredits - oldCreditsTotal) * fraction))
+      : 0;
+
     await prisma.subscription.update({
       where: { ownerId: userId },
-      data: { plan: planId, status: "ACTIVE" },
+      data: {
+        plan: planId,
+        status: "ACTIVE",
+        ...(addition > 0 ? { creditsTotal: { increment: addition } } : {}),
+        currentPeriodStart: new Date(periodStartMs),
+        currentPeriodEnd: new Date(periodEndMs),
+      },
     });
 
     return NextResponse.json({ ok: true });
