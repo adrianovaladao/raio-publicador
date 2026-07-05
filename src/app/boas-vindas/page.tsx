@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import {
@@ -307,6 +307,12 @@ function Brand({ go, data, setData }: { go: (s: Stage) => void; data: OnbData; s
 
 // ─── CONCLUSÃO ────────────────────────────────────────────────
 function Done({ data }: { data: OnbData }) {
+  const [credits, setCredits] = useState<number | null>(null);
+  useEffect(() => {
+    fetch("/api/stripe/subscription").then(r => r.json()).then((d: { credits?: number }) => {
+      if (d.credits) setCredits(d.credits);
+    }).catch(() => {});
+  }, []);
   return (
     <div className="onb-card narrow onb-done">
       <div className="burst"><CheckCircle size={46} /></div>
@@ -315,7 +321,7 @@ function Done({ data }: { data: OnbData }) {
       <div className="onb-summary">
         <div className="s"><span className="ic"><Tag size={18} /></span><div><div className="t">{data.name || "Marca cadastrada"}</div><div className="d">{data.segment}</div></div></div>
         <div className="s"><span className="ic"><Megaphone size={18} /></span><div><div className="t">Marca configurada</div><div className="d">Pronta para uso</div></div></div>
-        <div className="s"><span className="ic"><Coins size={18} /></span><div><div className="t">1.800 créditos</div><div className="d">Prontos para uso</div></div></div>
+        <div className="s"><span className="ic"><Coins size={18} /></span><div><div className="t">{credits != null ? `${credits.toLocaleString("pt-BR")} créditos` : "Créditos"}</div><div className="d">Prontos para uso</div></div></div>
       </div>
       <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
         <Link className="btn btn-primary btn-lg" href="/dashboard">Ir para o painel <ArrowRight size={17} /></Link>
