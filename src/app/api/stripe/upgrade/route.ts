@@ -17,6 +17,8 @@ export async function POST(req: NextRequest) {
     const stripe = getStripe();
     const prisma = getPrisma();
     const origin = req.nextUrl.origin;
+    const successUrl = returnUrl ?? `${origin}/configuracoes?upgrade=success`;
+    const cancelUrlFinal = cancelUrl ?? `${origin}/configuracoes`;
 
     const sub = await prisma.subscription.findUnique({ where: { ownerId: userId } });
 
@@ -36,8 +38,8 @@ export async function POST(req: NextRequest) {
         customer: customerId,
         currency: "brl",
         line_items: [{ price: plan.stripePriceId, quantity: 1 }],
-        success_url: returnUrl ?? `${origin}/configuracoes?upgrade=success`,
-        cancel_url: cancelUrl ?? `${origin}/configuracoes`,
+        success_url: successUrl,
+        cancel_url: cancelUrlFinal,
         locale: "pt-BR",
         metadata: { clerkId: userId, planId },
         subscription_data: { metadata: { clerkId: userId, planId } },
@@ -80,47 +82,31 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true });
     }
 
-    // ── Upgrade → must collect payment via Stripe-hosted page ──────────────
+    // ── Upgrade com subscription existente → Billing Portal (subscription_update_confirm) ──
+    // O portal do Stripe mostra o resumo da cobrança proporcional e coleta pagamento.
+    // Após pagamento, o webhook invoice.payment_succeeded atualiza o DB.
     const stripeSub = await stripe.subscriptions.retrieve(sub.stripeSubscriptionId);
     const itemId = stripeSub.items.data[0]?.id;
     if (!itemId) return NextResponse.json({ error: "Item de assinatura não encontrado" }, { status: 500 });
 
-    // Update subscription and immediately invoice the proration.
-    // We do NOT update the DB here. The webhook (invoice.payment_succeeded with
-    // billing_reason="subscription_update") is the sole authority for DB changes.
-    const updatedSub = await stripe.subscriptions.update(sub.stripeSubscriptionId, {
-      items: [{ id: itemId, price: plan.stripePriceId }],
-      proration_behavior: "always_invoice",
+    const portalSession = await stripe.billingPortal.sessions.create({
+      customer: sub.stripeCustomerId!,
+      return_url: successUrl,
+      flow_data: {
+        type: "subscription_update_confirm",
+        subscription_update_confirm: {
+          subscription: sub.stripeSubscriptionId,
+          items: [{ id: itemId, price: plan.stripePriceId, quantity: 1 }],
+        },
+      },
+    });
+
+    // Salva o planId no metadata da subscription para o webhook identificar o plano após pagamento
+    await stripe.subscriptions.update(sub.stripeSubscriptionId, {
       metadata: { clerkId: userId, planId },
     });
 
-    const latestInvoiceId = typeof updatedSub.latest_invoice === "string"
-      ? updatedSub.latest_invoice
-      : (updatedSub.latest_invoice as { id?: string } | null)?.id ?? null;
-
-    if (!latestInvoiceId) {
-      return NextResponse.json({ error: "Nenhuma fatura gerada pelo Stripe." }, { status: 500 });
-    }
-
-    let invoice = await stripe.invoices.retrieve(latestInvoiceId);
-
-    // Finalize draft invoices so they get a hosted URL
-    if (invoice.status === "draft") {
-      invoice = await stripe.invoices.finalizeInvoice(latestInvoiceId);
-    }
-
-    // If there's a hosted URL (open or paid invoice), always redirect so the user
-    // explicitly sees the payment confirmation. This prevents silent charges.
-    // For open invoices: user pays here. For paid (auto-charged): user sees the receipt.
-    // DB is updated exclusively by the invoice.payment_succeeded webhook — never here.
-    const hostedUrl = (invoice as unknown as { hosted_invoice_url?: string | null }).hosted_invoice_url;
-    if (hostedUrl) {
-      return NextResponse.json({ redirect: true, url: hostedUrl });
-    }
-
-    // No hosted URL (rare: $0 invoice auto-closed). Safe to return success;
-    // the webhook will update the DB when it fires.
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ redirect: true, url: portalSession.url });
 
   } catch (err) {
     const message = err instanceof Error ? err.message : "Erro interno";
