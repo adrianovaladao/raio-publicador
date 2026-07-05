@@ -374,8 +374,8 @@ function CancelFlow({ plan, email, periodEnd, isCancelled, onDone, onReactivated
             <div style={{ padding: "20px 32px" }}>
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                 {[
-                  { icon: <Check size={16} />, color: "var(--green)", bg: "var(--green-soft)", title: "Seus dados permanecem intactos", desc: "Marcas, releases e histórico continuam disponíveis." },
-                  { icon: <Zap size={16} />, color: "var(--amber-ink)", bg: "var(--amber-soft)", title: "Créditos renovados no próximo ciclo", desc: "Sua cota de créditos volta a partir da próxima renovação." },
+                  { icon: <Check size={16} />, color: "var(--stone)", bg: "var(--cream)", title: "Seus dados permanecem intactos", desc: "Marcas, releases e histórico continuam disponíveis." },
+                  { icon: <Zap size={16} />, color: "var(--stone)", bg: "var(--cream)", title: "Créditos renovados no próximo ciclo", desc: "Sua cota de créditos volta a partir da próxima renovação." },
                   { icon: <Rss size={16} />, color: "var(--stone)", bg: "var(--cream)", title: "Acesso imediato", desc: "Volte a agendar releases assim que confirmar." },
                 ].map(({ icon, color, bg, title, desc }) => (
                   <div key={title} style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: "12px 14px", background: "var(--cream)", borderRadius: 10 }}>
