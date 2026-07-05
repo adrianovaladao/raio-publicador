@@ -10,6 +10,7 @@ import {
 import { RichEditor } from "@/components/editor/RichEditor";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { BuyCreditsModal } from "@/components/BuyCreditsModal";
+import { SelectBox } from "@/components/SelectBox";
 
 // ── DatePicker customizado ────────────────────────────────────────────────────
 
@@ -233,21 +234,11 @@ function StepContent({
           <div className="sc-body">
             <div className="field-row">
               <label style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--stone)" }}>Editoria</label>
-              <div className="select-wrap">
-                <select className="input" value={cat} onChange={e => setCat(e.target.value)}>
-                  {CONTENT_CATS.map(c => <option key={c}>{c}</option>)}
-                </select>
-                <ChevronDown size={16} />
-              </div>
+              <SelectBox value={cat} options={CONTENT_CATS} onChange={setCat} />
             </div>
             <div className="field-row">
               <label style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--stone)" }}>Autor</label>
-              <div className="select-wrap">
-                <select className="input" value={author} onChange={e => setAuthor(e.target.value)}>
-                  {authors.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-                </select>
-                <ChevronDown size={16} />
-              </div>
+              <SelectBox value={author} options={authors.map(a => ({ value: a.id, label: a.name }))} onChange={setAuthor} />
             </div>
           </div>
         </div>

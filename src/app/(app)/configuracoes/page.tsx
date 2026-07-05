@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { BuyCreditsModal } from "@/components/BuyCreditsModal";
+import { SelectBox } from "@/components/SelectBox";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -192,15 +193,12 @@ function PerfilPanel({ onToast }: { onToast: (m: string) => void }) {
           <div className="field"><label>Telefone</label><input className="input" value={telefone} onChange={e => setTelefone(e.target.value)} placeholder="(11) 99999-0000" /></div>
           <div className="field">
             <label>Fuso horário</label>
-            <div className="select-wrap">
-              <select className="input" value={timezone} onChange={e => setTimezone(e.target.value)}>
-                <option value="America/Sao_Paulo">Brasília (GMT-3)</option>
-                <option value="America/Noronha">Fernando de Noronha (GMT-2)</option>
-                <option value="America/Rio_Branco">Acre (GMT-5)</option>
-                <option value="America/Manaus">Manaus (GMT-4)</option>
-              </select>
-              <ChevronDown size={16} />
-            </div>
+            <SelectBox value={timezone} onChange={setTimezone} options={[
+              { value: "America/Sao_Paulo", label: "Brasília (GMT-3)" },
+              { value: "America/Noronha", label: "Fernando de Noronha (GMT-2)" },
+              { value: "America/Rio_Branco", label: "Acre (GMT-5)" },
+              { value: "America/Manaus", label: "Manaus (GMT-4)" },
+            ]} />
           </div>
         </div>
         <div className="field" style={{ marginTop: 4 }}>
@@ -585,7 +583,7 @@ function ContaPanel({ onToast }: { onToast: (m: string) => void }) {
             </div>
             <div className="field">
               <label>Idioma</label>
-              <div className="select-wrap"><select className="input"><option>Português (Brasil)</option><option>English</option></select><ChevronDown size={16} /></div>
+              <SelectBox value="Português (Brasil)" options={["Português (Brasil)", "English"]} onChange={() => {}} />
             </div>
           </div>
 
@@ -1073,12 +1071,7 @@ function BrandFormModal({ brand, onClose, onSaved }: {
             <div className="field"><label>Nome da marca / cliente</label><input className="input" value={name} onChange={e => setName(e.target.value)} placeholder="Ex.: Franquia Sabor Brasil" autoFocus /></div>
             <div className="field">
               <label>Segmento / setor</label>
-              <div className="select-wrap">
-                <select className="input" value={segment} onChange={e => setSegment(e.target.value)}>
-                  {BRAND_SEGMENTS.map(s => <option key={s}>{s}</option>)}
-                </select>
-                <ChevronDown size={16} />
-              </div>
+              <SelectBox value={segment} options={BRAND_SEGMENTS} onChange={setSegment} />
             </div>
             <div className="field"><label>Site</label><input className="input" value={site} onChange={e => setSite(e.target.value)} placeholder="www.exemplo.com.br" /></div>
             <div className="field"><label>Pessoa de contato</label><input className="input" value={contact} onChange={e => setContact(e.target.value)} placeholder="Nome do responsável" /></div>
@@ -1699,21 +1692,11 @@ function VehicleModal({ initial, onSave, onClose }: {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             <div className="field">
               <label>Editoria</label>
-              <div className="select-wrap">
-                <select className="input" value={category} onChange={e => setCategory(e.target.value)}>
-                  {VEH_CATS_ADM.map(c => <option key={c}>{c}</option>)}
-                </select>
-                <ChevronDown size={15} />
-              </div>
+              <SelectBox value={category} options={VEH_CATS_ADM} onChange={setCategory} />
             </div>
             <div className="field">
               <label>Tier</label>
-              <div className="select-wrap">
-                <select className="input" value={tier} onChange={e => setTier(e.target.value)}>
-                  {TIERS_ADM.map(t => <option key={t} value={t}>Tier {t} — {TIER_TOKENS_ADM[t]} créditos</option>)}
-                </select>
-                <ChevronDown size={15} />
-              </div>
+              <SelectBox value={tier} options={TIERS_ADM.map(t => ({ value: t, label: `Tier ${t} — ${TIER_TOKENS_ADM[t]} créditos` }))} onChange={setTier} />
             </div>
           </div>
           <div className="field"><label>Alcance/mês</label><input className="input" type="number" value={reach} onChange={e => setReach(e.target.value)} placeholder="Ex.: 5000000" /></div>

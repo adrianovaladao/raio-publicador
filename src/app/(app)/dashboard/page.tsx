@@ -10,6 +10,7 @@ import {
 import Image from "next/image";
 import { extractDominantColor, extractDominantColorFromUrl } from "@/lib/color";
 import { UpgradeModal } from "@/components/UpgradeModal";
+import { SelectBox } from "@/components/SelectBox";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -171,12 +172,7 @@ function EditBrandModal({ brand, onClose, onSave }: { brand: Brand; onClose: () 
             <div className="field"><label>Nome da marca / cliente</label><input className="input" value={name} onChange={e => setName(e.target.value)} autoFocus /></div>
             <div className="field">
               <label>Segmento / setor</label>
-              <div className="select-wrap">
-                <select className="input" value={segment} onChange={e => setSegment(e.target.value)}>
-                  {BRAND_SEGMENTS.map(s => <option key={s}>{s}</option>)}
-                </select>
-                <ChevronDown size={16} />
-              </div>
+              <SelectBox value={segment} options={BRAND_SEGMENTS} onChange={setSegment} />
             </div>
             <div className="field"><label>Site</label><input className="input" value={site} onChange={e => setSite(e.target.value)} placeholder="www.exemplo.com.br" /></div>
             <div className="field"><label>Pessoa de contato</label><input className="input" value={contact} onChange={e => setContact(e.target.value)} placeholder="Nome do responsável" /></div>
@@ -296,12 +292,7 @@ function NewBrandModal({ onClose, onSave }: { onClose: () => void; onSave: () =>
             <div className="field"><label>Nome da marca / cliente</label><input className="input" value={name} onChange={e => setName(e.target.value)} placeholder="Ex.: Franquia Sabor Brasil" autoFocus /></div>
             <div className="field">
               <label>Segmento / setor</label>
-              <div className="select-wrap">
-                <select className="input" value={segment} onChange={e => setSegment(e.target.value)}>
-                  {BRAND_SEGMENTS.map(s => <option key={s}>{s}</option>)}
-                </select>
-                <ChevronDown size={16} />
-              </div>
+              <SelectBox value={segment} options={BRAND_SEGMENTS} onChange={setSegment} />
             </div>
             <div className="field"><label>Site</label><input className="input" value={site} onChange={e => setSite(e.target.value)} placeholder="www.exemplo.com.br" /></div>
             <div className="field"><label>Pessoa de contato</label><input className="input" value={contact} onChange={e => setContact(e.target.value)} placeholder="Nome do responsável" /></div>

@@ -10,6 +10,7 @@ import {
 import { RaioLockup } from "@/components/logo/RaioLockup";
 import { SupportWidget } from "@/components/support/SupportWidget";
 import { BuyCreditsModal } from "@/components/BuyCreditsModal";
+import { SelectBox } from "@/components/SelectBox";
 import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 
@@ -204,12 +205,7 @@ function NewBrandModal({ onClose, onCreate }: { onClose: () => void; onCreate: (
           <div className="nb-grid2">
             <div className="field">
               <label>Segmento / setor</label>
-              <div className="select-wrap">
-                <select className="input" value={segment} onChange={e => setSegment(e.target.value)}>
-                  {BRAND_SEGMENTS.map(s => <option key={s}>{s}</option>)}
-                </select>
-                <ChevronDown size={16} />
-              </div>
+              <SelectBox value={segment} options={BRAND_SEGMENTS} onChange={setSegment} />
             </div>
             <div className="field">
               <label>Site</label>

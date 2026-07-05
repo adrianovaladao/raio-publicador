@@ -13,6 +13,7 @@ import {
 import { extractDominantColor } from "@/lib/color";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { BuyCreditsModal } from "@/components/BuyCreditsModal";
+import { SelectBox } from "@/components/SelectBox";
 import { RichEditor } from "@/components/editor/RichEditor";
 import {
   Document, Packer, Paragraph, TextRun, HeadingLevel,
@@ -160,12 +161,7 @@ function NewBrandModal({ onClose, onCreate, onLimitReached }: { onClose: () => v
             <div className="field"><label>Nome da marca / cliente</label><input className="input" value={name} onChange={e => setName(e.target.value)} placeholder="Ex.: Franquia Sabor Brasil" autoFocus /></div>
             <div className="field">
               <label>Segmento / setor</label>
-              <div className="select-wrap">
-                <select className="input" value={segment} onChange={e => setSegment(e.target.value)}>
-                  {BRAND_SEGMENTS.map(s => <option key={s}>{s}</option>)}
-                </select>
-                <ChevronDown size={16} />
-              </div>
+              <SelectBox value={segment} options={BRAND_SEGMENTS} onChange={setSegment} />
             </div>
             <div className="field"><label>Site</label><input className="input" value={site} onChange={e => setSite(e.target.value)} placeholder="www.exemplo.com.br" /></div>
             <div className="field"><label>Pessoa de contato</label><input className="input" value={contact} onChange={e => setContact(e.target.value)} placeholder="Nome do responsável" /></div>
@@ -356,43 +352,6 @@ function StepBrand({ selected, onSelect, brands, brandsLimit, onAddBrand, onLimi
 // ── Passo 1: Conteúdo ────────────────────────────────────────────────────────
 
 interface Content { title: string; subtitle: string; body: string; cat: string; author: string; imageUrls: string[] }
-
-function SelectBox({ value, options, onChange }: { value: string; options: string[]; onChange: (v: string) => void }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    function handle(e: MouseEvent) { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); }
-    document.addEventListener("mousedown", handle);
-    return () => document.removeEventListener("mousedown", handle);
-  }, []);
-  return (
-    <div ref={ref} style={{ position: "relative" }}>
-      <button
-        type="button"
-        className="input"
-        style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", textAlign: "left" }}
-        onClick={() => setOpen(o => !o)}
-      >
-        <span>{value}</span>
-        <ChevronDown size={15} style={{ color: "var(--stone)", flexShrink: 0 }} />
-      </button>
-      {open && (
-        <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, right: 0, background: "var(--paper)", border: "1px solid var(--line)", borderRadius: 10, boxShadow: "0 8px 24px rgba(0,0,0,0.10)", zIndex: 200, overflow: "hidden" }}>
-          {options.map(opt => (
-            <button
-              key={opt}
-              type="button"
-              style={{ width: "100%", textAlign: "left", padding: "9px 14px", background: opt === value ? "var(--cream)" : "none", border: "none", cursor: "pointer", fontSize: 14, color: "var(--ink)", fontWeight: opt === value ? 600 : 400 }}
-              onClick={() => { onChange(opt); setOpen(false); }}
-            >
-              {opt}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
 
 
 function StepContent({ content, setContent, brand, ownerName, onAIUsed }: { content: Content; setContent: (c: Content) => void; brand: Brand | null; ownerName: string; onAIUsed?: () => void }) {
