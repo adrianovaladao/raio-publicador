@@ -138,24 +138,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: `Fatura em estado inesperado: ${invoice.status}` }, { status: 500 });
     }
 
-    // Invoice was auto-charged — update DB immediately (webhook is idempotent)
-    const currentSub = await prisma.subscription.findUnique({ where: { ownerId: userId }, select: { creditsTotal: true, creditsUsed: true } });
-    const oldCreditsTotal = currentSub?.creditsTotal ?? 0;
-    const newPlanCredits = plan.credits;
-    const periodStartMs = updatedSub.items.data[0].current_period_start * 1000;
-    const periodEndMs = updatedSub.items.data[0].current_period_end * 1000;
-    const fraction = Math.max(0, Math.min(1, (periodEndMs - Date.now()) / (periodEndMs - periodStartMs)));
-    const addition = Math.max(0, Math.round((newPlanCredits - oldCreditsTotal) * fraction));
-
+    // Invoice was auto-charged by Stripe.
+    // Credits are handled exclusively by the invoice.payment_succeeded webhook to avoid double-crediting.
+    // We only update plan name and status here for immediate UI feedback.
     await prisma.subscription.update({
       where: { ownerId: userId },
-      data: {
-        plan: planId,
-        status: "ACTIVE",
-        ...(addition > 0 ? { creditsTotal: { increment: addition } } : {}),
-        currentPeriodStart: new Date(periodStartMs),
-        currentPeriodEnd: new Date(periodEndMs),
-      },
+      data: { plan: planId, status: "ACTIVE" },
     });
 
     return NextResponse.json({ ok: true });

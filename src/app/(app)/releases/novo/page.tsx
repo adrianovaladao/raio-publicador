@@ -25,6 +25,11 @@ import { saveAs } from "file-saver";
 type VehicleItem = { id: string; name: string; domain: string; cat: string; tier: string; reach: number; logoUrl?: string | null };
 
 
+function extractFirstImageUrl(html: string): string | null {
+  const match = html.match(/<img[^>]+src=["']([^"']+)["']/);
+  return match?.[1] ?? null;
+}
+
 const VEH_CATS_ALL  = ["Geral","Negócios","Tecnologia","Esportes","Economia","Saúde","Entretenimento","Política","Jurídico","Agronegócio"];
 const VEH_TIERS_ALL = ["A","B","C"];
 const PAGE_SIZE      = 25;
@@ -1430,7 +1435,7 @@ export default function NovoReleasePage() {
         scheduledAt: null,
         brandId: b.id,
         creditsUsed: 0,
-        imageUrl: c.imageUrls[0] ?? null,
+        imageUrl: c.imageUrls[0] ?? extractFirstImageUrl(c.body) ?? null,
         vehicles: selectedRef.current,
       };
       if (draftIdRef.current) {

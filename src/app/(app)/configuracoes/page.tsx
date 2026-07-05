@@ -342,8 +342,8 @@ function CancelFlow({ plan, email, periodEnd, isCancelled, onDone, onReactivated
       {isCancelled ? (
         <div className="card" style={{ marginTop: 16, border: "1.5px solid var(--amber-border, #fde68a)" }}>
           <div className="card-pad" style={{ padding: 22, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
-            <div style={{ textAlign: "left" }}>
-              <div className="sir-title" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, fontWeight: 600, fontSize: 14.5 }}>
                 <AlertTriangle size={15} color="var(--amber-ink)" /> Assinatura cancelada
               </div>
               <div className="sir-sub">Seu acesso permanece ativo até <b>{periodEndFmt}</b>. Você pode reativar a qualquer momento.</div>
@@ -664,14 +664,16 @@ function ContaPanel({ onToast }: { onToast: (m: string) => void }) {
         </div>
       </div>
 
-      <CancelFlow
-        plan={subInfo?.plan ?? "BASIC"}
-        email={email}
-        periodEnd={subInfo?.periodEnd ?? null}
-        isCancelled={subInfo?.status === "CANCELLED"}
-        onDone={() => onToast("Assinatura cancelada. Seu acesso permanece até o fim do ciclo.")}
-        onReactivated={() => { onToast("Assinatura reativada! Bem-vindo de volta."); setSubInfo(s => s ? { ...s, status: "ACTIVE" } : s); }}
-      />
+      {subInfo && (
+        <CancelFlow
+          plan={subInfo.plan}
+          email={email}
+          periodEnd={subInfo.periodEnd}
+          isCancelled={subInfo.status === "CANCELLED"}
+          onDone={() => onToast("Assinatura cancelada. Seu acesso permanece até o fim do ciclo.")}
+          onReactivated={() => { onToast("Assinatura reativada! Bem-vindo de volta."); setSubInfo(s => s ? { ...s, status: "ACTIVE" } : s); }}
+        />
+      )}
     </div>
   );
 }
