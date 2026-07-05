@@ -322,14 +322,14 @@ function CancelFlow({ plan, email, periodEnd, isCancelled, onDone, onReactivated
 
       {isCancelled ? (
         <div className="card" style={{ marginTop: 16, border: "1.5px solid var(--amber-border, #fde68a)" }}>
-          <div className="card-pad set-inline-row" style={{ padding: 22 }}>
-            <div>
+          <div className="card-pad" style={{ padding: 22, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
+            <div style={{ textAlign: "left" }}>
               <div className="sir-title" style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <AlertTriangle size={15} color="var(--amber-ink)" /> Assinatura cancelada
               </div>
               <div className="sir-sub">Seu acesso permanece ativo até <b>{periodEndFmt}</b>. Você pode reativar a qualquer momento.</div>
             </div>
-            <button className="btn btn-primary btn-sm" onClick={() => setStep("reactivate")}>
+            <button className="btn btn-primary btn-sm" style={{ flexShrink: 0 }} onClick={() => setStep("reactivate")}>
               Reativar assinatura
             </button>
           </div>
