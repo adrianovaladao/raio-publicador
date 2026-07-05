@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 
 import {
-  ArrowLeft, ArrowRight, Check, ChevronDown,
+  ArrowLeft, ArrowRight, Check,
   Rocket, Calendar, X, Search,
   List, LayoutGrid, Plus, Download, Upload, Cloud, CloudOff,
   SlidersHorizontal, ArrowUpDown, ArrowUp, ArrowDown,

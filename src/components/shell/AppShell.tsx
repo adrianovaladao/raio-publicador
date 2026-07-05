@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useUser, useClerk } from "@clerk/nextjs";
 import {
   LayoutDashboard, FileText, CalendarDays, Rss, Settings, ShieldCheck,
-  Bell, Search, LogOut, ChevronDown, Zap, Check, X,
+  Bell, Search, LogOut, Zap, Check, X,
 } from "lucide-react";
 import { RaioLockup } from "@/components/logo/RaioLockup";
 import { SupportWidget } from "@/components/support/SupportWidget";
