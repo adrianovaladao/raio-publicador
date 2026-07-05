@@ -177,7 +177,7 @@ function CadastroInner() {
         <span className="grid-bg" />
 
         <div className="top">
-          <Link href="/"><RaioLockup height={32} variant="dark" /></Link>
+          <Link href="/"><RaioLockup height={27} variant="dark" /></Link>
         </div>
 
         <div className="mid">

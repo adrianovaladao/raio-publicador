@@ -124,7 +124,7 @@ function Nav({ onContact }: { onContact: () => void }) {
   return (
     <nav className={`nav${scrolled ? " scrolled" : ""}`}>
       <div className="nav-in">
-        <a className="lock" href="#top" onClick={close}><RaioLockup height={36} variant="dark" /></a>
+        <a className="lock" href="#top" onClick={close}><RaioLockup height={31} variant="dark" /></a>
         <div className="links">
           <a href="#como">Como funciona</a>
           <a href="#planos">Planos</a>
@@ -443,7 +443,7 @@ function Footer({ onContact }: { onContact: () => void }) {
       <div className="wrap">
         <div className="top">
           <div className="brand-col">
-            <a href="#top"><RaioLockup height={32} variant="dark" /></a>
+            <a href="#top"><RaioLockup height={27} variant="dark" /></a>
             <p>A primeira plataforma de distribuição de releases por créditos do Brasil.</p>
           </div>
           <div className="col">

@@ -356,7 +356,7 @@ export default function BoasVindasPage() {
         <span className="bg-glow" />
         <header className="onb-top">
           <Link className="lock" href="/" style={{ display: "flex", alignItems: "center" }}>
-            <RaioLockup height={32} variant="dark" />
+            <RaioLockup height={27} variant="dark" />
           </Link>
           <div className="spacer" />
           <div className="stepper">
