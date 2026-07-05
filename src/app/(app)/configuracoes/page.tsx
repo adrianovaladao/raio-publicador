@@ -229,6 +229,8 @@ function CancelFlow({ plan, email, periodEnd, isCancelled, onDone, onReactivated
   const [emailInput, setEmailInput] = useState("");
   const [cancelling, setCancelling] = useState(false);
   const [reactivating, setReactivating] = useState(false);
+  const [applyingRetention, setApplyingRetention] = useState(false);
+  const [retentionDone, setRetentionDone] = useState(false);
   const [err, setErr] = useState("");
 
   const isAdvanced = plan === "ADVANCED";
@@ -259,6 +261,24 @@ function CancelFlow({ plan, email, periodEnd, isCancelled, onDone, onReactivated
       setZapping(false);
       setStep(hasRetention ? "retention" : "policy");
     }, 900);
+  }
+
+  async function handleRetention() {
+    setApplyingRetention(true);
+    setErr("");
+    try {
+      const res = await fetch("/api/stripe/apply-retention", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ discountPct }),
+      });
+      if (!res.ok) throw new Error("Erro ao aplicar desconto");
+      setRetentionDone(true);
+    } catch {
+      setErr("Não foi possível aplicar o desconto. Tente novamente.");
+    } finally {
+      setApplyingRetention(false);
+    }
   }
 
   async function handleConfirmCancel() {
@@ -401,36 +421,53 @@ function CancelFlow({ plan, email, periodEnd, isCancelled, onDone, onReactivated
       {step === "retention" && (
         <div className="overlay" onClick={() => setStep("idle")}>
           <div className="modal" style={{ maxWidth: 480, borderRadius: 20, padding: 0, overflow: "hidden" }} onClick={e => e.stopPropagation()}>
-            {/* Hero */}
-            <div style={{ background: "linear-gradient(135deg, #FAB500 0%, #f97316 100%)", padding: "32px 32px 28px", position: "relative", textAlign: "center" }}>
-              <button onClick={() => setStep("idle")} style={{ position: "absolute", top: 14, right: 14, background: "rgba(0,0,0,0.15)", border: "none", borderRadius: "50%", width: 30, height: 30, display: "grid", placeItems: "center", cursor: "pointer", color: "#fff" }}>
+            <div style={{ padding: "28px 32px 0", position: "relative" }}>
+              <button onClick={() => setStep("idle")} style={{ position: "absolute", top: 20, right: 20, background: "var(--cream)", border: "none", borderRadius: "50%", width: 30, height: 30, display: "grid", placeItems: "center", cursor: "pointer", color: "var(--stone)" }}>
                 <X size={15} />
               </button>
-              <div style={{ fontSize: 48, lineHeight: 1, marginBottom: 10 }}>⚡</div>
-              <div style={{ fontWeight: 800, fontSize: 20, color: "#fff", letterSpacing: "-0.3px" }}>Espera — temos uma oferta para você</div>
-              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", marginTop: 6 }}>Antes de ir, que tal continuar com desconto?</div>
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: "var(--cream)", display: "grid", placeItems: "center", marginBottom: 14 }}>
+                <Ticket size={20} color="var(--stone)" />
+              </div>
+              <div style={{ fontWeight: 800, fontSize: 18, color: "var(--ink)", letterSpacing: "-0.3px", marginBottom: 4 }}>
+                {retentionDone ? "Desconto aplicado!" : "Espera — temos uma oferta para você"}
+              </div>
+              <div style={{ fontSize: 13, color: "var(--stone)" }}>
+                {retentionDone
+                  ? `Seu próximo ciclo terá ${discountPct}% de desconto. Aproveite!`
+                  : "Antes de cancelar, que tal continuar com desconto?"}
+              </div>
             </div>
-            {/* Body */}
-            <div style={{ padding: "24px 32px" }}>
-              <div style={{ background: "#fffbeb", border: "1.5px solid #fde68a", borderRadius: 12, padding: "18px 20px", marginBottom: 18, display: "flex", alignItems: "center", gap: 16 }}>
-                <div style={{ fontSize: 36, lineHeight: 1 }}>🎁</div>
-                <div>
-                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#92400e", marginBottom: 2 }}>Sua oferta exclusiva</div>
-                  <div style={{ fontSize: 26, fontWeight: 900, color: "#78350f", letterSpacing: "-0.5px" }}>{discountPct}% de desconto</div>
-                  <div style={{ fontSize: 13, color: "#92400e", marginTop: 2 }}>no Plano {isProfessional ? "Profissional" : "Avançado"} pelos próximos 30 dias</div>
-                </div>
-              </div>
-              <p style={{ fontSize: 13, color: "var(--stone)", lineHeight: 1.6, margin: "0 0 24px" }}>
-                Seus créditos continuam válidos e você mantém todos os recursos. Essa oferta não estará disponível depois de cancelar.
-              </p>
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                <button className="btn btn-primary" style={{ width: "100%", justifyContent: "center", fontWeight: 700 }} onClick={() => setStep("idle")}>
-                  Quero o desconto de {discountPct}% ✨
+            <div style={{ padding: "20px 32px" }}>
+              {!retentionDone && (
+                <>
+                  <div style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: "14px 16px", background: "var(--cream)", borderRadius: 10, marginBottom: 12 }}>
+                    <div style={{ width: 30, height: 30, borderRadius: 8, background: "var(--paper)", border: "1px solid var(--line)", display: "grid", placeItems: "center", flexShrink: 0 }}>
+                      <Zap size={15} color="var(--stone)" />
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: 13, color: "var(--ink)", marginBottom: 1 }}>{discountPct}% de desconto no próximo ciclo</div>
+                      <div style={{ fontSize: 12.5, color: "var(--stone)", lineHeight: 1.5 }}>Válido para o Plano {isProfessional ? "Profissional" : "Avançado"}. Todos os recursos e créditos continuam disponíveis.</div>
+                    </div>
+                  </div>
+                  {err && <div style={{ fontSize: 13, color: "var(--coral)", marginBottom: 10 }}>{err}</div>}
+                </>
+              )}
+            </div>
+            <div style={{ padding: "0 32px 28px", display: "flex", flexDirection: "column", gap: 10 }}>
+              {retentionDone ? (
+                <button className="btn btn-primary" style={{ width: "100%", justifyContent: "center" }} onClick={() => setStep("idle")}>
+                  Fechar
                 </button>
-                <button className="btn btn-ghost btn-sm" style={{ width: "100%", justifyContent: "center", color: "var(--stone)" }} onClick={() => setStep("policy")}>
-                  Não, quero cancelar mesmo assim
-                </button>
-              </div>
+              ) : (
+                <>
+                  <button className="btn btn-primary" style={{ width: "100%", justifyContent: "center", fontWeight: 700 }} disabled={applyingRetention} onClick={handleRetention}>
+                    {applyingRetention ? "Aplicando…" : `Quero o desconto de ${discountPct}%`}
+                  </button>
+                  <button className="btn btn-ghost btn-sm" style={{ width: "100%", justifyContent: "center", color: "var(--stone)" }} onClick={() => setStep("policy")}>
+                    Não, quero cancelar mesmo assim
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>

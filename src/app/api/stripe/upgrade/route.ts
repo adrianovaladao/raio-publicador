@@ -97,18 +97,30 @@ export async function POST(req: NextRequest) {
       metadata: { clerkId: userId, planId },
     });
 
-    // Find the latest open invoice for this subscription (the proration invoice just created)
-    const invoices = await stripe.invoices.list({ subscription: sub.stripeSubscriptionId, limit: 1 });
-    const latestInvoice = invoices.data[0];
+    // Retrieve the invoice that was just created directly from the subscription object
+    const latestInvoiceId = typeof updatedSub.latest_invoice === "string"
+      ? updatedSub.latest_invoice
+      : updatedSub.latest_invoice?.id ?? null;
 
-    // If invoice is open (not yet paid), redirect user to hosted payment page
-    if (latestInvoice && latestInvoice.status === "open") {
-      const hostedUrl = latestInvoice.hosted_invoice_url;
-      const origin = req.nextUrl.origin;
+    if (!latestInvoiceId) {
+      return NextResponse.json({ error: "Nenhuma fatura gerada pelo Stripe." }, { status: 500 });
+    }
+
+    let invoice = await stripe.invoices.retrieve(latestInvoiceId);
+
+    // Finalize if still draft (Stripe may not have auto-finalized yet)
+    if (invoice.status === "draft") {
+      invoice = await stripe.invoices.finalizeInvoice(latestInvoiceId);
+    }
+
+    const origin = req.nextUrl.origin;
+
+    if (invoice.status === "open") {
+      const hostedUrl = invoice.hosted_invoice_url;
       if (hostedUrl) {
         return NextResponse.json({ redirect: true, url: hostedUrl });
       }
-      // Fallback: create a checkout session to collect payment
+      // Fallback: checkout session
       const session = await stripe.checkout.sessions.create({
         mode: "payment",
         customer: updatedSub.customer as string,
@@ -122,7 +134,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ redirect: true, url: session.url });
     }
 
-    // Invoice already paid (auto-charged) — update DB immediately (webhook may arrive later and is idempotent)
+    if (invoice.status !== "paid") {
+      return NextResponse.json({ error: `Fatura em estado inesperado: ${invoice.status}` }, { status: 500 });
+    }
+
+    // Invoice was auto-charged — update DB immediately (webhook is idempotent)
     const currentSub = await prisma.subscription.findUnique({ where: { ownerId: userId }, select: { creditsTotal: true, creditsUsed: true } });
     const oldCreditsTotal = currentSub?.creditsTotal ?? 0;
     const newPlanCredits = plan.credits;
