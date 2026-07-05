@@ -16,10 +16,11 @@ export async function POST(req: NextRequest) {
 
     const stripe = getStripe();
     const prisma = getPrisma();
+    const origin = req.nextUrl.origin;
 
     const sub = await prisma.subscription.findUnique({ where: { ownerId: userId } });
 
-    // No active Stripe subscription — redirect to checkout for first-time payment
+    // ── No existing Stripe subscription → first-time checkout ──────────────
     if (!sub?.stripeSubscriptionId) {
       const user = await currentUser();
       const email = user?.emailAddresses[0]?.emailAddress;
@@ -30,7 +31,6 @@ export async function POST(req: NextRequest) {
         customerId = customer.id;
       }
 
-      const origin = req.nextUrl.origin;
       const session = await stripe.checkout.sessions.create({
         mode: "subscription",
         customer: customerId,
@@ -43,19 +43,14 @@ export async function POST(req: NextRequest) {
         subscription_data: { metadata: { clerkId: userId, planId } },
       });
 
-      if (!session.url) {
-        return NextResponse.json({ error: "Não foi possível criar a sessão de pagamento." }, { status: 500 });
-      }
+      if (!session.url) return NextResponse.json({ error: "Não foi possível criar a sessão de pagamento." }, { status: 500 });
 
       if (!sub) {
         await prisma.subscription.create({
           data: { ownerId: userId, plan: planId, status: "INACTIVE", creditsTotal: plan.credits, stripeCustomerId: customerId },
         });
       } else {
-        await prisma.subscription.update({
-          where: { ownerId: userId },
-          data: { stripeCustomerId: customerId },
-        });
+        await prisma.subscription.update({ where: { ownerId: userId }, data: { stripeCustomerId: customerId } });
       }
 
       return NextResponse.json({ redirect: true, url: session.url });
@@ -65,7 +60,7 @@ export async function POST(req: NextRequest) {
     const currentPrice = currentPlan ? (PLANS[currentPlan]?.priceCents ?? 0) : 0;
     const isDowngrade = plan.priceCents < currentPrice;
 
-    // Downgrade — update Stripe subscription directly, no payment needed
+    // ── Downgrade → update Stripe subscription directly, no payment needed ──
     if (isDowngrade) {
       const stripeSub = await stripe.subscriptions.retrieve(sub.stripeSubscriptionId);
       const itemId = stripeSub.items.data[0]?.id;
@@ -77,7 +72,6 @@ export async function POST(req: NextRequest) {
         metadata: { clerkId: userId, planId },
       });
 
-      // DB: update plan and reactivate if was cancelled
       await prisma.subscription.update({
         where: { ownerId: userId },
         data: { plan: planId, status: "ACTIVE" },
@@ -86,21 +80,23 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true });
     }
 
-    // Upgrade — update existing subscription and invoice the proration immediately
+    // ── Upgrade → must collect payment via Stripe-hosted page ──────────────
     const stripeSub = await stripe.subscriptions.retrieve(sub.stripeSubscriptionId);
     const itemId = stripeSub.items.data[0]?.id;
     if (!itemId) return NextResponse.json({ error: "Item de assinatura não encontrado" }, { status: 500 });
 
+    // Update subscription and immediately invoice the proration.
+    // We do NOT update the DB here. The webhook (invoice.payment_succeeded with
+    // billing_reason="subscription_update") is the sole authority for DB changes.
     const updatedSub = await stripe.subscriptions.update(sub.stripeSubscriptionId, {
       items: [{ id: itemId, price: plan.stripePriceId }],
       proration_behavior: "always_invoice",
       metadata: { clerkId: userId, planId },
     });
 
-    // Retrieve the invoice that was just created directly from the subscription object
     const latestInvoiceId = typeof updatedSub.latest_invoice === "string"
       ? updatedSub.latest_invoice
-      : updatedSub.latest_invoice?.id ?? null;
+      : (updatedSub.latest_invoice as { id?: string } | null)?.id ?? null;
 
     if (!latestInvoiceId) {
       return NextResponse.json({ error: "Nenhuma fatura gerada pelo Stripe." }, { status: 500 });
@@ -108,70 +104,24 @@ export async function POST(req: NextRequest) {
 
     let invoice = await stripe.invoices.retrieve(latestInvoiceId);
 
-    // Finalize if still draft (Stripe may not have auto-finalized yet)
+    // Finalize draft invoices so they get a hosted URL
     if (invoice.status === "draft") {
       invoice = await stripe.invoices.finalizeInvoice(latestInvoiceId);
     }
 
-    const origin = req.nextUrl.origin;
-
-    if (invoice.status === "open") {
-      const hostedUrl = invoice.hosted_invoice_url;
-      if (hostedUrl) {
-        return NextResponse.json({ redirect: true, url: hostedUrl });
-      }
-      // Fallback: checkout session
-      const session = await stripe.checkout.sessions.create({
-        mode: "payment",
-        customer: updatedSub.customer as string,
-        currency: "brl",
-        line_items: [{ price: plan.stripePriceId, quantity: 1 }],
-        success_url: returnUrl ?? `${origin}/configuracoes?upgrade=success`,
-        cancel_url: cancelUrl ?? `${origin}/configuracoes`,
-        locale: "pt-BR",
-        metadata: { clerkId: userId, planId },
-      });
-      return NextResponse.json({ redirect: true, url: session.url });
+    // If there's a hosted URL (open or paid invoice), always redirect so the user
+    // explicitly sees the payment confirmation. This prevents silent charges.
+    // For open invoices: user pays here. For paid (auto-charged): user sees the receipt.
+    // DB is updated exclusively by the invoice.payment_succeeded webhook — never here.
+    const hostedUrl = (invoice as unknown as { hosted_invoice_url?: string | null }).hosted_invoice_url;
+    if (hostedUrl) {
+      return NextResponse.json({ redirect: true, url: hostedUrl });
     }
 
-    if (invoice.status !== "paid") {
-      return NextResponse.json({ error: `Fatura em estado inesperado: ${invoice.status}` }, { status: 500 });
-    }
-
-    // Invoice auto-charged by Stripe. Update DB directly as fallback for environments
-    // where the webhook may not fire (e.g. Sandbox without local webhook). The webhook
-    // handler is idempotent so double-execution is safe.
-    const billingReason = (invoice as unknown as { billing_reason?: string }).billing_reason;
-    const amountPaid = (invoice as unknown as { amount_paid?: number }).amount_paid ?? 0;
-
-    const currentSub = await prisma.subscription.findUnique({
-      where: { ownerId: userId },
-      select: { creditsTotal: true },
-    });
-    const oldCreditsTotal = currentSub?.creditsTotal ?? 0;
-    const newPlanCredits = plan.credits;
-    const periodStartMs = updatedSub.items.data[0].current_period_start * 1000;
-    const periodEndMs = updatedSub.items.data[0].current_period_end * 1000;
-
-    // Only add prorated credits when Stripe confirmed a real payment for this upgrade
-    const shouldAddCredits = billingReason === "subscription_update" && amountPaid > 0;
-    const fraction = Math.max(0, Math.min(1, (periodEndMs - Date.now()) / (periodEndMs - periodStartMs)));
-    const addition = shouldAddCredits
-      ? Math.max(0, Math.round((newPlanCredits - oldCreditsTotal) * fraction))
-      : 0;
-
-    await prisma.subscription.update({
-      where: { ownerId: userId },
-      data: {
-        plan: planId,
-        status: "ACTIVE",
-        ...(addition > 0 ? { creditsTotal: { increment: addition } } : {}),
-        currentPeriodStart: new Date(periodStartMs),
-        currentPeriodEnd: new Date(periodEndMs),
-      },
-    });
-
+    // No hosted URL (rare: $0 invoice auto-closed). Safe to return success;
+    // the webhook will update the DB when it fires.
     return NextResponse.json({ ok: true });
+
   } catch (err) {
     const message = err instanceof Error ? err.message : "Erro interno";
     console.error("[stripe/upgrade]", message);
