@@ -65,9 +65,6 @@ function CadastroInner() {
   }, [isSignedIn]);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const suRef    = useRef<any>(null);
-  suRef.current  = signUp;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const clerkSuRef = useRef<any>(null);
 
   const [step, setStep]     = useState<Step>("signup");
@@ -80,20 +77,13 @@ function CadastroInner() {
   const [error, setError]   = useState("");
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  function getClerkSignUp(): any {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return typeof window !== "undefined" ? (window as any).Clerk?.client?.signUp : null;
-  }
-
   async function handleSignUp(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError("");
     try {
-      const clerkSu = getClerkSignUp();
-      if (!clerkSu) { setError("Aguarde um instante e tente novamente."); return; }
-      const created = await clerkSu.create({
+      if (!signUp) { setError("Aguarde um instante e tente novamente."); return; }
+      const created = await signUp.create({
         emailAddress: email,
         password,
         firstName: name.split(" ")[0],
@@ -116,7 +106,7 @@ function CadastroInner() {
     setLoading(true);
     setError("");
     try {
-      const clerkSu = clerkSuRef.current || getClerkSignUp();
+      const clerkSu = clerkSuRef.current || signUp;
       if (!clerkSu) { setError("Tente novamente."); return; }
       const result = await clerkSu.attemptEmailAddressVerification({ code });
       if (result.status === "complete") {
@@ -136,7 +126,7 @@ function CadastroInner() {
   }
 
   async function handleResend() {
-    const clerkSu = clerkSuRef.current || getClerkSignUp();
+    const clerkSu = clerkSuRef.current || signUp;
     if (!clerkSu) return;
     try {
       await clerkSu.prepareEmailAddressVerification({ strategy: "email_code" });
