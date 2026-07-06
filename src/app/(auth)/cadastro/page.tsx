@@ -81,6 +81,12 @@ function CadastroInner() {
     e.preventDefault();
     setLoading(true);
     setError("");
+    const parts = name.trim().split(/\s+/);
+    if (parts.length < 2 || !parts[1]) {
+      setError("Por favor, informe seu nome completo (nome e sobrenome).");
+      setLoading(false);
+      return;
+    }
     try {
       if (!signUp) { setError("Aguarde um instante e tente novamente."); return; }
       const created = await signUp.create({
