@@ -92,11 +92,15 @@ function CadastroInner() {
       const created = await signUp.create({
         emailAddress: email,
         password,
-        firstName: name.split(" ")[0],
-        lastName: name.split(" ").slice(1).join(" ") || undefined,
+        firstName: parts[0],
+        lastName: parts.slice(1).join(" "),
       });
       clerkSuRef.current = created;
-      await created.prepareEmailAddressVerification({ strategy: "email_code" });
+      if (typeof created.prepareEmailAddressVerification === "function") {
+        await created.prepareEmailAddressVerification({ strategy: "email_code" });
+      } else {
+        await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+      }
       setStep("verify");
     } catch (err: unknown) {
       console.error("[cadastro] signUp.create error:", err);
