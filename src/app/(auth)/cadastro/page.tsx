@@ -89,7 +89,9 @@ function CadastroInner() {
     }
     try {
       if (!signUp) { setError("Aguarde um instante e tente novamente."); return; }
-      await signUp.create({ emailAddress: email, password });
+      const firstName = parts[0];
+      const lastName = parts.slice(1).join(" ");
+      await signUp.create({ emailAddress: email, password, firstName, lastName });
       // After create(), access the updated signUp from window.Clerk to avoid stale closure
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const liveSignUp = (window as any).Clerk?.client?.signUp ?? signUp;
@@ -113,20 +115,47 @@ function CadastroInner() {
     setLoading(true);
     setError("");
     try {
-      const clerkSu = clerkSuRef.current || signUp;
+      // Always prefer the live signUp from window.Clerk to avoid stale closure
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const clerkSu = (window as any).Clerk?.client?.signUp ?? clerkSuRef.current ?? signUp;
       if (!clerkSu) { setError("Tente novamente."); return; }
       const result = await clerkSu.attemptEmailAddressVerification({ code });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const sa = setActive ?? (window as any).Clerk?.setActive;
       if (result.status === "complete") {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const sa = setActive ?? (window as any).Clerk?.setActive;
+        await sa({ session: result.createdSessionId });
+        await goToCheckout();
+      } else if (result.createdSessionId) {
         await sa({ session: result.createdSessionId });
         await goToCheckout();
       } else {
-        setError("Verificação incompleta. Tente novamente.");
+        // Try activating from window.Clerk as fallback
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const sessionId = (window as any).Clerk?.client?.activeSessions?.[0]?.id;
+        if (sessionId) {
+          await sa({ session: sessionId });
+          await goToCheckout();
+        } else {
+          setError(`Verificação incompleta (status: ${result.status}). Tente novamente.`);
+        }
       }
     } catch (err: unknown) {
-      const e = err as { errors?: { longMessage?: string; message?: string }[] };
-      setError(translateClerkError(e?.errors?.[0]?.longMessage || e?.errors?.[0]?.message || "") || "Código inválido.");
+      const e = err as { errors?: { longMessage?: string; message?: string; code?: string }[] };
+      const code = e?.errors?.[0]?.code || "";
+      // If email is already verified, the session may already exist
+      if (code === "verification_already_verified" || code === "form_identifier_already_used") {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const sessionId = (window as any).Clerk?.client?.activeSessions?.[0]?.id;
+        if (sessionId) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const sa = setActive ?? (window as any).Clerk?.setActive;
+          await sa({ session: sessionId });
+          await goToCheckout();
+          return;
+        }
+      }
+      const msg = e?.errors?.[0]?.longMessage || e?.errors?.[0]?.message || "";
+      setError(translateClerkError(msg) || msg || code || "Código inválido.");
     } finally {
       setLoading(false);
     }
