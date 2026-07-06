@@ -93,8 +93,11 @@ function CadastroInner() {
       await created.prepareEmailAddressVerification({ strategy: "email_code" });
       setStep("verify");
     } catch (err: unknown) {
-      const e = err as { errors?: { longMessage?: string; message?: string }[] };
-      setError(translateClerkError(e?.errors?.[0]?.longMessage || e?.errors?.[0]?.message || "") || "Erro ao criar conta.");
+      console.error("[cadastro] signUp.create error:", err);
+      const e = err as { errors?: { longMessage?: string; message?: string; code?: string }[] };
+      const raw = e?.errors?.[0]?.longMessage || e?.errors?.[0]?.message || "";
+      const code = e?.errors?.[0]?.code || "";
+      setError(translateClerkError(raw) || raw || code || "Erro ao criar conta.");
     } finally {
       setLoading(false);
     }
