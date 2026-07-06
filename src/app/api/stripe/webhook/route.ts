@@ -59,6 +59,12 @@ export async function POST(req: NextRequest) {
       const subscriptionId = session.subscription as string;
       const subscription = await stripe.subscriptions.retrieve(subscriptionId);
 
+      // Se é upgrade via novo checkout (havia assinatura anterior), cancela a antiga
+      const oldSubscriptionId = session.metadata?.oldSubscriptionId;
+      if (oldSubscriptionId && oldSubscriptionId !== subscriptionId) {
+        await stripe.subscriptions.cancel(oldSubscriptionId).catch(console.error);
+      }
+
       await prisma.subscription.update({
         where: { ownerId: clerkId },
         data: {

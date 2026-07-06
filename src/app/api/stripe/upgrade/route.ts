@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
 
     const sub = await prisma.subscription.findUnique({ where: { ownerId: userId } });
 
-    // ── No existing Stripe subscription → first-time checkout ──────────────
+    // ── Sem assinatura Stripe → primeiro checkout ──────────────────────────
     if (!sub?.stripeSubscriptionId) {
       const user = await currentUser();
       const email = user?.emailAddresses[0]?.emailAddress;
@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
     const currentPrice = currentPlan ? (PLANS[currentPlan]?.priceCents ?? 0) : 0;
     const isDowngrade = plan.priceCents < currentPrice;
 
-    // ── Downgrade → update Stripe subscription directly, no payment needed ──
+    // ── Downgrade → sem cobrança ───────────────────────────────────────────
     if (isDowngrade) {
       const stripeSub = await stripe.subscriptions.retrieve(sub.stripeSubscriptionId);
       const itemId = stripeSub.items.data[0]?.id;
@@ -82,31 +82,50 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true });
     }
 
-    // ── Upgrade com subscription existente → Billing Portal (subscription_update_confirm) ──
-    // O portal do Stripe mostra o resumo da cobrança proporcional e coleta pagamento.
-    // Após pagamento, o webhook invoice.payment_succeeded atualiza o DB.
+    // ── Upgrade → tenta Billing Portal; fallback para novo Checkout ────────
     const stripeSub = await stripe.subscriptions.retrieve(sub.stripeSubscriptionId);
     const itemId = stripeSub.items.data[0]?.id;
     if (!itemId) return NextResponse.json({ error: "Item de assinatura não encontrado" }, { status: 500 });
 
-    const portalSession = await stripe.billingPortal.sessions.create({
-      customer: sub.stripeCustomerId!,
-      return_url: successUrl,
-      flow_data: {
-        type: "subscription_update_confirm",
-        subscription_update_confirm: {
-          subscription: sub.stripeSubscriptionId,
-          items: [{ id: itemId, price: plan.stripePriceId, quantity: 1 }],
-        },
-      },
-    });
-
-    // Salva o planId no metadata da subscription para o webhook identificar o plano após pagamento
+    // Salva planId no metadata para o webhook identificar após pagamento
     await stripe.subscriptions.update(sub.stripeSubscriptionId, {
       metadata: { clerkId: userId, planId },
     });
 
-    return NextResponse.json({ redirect: true, url: portalSession.url });
+    try {
+      // Tenta o Billing Portal (requer "subscription updates" ativado no dashboard Stripe)
+      const portalSession = await stripe.billingPortal.sessions.create({
+        customer: sub.stripeCustomerId!,
+        return_url: successUrl,
+        flow_data: {
+          type: "subscription_update_confirm",
+          subscription_update_confirm: {
+            subscription: sub.stripeSubscriptionId,
+            items: [{ id: itemId, price: plan.stripePriceId, quantity: 1 }],
+          },
+        },
+      });
+      return NextResponse.json({ redirect: true, url: portalSession.url });
+
+    } catch {
+      // Billing Portal não configurado → cria novo Checkout e cancela a assinatura antiga no webhook
+      const session = await stripe.checkout.sessions.create({
+        mode: "subscription",
+        customer: sub.stripeCustomerId!,
+        currency: "brl",
+        line_items: [{ price: plan.stripePriceId, quantity: 1 }],
+        success_url: successUrl,
+        cancel_url: cancelUrlFinal,
+        locale: "pt-BR",
+        metadata: { clerkId: userId, planId, oldSubscriptionId: sub.stripeSubscriptionId },
+        subscription_data: {
+          metadata: { clerkId: userId, planId, oldSubscriptionId: sub.stripeSubscriptionId },
+        },
+      });
+
+      if (!session.url) return NextResponse.json({ error: "Não foi possível criar a sessão de pagamento." }, { status: 500 });
+      return NextResponse.json({ redirect: true, url: session.url });
+    }
 
   } catch (err) {
     const message = err instanceof Error ? err.message : "Erro interno";
