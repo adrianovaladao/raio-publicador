@@ -92,8 +92,6 @@ function CadastroInner() {
       const created = await signUp.create({
         emailAddress: email,
         password,
-        firstName: parts[0],
-        lastName: parts.slice(1).join(" "),
       });
       clerkSuRef.current = created;
       if (typeof created.prepareEmailAddressVerification === "function") {
