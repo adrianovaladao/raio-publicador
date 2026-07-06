@@ -89,16 +89,9 @@ function CadastroInner() {
     }
     try {
       if (!signUp) { setError("Aguarde um instante e tente novamente."); return; }
-      const created = await signUp.create({
-        emailAddress: email,
-        password,
-      });
-      clerkSuRef.current = created;
-      if (typeof created.prepareEmailAddressVerification === "function") {
-        await created.prepareEmailAddressVerification({ strategy: "email_code" });
-      } else {
-        await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
-      }
+      await signUp.create({ emailAddress: email, password });
+      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+      clerkSuRef.current = signUp;
       setStep("verify");
     } catch (err: unknown) {
       console.error("[cadastro] signUp.create error:", err);
