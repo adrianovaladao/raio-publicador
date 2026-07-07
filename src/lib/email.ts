@@ -347,7 +347,6 @@ export async function sendAdminNewReleaseEmail(
   userEmail: string,
   vehicleCount: number,
   scheduledAt: Date | null,
-  releaseId: string,
 ) {
   const adminEmail = process.env.ADMIN_EMAIL ?? "raiopublicador@gmail.com";
   const date = scheduledAt

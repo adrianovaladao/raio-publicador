@@ -90,7 +90,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       const userEmail = user.emailAddresses[0]?.emailAddress || "";
       const scheduledAt = body.scheduledAt ? new Date(body.scheduledAt) : prev?.scheduledAt ?? null;
       const vehicleCount = (body.vehicles ?? prev?.vehicles ?? []).length;
-      await sendAdminNewReleaseEmail(body.title ?? prev?.title ?? "Sem título", userName, userEmail, vehicleCount, scheduledAt, id);
+      await sendAdminNewReleaseEmail(body.title ?? prev?.title ?? "Sem título", userName, userEmail, vehicleCount, scheduledAt);
     } catch (err) {
       console.error("Admin notification email failed:", err);
     }
