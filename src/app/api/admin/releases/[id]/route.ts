@@ -10,17 +10,22 @@ import {
   sendReleasePublishedWithLinksEmail,
 } from "@/lib/email";
 
-export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+async function assertAdmin() {
   const { userId } = await auth();
-  if (!userId) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!userId) return false;
   const me = await currentUser();
-  if (me?.publicMetadata?.raioAdmin !== true) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  return me?.publicMetadata?.raioAdmin === true;
+}
+
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  if (!await assertAdmin()) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { id } = await params;
   const body = await req.json() as {
-    status: ReleaseStatus;
+    status?: ReleaseStatus;
     adminNotes?: string;
     publishedVehicleUrls?: Record<string, string>;
+    notifyUser?: boolean;
   };
 
   const prisma = getPrisma();
@@ -30,35 +35,73 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   });
   if (!prev) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const updateData: Record<string, unknown> = { status: body.status };
+  const updateData: Record<string, unknown> = {};
+  if (body.status !== undefined) updateData.status = body.status;
   if (body.adminNotes !== undefined) updateData.adminNotes = body.adminNotes;
   if (body.publishedVehicleUrls !== undefined) updateData.publishedVehicleUrls = body.publishedVehicleUrls;
   if (body.status === "PUBLISHED") updateData.publishedAt = new Date();
 
   const release = await prisma.release.update({ where: { id }, data: updateData });
 
-  // Send notification emails based on status transition
-  try {
-    const clerk = await clerkClient();
-    const user = await clerk.users.getUser(prev.authorId);
-    const firstName = user.firstName ?? user.emailAddresses[0]?.emailAddress?.split("@")[0] ?? "usuário";
-    const email = user.emailAddresses[0]?.emailAddress ?? "";
+  // Send notification emails
+  if (body.notifyUser !== false && body.status && body.status !== prev.status) {
+    try {
+      const clerk = await clerkClient();
+      const user = await clerk.users.getUser(prev.authorId);
+      const firstName = user.firstName ?? user.emailAddresses[0]?.emailAddress?.split("@")[0] ?? "usuário";
+      const email = user.emailAddresses[0]?.emailAddress ?? "";
 
-    if (email) {
-      if (body.status === "NEEDS_REVISION") {
-        await sendReleaseNeedsReviewEmail(email, firstName, prev.title, body.adminNotes ?? "", id);
-      } else if (body.status === "REJECTED") {
-        await sendReleaseRejectedEmail(email, firstName, prev.title, body.adminNotes ?? "", id);
-      } else if (body.status === "IN_PUBLICATION") {
-        await sendReleaseInPublicationEmail(email, firstName, prev.title, id);
-      } else if (body.status === "PUBLISHED") {
-        const urls = body.publishedVehicleUrls ?? {};
-        await sendReleasePublishedWithLinksEmail(email, firstName, prev.title, urls, id);
+      if (email) {
+        if (body.status === "NEEDS_REVISION") {
+          await sendReleaseNeedsReviewEmail(email, firstName, prev.title, body.adminNotes ?? "", id);
+        } else if (body.status === "REJECTED") {
+          await sendReleaseRejectedEmail(email, firstName, prev.title, body.adminNotes ?? "", id);
+        } else if (body.status === "IN_PUBLICATION") {
+          await sendReleaseInPublicationEmail(email, firstName, prev.title, id);
+        } else if (body.status === "PUBLISHED") {
+          const urls = body.publishedVehicleUrls ?? {};
+          await sendReleasePublishedWithLinksEmail(email, firstName, prev.title, urls, id);
+        }
       }
+    } catch (err) {
+      console.error("Email notification failed:", err);
     }
-  } catch (err) {
-    console.error("Email notification failed:", err);
   }
 
   return NextResponse.json(release);
+}
+
+export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  if (!await assertAdmin()) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  const { id } = await params;
+  const prisma = getPrisma();
+
+  // Return credits if release was scheduled
+  const release = await prisma.release.findUnique({
+    where: { id },
+    select: { status: true, creditsUsed: true, authorId: true },
+  });
+  if (!release) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  const creditsToReturn = ["SCHEDULED", "IN_REVIEW", "IN_PUBLICATION"].includes(release.status)
+    ? release.creditsUsed ?? 0
+    : 0;
+
+  const currentSub = creditsToReturn > 0
+    ? await prisma.subscription.findUnique({ where: { ownerId: release.authorId }, select: { creditsUsed: true } })
+    : null;
+  const safeReturn = creditsToReturn > 0
+    ? Math.min(creditsToReturn, currentSub?.creditsUsed ?? 0)
+    : 0;
+
+  await prisma.$transaction([
+    prisma.release.delete({ where: { id } }),
+    ...(safeReturn > 0 ? [prisma.subscription.update({
+      where: { ownerId: release.authorId },
+      data: { creditsUsed: { decrement: safeReturn } },
+    })] : []),
+  ]);
+
+  return NextResponse.json({ ok: true });
 }
