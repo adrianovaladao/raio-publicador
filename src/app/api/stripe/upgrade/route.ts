@@ -55,10 +55,6 @@ export async function POST(req: NextRequest) {
       await prisma.subscription.update({ where: { ownerId: userId }, data: { stripeCustomerId: customerId } });
     }
 
-    const currentPlan = sub?.plan as PlanId | null;
-    const currentPrice = currentPlan ? (PLANS[currentPlan]?.priceCents ?? 0) : 0;
-    const isDowngrade = plan.priceCents < currentPrice;
-
     // ── Sem assinatura Stripe ativa → checkout inicial ─────────────────────
     if (!sub?.stripeSubscriptionId) {
       const session = await stripe.checkout.sessions.create({
@@ -76,8 +72,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ redirect: true, url: session.url });
     }
 
-    // ── Downgrade → sem cobrança ───────────────────────────────────────────
-    if (isDowngrade) {
+    // ── Determinar se precisa de cobrança com base no "peak plan" ──────────
+    // O usuário só paga se o novo plano for mais caro que o maior plano já pago.
+    const highestPlanId = (sub.highestPlan ?? sub.plan) as PlanId;
+    const highestPrice = PLANS[highestPlanId]?.priceCents ?? 0;
+    const needsPayment = plan.priceCents > highestPrice;
+
+    // ── Troca gratuita (dentro do teto já pago) ───────────────────────────
+    if (!needsPayment) {
+      // Atualiza o plano no Stripe sem cobrar nada
       const stripeSub = await stripe.subscriptions.retrieve(sub.stripeSubscriptionId);
       const itemId = stripeSub.items.data[0]?.id;
       if (!itemId) return NextResponse.json({ error: "Item de assinatura não encontrado" }, { status: 500 });
@@ -88,6 +91,7 @@ export async function POST(req: NextRequest) {
         metadata: { clerkId: userId, planId },
       });
 
+      // Atualiza plano atual no banco (créditos não mudam — expiram no fim do ciclo)
       await prisma.subscription.update({
         where: { ownerId: userId },
         data: { plan: planId, status: "ACTIVE" },
@@ -96,7 +100,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true });
     }
 
-    // ── Upgrade → novo checkout com preço integral; cancela assinatura antiga no webhook ──
+    // ── Upgrade além do teto → novo checkout com preço integral ───────────
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       customer: customerId,

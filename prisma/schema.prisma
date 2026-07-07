@@ -119,6 +119,7 @@ model Subscription {
   id                   String             @id @default(cuid())
   ownerId              String             @unique
   plan                 PlanTier
+  highestPlan          PlanTier?
   status               SubscriptionStatus @default(INACTIVE)
   creditsTotal         Int
   creditsUsed          Int                @default(0)

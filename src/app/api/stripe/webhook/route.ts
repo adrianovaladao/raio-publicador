@@ -68,16 +68,19 @@ export async function POST(req: NextRequest) {
       }
 
       if (isUpgrade) {
-        // Upgrade: adiciona créditos do novo plano ao saldo disponível existente
+        // Upgrade além do teto: adiciona créditos do novo plano ao saldo disponível existente
         const current = await prisma.subscription.findUnique({
           where: { ownerId: clerkId },
-          select: { creditsTotal: true, creditsUsed: true },
+          select: { creditsTotal: true, creditsUsed: true, highestPlan: true },
         });
         const available = Math.max(0, (current?.creditsTotal ?? 0) - (current?.creditsUsed ?? 0));
+        const currentHighestPrice = current?.highestPlan ? (PLANS[current.highestPlan as PlanId]?.priceCents ?? 0) : 0;
+        const newHighestPlan = PLANS[planId].priceCents > currentHighestPrice ? planId : (current?.highestPlan ?? planId);
         await prisma.subscription.update({
           where: { ownerId: clerkId },
           data: {
             plan: planId,
+            highestPlan: newHighestPlan,
             status: "ACTIVE",
             creditsTotal: available + PLANS[planId].credits,
             creditsUsed: 0,
@@ -91,11 +94,12 @@ export async function POST(req: NextRequest) {
           await sendUpgradeEmail(email, firstName, PLANS[planId].label, PLANS[planId].credits).catch(console.error);
         }
       } else {
-        // Nova assinatura: define créditos do plano normalmente
+        // Nova assinatura: define créditos do plano e seta highestPlan inicial
         await prisma.subscription.update({
           where: { ownerId: clerkId },
           data: {
             plan: planId,
+            highestPlan: planId,
             status: "ACTIVE",
             creditsTotal: PLANS[planId].credits,
             creditsUsed: 0,
