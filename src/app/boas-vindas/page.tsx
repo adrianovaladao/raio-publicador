@@ -28,7 +28,6 @@ export default async function BoasVindasPage({
   const sub = await prisma.subscription.findUnique({ where: { ownerId: userId } });
 
   if (sub && !["INACTIVE", "CANCELLED"].includes(sub.status)) {
-    // Already active — skip checkout
     return <BoasVindasClient />;
   }
 
@@ -39,7 +38,26 @@ export default async function BoasVindasPage({
     const email = user?.emailAddresses[0]?.emailAddress;
     const stripe = getStripe();
 
-    let customerId = sub?.stripeCustomerId ?? undefined;
+    // Try to find or create a valid live-mode customer
+    let customerId: string | undefined;
+
+    // If there's a stored customer ID, verify it works in live mode
+    if (sub?.stripeCustomerId) {
+      try {
+        await stripe.customers.retrieve(sub.stripeCustomerId);
+        customerId = sub.stripeCustomerId;
+      } catch {
+        // Stale (test-mode) customer ID — ignore and create new one
+      }
+    }
+
+    // Fallback: search by email in Stripe
+    if (!customerId && email) {
+      const existing = await stripe.customers.list({ email, limit: 5 });
+      customerId = existing.data[0]?.id;
+    }
+
+    // Last resort: create new customer
     if (!customerId) {
       const customer = await stripe.customers.create({ email, metadata: { clerkId: userId } });
       customerId = customer.id;
@@ -58,20 +76,24 @@ export default async function BoasVindasPage({
       subscription_data: { metadata: { clerkId: userId, planId } },
     });
 
-    // Persist customer/subscription record
+    // Persist/update subscription record with correct live-mode customer ID
     if (!sub) {
       await prisma.subscription.create({
         data: { ownerId: userId, plan: planId, status: "INACTIVE", creditsTotal: plan.credits, stripeCustomerId: customerId },
       });
-    } else if (!sub.stripeCustomerId) {
-      await prisma.subscription.update({ where: { ownerId: userId }, data: { stripeCustomerId: customerId } });
+    } else {
+      await prisma.subscription.update({
+        where: { ownerId: userId },
+        data: { stripeCustomerId: customerId },
+      });
     }
 
     redirect(session.url!);
   } catch (err) {
-    // If it's a Next.js redirect, re-throw it
     if ((err as { digest?: string })?.digest?.startsWith("NEXT_REDIRECT")) throw err;
     console.error("[boas-vindas] Stripe checkout error:", err);
-    // Fall through to onboarding — user can subscribe later via plan modal
   }
+
+  // If Stripe failed, show onboarding anyway
+  return <BoasVindasClient />;
 }
