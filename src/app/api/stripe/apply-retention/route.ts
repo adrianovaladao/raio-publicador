@@ -21,16 +21,22 @@ export async function POST(req: NextRequest) {
 
   const stripe = getStripe();
 
-  // Create a one-time coupon valid for one billing cycle
-  const coupon = await stripe.coupons.create({
-    percent_off: discountPct,
-    duration: "once",
-    name: `Retencao ${discountPct}pct`,
-  });
+  try {
+    // Create a one-time coupon valid for one billing cycle
+    const coupon = await stripe.coupons.create({
+      percent_off: discountPct,
+      duration: "once",
+      name: `Retencao ${discountPct}pct`,
+    });
 
-  await stripe.subscriptions.update(sub.stripeSubscriptionId, {
-    coupon: coupon.id,
-  } as Parameters<typeof stripe.subscriptions.update>[1]);
+    await stripe.subscriptions.update(sub.stripeSubscriptionId, {
+      coupon: coupon.id,
+    } as Parameters<typeof stripe.subscriptions.update>[1]);
 
-  return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("[apply-retention] Stripe error:", msg);
+    return NextResponse.json({ error: msg }, { status: 500 });
+  }
 }
