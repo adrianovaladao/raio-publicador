@@ -45,18 +45,12 @@ function CadastroInner() {
   const planParam = searchParams.get("plan");
   const plan = planParam && VALID_PLANS.includes(planParam) ? planParam : null;
 
-  async function goToCheckout() {
-    if (!plan) { router.replace("/boas-vindas"); return; }
-    try {
-      const res = await fetch("/api/stripe/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ planId: plan }),
-      });
-      const data = await res.json();
-      if (data.url) { window.location.href = data.url; return; }
-    } catch {}
-    router.replace("/boas-vindas");
+  function goToCheckout() {
+    if (plan) {
+      window.location.href = `/iniciar-plano?plan=${plan}`;
+    } else {
+      router.replace("/boas-vindas");
+    }
   }
 
   useEffect(() => {
