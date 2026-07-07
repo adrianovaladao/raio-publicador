@@ -23,7 +23,6 @@ interface ReleaseRow {
 const ALL_STATUSES = [
   { value: "DRAFT",          label: "Rascunho" },
   { value: "SCHEDULED",      label: "Agendado" },
-  { value: "IN_REVIEW",      label: "Em análise" },
   { value: "NEEDS_REVISION", label: "Precisa revisão" },
   { value: "REJECTED",       label: "Reprovado" },
   { value: "IN_PUBLICATION", label: "Em publicação" },
@@ -64,7 +63,6 @@ function fmtDate(iso: string | null) {
 const FILTER_OPTIONS = [
   { id: "all", label: "Todos" },
   { id: "SCHEDULED", label: "Agendados" },
-  { id: "IN_REVIEW", label: "Em análise" },
   { id: "NEEDS_REVISION", label: "Precisa revisão" },
   { id: "IN_PUBLICATION", label: "Em publicação" },
   { id: "PUBLISHED", label: "Publicados" },
@@ -326,7 +324,7 @@ export default function AdminReleasesPage() {
     (r.title + r.author.name + r.author.email + (r.brand?.name ?? "")).toLowerCase().includes(q.toLowerCase())
   );
 
-  const needsAction = releases.filter(r => ["SCHEDULED", "IN_REVIEW", "IN_PUBLICATION"].includes(r.status)).length;
+  const needsAction = releases.filter(r => ["SCHEDULED", "IN_PUBLICATION"].includes(r.status)).length;
 
   return (
     <div className="content scroll">
