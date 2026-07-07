@@ -190,7 +190,11 @@ export async function POST(req: NextRequest) {
       const clerkId = subscription.metadata?.clerkId;
       if (!clerkId) break;
 
-      await prisma.subscription.update({ where: { ownerId: clerkId }, data: { status: "CANCELLED" } });
+      // Only cancel if this is still the active subscription — ignore deletions of old subscriptions during upgrades
+      const current = await prisma.subscription.findUnique({ where: { ownerId: clerkId }, select: { stripeSubscriptionId: true } });
+      if (current?.stripeSubscriptionId === subscription.id) {
+        await prisma.subscription.update({ where: { ownerId: clerkId }, data: { status: "CANCELLED" } });
+      }
       break;
     }
   }
