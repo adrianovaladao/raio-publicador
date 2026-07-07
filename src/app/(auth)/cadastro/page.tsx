@@ -4,7 +4,7 @@ import { useSignUp, useAuth } from "@clerk/nextjs";
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useRef, useEffect, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { ArrowRight, Eye, EyeOff, CheckCircle, Feather, Newspaper, Send, Mail } from "lucide-react";
 import { RaioLockup } from "@/components/logo/RaioLockup";
 import { translateClerkError } from "@/lib/clerkErrors";
@@ -40,7 +40,6 @@ function CadastroInner() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { signUp, setActive } = useSignUp() as any;
   const { isSignedIn } = useAuth();
-  const router = useRouter();
   const searchParams = useSearchParams();
   const planParam = searchParams.get("plan");
   const plan = planParam && VALID_PLANS.includes(planParam) ? planParam : null;
