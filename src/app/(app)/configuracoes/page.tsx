@@ -272,10 +272,11 @@ function CancelFlow({ plan, email, periodEnd, isCancelled, onDone, onReactivated
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ discountPct }),
       });
-      if (!res.ok) throw new Error("Erro ao aplicar desconto");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error ?? "Erro ao aplicar desconto");
       setRetentionDone(true);
-    } catch {
-      setErr("Não foi possível aplicar o desconto. Tente novamente.");
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Não foi possível aplicar o desconto. Tente novamente.");
     } finally {
       setApplyingRetention(false);
     }
