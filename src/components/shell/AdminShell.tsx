@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useUser, useClerk } from "@clerk/nextjs";
-import { LayoutDashboard, Users, Rss, LogOut, ShieldCheck, ExternalLink } from "lucide-react";
+import { LayoutDashboard, Users, Rss, FileText, LogOut, ShieldCheck, ExternalLink } from "lucide-react";
 import { RaioLockup } from "@/components/logo/RaioLockup";
 
 const NAV = [
   { href: "/admin",           icon: LayoutDashboard, label: "Visão geral",  exact: true },
+  { href: "/admin/releases",  icon: FileText,        label: "Releases"               },
   { href: "/admin/usuarios",  icon: Users,           label: "Usuários"               },
   { href: "/admin/veiculos",  icon: Rss,             label: "Veículos"               },
 ];

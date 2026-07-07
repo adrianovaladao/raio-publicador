@@ -32,11 +32,13 @@ interface ReleaseRow {
 }
 
 const STATUS_FILTERS = [
-  { id: "all",       label: "Todos" },
-  { id: "published", label: "Publicados" },
-  { id: "scheduled", label: "Agendados" },
-  { id: "review",    label: "Em revisão" },
-  { id: "draft",     label: "Rascunhos" },
+  { id: "all",             label: "Todos" },
+  { id: "published",       label: "Publicados" },
+  { id: "in_publication",  label: "Em publicação" },
+  { id: "scheduled",       label: "Agendados" },
+  { id: "in_review",       label: "Em análise" },
+  { id: "needs_revision",  label: "Precisa revisão" },
+  { id: "draft",           label: "Rascunhos" },
 ];
 
 const STATUS_LABEL: Record<string, string> = {
@@ -44,6 +46,10 @@ const STATUS_LABEL: Record<string, string> = {
   scheduled: "Agendado",
   draft: "Rascunho",
   review: "Em revisão",
+  in_review: "Em análise",
+  needs_revision: "Precisa revisão",
+  rejected: "Reprovado",
+  in_publication: "Em publicação",
   cancelled: "Cancelado",
 };
 
@@ -56,7 +62,10 @@ function fmtDate(iso: string) {
 type SortCol = "title" | "status" | "date" | "author" | "cat" | "creditsUsed";
 type SortDir = "asc" | "desc";
 
-const STATUS_ORDER: Record<string, number> = { published: 0, scheduled: 1, review: 2, draft: 3, cancelled: 4 };
+const STATUS_ORDER: Record<string, number> = {
+  published: 0, in_publication: 1, scheduled: 2, in_review: 3,
+  needs_revision: 4, rejected: 5, draft: 6, cancelled: 7,
+};
 
 function sortReleases(arr: ReleaseRow[], col: SortCol, dir: SortDir) {
   return [...arr].sort((a, b) => {

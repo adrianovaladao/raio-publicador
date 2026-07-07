@@ -269,7 +269,107 @@ export async function sendReleaseNeedsReviewEmail(
   return getResend().emails.send({ from: FROM, to, subject: `Revisão necessária: ${releaseTitle}`, html });
 }
 
-// ─── 13. Convite aceito por editor/revisor ─────────────────────────────────────
+// ─── 13. Release reprovado ─────────────────────────────────────────────────────
+export async function sendReleaseRejectedEmail(
+  to: string,
+  firstName: string,
+  releaseTitle: string,
+  reason: string,
+  releaseId: string,
+) {
+  const html = base(`
+    ${h1("Release reprovado")}
+    ${p(`Olá, <strong>${firstName}</strong>! Infelizmente seu release não foi aprovado para distribuição.`)}
+    <table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0">
+      <tr><td style="padding:8px 0;color:#888;width:130px">Release</td><td style="padding:8px 0;color:#1a1a1a;font-weight:600">${releaseTitle}</td></tr>
+      ${reason ? `<tr><td style="padding:8px 0;color:#888;vertical-align:top">Motivo</td><td style="padding:8px 0;color:#1a1a1a">${reason}</td></tr>` : ""}
+    </table>
+    ${p("Entre em contato com nosso suporte se tiver dúvidas.")}
+    ${btn("Ver release", `${APP_URL}/releases/${releaseId}`)}
+  `);
+
+  return getResend().emails.send({ from: FROM, to, subject: `Release reprovado: ${releaseTitle}`, html });
+}
+
+// ─── 14. Release em publicação (bloqueado para edição) ─────────────────────────
+export async function sendReleaseInPublicationEmail(
+  to: string,
+  firstName: string,
+  releaseTitle: string,
+  releaseId: string,
+) {
+  const html = base(`
+    ${h1("Seu release está sendo publicado ⚡")}
+    ${p(`Olá, <strong>${firstName}</strong>! Seu release foi aprovado e está sendo distribuído para as redações agora.`)}
+    <table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0">
+      <tr><td style="padding:8px 0;color:#888;width:130px">Release</td><td style="padding:8px 0;color:#1a1a1a;font-weight:600">${releaseTitle}</td></tr>
+    </table>
+    ${p("Você receberá uma notificação com os links das publicações assim que a distribuição for concluída.")}
+    ${btn("Ver release", `${APP_URL}/releases/${releaseId}`)}
+  `);
+
+  return getResend().emails.send({ from: FROM, to, subject: `Em publicação: ${releaseTitle}`, html });
+}
+
+// ─── 15. Release publicado com links por veículo ───────────────────────────────
+export async function sendReleasePublishedWithLinksEmail(
+  to: string,
+  firstName: string,
+  releaseTitle: string,
+  vehicleUrls: Record<string, string>,
+  releaseId: string,
+) {
+  const vehicleCount = Object.keys(vehicleUrls).length;
+  const urlRows = Object.entries(vehicleUrls)
+    .map(([name, url]) => `<tr><td style="padding:6px 0;color:#888;width:130px">${name}</td><td style="padding:6px 0"><a href="${url}" style="color:#1a1a1a;font-weight:600">${url}</a></td></tr>`)
+    .join("");
+
+  const html = base(`
+    ${h1("Release publicado com sucesso! ⚡")}
+    ${p(`Olá, <strong>${firstName}</strong>! Seu release foi distribuído em ${vehicleCount} veículo${vehicleCount !== 1 ? "s" : ""}.`)}
+    <table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0">
+      <tr><td style="padding:8px 0;color:#888;width:130px">Release</td><td style="padding:8px 0;color:#1a1a1a;font-weight:600">${releaseTitle}</td></tr>
+    </table>
+    ${vehicleCount > 0 ? `
+    <p style="margin:16px 0 8px;font-size:14px;font-weight:600;color:#1a1a1a">Links das publicações:</p>
+    <table style="width:100%;border-collapse:collapse;font-size:13px;margin:0 0 16px">${urlRows}</table>
+    ` : ""}
+    ${btn("Ver release", `${APP_URL}/releases/${releaseId}`)}
+  `);
+
+  return getResend().emails.send({ from: FROM, to, subject: `Publicado com sucesso: ${releaseTitle}`, html });
+}
+
+// ─── 16. Notificação admin — novo release agendado ─────────────────────────────
+export async function sendAdminNewReleaseEmail(
+  releaseTitle: string,
+  userName: string,
+  userEmail: string,
+  vehicleCount: number,
+  scheduledAt: Date | null,
+  releaseId: string,
+) {
+  const adminEmail = process.env.ADMIN_EMAIL ?? "raiopublicador@gmail.com";
+  const date = scheduledAt
+    ? scheduledAt.toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" })
+    : "Não definida";
+
+  const html = base(`
+    ${h1("Novo release para análise")}
+    ${p("Um novo release foi agendado e está aguardando análise no painel admin.")}
+    <table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0">
+      <tr><td style="padding:8px 0;color:#888;width:130px">Release</td><td style="padding:8px 0;color:#1a1a1a;font-weight:600">${releaseTitle}</td></tr>
+      <tr><td style="padding:8px 0;color:#888">Usuário</td><td style="padding:8px 0;color:#1a1a1a">${userName} (${userEmail})</td></tr>
+      <tr><td style="padding:8px 0;color:#888">Agendado para</td><td style="padding:8px 0;color:#1a1a1a">${date}</td></tr>
+      <tr><td style="padding:8px 0;color:#888">Veículos</td><td style="padding:8px 0;color:#1a1a1a">${vehicleCount} veículo${vehicleCount !== 1 ? "s" : ""}</td></tr>
+    </table>
+    ${btn("Analisar no painel", `${APP_URL}/admin/releases`)}
+  `);
+
+  return getResend().emails.send({ from: FROM, to: adminEmail, subject: `[Admin] Novo release: ${releaseTitle}`, html });
+}
+
+// ─── 17. Convite aceito por editor/revisor ─────────────────────────────────────
 export async function sendInviteAcceptedEmail(
   to: string,
   firstName: string,

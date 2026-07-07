@@ -3,6 +3,10 @@ import { auth } from "@clerk/nextjs/server";
 import { getPrisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { ReleaseStatus } from "@prisma/client";
+import { clerkClient } from "@clerk/nextjs/server";
+import { sendAdminNewReleaseEmail } from "@/lib/email";
+
+const EDIT_LOCKED_STATUSES: ReleaseStatus[] = ["IN_REVIEW", "IN_PUBLICATION", "PUBLISHED"];
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { userId } = await auth();
@@ -22,7 +26,13 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   const { id } = await params;
   const body = await req.json() as { status: string; creditsUsed: number; title?: string; body?: string; summary?: string; scheduledAt?: string | null; brandId?: string; imageUrl?: string | null; vehicles?: string[] };
   const prisma = getPrisma();
-  const prev = await prisma.release.findUnique({ where: { id }, select: { status: true, creditsUsed: true } });
+  const prev = await prisma.release.findUnique({ where: { id }, select: { status: true, creditsUsed: true, title: true, scheduledAt: true, vehicles: true } });
+
+  // Block edits when release is in admin hands or already published
+  if (prev && EDIT_LOCKED_STATUSES.includes(prev.status as ReleaseStatus)) {
+    return NextResponse.json({ error: "Este release não pode ser editado no status atual." }, { status: 403 });
+  }
+
   const becomingScheduled   = body.status === "SCHEDULED" && prev?.status !== "SCHEDULED";
 
   if (becomingScheduled) {
@@ -70,6 +80,21 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
         })]
       : []),
   ]);
+
+  // Notify admin when a release is newly scheduled
+  if (becomingScheduled) {
+    try {
+      const clerk = await clerkClient();
+      const user = await clerk.users.getUser(userId);
+      const userName = [user.firstName, user.lastName].filter(Boolean).join(" ") || user.emailAddresses[0]?.emailAddress || userId;
+      const userEmail = user.emailAddresses[0]?.emailAddress || "";
+      const scheduledAt = body.scheduledAt ? new Date(body.scheduledAt) : prev?.scheduledAt ?? null;
+      const vehicleCount = (body.vehicles ?? prev?.vehicles ?? []).length;
+      await sendAdminNewReleaseEmail(body.title ?? prev?.title ?? "Sem título", userName, userEmail, vehicleCount, scheduledAt, id);
+    } catch (err) {
+      console.error("Admin notification email failed:", err);
+    }
+  }
 
   return NextResponse.json(release);
 }

@@ -32,20 +32,22 @@ model Brand {
 // ─── Release ─────────────────────────────────────────────────────────────────
 
 model Release {
-  id          String        @id @default(cuid())
-  title       String
-  body        String        @db.Text
-  summary     String?
-  status      ReleaseStatus @default(DRAFT)
-  scheduledAt DateTime?
-  publishedAt DateTime?
-  creditsUsed Int           @default(0)
-  imageUrl    String?
-  vehicles    String[]
-  brandId     String
-  authorId    String
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  id                   String        @id @default(cuid())
+  title                String
+  body                 String        @db.Text
+  summary              String?
+  status               ReleaseStatus @default(DRAFT)
+  scheduledAt          DateTime?
+  publishedAt          DateTime?
+  creditsUsed          Int           @default(0)
+  imageUrl             String?
+  vehicles             String[]
+  adminNotes           String?
+  publishedVehicleUrls Json?
+  brandId              String
+  authorId             String
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
 
   brand       Brand         @relation(fields: [brandId], references: [id], onDelete: Cascade)
 }
@@ -53,6 +55,10 @@ model Release {
 enum ReleaseStatus {
   DRAFT
   SCHEDULED
+  IN_REVIEW
+  NEEDS_REVISION
+  REJECTED
+  IN_PUBLICATION
   PUBLISHED
   CANCELLED
 }
