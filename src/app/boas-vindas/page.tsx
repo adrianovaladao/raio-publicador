@@ -33,38 +33,45 @@ export default async function BoasVindasPage({
   }
 
   // Start Stripe checkout
-  const plan = PLANS[planId];
-  const user = await currentUser();
-  const email = user?.emailAddresses[0]?.emailAddress;
-  const stripe = getStripe();
+  try {
+    const plan = PLANS[planId];
+    const user = await currentUser();
+    const email = user?.emailAddresses[0]?.emailAddress;
+    const stripe = getStripe();
 
-  let customerId = sub?.stripeCustomerId ?? undefined;
-  if (!customerId) {
-    const customer = await stripe.customers.create({ email, metadata: { clerkId: userId } });
-    customerId = customer.id;
-  }
+    let customerId = sub?.stripeCustomerId ?? undefined;
+    if (!customerId) {
+      const customer = await stripe.customers.create({ email, metadata: { clerkId: userId } });
+      customerId = customer.id;
+    }
 
-  const origin = process.env.NEXT_PUBLIC_APP_URL ?? "https://raiopublicador.com.br";
-  const session = await stripe.checkout.sessions.create({
-    mode: "subscription",
-    customer: customerId,
-    currency: "brl",
-    line_items: [{ price: plan.stripePriceId, quantity: 1 }],
-    success_url: `${origin}/boas-vindas?checkout=success`,
-    cancel_url: `${origin}/site#planos`,
-    locale: "pt-BR",
-    metadata: { clerkId: userId, planId },
-    subscription_data: { metadata: { clerkId: userId, planId } },
-  });
-
-  // Persist customer/subscription record
-  if (!sub) {
-    await prisma.subscription.create({
-      data: { ownerId: userId, plan: planId, status: "INACTIVE", creditsTotal: plan.credits, stripeCustomerId: customerId },
+    const origin = process.env.NEXT_PUBLIC_APP_URL ?? "https://raiopublicador.com.br";
+    const session = await stripe.checkout.sessions.create({
+      mode: "subscription",
+      customer: customerId,
+      currency: "brl",
+      line_items: [{ price: plan.stripePriceId, quantity: 1 }],
+      success_url: `${origin}/boas-vindas?checkout=success`,
+      cancel_url: `${origin}/site#planos`,
+      locale: "pt-BR",
+      metadata: { clerkId: userId, planId },
+      subscription_data: { metadata: { clerkId: userId, planId } },
     });
-  } else if (!sub.stripeCustomerId) {
-    await prisma.subscription.update({ where: { ownerId: userId }, data: { stripeCustomerId: customerId } });
-  }
 
-  redirect(session.url!);
+    // Persist customer/subscription record
+    if (!sub) {
+      await prisma.subscription.create({
+        data: { ownerId: userId, plan: planId, status: "INACTIVE", creditsTotal: plan.credits, stripeCustomerId: customerId },
+      });
+    } else if (!sub.stripeCustomerId) {
+      await prisma.subscription.update({ where: { ownerId: userId }, data: { stripeCustomerId: customerId } });
+    }
+
+    redirect(session.url!);
+  } catch (err) {
+    // If it's a Next.js redirect, re-throw it
+    if ((err as { digest?: string })?.digest?.startsWith("NEXT_REDIRECT")) throw err;
+    console.error("[boas-vindas] Stripe checkout error:", err);
+    // Fall through to onboarding — user can subscribe later via plan modal
+  }
 }
