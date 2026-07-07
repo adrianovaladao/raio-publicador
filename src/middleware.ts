@@ -90,12 +90,7 @@ export default clerkMiddleware(async (auth, req) => {
   }
 
   if (!isPublicRoute(req)) {
-    const { sessionClaims } = await auth.protect();
-    // Redirect admin users away from the app shell into the admin panel
-    const isAdmin = (sessionClaims?.metadata as Record<string, unknown> | undefined)?.raioAdmin === true;
-    if (isAdmin && req.nextUrl.pathname === "/dashboard") {
-      return NextResponse.redirect(new URL("/admin", req.url));
-    }
+    await auth.protect();
   }
 });
 
