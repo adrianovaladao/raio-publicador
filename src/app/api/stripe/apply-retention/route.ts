@@ -28,15 +28,13 @@ export async function POST(req: NextRequest) {
     let activeSubId: string | null = null;
     let liveCustomerId: string | null = sub?.stripeCustomerId ?? null;
 
+    const ACTIVE_STATUSES = ["active", "trialing", "past_due"] as const;
+
     if (liveCustomerId) {
       try {
-        const byCustomer = await stripe.subscriptions.list({
-          customer: liveCustomerId,
-          status: "active",
-          limit: 1,
-        });
-        if (byCustomer.data[0]) {
-          activeSubId = byCustomer.data[0].id;
+        for (const st of ACTIVE_STATUSES) {
+          const res = await stripe.subscriptions.list({ customer: liveCustomerId, status: st, limit: 1 });
+          if (res.data[0]) { activeSubId = res.data[0].id; break; }
         }
       } catch {
         // Customer ID is stale (e.g. test-mode ID), fall through to email lookup
@@ -48,16 +46,15 @@ export async function POST(req: NextRequest) {
     if (!activeSubId && userEmail) {
       const customers = await stripe.customers.list({ email: userEmail, limit: 5 });
       for (const customer of customers.data) {
-        const subs = await stripe.subscriptions.list({
-          customer: customer.id,
-          status: "active",
-          limit: 1,
-        });
-        if (subs.data[0]) {
-          activeSubId = subs.data[0].id;
-          liveCustomerId = customer.id;
-          break;
+        for (const st of ACTIVE_STATUSES) {
+          const res = await stripe.subscriptions.list({ customer: customer.id, status: st, limit: 1 });
+          if (res.data[0]) {
+            activeSubId = res.data[0].id;
+            liveCustomerId = customer.id;
+            break;
+          }
         }
+        if (activeSubId) break;
       }
     }
 
