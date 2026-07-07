@@ -54,15 +54,31 @@ function p(text: string) {
 }
 
 // ─── 1. Boas-vindas ────────────────────────────────────────────────────────────
-export async function sendWelcomeEmail(to: string, firstName: string) {
+export async function sendWelcomeEmail(
+  to: string,
+  firstName: string,
+  planLabel: string,
+  priceCents: number,
+  credits: number,
+  nextRenewal: Date,
+) {
+  const price = (priceCents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  const renewal = nextRenewal.toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric", timeZone: "America/Sao_Paulo" });
+
   const html = base(`
     ${h1(`Bem-vindo(a) ao Raio, ${firstName}!`)}
-    ${p("Estamos felizes em ter você por aqui. O Raio é a plataforma que conecta marcas às redações certas — de forma simples, rápida e profissional.")}
+    ${p("Estamos felizes em ter você por aqui. Sua assinatura foi confirmada e seus créditos já estão disponíveis na conta.")}
+    <table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0;background:#f9f9f7;border-radius:8px">
+      <tr><td style="padding:10px 14px;color:#888;width:160px">Plano</td><td style="padding:10px 14px;color:#1a1a1a;font-weight:600">${planLabel}</td></tr>
+      <tr style="border-top:1px solid #eee"><td style="padding:10px 14px;color:#888">Valor</td><td style="padding:10px 14px;color:#1a1a1a">${price}/mês</td></tr>
+      <tr style="border-top:1px solid #eee"><td style="padding:10px 14px;color:#888">Créditos</td><td style="padding:10px 14px;color:#1a1a1a">${credits.toLocaleString("pt-BR")} créditos/mês</td></tr>
+      <tr style="border-top:1px solid #eee"><td style="padding:10px 14px;color:#888">Próxima cobrança</td><td style="padding:10px 14px;color:#1a1a1a">${renewal}</td></tr>
+    </table>
     ${p("Para começar, cadastre sua primeira marca e crie um release. Leva menos de cinco minutos.")}
     ${btn("Cadastrar minha marca", `${APP_URL}/boas-vindas`)}
   `);
 
-  return getResend().emails.send({ from: FROM, to, subject: "Bem-vindo(a) ao Raio ⚡", html });
+  return getResend().emails.send({ from: FROM, to, subject: "Bem-vindo(a) ao Raio ⚡ — Assinatura confirmada", html });
 }
 
 // ─── 2. Release agendado ───────────────────────────────────────────────────────

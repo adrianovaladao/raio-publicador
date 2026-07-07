@@ -110,7 +110,8 @@ export async function POST(req: NextRequest) {
         });
         const { firstName, email } = await getClerkUser(clerkId);
         if (email) {
-          await sendWelcomeEmail(email, firstName).catch(console.error);
+          const nextRenewal = new Date(subscription.items.data[0].current_period_end * 1000);
+          await sendWelcomeEmail(email, firstName, PLANS[planId].label, PLANS[planId].priceCents, PLANS[planId].credits, nextRenewal).catch(console.error);
         }
       }
       break;
