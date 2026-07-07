@@ -93,7 +93,6 @@ export default async function BoasVindasPage({
     if ((err as { digest?: string })?.digest?.startsWith("NEXT_REDIRECT")) throw err;
     const msg = err instanceof Error ? err.message : String(err);
     console.error("[boas-vindas] Stripe checkout error:", msg);
-    redirect(`/boas-vindas?checkout_error=${encodeURIComponent(msg)}`);
   }
 
   return <BoasVindasClient />;

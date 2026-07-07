@@ -5,6 +5,26 @@ import { PLANS, type PlanId } from "@/lib/plans";
 import { getPrisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
+async function resolveCustomerId(
+  stripe: ReturnType<typeof getStripe>,
+  storedId: string | null | undefined,
+  email: string | undefined,
+  clerkId: string
+): Promise<string> {
+  if (storedId) {
+    try {
+      await stripe.customers.retrieve(storedId);
+      return storedId;
+    } catch { /* stale ID — fallthrough */ }
+  }
+  if (email) {
+    const existing = await stripe.customers.list({ email, limit: 5 });
+    if (existing.data[0]) return existing.data[0].id;
+  }
+  const created = await stripe.customers.create({ email, metadata: { clerkId } });
+  return created.id;
+}
+
 export async function POST(req: NextRequest) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -22,17 +42,25 @@ export async function POST(req: NextRequest) {
 
     const sub = await prisma.subscription.findUnique({ where: { ownerId: userId } });
 
-    // ── Sem assinatura Stripe → primeiro checkout ──────────────────────────
+    const user = await currentUser();
+    const email = user?.emailAddresses[0]?.emailAddress;
+    const customerId = await resolveCustomerId(stripe, sub?.stripeCustomerId, email, userId);
+
+    // Persist the resolved customer ID
+    if (!sub) {
+      await prisma.subscription.create({
+        data: { ownerId: userId, plan: planId, status: "INACTIVE", creditsTotal: plan.credits, stripeCustomerId: customerId },
+      });
+    } else if (sub.stripeCustomerId !== customerId) {
+      await prisma.subscription.update({ where: { ownerId: userId }, data: { stripeCustomerId: customerId } });
+    }
+
+    const currentPlan = sub?.plan as PlanId | null;
+    const currentPrice = currentPlan ? (PLANS[currentPlan]?.priceCents ?? 0) : 0;
+    const isDowngrade = plan.priceCents < currentPrice;
+
+    // ── Sem assinatura Stripe ativa → checkout inicial ─────────────────────
     if (!sub?.stripeSubscriptionId) {
-      const user = await currentUser();
-      const email = user?.emailAddresses[0]?.emailAddress;
-
-      let customerId = sub?.stripeCustomerId ?? undefined;
-      if (!customerId) {
-        const customer = await stripe.customers.create({ email, metadata: { clerkId: userId } });
-        customerId = customer.id;
-      }
-
       const session = await stripe.checkout.sessions.create({
         mode: "subscription",
         customer: customerId,
@@ -44,23 +72,9 @@ export async function POST(req: NextRequest) {
         metadata: { clerkId: userId, planId },
         subscription_data: { metadata: { clerkId: userId, planId } },
       });
-
       if (!session.url) return NextResponse.json({ error: "Não foi possível criar a sessão de pagamento." }, { status: 500 });
-
-      if (!sub) {
-        await prisma.subscription.create({
-          data: { ownerId: userId, plan: planId, status: "INACTIVE", creditsTotal: plan.credits, stripeCustomerId: customerId },
-        });
-      } else {
-        await prisma.subscription.update({ where: { ownerId: userId }, data: { stripeCustomerId: customerId } });
-      }
-
       return NextResponse.json({ redirect: true, url: session.url });
     }
-
-    const currentPlan = sub.plan as PlanId | null;
-    const currentPrice = currentPlan ? (PLANS[currentPlan]?.priceCents ?? 0) : 0;
-    const isDowngrade = plan.priceCents < currentPrice;
 
     // ── Downgrade → sem cobrança ───────────────────────────────────────────
     if (isDowngrade) {
@@ -85,7 +99,7 @@ export async function POST(req: NextRequest) {
     // ── Upgrade → novo checkout com preço integral; cancela assinatura antiga no webhook ──
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
-      customer: sub.stripeCustomerId!,
+      customer: customerId,
       currency: "brl",
       line_items: [{ price: plan.stripePriceId, quantity: 1 }],
       success_url: successUrl,

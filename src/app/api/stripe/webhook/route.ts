@@ -144,33 +144,8 @@ export async function POST(req: NextRequest) {
         if (email) {
           await sendRenewalEmail(email, firstName, PLANS[planId].label, PLANS[planId].credits, periodEnd).catch(console.error);
         }
-      } else if (billingReason === "subscription_update") {
-        // Mid-cycle upgrade: add only the prorated credit difference
-        const currentSub = await prisma.subscription.findUnique({
-          where: { ownerId: clerkId },
-          select: { creditsTotal: true },
-        });
-        const oldCreditsTotal = currentSub?.creditsTotal ?? 0;
-        const newPlanCredits = PLANS[planId].credits;
-        const fraction = Math.max(0, Math.min(1, (periodEndMs - Date.now()) / (periodEndMs - periodStartMs)));
-        const addition = Math.max(0, Math.round((newPlanCredits - oldCreditsTotal) * fraction));
-
-        await prisma.subscription.update({
-          where: { ownerId: clerkId },
-          data: {
-            plan: planId,
-            status: "ACTIVE",
-            ...(addition > 0 ? { creditsTotal: { increment: addition } } : {}),
-            currentPeriodStart: new Date(periodStartMs),
-            currentPeriodEnd: periodEnd,
-          },
-        });
-        const { firstName, email } = await getClerkUser(clerkId);
-        if (email) {
-          await sendUpgradeEmail(email, firstName, PLANS[planId].label, newPlanCredits).catch(console.error);
-        }
       }
-      // billing_reason === "subscription_create" is handled by checkout.session.completed
+      // billing_reason === "subscription_create" and "subscription_update" are handled by checkout.session.completed
       break;
     }
 
