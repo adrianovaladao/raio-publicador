@@ -119,9 +119,22 @@ function CadastroInner() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const clerkSu = (window as any).Clerk?.client?.signUp ?? clerkSuRef.current ?? signUp;
       if (!clerkSu) { setError("Tente novamente."); return; }
-      const result = await clerkSu.attemptEmailAddressVerification({ code });
+      let result = await clerkSu.attemptEmailAddressVerification({ code });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const sa = setActive ?? (window as any).Clerk?.setActive;
+
+      // If missing_requirements, try to patch firstName/lastName in case they weren't saved
+      if (result.status === "missing_requirements") {
+        const parts = name.trim().split(/\s+/);
+        const firstName = parts[0] || "";
+        const lastName = parts.slice(1).join(" ") || "";
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const liveSignUp = (window as any).Clerk?.client?.signUp ?? clerkSu;
+          result = await liveSignUp.update({ firstName, lastName });
+        } catch { /* ignore update errors, fall through */ }
+      }
+
       if (result.status === "complete") {
         await sa({ session: result.createdSessionId });
         await goToCheckout();
@@ -129,7 +142,6 @@ function CadastroInner() {
         await sa({ session: result.createdSessionId });
         await goToCheckout();
       } else {
-        // Try activating from window.Clerk as fallback
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const sessionId = (window as any).Clerk?.client?.activeSessions?.[0]?.id;
         if (sessionId) {
