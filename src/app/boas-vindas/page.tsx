@@ -91,9 +91,10 @@ export default async function BoasVindasPage({
     redirect(session.url!);
   } catch (err) {
     if ((err as { digest?: string })?.digest?.startsWith("NEXT_REDIRECT")) throw err;
-    console.error("[boas-vindas] Stripe checkout error:", err);
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("[boas-vindas] Stripe checkout error:", msg);
+    redirect(`/boas-vindas?checkout_error=${encodeURIComponent(msg)}`);
   }
 
-  // If Stripe failed, show onboarding anyway
   return <BoasVindasClient />;
 }
