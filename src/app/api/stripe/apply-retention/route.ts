@@ -21,16 +21,16 @@ export async function POST(req: NextRequest) {
 
   const stripe = getStripe();
 
-  // Create a one-time coupon for 30 days
+  // Create a one-time coupon valid for one billing cycle
   const coupon = await stripe.coupons.create({
     percent_off: discountPct,
     duration: "once",
-    name: `Retenção ${discountPct}%`,
+    name: `Retencao ${discountPct}pct`,
   });
 
   await stripe.subscriptions.update(sub.stripeSubscriptionId, {
-    discounts: [{ coupon: coupon.id }],
-  });
+    coupon: coupon.id,
+  } as Parameters<typeof stripe.subscriptions.update>[1]);
 
   return NextResponse.json({ ok: true });
 }
