@@ -75,6 +75,8 @@ export async function GET() {
     // Skip charges already covered by invoices
     if ((charge as unknown as { invoice?: string }).invoice) continue;
     const meta = charge.metadata ?? {};
+    // Only show charges that are explicitly credit purchases
+    if (meta.type !== "credit_purchase" && !meta.creditQty) continue;
     const qty = meta.creditQty ? parseInt(meta.creditQty, 10) : null;
     const planId = meta.planId ?? sub.plan ?? "";
     const planLabel = PLAN_LABELS[planId] ?? "";
