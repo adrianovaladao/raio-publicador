@@ -22,6 +22,7 @@ interface UserRow {
   creditsUsed: number;
   creditsAvailable: number;
   stripeCustomerId: string | null;
+  stripeSubscriptionId: string | null;
   currentPeriodEnd: string | null;
 }
 
@@ -52,19 +53,32 @@ function fmtName(row: UserRow) {
   return n || row.email.split("@")[0];
 }
 
+const SUB_STATUSES = ["ACTIVE", "INACTIVE", "PAST_DUE", "CANCELLED"] as const;
+
 function EditModal({ user, onClose, onSaved }: { user: UserRow; onClose: () => void; onSaved: () => void }) {
-  const [creditsTotal, setCreditsTotal] = useState(String(user.creditsTotal));
-  const [creditsUsed, setCreditsUsed]   = useState(String(user.creditsUsed));
-  const [plan, setPlan]                 = useState<PlanId>(user.plan);
-  const [saving, setSaving]             = useState(false);
-  const [error, setError]               = useState("");
+  const [creditsTotal, setCreditsTotal]           = useState(String(user.creditsTotal));
+  const [creditsUsed, setCreditsUsed]             = useState(String(user.creditsUsed));
+  const [plan, setPlan]                           = useState<PlanId>(user.plan);
+  const [status, setStatus]                       = useState(user.status);
+  const [stripeCustomerId, setStripeCustomerId]   = useState(user.stripeCustomerId ?? "");
+  const [stripeSubId, setStripeSubId]             = useState(user.stripeSubscriptionId ?? "");
+  const [saving, setSaving]                       = useState(false);
+  const [error, setError]                         = useState("");
 
   async function save() {
     setSaving(true); setError("");
     const res = await fetch("/api/admin/users", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ clerkId: user.clerkId, creditsTotal: Number(creditsTotal), creditsUsed: Number(creditsUsed), plan }),
+      body: JSON.stringify({
+        clerkId: user.clerkId,
+        creditsTotal: Number(creditsTotal),
+        creditsUsed: Number(creditsUsed),
+        plan,
+        status,
+        stripeCustomerId: stripeCustomerId.trim() || null,
+        stripeSubscriptionId: stripeSubId.trim() || null,
+      }),
     });
     if (res.ok) { onSaved(); onClose(); }
     else { setError("Erro ao salvar."); setSaving(false); }
@@ -72,36 +86,65 @@ function EditModal({ user, onClose, onSaved }: { user: UserRow; onClose: () => v
 
   return (
     <div className="overlay" onClick={onClose}>
-      <div className="modal" style={{ maxWidth: 440, marginTop: 80 }} onClick={e => e.stopPropagation()}>
+      <div className="modal" style={{ maxWidth: 480, marginTop: 60 }} onClick={e => e.stopPropagation()}>
         <div className="m-head" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "22px 24px 0" }}>
-          <h3>Editar usuário</h3>
+          <h3>Editar assinatura</h3>
           <button onClick={onClose} className="btn btn-ghost btn-sm" style={{ padding: "4px 8px" }}><X size={16} /></button>
         </div>
         <div className="m-body">
           <p style={{ fontSize: 13, color: "var(--stone)", margin: "0 0 20px" }}>{user.email}</p>
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-            <div className="field" style={{ marginBottom: 0 }}>
-              <label>Plano</label>
-              <div style={{ position: "relative" }}>
-                <select value={plan} onChange={e => setPlan(e.target.value as PlanId)} className="input">
-                  {(Object.keys(PLANS) as PlanId[]).map(p => <option key={p} value={p}>{PLANS[p].label}</option>)}
-                </select>
-                <ChevronDown size={14} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "var(--stone)" }} />
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <div className="field" style={{ marginBottom: 0 }}>
+                <label>Plano</label>
+                <div style={{ position: "relative" }}>
+                  <select value={plan} onChange={e => setPlan(e.target.value as PlanId)} className="input">
+                    {(Object.keys(PLANS) as PlanId[]).map(p => <option key={p} value={p}>{PLANS[p].label}</option>)}
+                  </select>
+                  <ChevronDown size={14} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "var(--stone)" }} />
+                </div>
+              </div>
+              <div className="field" style={{ marginBottom: 0 }}>
+                <label>Status</label>
+                <div style={{ position: "relative" }}>
+                  <select value={status} onChange={e => setStatus(e.target.value)} className="input">
+                    {SUB_STATUSES.map(s => <option key={s} value={s}>{STATUS_LABEL[s] ?? s}</option>)}
+                  </select>
+                  <ChevronDown size={14} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "var(--stone)" }} />
+                </div>
               </div>
             </div>
+
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               <div className="field" style={{ marginBottom: 0 }}>
                 <label>Total de créditos</label>
                 <input type="number" value={creditsTotal} onChange={e => setCreditsTotal(e.target.value)} min={0} className="input" />
               </div>
               <div className="field" style={{ marginBottom: 0 }}>
-                <label>Usados</label>
+                <label>Créditos usados</label>
                 <input type="number" value={creditsUsed} onChange={e => setCreditsUsed(e.target.value)} min={0} className="input" />
               </div>
             </div>
+
             <div style={{ background: "var(--cream)", borderRadius: 8, padding: "10px 14px", fontSize: 13, color: "var(--stone)" }}>
               Disponível após edição: <strong style={{ color: "var(--ink)" }}>{Math.max(0, Number(creditsTotal) - Number(creditsUsed)).toLocaleString("pt-BR")}</strong> créditos
             </div>
+
+            <div style={{ borderTop: "1px solid var(--border)", paddingTop: 14 }}>
+              <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 12 }}>IDs Stripe</p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                <div className="field" style={{ marginBottom: 0 }}>
+                  <label>Customer ID <span style={{ fontWeight: 400, color: "var(--stone)" }}>(cus_…)</span></label>
+                  <input value={stripeCustomerId} onChange={e => setStripeCustomerId(e.target.value)} placeholder="cus_xxxxxxxxxxxxxxxx" className="input" style={{ fontFamily: "var(--mono)", fontSize: 12 }} />
+                </div>
+                <div className="field" style={{ marginBottom: 0 }}>
+                  <label>Subscription ID <span style={{ fontWeight: 400, color: "var(--stone)" }}>(sub_…)</span></label>
+                  <input value={stripeSubId} onChange={e => setStripeSubId(e.target.value)} placeholder="sub_xxxxxxxxxxxxxxxx" className="input" style={{ fontFamily: "var(--mono)", fontSize: 12 }} />
+                </div>
+              </div>
+            </div>
+
           </div>
           {error && <p style={{ color: "var(--red)", fontSize: 13, marginTop: 12 }}>{error}</p>}
         </div>

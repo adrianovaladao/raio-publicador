@@ -71,11 +71,14 @@ export async function PATCH(req: NextRequest) {
   if (!await assertRaioAdmin())
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const { clerkId, creditsTotal, creditsUsed, plan } = await req.json() as {
+  const { clerkId, creditsTotal, creditsUsed, plan, status, stripeCustomerId, stripeSubscriptionId } = await req.json() as {
     clerkId: string;
     creditsTotal?: number;
     creditsUsed?: number;
     plan?: PlanId;
+    status?: string;
+    stripeCustomerId?: string | null;
+    stripeSubscriptionId?: string | null;
   };
 
   if (!clerkId) return NextResponse.json({ error: "clerkId obrigatório" }, { status: 400 });
@@ -84,6 +87,9 @@ export async function PATCH(req: NextRequest) {
   if (creditsTotal != null) data.creditsTotal = creditsTotal;
   if (creditsUsed != null) data.creditsUsed = creditsUsed;
   if (plan) data.plan = plan;
+  if (status) data.status = status;
+  if (stripeCustomerId !== undefined) data.stripeCustomerId = stripeCustomerId || null;
+  if (stripeSubscriptionId !== undefined) data.stripeSubscriptionId = stripeSubscriptionId || null;
 
   const updated = await getPrisma().subscription.update({
     where: { ownerId: clerkId },
