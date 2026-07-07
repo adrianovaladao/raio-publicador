@@ -298,7 +298,7 @@ export default function AdminReleasesPage() {
     }
   }
 
-  function toggleSelect(id: string, e: React.MouseEvent) {
+  function toggleSelect(id: string, e: MouseEvent) {
     e.stopPropagation();
     setSelected(prev => {
       const next = new Set(prev);
