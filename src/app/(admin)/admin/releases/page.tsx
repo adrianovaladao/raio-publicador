@@ -271,6 +271,9 @@ export default function AdminReleasesPage() {
   const [filter, setFilter] = useState("all");
   const [q, setQ] = useState("");
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [bulkConfirm, setBulkConfirm] = useState(false);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -281,6 +284,30 @@ export default function AdminReleasesPage() {
   }, []);
 
   useEffect(() => { if (isAdmin) load(); }, [isAdmin, load]);
+
+  async function handleBulkDelete() {
+    if (selected.size === 0) return;
+    setBulkDeleting(true);
+    try {
+      await Promise.all(Array.from(selected).map(id =>
+        fetch(`/api/admin/releases/${id}`, { method: "DELETE" })
+      ));
+      setSelected(new Set());
+      setBulkConfirm(false);
+      load();
+    } finally {
+      setBulkDeleting(false);
+    }
+  }
+
+  function toggleSelect(id: string, e: React.MouseEvent) {
+    e.stopPropagation();
+    setSelected(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }
 
   if (!isLoaded) return null;
   if (!isAdmin) return (
@@ -327,13 +354,53 @@ export default function AdminReleasesPage() {
               </button>
             ))}
           </div>
-          <input
-            className="input"
-            placeholder="Buscar por título, usuário ou marca…"
-            value={q}
-            onChange={e => setQ(e.target.value)}
-            style={{ width: 260, padding: "8px 14px", fontSize: 13 }}
-          />
+          <div style={{ display: "flex", gap: 8, alignItems: "center", marginLeft: "auto" }}>
+            {list.length > 0 && (
+              <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#555", cursor: "pointer", userSelect: "none" }}>
+                <input
+                  type="checkbox"
+                  checked={list.length > 0 && list.every(r => selected.has(r.id))}
+                  ref={el => { if (el) el.indeterminate = selected.size > 0 && !list.every(r => selected.has(r.id)); }}
+                  onChange={e => {
+                    if (e.target.checked) setSelected(new Set(list.map(r => r.id)));
+                    else setSelected(new Set());
+                  }}
+                  style={{ width: 15, height: 15 }}
+                />
+                {selected.size > 0 ? `${selected.size} selecionado${selected.size > 1 ? "s" : ""}` : "Selecionar todos"}
+              </label>
+            )}
+            {selected.size > 0 && !bulkConfirm && (
+              <button
+                onClick={() => setBulkConfirm(true)}
+                className="btn btn-sm"
+                style={{ background: "#FEF2F2", color: "#D94F4F", border: "1.5px solid #FECACA", display: "flex", alignItems: "center", gap: 6 }}
+              >
+                <Trash2 size={13} /> Excluir {selected.size}
+              </button>
+            )}
+            {bulkConfirm && (
+              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                <span style={{ fontSize: 12, color: "#D94F4F", fontWeight: 600 }}>Confirma exclusão de {selected.size}?</span>
+                <button onClick={() => setBulkConfirm(false)} className="btn btn-ghost btn-sm">Cancelar</button>
+                <button
+                  onClick={handleBulkDelete}
+                  disabled={bulkDeleting}
+                  className="btn btn-sm"
+                  style={{ background: "#D94F4F", color: "#fff", border: "none" }}
+                >
+                  {bulkDeleting ? "Excluindo…" : "Confirmar"}
+                </button>
+              </div>
+            )}
+            <input
+              className="input"
+              placeholder="Buscar…"
+              value={q}
+              onChange={e => setQ(e.target.value)}
+              style={{ width: 220, padding: "8px 14px", fontSize: 13 }}
+            />
+          </div>
         </div>
 
         {loading ? (
@@ -354,6 +421,13 @@ export default function AdminReleasesPage() {
                     style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 20px", cursor: "pointer" }}
                     onClick={() => setExpanded(isExpanded ? null : r.id)}
                   >
+                    <input
+                      type="checkbox"
+                      checked={selected.has(r.id)}
+                      onClick={e => toggleSelect(r.id, e)}
+                      onChange={() => {}}
+                      style={{ width: 15, height: 15, flexShrink: 0, cursor: "pointer" }}
+                    />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 4 }}>
                         <span style={{ fontWeight: 700, fontSize: 14, color: "#1a1a1a" }}>{r.title}</span>
