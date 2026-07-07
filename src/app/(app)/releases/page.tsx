@@ -36,7 +36,6 @@ const STATUS_FILTERS = [
   { id: "published",       label: "Publicados" },
   { id: "in_publication",  label: "Em publicação" },
   { id: "scheduled",       label: "Agendados" },
-  { id: "in_review",       label: "Em análise" },
   { id: "needs_revision",  label: "Precisa revisão" },
   { id: "draft",           label: "Rascunhos" },
 ];
@@ -208,7 +207,7 @@ export default function ReleasesPage() {
             onChange={e => setQ(e.target.value)}
             style={{ width: 220, padding: "8px 14px", fontSize: 13 }}
           />
-          <div className="seg">
+          <div className="seg" style={{ marginLeft: 8 }}>
             <button className={mode === "list" ? "active" : ""} onClick={() => setMode("list")}><List size={15} /> Lista</button>
             <button className={mode === "grid" ? "active" : ""} onClick={() => setMode("grid")}><LayoutGrid size={15} /> Grade</button>
           </div>
@@ -279,7 +278,7 @@ export default function ReleasesPage() {
                 >
                   <Trash2 size={14} />
                 </button>
-                <div className="thumb" style={r.imageUrl ? {} : { background: r.brandColor ?? undefined }}>
+                <div className="thumb">
                   {r.imageUrl && (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={r.imageUrl} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
