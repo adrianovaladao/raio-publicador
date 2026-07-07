@@ -1,5 +1,5 @@
 export const dynamic = "force-dynamic";
-import { auth } from "@clerk/nextjs/server";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 import { getStripe } from "@/lib/stripe";
 import { getPrisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
@@ -14,31 +14,65 @@ export async function POST(req: NextRequest) {
   }
 
   const prisma = getPrisma();
-  const sub = await prisma.subscription.findUnique({ where: { ownerId: userId } });
-  if (!sub?.stripeCustomerId) {
-    return NextResponse.json({ error: "Assinatura não encontrada." }, { status: 404 });
-  }
-
   const stripe = getStripe();
 
   try {
-    // Find the active subscription from Stripe directly (avoids stale DB IDs from test mode)
-    const stripeSubscriptions = await stripe.subscriptions.list({
-      customer: sub.stripeCustomerId,
-      status: "active",
-      limit: 1,
-    });
+    // Get user email from Clerk to search Stripe by email as fallback
+    const clerk = await clerkClient();
+    const clerkUser = await clerk.users.getUser(userId);
+    const userEmail = clerkUser.emailAddresses[0]?.emailAddress ?? "";
 
-    const activeSubId = stripeSubscriptions.data[0]?.id ?? sub.stripeSubscriptionId;
+    const sub = await prisma.subscription.findUnique({ where: { ownerId: userId } });
+
+    // Try to find an active Stripe subscription, first by stored customer ID, then by email
+    let activeSubId: string | null = null;
+    let liveCustomerId: string | null = sub?.stripeCustomerId ?? null;
+
+    if (liveCustomerId) {
+      try {
+        const byCustomer = await stripe.subscriptions.list({
+          customer: liveCustomerId,
+          status: "active",
+          limit: 1,
+        });
+        if (byCustomer.data[0]) {
+          activeSubId = byCustomer.data[0].id;
+        }
+      } catch {
+        // Customer ID is stale (e.g. test-mode ID), fall through to email lookup
+        liveCustomerId = null;
+      }
+    }
+
+    // Fallback: look up customer by email in Stripe
+    if (!activeSubId && userEmail) {
+      const customers = await stripe.customers.list({ email: userEmail, limit: 5 });
+      for (const customer of customers.data) {
+        const subs = await stripe.subscriptions.list({
+          customer: customer.id,
+          status: "active",
+          limit: 1,
+        });
+        if (subs.data[0]) {
+          activeSubId = subs.data[0].id;
+          liveCustomerId = customer.id;
+          break;
+        }
+      }
+    }
+
     if (!activeSubId) {
       return NextResponse.json({ error: "Nenhuma assinatura ativa encontrada no Stripe." }, { status: 404 });
     }
 
-    // Sync the subscription ID in DB if it was stale
-    if (stripeSubscriptions.data[0]?.id && stripeSubscriptions.data[0].id !== sub.stripeSubscriptionId) {
+    // Sync stale IDs in DB
+    if (sub && (liveCustomerId !== sub.stripeCustomerId || activeSubId !== sub.stripeSubscriptionId)) {
       await prisma.subscription.update({
         where: { ownerId: userId },
-        data: { stripeSubscriptionId: stripeSubscriptions.data[0].id },
+        data: {
+          ...(liveCustomerId && liveCustomerId !== sub.stripeCustomerId ? { stripeCustomerId: liveCustomerId } : {}),
+          ...(activeSubId !== sub.stripeSubscriptionId ? { stripeSubscriptionId: activeSubId } : {}),
+        },
       });
     }
 

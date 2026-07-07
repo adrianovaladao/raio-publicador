@@ -12,6 +12,11 @@ import { UpgradeModal } from "@/components/UpgradeModal";
 import { BuyCreditsModal } from "@/components/BuyCreditsModal";
 import { SelectBox } from "@/components/SelectBox";
 
+function extractFirstImageUrl(html: string): string | null {
+  const m = html.match(/<img[^>]+src=["']([^"']+)["']/i);
+  return m ? m[1] : null;
+}
+
 // ── DatePicker customizado ────────────────────────────────────────────────────
 
 const MESES_FULL = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
@@ -796,6 +801,7 @@ export default function EditReleasePage() {
           scheduledAt,
           vehicles: selectedVeh,
           creditsUsed,
+          imageUrl: extractFirstImageUrl(body),
         }),
       });
       if (!res.ok) { setErr("Erro ao salvar. Tente novamente."); return; }
@@ -820,6 +826,7 @@ export default function EditReleasePage() {
           status: "DRAFT",
           scheduledAt: null,
           vehicles: selectedVeh,
+          imageUrl: extractFirstImageUrl(body),
         }),
       });
       if (!res.ok) { setErr("Erro ao salvar. Tente novamente."); return; }

@@ -5,6 +5,11 @@ import { sendReleaseScheduledEmail, sendLowCreditsEmail, sendZeroCreditsEmail } 
 import { NextResponse } from "next/server";
 import { ReleaseStatus } from "@prisma/client";
 
+function extractFirstImageUrl(html: string): string | null {
+  const m = html.match(/<img[^>]+src=["']([^"']+)["']/i);
+  return m ? m[1] : null;
+}
+
 export async function GET() {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -13,7 +18,12 @@ export async function GET() {
     include: { brand: { select: { name: true, color: true, logoUrl: true } } },
     orderBy: { createdAt: "desc" },
   });
-  return NextResponse.json(releases);
+  // Backfill imageUrl from body for releases that were saved before this field was populated
+  const enriched = releases.map(r => ({
+    ...r,
+    imageUrl: r.imageUrl ?? extractFirstImageUrl(r.body),
+  }));
+  return NextResponse.json(enriched);
 }
 
 export async function POST(req: Request) {
