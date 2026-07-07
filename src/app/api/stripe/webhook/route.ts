@@ -59,28 +59,55 @@ export async function POST(req: NextRequest) {
       const subscriptionId = session.subscription as string;
       const subscription = await stripe.subscriptions.retrieve(subscriptionId);
 
-      // Se é upgrade via novo checkout (havia assinatura anterior), cancela a antiga
       const oldSubscriptionId = session.metadata?.oldSubscriptionId;
-      if (oldSubscriptionId && oldSubscriptionId !== subscriptionId) {
-        await stripe.subscriptions.cancel(oldSubscriptionId).catch(console.error);
+      const isUpgrade = !!(oldSubscriptionId && oldSubscriptionId !== subscriptionId);
+
+      // Cancela assinatura anterior se for upgrade
+      if (isUpgrade) {
+        await stripe.subscriptions.cancel(oldSubscriptionId!).catch(console.error);
       }
 
-      await prisma.subscription.update({
-        where: { ownerId: clerkId },
-        data: {
-          plan: planId,
-          status: "ACTIVE",
-          creditsTotal: PLANS[planId].credits,
-          creditsUsed: 0,
-          stripeSubscriptionId: subscription.id,
-          currentPeriodStart: new Date(subscription.items.data[0].current_period_start * 1000),
-          currentPeriodEnd: new Date(subscription.items.data[0].current_period_end * 1000),
-        },
-      });
-
-      const { firstName, email } = await getClerkUser(clerkId);
-      if (email) {
-        await sendWelcomeEmail(email, firstName).catch(console.error);
+      if (isUpgrade) {
+        // Upgrade: adiciona créditos do novo plano ao saldo disponível existente
+        const current = await prisma.subscription.findUnique({
+          where: { ownerId: clerkId },
+          select: { creditsTotal: true, creditsUsed: true },
+        });
+        const available = Math.max(0, (current?.creditsTotal ?? 0) - (current?.creditsUsed ?? 0));
+        await prisma.subscription.update({
+          where: { ownerId: clerkId },
+          data: {
+            plan: planId,
+            status: "ACTIVE",
+            creditsTotal: available + PLANS[planId].credits,
+            creditsUsed: 0,
+            stripeSubscriptionId: subscription.id,
+            currentPeriodStart: new Date(subscription.items.data[0].current_period_start * 1000),
+            currentPeriodEnd: new Date(subscription.items.data[0].current_period_end * 1000),
+          },
+        });
+        const { firstName, email } = await getClerkUser(clerkId);
+        if (email) {
+          await sendUpgradeEmail(email, firstName, PLANS[planId].label, PLANS[planId].credits).catch(console.error);
+        }
+      } else {
+        // Nova assinatura: define créditos do plano normalmente
+        await prisma.subscription.update({
+          where: { ownerId: clerkId },
+          data: {
+            plan: planId,
+            status: "ACTIVE",
+            creditsTotal: PLANS[planId].credits,
+            creditsUsed: 0,
+            stripeSubscriptionId: subscription.id,
+            currentPeriodStart: new Date(subscription.items.data[0].current_period_start * 1000),
+            currentPeriodEnd: new Date(subscription.items.data[0].current_period_end * 1000),
+          },
+        });
+        const { firstName, email } = await getClerkUser(clerkId);
+        if (email) {
+          await sendWelcomeEmail(email, firstName).catch(console.error);
+        }
       }
       break;
     }

@@ -82,23 +82,21 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true });
     }
 
-    // ── Upgrade → atualiza assinatura existente com cobrança proporcional ──
-    const stripeSub = await stripe.subscriptions.retrieve(sub.stripeSubscriptionId);
-    const itemId = stripeSub.items.data[0]?.id;
-    if (!itemId) return NextResponse.json({ error: "Item de assinatura não encontrado" }, { status: 500 });
-
-    await stripe.subscriptions.update(sub.stripeSubscriptionId, {
-      items: [{ id: itemId, price: plan.stripePriceId }],
-      proration_behavior: "always_invoice",
-      metadata: { clerkId: userId, planId },
+    // ── Upgrade → novo checkout com preço integral; cancela assinatura antiga no webhook ──
+    const session = await stripe.checkout.sessions.create({
+      mode: "subscription",
+      customer: sub.stripeCustomerId!,
+      currency: "brl",
+      line_items: [{ price: plan.stripePriceId, quantity: 1 }],
+      success_url: successUrl,
+      cancel_url: cancelUrlFinal,
+      locale: "pt-BR",
+      metadata: { clerkId: userId, planId, oldSubscriptionId: sub.stripeSubscriptionId },
+      subscription_data: { metadata: { clerkId: userId, planId, oldSubscriptionId: sub.stripeSubscriptionId } },
     });
 
-    await prisma.subscription.update({
-      where: { ownerId: userId },
-      data: { plan: planId, creditsTotal: plan.credits },
-    });
-
-    return NextResponse.json({ ok: true });
+    if (!session.url) return NextResponse.json({ error: "Não foi possível criar a sessão de pagamento." }, { status: 500 });
+    return NextResponse.json({ redirect: true, url: session.url });
 
   } catch (err) {
     const message = err instanceof Error ? err.message : "Erro interno";
