@@ -46,11 +46,7 @@ function CadastroInner() {
   const plan = planParam && VALID_PLANS.includes(planParam) ? planParam : null;
 
   function goToCheckout() {
-    if (plan) {
-      window.location.href = `/iniciar-plano?plan=${plan}`;
-    } else {
-      router.replace("/boas-vindas");
-    }
+    window.location.href = plan ? `/boas-vindas?plan=${plan}` : "/boas-vindas";
   }
 
   useEffect(() => {
