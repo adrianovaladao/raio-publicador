@@ -181,3 +181,113 @@ export async function sendPaymentFailedEmail(to: string, firstName: string, plan
 
   return getResend().emails.send({ from: FROM, to, subject: "Ação necessária: problema com seu pagamento — Raio", html });
 }
+
+// ─── 9. Release enviado para publicação ───────────────────────────────────────
+export async function sendReleaseSubmittedEmail(
+  to: string,
+  firstName: string,
+  releaseTitle: string,
+  releaseId: string,
+) {
+  const html = base(`
+    ${h1("Release enviado para publicação ✓")}
+    ${p(`Olá, <strong>${firstName}</strong>! Seu release foi enviado e está sendo processado para distribuição.`)}
+    <table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0">
+      <tr><td style="padding:8px 0;color:#888;width:130px">Release</td><td style="padding:8px 0;color:#1a1a1a;font-weight:600">${releaseTitle}</td></tr>
+    </table>
+    ${p("Você receberá uma notificação assim que a distribuição for concluída.")}
+    ${btn("Ver release", `${APP_URL}/releases/${releaseId}`)}
+  `);
+
+  return getResend().emails.send({ from: FROM, to, subject: `Release enviado: ${releaseTitle}`, html });
+}
+
+// ─── 10. Release adicionado à fila ────────────────────────────────────────────
+export async function sendReleaseQueuedEmail(
+  to: string,
+  firstName: string,
+  releaseTitle: string,
+  position: number,
+  releaseId: string,
+) {
+  const html = base(`
+    ${h1("Release adicionado à fila ✓")}
+    ${p(`Olá, <strong>${firstName}</strong>! Seu release foi adicionado à fila de distribuição.`)}
+    <table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0">
+      <tr><td style="padding:8px 0;color:#888;width:130px">Release</td><td style="padding:8px 0;color:#1a1a1a;font-weight:600">${releaseTitle}</td></tr>
+      <tr><td style="padding:8px 0;color:#888">Posição na fila</td><td style="padding:8px 0;color:#1a1a1a">${position}º</td></tr>
+    </table>
+    ${p("Acompanhe o andamento pelo painel.")}
+    ${btn("Ver release", `${APP_URL}/releases/${releaseId}`)}
+  `);
+
+  return getResend().emails.send({ from: FROM, to, subject: `Release na fila: ${releaseTitle}`, html });
+}
+
+// ─── 11. Release publicado no veículo ─────────────────────────────────────────
+export async function sendReleasePublishedInVehicleEmail(
+  to: string,
+  firstName: string,
+  releaseTitle: string,
+  vehicleName: string,
+  vehicleUrl: string | null,
+  releaseId: string,
+) {
+  const html = base(`
+    ${h1("Release publicado em um veículo ⚡")}
+    ${p(`Olá, <strong>${firstName}</strong>! Seu release foi publicado em mais um veículo.`)}
+    <table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0">
+      <tr><td style="padding:8px 0;color:#888;width:130px">Release</td><td style="padding:8px 0;color:#1a1a1a;font-weight:600">${releaseTitle}</td></tr>
+      <tr><td style="padding:8px 0;color:#888">Veículo</td><td style="padding:8px 0;color:#1a1a1a;font-weight:600">${vehicleName}</td></tr>
+    </table>
+    ${vehicleUrl ? btn("Ver publicação", vehicleUrl) : ""}
+    ${btn("Ver release", `${APP_URL}/releases/${releaseId}`)}
+  `);
+
+  return getResend().emails.send({ from: FROM, to, subject: `Publicado em ${vehicleName}: ${releaseTitle}`, html });
+}
+
+// ─── 12. Release precisa de revisão ───────────────────────────────────────────
+export async function sendReleaseNeedsReviewEmail(
+  to: string,
+  firstName: string,
+  releaseTitle: string,
+  reason: string,
+  releaseId: string,
+) {
+  const html = base(`
+    ${h1("Seu release precisa de revisão")}
+    ${p(`Olá, <strong>${firstName}</strong>! Seu release foi analisado e precisa de ajustes antes de ser distribuído.`)}
+    <table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0">
+      <tr><td style="padding:8px 0;color:#888;width:130px">Release</td><td style="padding:8px 0;color:#1a1a1a;font-weight:600">${releaseTitle}</td></tr>
+      <tr><td style="padding:8px 0;color:#888;vertical-align:top">Motivo</td><td style="padding:8px 0;color:#1a1a1a">${reason}</td></tr>
+    </table>
+    ${p("Acesse o release, faça os ajustes necessários e reenvie para publicação.")}
+    ${btn("Revisar release", `${APP_URL}/releases/${releaseId}`)}
+  `);
+
+  return getResend().emails.send({ from: FROM, to, subject: `Revisão necessária: ${releaseTitle}`, html });
+}
+
+// ─── 13. Convite aceito por editor/revisor ─────────────────────────────────────
+export async function sendInviteAcceptedEmail(
+  to: string,
+  firstName: string,
+  inviteeName: string,
+  inviteeEmail: string,
+  role: string,
+) {
+  const roleLabel = role === "editor" ? "Editor" : role === "revisor" ? "Revisor" : role;
+  const html = base(`
+    ${h1("Convite aceito ✓")}
+    ${p(`Olá, <strong>${firstName}</strong>! Um colaborador aceitou seu convite e já faz parte da sua equipe no Raio.`)}
+    <table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0">
+      <tr><td style="padding:8px 0;color:#888;width:130px">Nome</td><td style="padding:8px 0;color:#1a1a1a;font-weight:600">${inviteeName}</td></tr>
+      <tr><td style="padding:8px 0;color:#888">E-mail</td><td style="padding:8px 0;color:#1a1a1a">${inviteeEmail}</td></tr>
+      <tr><td style="padding:8px 0;color:#888">Função</td><td style="padding:8px 0;color:#1a1a1a">${roleLabel}</td></tr>
+    </table>
+    ${btn("Gerenciar equipe", `${APP_URL}/configuracoes`)}
+  `);
+
+  return getResend().emails.send({ from: FROM, to, subject: `${inviteeName} aceitou seu convite — Raio`, html });
+}
