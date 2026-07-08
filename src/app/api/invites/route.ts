@@ -3,7 +3,7 @@ import { auth, clerkClient } from "@clerk/nextjs/server";
 import { getPrisma } from "@/lib/prisma";
 import { PLANS } from "@/lib/plans";
 import { NextResponse } from "next/server";
-import { Resend } from "resend";
+import { sendInviteEmail } from "@/lib/email";
 
 export async function GET() {
   const { userId } = await auth();
@@ -79,33 +79,12 @@ export async function POST(req: Request) {
   const roleLabel = role === "admin" ? "Administração" : role === "editor" ? "Edição" : "Revisão";
   const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? "https://raio-publicador.vercel.app"}/convite/${invite.token}`;
 
-  const resend = new Resend(process.env.RESEND_API_KEY);
-  const { error: emailError } = await resend.emails.send({
-    from: "Raio Publicador <noreply@raiopublicador.com.br>",
-    to: email,
-    subject: `${ownerName} te convidou para o Raio Publicador`,
-    html: `
-      <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;color:#1a1a1a">
-        <h2 style="margin:0 0 8px;font-size:22px">Você foi convidado 🎉</h2>
-        <p style="margin:0 0 24px;color:#555;font-size:15px">
-          <strong>${ownerName}</strong> te convidou para colaborar no <strong>Raio Publicador</strong>
-          com a função de <strong>${roleLabel}</strong>.
-        </p>
-        <a href="${inviteUrl}"
-           style="display:inline-block;background:#1a1a1a;color:#fff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:15px;font-weight:600">
-          Aceitar convite →
-        </a>
-        <p style="margin:24px 0 0;font-size:12px;color:#999">
-          Este convite expira em 7 dias. Se você não esperava receber este e-mail, pode ignorá-lo.
-        </p>
-      </div>
-    `,
-  });
+  const { error: emailError } = await sendInviteEmail(email, ownerName, roleLabel, inviteUrl);
 
   if (emailError) {
     console.error("[invites] Resend error:", JSON.stringify(emailError));
     return NextResponse.json(
-      { error: `Convite criado, mas falha ao enviar e-mail: ${emailError.message}` },
+      { error: `Convite criado, mas falha ao enviar e-mail: ${(emailError as { message?: string }).message}` },
       { status: 500 }
     );
   }

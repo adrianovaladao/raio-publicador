@@ -384,7 +384,29 @@ export async function sendAdminNewReleaseEmail(
   return getResend().emails.send({ from: FROM, to: adminEmail, subject: `[Admin] Novo release: ${releaseTitle}`, html });
 }
 
-// ─── 17. Convite aceito por editor/revisor ─────────────────────────────────────
+// ─── 17. Convite de colaboração ────────────────────────────────────────────────
+export async function sendInviteEmail(
+  to: string,
+  ownerName: string,
+  roleLabel: string,
+  inviteUrl: string,
+) {
+  const html = base(`
+    ${h1(`Tem um convite esperando por você! 🎉`)}
+    ${p(`<strong>${ownerName}</strong> te convidou para colaborar no <strong>Raio Publicador</strong> com a função de <strong>${roleLabel}</strong>.`)}
+    ${btn("Aceitar convite →", inviteUrl)}
+    ${p('<span style="font-size:12px;color:#999">Este convite expira em 7 dias. Se você não esperava receber este e-mail, pode ignorá-lo.</span>')}
+  `);
+
+  return getResend().emails.send({
+    from: FROM,
+    to,
+    subject: `${ownerName} te convidou para o Raio Publicador`,
+    html,
+  });
+}
+
+// ─── 18. Convite aceito por editor/revisor ─────────────────────────────────────
 export async function sendInviteAcceptedEmail(
   to: string,
   firstName: string,
