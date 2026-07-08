@@ -963,7 +963,9 @@ export default function EditReleasePage() {
                 { label: "Data de agendamento", value: release.scheduledAt ? fmtFull(release.scheduledAt) : "—" },
                 { label: "Data de publicação", value: release.publishedAt ? fmtFull(release.publishedAt) : "—" },
                 { label: "Criado em", value: fmtFull(release.createdAt) },
+                { label: "", value: "" },
                 { label: "Utilizou IA", value: release.aiCreditsUsed > 0 ? `Sim — ${release.aiCreditsUsed} cr` : "Não — 0 cr" },
+                { label: "Créditos de IA utilizados", value: `${release.aiCreditsUsed} cr` },
               ].map(({ label, value }) => (
                 <div key={label} style={{ padding: "14px 20px", borderRight: "1px solid var(--line)", borderBottom: "1px solid var(--line)" }}>
                   <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--stone)", margin: "0 0 4px" }}>{label}</p>
