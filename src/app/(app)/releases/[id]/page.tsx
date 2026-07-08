@@ -877,6 +877,7 @@ export default function EditReleasePage() {
       ? new Date(release.publishedAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })
       : null;
     const coveredVehicles = vehicles.filter(v => release.vehicles.includes(v.id));
+    const toAbsUrl = (u: string) => /^https?:\/\//i.test(u) ? u : `https://${u}`;
     return (
       <div className="content scroll">
         <div className="content-inner" style={{ maxWidth: 800 }}>
@@ -917,7 +918,7 @@ export default function EditReleasePage() {
                     <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 6px", borderRadius: 5, background: TIER_COLORS_MAP[v.tier] ?? "#888", color: TIER_FG_MAP[v.tier] ?? "#fff", flexShrink: 0 }}>{v.tier}</span>
                     <span style={{ fontSize: 14, fontWeight: 600, flex: 1 }}>{v.name}</span>
                     {url ? (
-                      <a href={url} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: "#2563EB", fontWeight: 500, wordBreak: "break-all", textAlign: "right" }}>
+                      <a href={toAbsUrl(url)} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: "#2563EB", fontWeight: 500, wordBreak: "break-all", textAlign: "right" }}>
                         Ver publicação ↗
                       </a>
                     ) : (

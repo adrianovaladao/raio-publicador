@@ -311,7 +311,7 @@ function ReleaseActions({ release, onSaved, onDeleted }: {
                     style={{ flex: 1, padding: "8px 10px", borderRadius: 7, border: "1.5px solid #e0e0e0", fontSize: 13, boxSizing: "border-box" }}
                   />
                   {vehicleUrls[v.id] && (
-                    <a href={vehicleUrls[v.id]} target="_blank" rel="noreferrer" style={{ color: "#2563EB", flexShrink: 0 }}>
+                    <a href={/^https?:\/\//i.test(vehicleUrls[v.id]) ? vehicleUrls[v.id] : `https://${vehicleUrls[v.id]}`} target="_blank" rel="noreferrer" style={{ color: "#2563EB", flexShrink: 0 }}>
                       <ExternalLink size={14} />
                     </a>
                   )}
