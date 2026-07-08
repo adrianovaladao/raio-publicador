@@ -198,7 +198,7 @@ function UserDetailPanel({ row }: { row: UserRow }) {
           {loading ? (
             <p style={{ fontSize: 13, color: "var(--stone)" }}>Carregando…</p>
           ) : (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 20 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 20 }}>
 
               {/* 1 + 2 — Plano e Status */}
               <div style={{ background: "#fff", borderRadius: 10, border: "1px solid #eee", padding: "16px 18px" }}>
