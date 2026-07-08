@@ -408,11 +408,11 @@ export default function AdminReleasesPage() {
     }
   }
 
-  function toggleSelect(id: string, e: React.MouseEvent) {
+  function toggleSelect(id: string, e: { stopPropagation: () => void }) {
     e.stopPropagation();
     setSelected(prev => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+      if (next.has(id)) { next.delete(id); } else { next.add(id); }
       return next;
     });
   }
@@ -529,7 +529,7 @@ export default function AdminReleasesPage() {
                     <input
                       type="checkbox"
                       checked={selected.has(r.id)}
-                      onClick={e => toggleSelect(r.id, e as unknown as React.MouseEvent)}
+                      onClick={e => toggleSelect(r.id, e)}
                       onChange={() => {}}
                       style={{ width: 15, height: 15, flexShrink: 0, cursor: "pointer" }}
                     />
