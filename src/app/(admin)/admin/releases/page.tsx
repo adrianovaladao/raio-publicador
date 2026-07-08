@@ -143,14 +143,21 @@ function ReleaseActions({ release, onSaved, onDeleted }: {
     }
   }
 
-  function handleCopyContent() {
-    const text = htmlToText(release.body);
-    const images = extractImages(release.body);
-    const imageLines = images.length > 0 ? "\n\n---\nImagens:\n" + images.join("\n") : "";
-    navigator.clipboard.writeText(`${release.title}\n\n${text}${imageLines}`).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
+  async function handleCopyContent() {
+    const richHtml = `<h1>${release.title}</h1>${release.body}`;
+    const plainText = `${release.title}\n\n${htmlToText(release.body)}`;
+    try {
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          "text/html": new Blob([richHtml], { type: "text/html" }),
+          "text/plain": new Blob([plainText], { type: "text/plain" }),
+        }),
+      ]);
+    } catch {
+      await navigator.clipboard.writeText(plainText);
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   }
 
   function handleExport() {
