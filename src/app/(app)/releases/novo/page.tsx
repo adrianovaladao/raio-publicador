@@ -1453,6 +1453,7 @@ export default function NovoReleasePage() {
         });
         const data = await res.json() as { id: string };
         draftIdRef.current = data.id;
+        window.dispatchEvent(new CustomEvent("releases-changed"));
       }
       setSaveStatus("saved");
       setLastSaved(new Date());

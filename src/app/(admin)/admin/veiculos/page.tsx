@@ -6,6 +6,7 @@ import {
   Plus, Upload, SlidersHorizontal, X, Pencil, Trash2,
   ArrowUp, ArrowDown, ArrowUpDown, Check, Camera, Crown,
 } from "lucide-react";
+import { isAnyAdmin } from "@/lib/admin";
 
 const TIER_TOKENS: Record<string, number> = { A: 100, B: 50, C: 25 };
 const TIER_COLORS: Record<string, string> = { A: "#C0392B", B: "#E07B2A", C: "#D4A017" };
@@ -208,7 +209,7 @@ function FilterModal({ cats, tiers, onApply, onClose }: { cats: string[]; tiers:
 
 export default function AdminVeiculos() {
   const { user, isLoaded } = useUser();
-  const isAdmin = user?.publicMetadata?.raioAdmin === true;
+  const isAdmin = isAnyAdmin(user?.publicMetadata as Record<string, unknown>);
 
   const [vehicles,    setVehicles]   = useState<VehicleRow[]>([]);
   const [loading,     setLoading]    = useState(true);

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useUser } from "@clerk/nextjs";
 import { Crown, FileText, Trash2, ChevronDown, AlertTriangle, Clock, ExternalLink, Send, Copy, Download, Check } from "lucide-react";
+import { isAnyAdmin } from "@/lib/admin";
 
 interface VehicleRef { id: string; name: string; }
 
@@ -96,7 +97,6 @@ function ReleaseActions({ release, onSaved, onDeleted }: {
   const [newStatus, setNewStatus] = useState(release.status);
   const [notes, setNotes] = useState(release.adminNotes ?? "");
   const [vehicleUrls, setVehicleUrls] = useState<Record<string, string>>(release.publishedVehicleUrls ?? {});
-  const [notifyUser, setNotifyUser] = useState(true);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -109,7 +109,10 @@ function ReleaseActions({ release, onSaved, onDeleted }: {
   const urlsChanged = JSON.stringify(vehicleUrls) !== JSON.stringify(release.publishedVehicleUrls ?? {});
   const hasChanges = statusChanged || notesChanged || urlsChanged;
 
-  async function save() {
+  const allUrlsFilled = release.vehicleNames.length > 0
+    && release.vehicleNames.every(v => !!vehicleUrls[v.id]?.trim());
+
+  async function save(notify = false) {
     setSaving(true); setErr(""); setOk("");
     try {
       const res = await fetch(`/api/admin/releases/${release.id}`, {
@@ -119,11 +122,11 @@ function ReleaseActions({ release, onSaved, onDeleted }: {
           ...(statusChanged && { status: newStatus }),
           adminNotes: notes || undefined,
           ...(Object.keys(vehicleUrls).length > 0 && { publishedVehicleUrls: vehicleUrls }),
-          notifyUser,
+          notifyUser: notify,
         }),
       });
       if (!res.ok) { const d = await res.json(); throw new Error(d.error ?? "Erro"); }
-      setOk(notifyUser && statusChanged ? "Salvo e usuário notificado!" : "Salvo!");
+      setOk(notify ? "Salvo e usuário notificado!" : "Salvo!");
       onSaved();
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Erro ao salvar");
@@ -145,43 +148,21 @@ function ReleaseActions({ release, onSaved, onDeleted }: {
   }
 
   function buildReleaseHtml(forExport = false) {
-    const dateStr = (release.publishedAt ?? release.scheduledAt ?? release.createdAt);
-    const date = new Date(dateStr).toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric", timeZone: "America/Sao_Paulo" });
     const brandName = release.brand?.name ?? "";
-    const brandLogo = release.brand?.logoUrl;
-    const logoCell = brandLogo
-      ? `<img src="${brandLogo}" alt="${brandName}" style="max-width:200px;max-height:200px;width:auto;height:auto;object-fit:contain;display:block">`
-      : `<span style="font-size:13px;font-weight:700;color:#1a1a1a">${brandName}</span>`;
-
-    const header = `
-      <table style="width:100%;border-collapse:collapse;border:1px solid #ccc;margin-bottom:32px">
-        <tr>
-          <td style="padding:10px 14px;border:1px solid #ccc;width:160px">${logoCell}</td>
-          <td style="padding:10px 14px;border:1px solid #ccc;text-align:center;font-size:13px;color:#555">
-            Esse é um release do <strong>Raio Publicador</strong>. ID: <strong>${release.shortId}</strong>
-          </td>
-          <td style="padding:10px 14px;border:1px solid #ccc;white-space:nowrap;font-size:13px;color:#555;text-align:right">${date}</td>
-        </tr>
-      </table>`;
 
     const subtitle = release.summary
       ? `<p style="font-style:italic;font-size:16px;color:#444;margin:0 0 24px;line-height:1.5">${release.summary}</p>`
       : "";
 
-    const mainImage = release.imageUrl
-      ? `<figure style="margin:0 0 8px">
-           <img src="${release.imageUrl}" alt="" style="width:100%;height:auto;display:block">
-           <figcaption style="font-size:13px;color:#555;margin-top:6px">Fonte: ${brandName}</figcaption>
-         </figure>`
-      : "";
+    // Strip "Sobre a <Marca>" footer block from body for copy/paste
+    const bodyHtml = release.body.replace(/<h[23][^>]*>\s*Sobre[^<]*<\/h[23]>[\s\S]*$/i, "").trimEnd();
 
     const body = `
       <h1 style="font-size:32px;font-weight:700;margin:0 0 12px;line-height:1.2;color:#1a1a1a">${release.title}</h1>
       ${subtitle}
-      ${mainImage}
-      <div style="font-size:16px;color:#1a1a1a;line-height:1.7;margin-top:24px">${release.body}</div>`;
+      <div style="font-size:16px;color:#1a1a1a;line-height:1.7;margin-top:24px">${bodyHtml}</div>`;
 
-    if (!forExport) return header + body;
+    if (!forExport) return body;
 
     const vehicleList = release.vehicleNames.map(v => `<li>${v.name}</li>`).join("");
     const urlList = Object.entries(release.publishedVehicleUrls ?? {})
@@ -201,7 +182,6 @@ function ReleaseActions({ release, onSaved, onDeleted }: {
   </style>
 </head>
 <body>
-  ${header}
   ${body}
   ${vehicleList ? `<div class="section"><h3>Veículos</h3><ul>${vehicleList}</ul></div>` : ""}
   ${urlList ? `<div class="section"><h3>Links de publicação</h3><ul>${urlList}</ul></div>` : ""}
@@ -292,7 +272,7 @@ function ReleaseActions({ release, onSaved, onDeleted }: {
           <select
             value={newStatus}
             onChange={e => setNewStatus(e.target.value)}
-            style={{ padding: "9px 12px", borderRadius: 8, border: "1.5px solid #e0e0e0", fontSize: 14, background: "#fff", width: "100%", cursor: "pointer" }}
+            style={{ padding: "9px 12px", borderRadius: 8, border: "1.5px solid #e0e0e0", fontSize: 14, background: "#fff", cursor: "pointer", width: "auto", minWidth: 200 }}
           >
             {ALL_STATUSES.map(s => (
               <option key={s.value} value={s.value}>{s.label}</option>
@@ -363,28 +343,35 @@ function ReleaseActions({ release, onSaved, onDeleted }: {
         </div>
       </div>
 
-      {/* Notificar usuário */}
-      {statusChanged && (
-        <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "#444", marginBottom: 16, cursor: "pointer" }}>
-          <input type="checkbox" checked={notifyUser} onChange={e => setNotifyUser(e.target.checked)} style={{ width: 15, height: 15 }} />
-          <Send size={13} style={{ color: "#059669" }} />
-          Enviar notificação por e-mail ao usuário
-        </label>
-      )}
-
       {err && <p style={{ fontSize: 13, color: "#D94F4F", marginBottom: 12 }}>{err}</p>}
       {ok && <p style={{ fontSize: 13, color: "#16A34A", marginBottom: 12 }}>{ok}</p>}
 
       {/* Botões */}
-      <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+      <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
         <button
-          onClick={save}
+          onClick={() => save(false)}
           disabled={saving || !hasChanges || (needsNotes && !notes.trim())}
           className="btn btn-sm"
           style={{ background: "#1a1a1a", color: "#fff", border: "none", opacity: (!hasChanges || (needsNotes && !notes.trim())) ? 0.4 : 1 }}
         >
           {saving ? "Salvando…" : "Salvar alterações"}
         </button>
+        {release.vehicleNames.length > 0 && (
+          <button
+            onClick={() => save(true)}
+            disabled={saving || !allUrlsFilled}
+            className="btn btn-sm"
+            style={{
+              background: allUrlsFilled ? "#059669" : "#e0e0e0",
+              color: allUrlsFilled ? "#fff" : "#999",
+              border: "none",
+              display: "flex", alignItems: "center", gap: 6,
+              cursor: allUrlsFilled ? "pointer" : "not-allowed",
+            }}
+          >
+            <Send size={13} /> Enviar notificação ao usuário
+          </button>
+        )}
 
         {!confirmDelete ? (
           <button onClick={() => setConfirmDelete(true)} className="btn btn-ghost btn-sm" style={{ color: "#D94F4F", marginLeft: "auto" }}>
@@ -407,7 +394,7 @@ function ReleaseActions({ release, onSaved, onDeleted }: {
 // ── Página principal ──────────────────────────────────────────────────────────
 export default function AdminReleasesPage() {
   const { user, isLoaded } = useUser();
-  const isAdmin = user?.publicMetadata?.raioAdmin === true;
+  const isAdmin = isAnyAdmin(user?.publicMetadata as Record<string, unknown>);
 
   const [releases, setReleases] = useState<ReleaseRow[]>([]);
   const [loading, setLoading] = useState(true);

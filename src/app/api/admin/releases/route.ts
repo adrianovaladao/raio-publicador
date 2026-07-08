@@ -2,12 +2,13 @@ export const dynamic = "force-dynamic";
 import { auth, currentUser, clerkClient } from "@clerk/nextjs/server";
 import { getPrisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { isAnyAdmin } from "@/lib/admin";
 
 export async function GET() {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const me = await currentUser();
-  if (me?.publicMetadata?.raioAdmin !== true) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!isAnyAdmin(me?.publicMetadata as Record<string, unknown>)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const prisma = getPrisma();
   const releases = await prisma.release.findMany({

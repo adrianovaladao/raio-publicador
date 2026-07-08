@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useUser } from "@clerk/nextjs";
 import { PLANS, type PlanId } from "@/lib/plans";
+import { isMaster } from "@/lib/admin";
 import {
   ArrowUp, ArrowDown, ArrowUpDown,
   Pencil, Check, X, RefreshCw, ExternalLink, ChevronDown, Crown, Trash2, ChevronRight,
@@ -193,8 +194,8 @@ function UserDetailPanel({ row }: { row: UserRow }) {
 
   return (
     <tr>
-      <td colSpan={9} style={{ padding: 0, background: "#fafafa", borderTop: "1px solid #f0f0f0" }}>
-        <div style={{ padding: "20px 24px" }}>
+      <td colSpan={10} style={{ padding: 0, background: "#fafafa", borderTop: "1px solid #f0f0f0", width: "100%" }}>
+        <div style={{ padding: "20px 24px", boxSizing: "border-box", width: "100%" }}>
           {loading ? (
             <p style={{ fontSize: 13, color: "var(--stone)" }}>Carregando…</p>
           ) : (
@@ -347,7 +348,7 @@ function UserDetailPanel({ row }: { row: UserRow }) {
 
 export default function AdminUsuarios() {
   const { user, isLoaded } = useUser();
-  const isAdmin = user?.publicMetadata?.raioAdmin === true;
+  const isAdmin = isMaster(user?.publicMetadata as Record<string, unknown>);
 
   const [rows, setRows]         = useState<UserRow[]>([]);
   const [loading, setLoading]   = useState(true);

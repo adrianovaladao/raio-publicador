@@ -310,18 +310,24 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       .catch(() => {});
   }, []);
 
-  useEffect(() => {
+  const fetchReleaseCount = useCallback(() => {
     fetch("/api/dashboard")
       .then(r => r.json())
       .then((d: { stats?: { total?: number } }) => { if (d?.stats?.total != null) setReleaseCount(d.stats.total); })
       .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    fetchReleaseCount();
     fetchSub();
     const openPlans = () => setShowPlans(true);
     window.addEventListener("credits-changed", fetchSub);
     window.addEventListener("open-plans", openPlans);
+    window.addEventListener("releases-changed", fetchReleaseCount);
     return () => {
       window.removeEventListener("credits-changed", fetchSub);
       window.removeEventListener("open-plans", openPlans);
+      window.removeEventListener("releases-changed", fetchReleaseCount);
     };
   }, []);
 

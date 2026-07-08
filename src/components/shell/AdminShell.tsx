@@ -3,14 +3,16 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useUser, useClerk } from "@clerk/nextjs";
-import { LayoutDashboard, Users, Rss, FileText, LogOut, ShieldCheck, ExternalLink } from "lucide-react";
+import { LayoutDashboard, Users, Rss, FileText, LogOut, ShieldCheck, Shield, ExternalLink, UserCog } from "lucide-react";
 import { RaioLockup } from "@/components/logo/RaioLockup";
+import { getAdminRole, isMaster, ROLE_LABEL } from "@/lib/admin";
 
-const NAV = [
-  { href: "/admin",           icon: LayoutDashboard, label: "Visão geral",  exact: true },
-  { href: "/admin/releases",  icon: FileText,        label: "Releases"               },
-  { href: "/admin/usuarios",  icon: Users,           label: "Usuários"               },
-  { href: "/admin/veiculos",  icon: Rss,             label: "Veículos"               },
+const NAV_ALL = [
+  { href: "/admin",                   icon: LayoutDashboard, label: "Visão geral",      exact: true, masterOnly: false },
+  { href: "/admin/releases",          icon: FileText,        label: "Releases",                      masterOnly: false },
+  { href: "/admin/usuarios",          icon: Users,           label: "Usuários",                      masterOnly: true  },
+  { href: "/admin/veiculos",          icon: Rss,             label: "Veículos",                      masterOnly: false },
+  { href: "/admin/administradores",   icon: UserCog,         label: "Administradores",               masterOnly: true  },
 ];
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
@@ -18,6 +20,10 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const router   = useRouter();
   const { user } = useUser();
   const { signOut } = useClerk();
+  const meta   = user?.publicMetadata as Record<string, unknown> | undefined;
+  const role   = getAdminRole(meta);
+  const master = isMaster(meta);
+  const nav    = NAV_ALL.filter(item => !item.masterOnly || master);
 
   async function handleLogout() {
     await signOut();
@@ -37,9 +43,12 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         <div style={{ padding: "20px 20px 16px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
           <RaioLockup height={34} variant="dark" />
           <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 14 }}>
-            <ShieldCheck size={11} style={{ color: "#F59E0B" }} />
-            <span style={{ fontSize: 10, fontFamily: "var(--mono)", letterSpacing: "0.14em", textTransform: "uppercase", color: "#F59E0B" }}>
-              Master Admin
+            {master
+              ? <ShieldCheck size={11} style={{ color: "#F59E0B" }} />
+              : <Shield size={11} style={{ color: "#60A5FA" }} />
+            }
+            <span style={{ fontSize: 10, fontFamily: "var(--mono)", letterSpacing: "0.14em", textTransform: "uppercase", color: master ? "#F59E0B" : "#60A5FA" }}>
+              {role ? ROLE_LABEL[role] : "Admin"}
             </span>
           </div>
         </div>
@@ -49,7 +58,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           <p style={{ fontSize: 9.5, fontFamily: "var(--mono)", letterSpacing: "0.16em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", padding: "8px 10px 6px" }}>
             Administração
           </p>
-          {NAV.map(({ href, icon: Icon, label, exact }) => {
+          {nav.map(({ href, icon: Icon, label, exact }) => {
             const active = exact ? pathname === href : pathname.startsWith(href);
             return (
               <Link key={href} href={href} style={{
@@ -66,27 +75,29 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             );
           })}
 
-          <div style={{ margin: "16px 0 8px", borderTop: "1px solid rgba(255,255,255,0.08)" }} />
-          <p style={{ fontSize: 9.5, fontFamily: "var(--mono)", letterSpacing: "0.16em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", padding: "8px 10px 6px" }}>
-            Links externos
-          </p>
-          {[
-            { label: "Stripe Dashboard", href: "https://dashboard.stripe.com" },
-            { label: "Clerk Dashboard",  href: "https://dashboard.clerk.com"  },
-          ].map(({ label, href }) => (
-            <a key={href} href={href} target="_blank" rel="noreferrer" style={{
-              display: "flex", alignItems: "center", gap: 10,
-              padding: "9px 10px", borderRadius: 8, marginBottom: 2,
-              fontSize: 13, color: "rgba(255,255,255,0.45)",
-              textDecoration: "none", transition: "color 0.15s",
-            }}
-              onMouseEnter={e => (e.currentTarget.style.color = "rgba(255,255,255,0.8)")}
-              onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,0.45)")}
-            >
-              <ExternalLink size={13} />
-              {label}
-            </a>
-          ))}
+          {master && (<>
+            <div style={{ margin: "16px 0 8px", borderTop: "1px solid rgba(255,255,255,0.08)" }} />
+            <p style={{ fontSize: 9.5, fontFamily: "var(--mono)", letterSpacing: "0.16em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", padding: "8px 10px 6px" }}>
+              Links externos
+            </p>
+            {[
+              { label: "Stripe Dashboard", href: "https://dashboard.stripe.com" },
+              { label: "Clerk Dashboard",  href: "https://dashboard.clerk.com"  },
+            ].map(({ label, href }) => (
+              <a key={href} href={href} target="_blank" rel="noreferrer" style={{
+                display: "flex", alignItems: "center", gap: 10,
+                padding: "9px 10px", borderRadius: 8, marginBottom: 2,
+                fontSize: 13, color: "rgba(255,255,255,0.45)",
+                textDecoration: "none", transition: "color 0.15s",
+              }}
+                onMouseEnter={e => (e.currentTarget.style.color = "rgba(255,255,255,0.8)")}
+                onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,0.45)")}
+              >
+                <ExternalLink size={13} />
+                {label}
+              </a>
+            ))}
+          </>)}
         </nav>
 
         {/* Divider + back to app */}

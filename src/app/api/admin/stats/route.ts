@@ -3,12 +3,13 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { getPrisma } from "@/lib/prisma";
 import { PLANS, type PlanId } from "@/lib/plans";
 import { NextResponse } from "next/server";
+import { isAnyAdmin } from "@/lib/admin";
 
 async function assertRaioAdmin() {
   const { userId } = await auth();
   if (!userId) return false;
   const user = await currentUser();
-  return user?.publicMetadata?.raioAdmin === true;
+  return isAnyAdmin(user?.publicMetadata as Record<string, unknown>);
 }
 
 export async function GET() {

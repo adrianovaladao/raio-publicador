@@ -3,12 +3,13 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { getPrisma } from "@/lib/prisma";
 import { getStripe } from "@/lib/stripe";
 import { NextRequest, NextResponse } from "next/server";
+import { isMaster } from "@/lib/admin";
 
 async function assertRaioAdmin() {
   const { userId } = await auth();
   if (!userId) return false;
   const user = await currentUser();
-  return user?.publicMetadata?.raioAdmin === true;
+  return isMaster(user?.publicMetadata as Record<string, unknown>);
 }
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ clerkId: string }> }) {

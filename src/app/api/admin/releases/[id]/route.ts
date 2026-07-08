@@ -10,11 +10,13 @@ import {
   sendReleasePublishedWithLinksEmail,
 } from "@/lib/email";
 
+import { isAnyAdmin } from "@/lib/admin";
+
 async function assertAdmin() {
   const { userId } = await auth();
   if (!userId) return false;
   const me = await currentUser();
-  return me?.publicMetadata?.raioAdmin === true;
+  return isAnyAdmin(me?.publicMetadata as Record<string, unknown>);
 }
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {

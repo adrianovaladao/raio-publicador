@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useUser } from "@clerk/nextjs";
 import { PLANS, type PlanId } from "@/lib/plans";
+import { isAnyAdmin } from "@/lib/admin";
 import {
   TrendingUp, TrendingDown, Users, FileText, Zap,
   UserCheck, UserX, AlertTriangle, Crown,
@@ -52,7 +53,7 @@ function KpiCard({ icon: Icon, label, val, sub, delta }: {
 
 export default function AdminDashboard() {
   const { user, isLoaded } = useUser();
-  const isAdmin = user?.publicMetadata?.raioAdmin === true;
+  const isAdmin = isAnyAdmin(user?.publicMetadata as Record<string, unknown>);
 
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
