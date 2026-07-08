@@ -40,7 +40,6 @@ export function SupportWidget({ plan }: SupportWidgetProps) {
   const inputRef  = useRef<HTMLTextAreaElement>(null);
   const businessHours = isBusinessHours();
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (open && messages.length === 0) {
       setMessages([{
@@ -49,7 +48,7 @@ export function SupportWidget({ plan }: SupportWidgetProps) {
       }]);
     }
     if (open) setTimeout(() => inputRef.current?.focus(), 100);
-  }, [open]);
+  }, [open, messages.length]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
