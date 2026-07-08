@@ -889,7 +889,7 @@ export default function EditReleasePage() {
 
     return (
       <div className="content scroll">
-        <div className="content-inner" style={{ maxWidth: 820 }}>
+        <div className="content-inner" style={{ maxWidth: 820, paddingBottom: 64 }}>
 
           {/* Header */}
           <div className="page-head" style={{ marginBottom: 24 }}>
@@ -951,7 +951,7 @@ export default function EditReleasePage() {
           </div>
 
           {/* Cobertura */}
-          <div className="card" style={{ marginBottom: 20 }}>
+          <div className="card" style={{ marginBottom: 20, overflow: "hidden" }}>
             <div className="card-head">
               <h3>Cobertura</h3>
               <div style={{ display: "flex", gap: 6 }}>
