@@ -171,9 +171,11 @@ interface ReleaseData {
   status: string;
   scheduledAt: string | null;
   publishedAt: string | null;
+  createdAt: string;
   imageUrl: string | null;
   creditsUsed: number;
   vehicles: string[];
+  authorId: string;
   publishedVehicleUrls: Record<string, string> | null;
   brandId: string;
   brand: Brand;
@@ -753,6 +755,12 @@ export default function EditReleasePage() {
   const [schedDate,  setSchedDate]  = useState("");
   const [selectedVeh, setSelectedVeh] = useState<string[]>([]);
   const [vehicles, setVehicles] = useState<VehicleItem[]>([]);
+  const [teamMembers, setTeamMembers] = useState<{ id: string; name: string }[]>([]);
+  useEffect(() => {
+    fetch("/api/team").then(r => r.json()).then((data: { id: string; name?: string; firstName?: string; lastName?: string }[]) => {
+      setTeamMembers(data.map(m => ({ id: m.id, name: m.name ?? ([m.firstName, m.lastName].filter(Boolean).join(" ") || m.id) })));
+    }).catch(() => {});
+  }, []);
   useEffect(() => {
     fetch("/api/vehicles")
       .then(r => r.json())
@@ -873,19 +881,21 @@ export default function EditReleasePage() {
   // ── Read-only view for published releases ─────────────────────────────────
   if (release?.status === "PUBLISHED") {
     const pubUrls = release.publishedVehicleUrls ?? {};
-    const pubDate = release.publishedAt
-      ? new Date(release.publishedAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })
-      : null;
-    const coveredVehicles = vehicles.filter(v => release.vehicles.includes(v.id));
     const toAbsUrl = (u: string) => /^https?:\/\//i.test(u) ? u : `https://${u}`;
+    const fmtFull = (iso: string) => new Date(iso).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
+    const coveredVehicles = vehicles.filter(v => release.vehicles.includes(v.id));
+    const authorName = teamMembers.find(m => m.id === release.authorId)?.name ?? release.authorId;
+    const tierCounts = coveredVehicles.reduce<Record<string, number>>((acc, v) => { acc[v.tier] = (acc[v.tier] ?? 0) + 1; return acc; }, {});
+
     return (
       <div className="content scroll">
-        <div className="content-inner" style={{ maxWidth: 800 }}>
-          <div className="page-head" style={{ marginBottom: 28 }}>
+        <div className="content-inner" style={{ maxWidth: 820 }}>
+
+          {/* Header */}
+          <div className="page-head" style={{ marginBottom: 24 }}>
             <div>
               <p className="eyebrow">{brand?.name}</p>
               <h2><em>{release.title}</em></h2>
-              {pubDate && <p className="sub">Publicado em {pubDate}</p>}
             </div>
             <div className="actions">
               <button className="btn btn-ghost btn-sm" onClick={() => router.back()}>
@@ -894,35 +904,82 @@ export default function EditReleasePage() {
             </div>
           </div>
 
-          {/* Status badge */}
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 24, padding: "10px 14px", background: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: 10 }}>
+          {/* Published banner */}
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 24, padding: "10px 16px", background: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: 10 }}>
             <Check size={15} style={{ color: "#16A34A", flexShrink: 0 }} />
             <span style={{ fontSize: 13, color: "#15803D", fontWeight: 600 }}>
-              Este release foi publicado e não pode ser editado.
+              Release publicado — conteúdo bloqueado para edição.
             </span>
           </div>
 
-          {/* Cobertura */}
-          <div className="card" style={{ marginBottom: 24 }}>
-            <div className="card-head">
-              <h3>Cobertura — {coveredVehicles.length} veículos</h3>
+          {/* Meta grid */}
+          <div className="card" style={{ marginBottom: 20 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 0 }}>
+              {[
+                { label: "Autor", value: authorName },
+                { label: "Marca", value: brand?.name ?? "—" },
+                { label: "Créditos utilizados", value: `${release.creditsUsed} cr` },
+                { label: "Data de agendamento", value: release.scheduledAt ? fmtFull(release.scheduledAt) : "—" },
+                { label: "Data de publicação", value: release.publishedAt ? fmtFull(release.publishedAt) : "—" },
+                { label: "Criado em", value: fmtFull(release.createdAt) },
+              ].map(({ label, value }) => (
+                <div key={label} style={{ padding: "14px 20px", borderRight: "1px solid var(--line)", borderBottom: "1px solid var(--line)" }}>
+                  <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--stone)", margin: "0 0 4px" }}>{label}</p>
+                  <p style={{ fontSize: 14, fontWeight: 600, margin: 0 }}>{value}</p>
+                </div>
+              ))}
             </div>
-            <div style={{ padding: "4px 0" }}>
+          </div>
+
+          {/* Imagem */}
+          {release.imageUrl && (
+            <div className="card" style={{ marginBottom: 20, overflow: "hidden" }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={release.imageUrl} alt={release.title} style={{ width: "100%", maxHeight: 360, objectFit: "cover", display: "block" }} />
+            </div>
+          )}
+
+          {/* Conteúdo */}
+          <div className="card" style={{ marginBottom: 20 }}>
+            <div className="card-head"><h3>Conteúdo</h3></div>
+            <div style={{ padding: "20px 24px" }}>
+              {release.summary && (
+                <p style={{ fontSize: 15, color: "var(--stone)", fontStyle: "italic", marginBottom: 20, lineHeight: 1.6, borderBottom: "1px solid var(--line)", paddingBottom: 16 }}>{release.summary}</p>
+              )}
+              <div className="prose" style={{ fontSize: 14, lineHeight: 1.8, color: "var(--ink)" }} dangerouslySetInnerHTML={{ __html: release.body }} />
+            </div>
+          </div>
+
+          {/* Cobertura */}
+          <div className="card" style={{ marginBottom: 20 }}>
+            <div className="card-head">
+              <h3>Cobertura</h3>
+              <div style={{ display: "flex", gap: 6 }}>
+                {Object.entries(tierCounts).sort().map(([tier, count]) => (
+                  <span key={tier} style={{ fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 5, background: TIER_COLORS_MAP[tier] ?? "#888", color: TIER_FG_MAP[tier] ?? "#fff" }}>
+                    {count}× {tier}
+                  </span>
+                ))}
+                <span style={{ fontSize: 12, color: "var(--stone)", marginLeft: 4, alignSelf: "center" }}>{coveredVehicles.length} veículos</span>
+              </div>
+            </div>
+            <div>
               {coveredVehicles.length === 0 && (
                 <div className="card empty"><div className="muted">Nenhum veículo registrado.</div></div>
               )}
-              {coveredVehicles.map(v => {
+              {coveredVehicles.map((v, i) => {
                 const url = pubUrls[v.id];
                 return (
-                  <div key={v.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 20px", borderBottom: "1px solid var(--line)" }}>
+                  <div key={v.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 20px", borderTop: i === 0 ? "none" : "1px solid var(--line)" }}>
                     <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 6px", borderRadius: 5, background: TIER_COLORS_MAP[v.tier] ?? "#888", color: TIER_FG_MAP[v.tier] ?? "#fff", flexShrink: 0 }}>{v.tier}</span>
                     <span style={{ fontSize: 14, fontWeight: 600, flex: 1 }}>{v.name}</span>
+                    <span style={{ fontSize: 12, color: "var(--stone)" }}>{v.domain}</span>
                     {url ? (
-                      <a href={toAbsUrl(url)} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: "#2563EB", fontWeight: 500, wordBreak: "break-all", textAlign: "right" }}>
+                      <a href={toAbsUrl(url)} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: "#2563EB", fontWeight: 500, whiteSpace: "nowrap" }}>
                         Ver publicação ↗
                       </a>
                     ) : (
-                      <span style={{ fontSize: 12, color: "var(--stone)" }}>URL não informada</span>
+                      <span style={{ fontSize: 12, color: "var(--stone)" }}>URL pendente</span>
                     )}
                   </div>
                 );
@@ -930,20 +987,6 @@ export default function EditReleasePage() {
             </div>
           </div>
 
-          {/* Conteúdo */}
-          <div className="card">
-            <div className="card-head"><h3>Conteúdo</h3></div>
-            <div style={{ padding: "20px 24px" }}>
-              {release.summary && (
-                <p style={{ fontSize: 15, color: "var(--stone)", fontStyle: "italic", marginBottom: 16, lineHeight: 1.6 }}>{release.summary}</p>
-              )}
-              <div
-                className="prose"
-                style={{ fontSize: 14, lineHeight: 1.8, color: "var(--ink)" }}
-                dangerouslySetInnerHTML={{ __html: release.body }}
-              />
-            </div>
-          </div>
         </div>
       </div>
     );
