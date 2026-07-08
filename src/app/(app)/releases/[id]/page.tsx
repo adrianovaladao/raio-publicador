@@ -963,7 +963,6 @@ export default function EditReleasePage() {
                 { label: "Data de agendamento", value: release.scheduledAt ? fmtFull(release.scheduledAt) : "—" },
                 { label: "Data de publicação", value: release.publishedAt ? fmtFull(release.publishedAt) : "—" },
                 { label: "Criado em", value: fmtFull(release.createdAt) },
-                { label: "", value: "" },
                 { label: "Utilizou IA", value: release.aiCreditsUsed > 0 ? `Sim — ${release.aiCreditsUsed} cr` : "Não — 0 cr" },
                 { label: "Créditos de IA utilizados", value: `${release.aiCreditsUsed} cr` },
               ].map(({ label, value }) => (
