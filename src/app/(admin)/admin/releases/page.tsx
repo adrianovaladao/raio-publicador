@@ -150,7 +150,7 @@ function ReleaseActions({ release, onSaved, onDeleted }: {
     const brandName = release.brand?.name ?? "";
     const brandLogo = release.brand?.logoUrl;
     const logoCell = brandLogo
-      ? `<img src="${brandLogo}" alt="${brandName}" style="max-height:48px;max-width:140px;object-fit:contain;display:block">`
+      ? `<img src="${brandLogo}" alt="${brandName}" style="max-width:200px;max-height:200px;width:auto;height:auto;object-fit:contain;display:block">`
       : `<span style="font-size:13px;font-weight:700;color:#1a1a1a">${brandName}</span>`;
 
     const header = `
