@@ -10,6 +10,7 @@ interface ReleaseRow {
   id: string;
   shortId: string;
   title: string;
+  summary: string | null;
   body: string;
   imageUrl: string | null;
   status: string;
@@ -22,7 +23,7 @@ interface ReleaseRow {
   publishedVehicleUrls: Record<string, string> | null;
   creditsUsed: number;
   author: { name: string; email: string };
-  brand: { name: string; color: string | null } | null;
+  brand: { name: string; color: string | null; logoUrl: string | null } | null;
 }
 
 const ALL_STATUSES = [
@@ -143,9 +144,74 @@ function ReleaseActions({ release, onSaved, onDeleted }: {
     }
   }
 
+  function buildReleaseHtml(forExport = false) {
+    const dateStr = (release.publishedAt ?? release.scheduledAt ?? release.createdAt);
+    const date = new Date(dateStr).toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric", timeZone: "America/Sao_Paulo" });
+    const brandName = release.brand?.name ?? "";
+    const brandLogo = release.brand?.logoUrl;
+    const logoCell = brandLogo
+      ? `<img src="${brandLogo}" alt="${brandName}" style="max-height:48px;max-width:140px;object-fit:contain;display:block">`
+      : `<span style="font-size:13px;font-weight:700;color:#1a1a1a">${brandName}</span>`;
+
+    const header = `
+      <table style="width:100%;border-collapse:collapse;border:1px solid #ccc;margin-bottom:32px">
+        <tr>
+          <td style="padding:10px 14px;border:1px solid #ccc;width:160px">${logoCell}</td>
+          <td style="padding:10px 14px;border:1px solid #ccc;text-align:center;font-size:13px;color:#555">
+            Esse é um release do <strong>Raio Publicador</strong>. ID: <strong>${release.shortId}</strong>
+          </td>
+          <td style="padding:10px 14px;border:1px solid #ccc;white-space:nowrap;font-size:13px;color:#555;text-align:right">${date}</td>
+        </tr>
+      </table>`;
+
+    const subtitle = release.summary
+      ? `<p style="font-style:italic;font-size:16px;color:#444;margin:0 0 24px;line-height:1.5">${release.summary}</p>`
+      : "";
+
+    const mainImage = release.imageUrl
+      ? `<figure style="margin:0 0 8px">
+           <img src="${release.imageUrl}" alt="" style="width:100%;height:auto;display:block">
+           <figcaption style="font-size:13px;color:#555;margin-top:6px">Fonte: ${brandName}</figcaption>
+         </figure>`
+      : "";
+
+    const body = `
+      <h1 style="font-size:32px;font-weight:700;margin:0 0 12px;line-height:1.2;color:#1a1a1a">${release.title}</h1>
+      ${subtitle}
+      ${mainImage}
+      <div style="font-size:16px;color:#1a1a1a;line-height:1.7;margin-top:24px">${release.body}</div>`;
+
+    if (!forExport) return header + body;
+
+    const vehicleList = release.vehicleNames.map(v => `<li>${v.name}</li>`).join("");
+    const urlList = Object.entries(release.publishedVehicleUrls ?? {})
+      .map(([k, u]) => `<li>${k}: <a href="${u}">${u}</a></li>`).join("");
+
+    return `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>${release.title}</title>
+  <style>
+    body { font-family: Georgia, serif; max-width: 800px; margin: 40px auto; padding: 0 24px; color: #1a1a1a; line-height: 1.7; }
+    img { max-width: 100%; height: auto; }
+    .section { margin-top: 40px; border-top: 1px solid #eee; padding-top: 20px; }
+    .section h3 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: #888; margin-bottom: 10px; }
+    ul { padding-left: 20px; }
+  </style>
+</head>
+<body>
+  ${header}
+  ${body}
+  ${vehicleList ? `<div class="section"><h3>Veículos</h3><ul>${vehicleList}</ul></div>` : ""}
+  ${urlList ? `<div class="section"><h3>Links de publicação</h3><ul>${urlList}</ul></div>` : ""}
+</body>
+</html>`;
+  }
+
   async function handleCopyContent() {
-    const richHtml = `<h1>${release.title}</h1>${release.body}`;
-    const plainText = `${release.title}\n\n${htmlToText(release.body)}`;
+    const richHtml = buildReleaseHtml(false);
+    const plainText = `${release.title}\n\n${release.summary ? release.summary + "\n\n" : ""}${htmlToText(release.body)}`;
     try {
       await navigator.clipboard.write([
         new ClipboardItem({
@@ -161,42 +227,7 @@ function ReleaseActions({ release, onSaved, onDeleted }: {
   }
 
   function handleExport() {
-    const vehicleList = release.vehicleNames.map(v => `<li>${v.name}</li>`).join("");
-    const urlList = Object.entries(release.publishedVehicleUrls ?? {})
-      .map(([k, u]) => `<li>${k}: <a href="${u}">${u}</a></li>`).join("");
-
-    const html = `<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <title>${release.title}</title>
-  <style>
-    body { font-family: Georgia, serif; max-width: 800px; margin: 40px auto; padding: 0 24px; color: #1a1a1a; line-height: 1.7; }
-    h1 { font-size: 28px; margin-bottom: 8px; }
-    .meta { font-size: 13px; color: #888; margin-bottom: 32px; border-bottom: 1px solid #eee; padding-bottom: 16px; }
-    .meta span { margin-right: 16px; }
-    .body { font-size: 16px; }
-    .body img { max-width: 100%; height: auto; border-radius: 6px; margin: 16px 0; }
-    .section { margin-top: 32px; border-top: 1px solid #eee; padding-top: 20px; }
-    .section h3 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: #888; margin-bottom: 10px; }
-    ul { padding-left: 20px; }
-  </style>
-</head>
-<body>
-  <h1>${release.title}</h1>
-  <div class="meta">
-    <span>Marca: <strong>${release.brand?.name ?? "—"}</strong></span>
-    <span>Status: <strong>${ALL_STATUSES.find(s => s.value === release.status)?.label ?? release.status}</strong></span>
-    <span>ID: <strong>${release.shortId}</strong></span>
-    ${release.scheduledAt ? `<span>Agendado para: <strong>${fmtDate(release.scheduledAt)}</strong></span>` : ""}
-    ${release.publishedAt ? `<span>Publicado em: <strong>${fmtDate(release.publishedAt)}</strong></span>` : ""}
-  </div>
-  <div class="body">${release.body}</div>
-  ${vehicleList ? `<div class="section"><h3>Veículos</h3><ul>${vehicleList}</ul></div>` : ""}
-  ${urlList ? `<div class="section"><h3>Links de publicação</h3><ul>${urlList}</ul></div>` : ""}
-</body>
-</html>`;
-
+    const html = buildReleaseHtml(true);
     const blob = new Blob([html], { type: "text/html" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
