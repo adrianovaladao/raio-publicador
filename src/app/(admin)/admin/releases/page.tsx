@@ -2,17 +2,22 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useUser } from "@clerk/nextjs";
-import { Crown, FileText, Trash2, ChevronDown, AlertTriangle, Clock, ExternalLink, Send } from "lucide-react";
+import { Crown, FileText, Trash2, ChevronDown, AlertTriangle, Clock, ExternalLink, Send, Copy, Download, Check } from "lucide-react";
+
+interface VehicleRef { id: string; name: string; }
 
 interface ReleaseRow {
   id: string;
+  shortId: string;
   title: string;
   body: string;
+  imageUrl: string | null;
   status: string;
   scheduledAt: string | null;
   publishedAt: string | null;
   createdAt: string;
   vehicles: string[];
+  vehicleNames: VehicleRef[];
   adminNotes: string | null;
   publishedVehicleUrls: Record<string, string> | null;
   creditsUsed: number;
@@ -31,12 +36,12 @@ const ALL_STATUSES = [
 ];
 
 const STATUS_COLOR: Record<string, string> = {
-  DRAFT: "#888", SCHEDULED: "#2563EB", IN_REVIEW: "#7C3AED",
+  DRAFT: "#888", SCHEDULED: "#2563EB",
   NEEDS_REVISION: "#D97706", REJECTED: "#D94F4F",
   IN_PUBLICATION: "#059669", PUBLISHED: "#16A34A", CANCELLED: "#aaa",
 };
 const STATUS_BG: Record<string, string> = {
-  DRAFT: "#f0f0f0", SCHEDULED: "#EFF6FF", IN_REVIEW: "#F5F3FF",
+  DRAFT: "#f0f0f0", SCHEDULED: "#EFF6FF",
   NEEDS_REVISION: "#FFFBEB", REJECTED: "#FEF2F2",
   IN_PUBLICATION: "#ECFDF5", PUBLISHED: "#F0FDF4", CANCELLED: "#f5f5f5",
 };
@@ -60,6 +65,17 @@ function fmtDate(iso: string | null) {
   return `${String(d.getDate()).padStart(2,"0")} ${mm} ${d.getFullYear()} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
 }
 
+function htmlToText(html: string): string {
+  const div = document.createElement("div");
+  div.innerHTML = html;
+  return div.innerText ?? div.textContent ?? "";
+}
+
+function extractImages(html: string): string[] {
+  const matches = [...html.matchAll(/<img[^>]+src=["']([^"']+)["']/gi)];
+  return matches.map(m => m[1]);
+}
+
 const FILTER_OPTIONS = [
   { id: "all", label: "Todos" },
   { id: "SCHEDULED", label: "Agendados" },
@@ -70,7 +86,7 @@ const FILTER_OPTIONS = [
   { id: "DRAFT", label: "Rascunhos" },
 ];
 
-// ── Painel de ações para um release expandido ─────────────────────────────────
+// ── Painel de ações ───────────────────────────────────────────────────────────
 function ReleaseActions({ release, onSaved, onDeleted }: {
   release: ReleaseRow;
   onSaved: () => void;
@@ -85,6 +101,7 @@ function ReleaseActions({ release, onSaved, onDeleted }: {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [err, setErr] = useState("");
   const [ok, setOk] = useState("");
+  const [copied, setCopied] = useState(false);
 
   const statusChanged = newStatus !== release.status;
   const notesChanged = notes !== (release.adminNotes ?? "");
@@ -126,10 +143,109 @@ function ReleaseActions({ release, onSaved, onDeleted }: {
     }
   }
 
+  function handleCopyContent() {
+    const text = htmlToText(release.body);
+    const images = extractImages(release.body);
+    const imageLines = images.length > 0 ? "\n\n---\nImagens:\n" + images.join("\n") : "";
+    navigator.clipboard.writeText(`${release.title}\n\n${text}${imageLines}`).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
+
+  function handleExport() {
+    const vehicleList = release.vehicleNames.map(v => `<li>${v.name}</li>`).join("");
+    const urlList = Object.entries(release.publishedVehicleUrls ?? {})
+      .map(([k, u]) => `<li>${k}: <a href="${u}">${u}</a></li>`).join("");
+
+    const html = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>${release.title}</title>
+  <style>
+    body { font-family: Georgia, serif; max-width: 800px; margin: 40px auto; padding: 0 24px; color: #1a1a1a; line-height: 1.7; }
+    h1 { font-size: 28px; margin-bottom: 8px; }
+    .meta { font-size: 13px; color: #888; margin-bottom: 32px; border-bottom: 1px solid #eee; padding-bottom: 16px; }
+    .meta span { margin-right: 16px; }
+    .body { font-size: 16px; }
+    .body img { max-width: 100%; height: auto; border-radius: 6px; margin: 16px 0; }
+    .section { margin-top: 32px; border-top: 1px solid #eee; padding-top: 20px; }
+    .section h3 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: #888; margin-bottom: 10px; }
+    ul { padding-left: 20px; }
+  </style>
+</head>
+<body>
+  <h1>${release.title}</h1>
+  <div class="meta">
+    <span>Marca: <strong>${release.brand?.name ?? "—"}</strong></span>
+    <span>Status: <strong>${ALL_STATUSES.find(s => s.value === release.status)?.label ?? release.status}</strong></span>
+    <span>ID: <strong>${release.shortId}</strong></span>
+    ${release.scheduledAt ? `<span>Agendado para: <strong>${fmtDate(release.scheduledAt)}</strong></span>` : ""}
+    ${release.publishedAt ? `<span>Publicado em: <strong>${fmtDate(release.publishedAt)}</strong></span>` : ""}
+  </div>
+  <div class="body">${release.body}</div>
+  ${vehicleList ? `<div class="section"><h3>Veículos</h3><ul>${vehicleList}</ul></div>` : ""}
+  ${urlList ? `<div class="section"><h3>Links de publicação</h3><ul>${urlList}</ul></div>` : ""}
+</body>
+</html>`;
+
+    const blob = new Blob([html], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `release-${release.shortId}.html`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   const needsNotes = newStatus === "NEEDS_REVISION" || newStatus === "REJECTED";
+  const images = extractImages(release.body);
 
   return (
     <div style={{ borderTop: "1px solid #f0f0f0", padding: "20px 20px", background: "#fafafa" }}>
+
+      {/* Conteúdo do release */}
+      <div style={{ marginBottom: 20 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+          <label style={{ fontSize: 12, fontWeight: 600, color: "#888", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+            Conteúdo do release
+          </label>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button
+              onClick={handleCopyContent}
+              className="btn btn-ghost btn-sm"
+              style={{ fontSize: 12, display: "flex", alignItems: "center", gap: 5, color: copied ? "#16A34A" : "#555" }}
+            >
+              {copied ? <Check size={13} /> : <Copy size={13} />}
+              {copied ? "Copiado!" : "Copiar conteúdo"}
+            </button>
+            <button
+              onClick={handleExport}
+              className="btn btn-ghost btn-sm"
+              style={{ fontSize: 12, display: "flex", alignItems: "center", gap: 5, color: "#555" }}
+            >
+              <Download size={13} /> Exportar HTML
+            </button>
+          </div>
+        </div>
+        <div
+          style={{
+            background: "#fff", border: "1.5px solid #e8e8e8", borderRadius: 8,
+            padding: "16px 20px", fontSize: 14, lineHeight: 1.7, color: "#1a1a1a",
+            maxHeight: 400, overflowY: "auto",
+          }}
+          dangerouslySetInnerHTML={{ __html: release.body }}
+        />
+        {images.length > 0 && (
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 10 }}>
+            {images.map((src, i) => (
+              <img key={i} src={src} alt="" style={{ height: 72, width: "auto", borderRadius: 6, border: "1px solid #eee", objectFit: "cover" }} />
+            ))}
+          </div>
+        )}
+      </div>
+
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px 24px", marginBottom: 20 }}>
 
         {/* Status */}
@@ -161,24 +277,24 @@ function ReleaseActions({ release, onSaved, onDeleted }: {
         </div>
 
         {/* Links de publicação por veículo */}
-        {release.vehicles.length > 0 && (
+        {release.vehicleNames.length > 0 && (
           <div style={{ gridColumn: "1 / -1" }}>
             <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#888", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.08em" }}>
               Links de publicação por veículo
             </label>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {release.vehicles.map(v => (
-                <div key={v} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <span style={{ fontSize: 12, color: "#666", minWidth: 140, flexShrink: 0 }}>{v}</span>
+              {release.vehicleNames.map(v => (
+                <div key={v.id} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <span style={{ fontSize: 13, color: "#444", minWidth: 160, flexShrink: 0, fontWeight: 500 }}>{v.name}</span>
                   <input
                     type="url"
-                    value={vehicleUrls[v] ?? ""}
-                    onChange={e => setVehicleUrls(prev => ({ ...prev, [v]: e.target.value }))}
+                    value={vehicleUrls[v.id] ?? ""}
+                    onChange={e => setVehicleUrls(prev => ({ ...prev, [v.id]: e.target.value }))}
                     placeholder="https://…"
                     style={{ flex: 1, padding: "8px 10px", borderRadius: 7, border: "1.5px solid #e0e0e0", fontSize: 13, boxSizing: "border-box" }}
                   />
-                  {vehicleUrls[v] && (
-                    <a href={vehicleUrls[v]} target="_blank" rel="noreferrer" style={{ color: "#2563EB", flexShrink: 0 }}>
+                  {vehicleUrls[v.id] && (
+                    <a href={vehicleUrls[v.id]} target="_blank" rel="noreferrer" style={{ color: "#2563EB", flexShrink: 0 }}>
                       <ExternalLink size={14} />
                     </a>
                   )}
@@ -205,7 +321,7 @@ function ReleaseActions({ release, onSaved, onDeleted }: {
         </div>
         <div>
           <div style={{ fontSize: 11, color: "#aaa", marginBottom: 3, textTransform: "uppercase", letterSpacing: "0.08em" }}>ID</div>
-          <div style={{ fontSize: 11, fontFamily: "var(--mono)", color: "#666" }}>{release.id}</div>
+          <div style={{ fontSize: 13, fontFamily: "var(--mono)", color: "#666", fontWeight: 600 }}>{release.shortId}</div>
         </div>
       </div>
 
@@ -233,23 +349,14 @@ function ReleaseActions({ release, onSaved, onDeleted }: {
         </button>
 
         {!confirmDelete ? (
-          <button
-            onClick={() => setConfirmDelete(true)}
-            className="btn btn-ghost btn-sm"
-            style={{ color: "#D94F4F", marginLeft: "auto" }}
-          >
+          <button onClick={() => setConfirmDelete(true)} className="btn btn-ghost btn-sm" style={{ color: "#D94F4F", marginLeft: "auto" }}>
             <Trash2 size={14} /> Excluir release
           </button>
         ) : (
           <div style={{ marginLeft: "auto", display: "flex", gap: 8, alignItems: "center" }}>
             <span style={{ fontSize: 12, color: "#D94F4F", fontWeight: 600 }}>Confirma exclusão?</span>
             <button onClick={() => setConfirmDelete(false)} className="btn btn-ghost btn-sm">Cancelar</button>
-            <button
-              onClick={handleDelete}
-              disabled={deleting}
-              className="btn btn-sm"
-              style={{ background: "#D94F4F", color: "#fff", border: "none" }}
-            >
+            <button onClick={handleDelete} disabled={deleting} className="btn btn-sm" style={{ background: "#D94F4F", color: "#fff", border: "none" }}>
               {deleting ? "Excluindo…" : "Excluir"}
             </button>
           </div>
@@ -298,7 +405,7 @@ export default function AdminReleasesPage() {
     }
   }
 
-  function toggleSelect(id: string, e: MouseEvent) {
+  function toggleSelect(id: string, e: React.MouseEvent) {
     e.stopPropagation();
     setSelected(prev => {
       const next = new Set(prev);
@@ -381,12 +488,7 @@ export default function AdminReleasesPage() {
               <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                 <span style={{ fontSize: 12, color: "#D94F4F", fontWeight: 600 }}>Confirma exclusão de {selected.size}?</span>
                 <button onClick={() => setBulkConfirm(false)} className="btn btn-ghost btn-sm">Cancelar</button>
-                <button
-                  onClick={handleBulkDelete}
-                  disabled={bulkDeleting}
-                  className="btn btn-sm"
-                  style={{ background: "#D94F4F", color: "#fff", border: "none" }}
-                >
+                <button onClick={handleBulkDelete} disabled={bulkDeleting} className="btn btn-sm" style={{ background: "#D94F4F", color: "#fff", border: "none" }}>
                   {bulkDeleting ? "Excluindo…" : "Confirmar"}
                 </button>
               </div>
@@ -414,7 +516,6 @@ export default function AdminReleasesPage() {
               const isExpanded = expanded === r.id;
               return (
                 <div key={r.id} className="card" style={{ padding: 0, overflow: "hidden" }}>
-                  {/* Header */}
                   <div
                     style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 20px", cursor: "pointer" }}
                     onClick={() => setExpanded(isExpanded ? null : r.id)}
@@ -422,23 +523,32 @@ export default function AdminReleasesPage() {
                     <input
                       type="checkbox"
                       checked={selected.has(r.id)}
-                      onClick={e => toggleSelect(r.id, e)}
+                      onClick={e => toggleSelect(r.id, e as unknown as React.MouseEvent)}
                       onChange={() => {}}
                       style={{ width: 15, height: 15, flexShrink: 0, cursor: "pointer" }}
                     />
+                    {r.imageUrl && (
+                      <img src={r.imageUrl} alt="" style={{ width: 44, height: 44, borderRadius: 6, objectFit: "cover", flexShrink: 0, border: "1px solid #eee" }} />
+                    )}
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 4 }}>
                         <span style={{ fontWeight: 700, fontSize: 14, color: "#1a1a1a" }}>{r.title}</span>
                         <StatusBadge status={r.status} />
+                        {r.brand && (
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, color: "#555", background: "#f5f5f3", borderRadius: 99, padding: "2px 9px" }}>
+                            {r.brand.color && <span style={{ width: 8, height: 8, borderRadius: "50%", background: r.brand.color, flexShrink: 0 }} />}
+                            {r.brand.name}
+                          </span>
+                        )}
                       </div>
                       <div style={{ fontSize: 12, color: "#999", display: "flex", gap: 14, flexWrap: "wrap", alignItems: "center" }}>
                         <span style={{ fontWeight: 500, color: "#555" }}>{r.author.name}</span>
                         <span>{r.author.email}</span>
-                        {r.brand && <span>● {r.brand.name}</span>}
                         <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
                           <Clock size={11} /> {fmtDate(r.scheduledAt ?? r.createdAt)}
                         </span>
-                        <span>{r.vehicles.length} veículo{r.vehicles.length !== 1 ? "s" : ""}</span>
+                        <span>{r.vehicleNames.length} veículo{r.vehicleNames.length !== 1 ? "s" : ""}</span>
+                        <span style={{ fontFamily: "var(--mono)", fontSize: 11, color: "#bbb" }}>{r.shortId}</span>
                       </div>
                     </div>
                     <ChevronDown
@@ -447,7 +557,6 @@ export default function AdminReleasesPage() {
                     />
                   </div>
 
-                  {/* Painel de ações */}
                   {isExpanded && (
                     <ReleaseActions
                       release={r}

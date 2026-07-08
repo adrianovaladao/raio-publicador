@@ -33,9 +33,18 @@ export async function GET() {
     })
   );
 
+  // Resolve vehicle IDs → names
+  const allVehicleIds = [...new Set(releases.flatMap(r => r.vehicles as string[]))];
+  const vehicleRecords = allVehicleIds.length > 0
+    ? await prisma.vehicle.findMany({ where: { id: { in: allVehicleIds } }, select: { id: true, name: true } })
+    : [];
+  const vehicleMap = Object.fromEntries(vehicleRecords.map(v => [v.id, v.name]));
+
   const rows = releases.map(r => ({
     ...r,
+    shortId: r.id.slice(-7).toUpperCase(),
     author: userMap[r.authorId] ?? { name: r.authorId, email: "" },
+    vehicleNames: (r.vehicles as string[]).map(id => ({ id, name: vehicleMap[id] ?? id })),
   }));
 
   return NextResponse.json(rows);
