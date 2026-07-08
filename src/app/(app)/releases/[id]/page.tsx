@@ -170,9 +170,11 @@ interface ReleaseData {
   summary: string | null;
   status: string;
   scheduledAt: string | null;
+  publishedAt: string | null;
   imageUrl: string | null;
   creditsUsed: number;
   vehicles: string[];
+  publishedVehicleUrls: Record<string, string> | null;
   brandId: string;
   brand: Brand;
 }
@@ -867,6 +869,85 @@ export default function EditReleasePage() {
   }
 
   const brand = release?.brand ?? null;
+
+  // ── Read-only view for published releases ─────────────────────────────────
+  if (release?.status === "PUBLISHED") {
+    const pubUrls = release.publishedVehicleUrls ?? {};
+    const pubDate = release.publishedAt
+      ? new Date(release.publishedAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })
+      : null;
+    const coveredVehicles = vehicles.filter(v => release.vehicles.includes(v.id));
+    return (
+      <div className="content scroll">
+        <div className="content-inner" style={{ maxWidth: 800 }}>
+          <div className="page-head" style={{ marginBottom: 28 }}>
+            <div>
+              <p className="eyebrow">{brand?.name}</p>
+              <h2><em>{release.title}</em></h2>
+              {pubDate && <p className="sub">Publicado em {pubDate}</p>}
+            </div>
+            <div className="actions">
+              <button className="btn btn-ghost btn-sm" onClick={() => router.back()}>
+                <ArrowLeft size={16} /> Voltar
+              </button>
+            </div>
+          </div>
+
+          {/* Status badge */}
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 24, padding: "10px 14px", background: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: 10 }}>
+            <Check size={15} style={{ color: "#16A34A", flexShrink: 0 }} />
+            <span style={{ fontSize: 13, color: "#15803D", fontWeight: 600 }}>
+              Este release foi publicado e não pode ser editado.
+            </span>
+          </div>
+
+          {/* Cobertura */}
+          <div className="card" style={{ marginBottom: 24 }}>
+            <div className="card-head">
+              <h3>Cobertura — {coveredVehicles.length} veículos</h3>
+            </div>
+            <div style={{ padding: "4px 0" }}>
+              {coveredVehicles.length === 0 && (
+                <div className="card empty"><div className="muted">Nenhum veículo registrado.</div></div>
+              )}
+              {coveredVehicles.map(v => {
+                const url = pubUrls[v.id];
+                return (
+                  <div key={v.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 20px", borderBottom: "1px solid var(--line)" }}>
+                    <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 6px", borderRadius: 5, background: TIER_COLORS_MAP[v.tier] ?? "#888", color: TIER_FG_MAP[v.tier] ?? "#fff", flexShrink: 0 }}>{v.tier}</span>
+                    <span style={{ fontSize: 14, fontWeight: 600, flex: 1 }}>{v.name}</span>
+                    {url ? (
+                      <a href={url} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: "#2563EB", fontWeight: 500, wordBreak: "break-all", textAlign: "right" }}>
+                        Ver publicação ↗
+                      </a>
+                    ) : (
+                      <span style={{ fontSize: 12, color: "var(--stone)" }}>URL não informada</span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Conteúdo */}
+          <div className="card">
+            <div className="card-head"><h3>Conteúdo</h3></div>
+            <div style={{ padding: "20px 24px" }}>
+              {release.summary && (
+                <p style={{ fontSize: 15, color: "var(--stone)", fontStyle: "italic", marginBottom: 16, lineHeight: 1.6 }}>{release.summary}</p>
+              )}
+              <div
+                className="prose"
+                style={{ fontSize: 14, lineHeight: 1.8, color: "var(--ink)" }}
+                dangerouslySetInnerHTML={{ __html: release.body }}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const selVehicles = selectedVeh.map(vid => vehicles.find(v => v.id === vid)).filter(Boolean) as VehicleItem[];
   const selTokens   = selVehicles.reduce((s, v) => s + (TIER_TOKENS_MAP[v.tier] ?? 0), 0);
   const over        = selTokens > (sub.credits - sub.creditsUsed);
