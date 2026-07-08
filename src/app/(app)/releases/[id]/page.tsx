@@ -174,6 +174,7 @@ interface ReleaseData {
   createdAt: string;
   imageUrl: string | null;
   creditsUsed: number;
+  aiCreditsUsed: number;
   vehicles: string[];
   authorId: string;
   publishedVehicleUrls: Record<string, string> | null;
@@ -892,10 +893,13 @@ export default function EditReleasePage() {
         <div className="content-inner" style={{ maxWidth: 820, paddingBottom: 64 }}>
 
           {/* Header */}
-          <div className="page-head" style={{ marginBottom: 24 }}>
+          <div className="page-head" style={{ marginBottom: 12 }}>
             <div>
               <p className="eyebrow">{brand?.name}</p>
               <h2><em>{release.title}</em></h2>
+              {release.summary && (
+                <p className="sub" style={{ marginTop: 6, fontStyle: "italic" }}>{release.summary}</p>
+              )}
             </div>
             <div className="actions">
               <button className="btn btn-ghost btn-sm" onClick={() => router.back()}>
@@ -905,49 +909,11 @@ export default function EditReleasePage() {
           </div>
 
           {/* Published banner */}
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 24, padding: "10px 16px", background: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20, padding: "10px 16px", background: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: 10 }}>
             <Check size={15} style={{ color: "#16A34A", flexShrink: 0 }} />
             <span style={{ fontSize: 13, color: "#15803D", fontWeight: 600 }}>
               Release publicado — conteúdo bloqueado para edição.
             </span>
-          </div>
-
-          {/* Meta grid */}
-          <div className="card" style={{ marginBottom: 20 }}>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 0 }}>
-              {[
-                { label: "Autor", value: authorName },
-                { label: "Marca", value: brand?.name ?? "—" },
-                { label: "Créditos utilizados", value: `${release.creditsUsed} cr` },
-                { label: "Data de agendamento", value: release.scheduledAt ? fmtFull(release.scheduledAt) : "—" },
-                { label: "Data de publicação", value: release.publishedAt ? fmtFull(release.publishedAt) : "—" },
-                { label: "Criado em", value: fmtFull(release.createdAt) },
-              ].map(({ label, value }) => (
-                <div key={label} style={{ padding: "14px 20px", borderRight: "1px solid var(--line)", borderBottom: "1px solid var(--line)" }}>
-                  <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--stone)", margin: "0 0 4px" }}>{label}</p>
-                  <p style={{ fontSize: 14, fontWeight: 600, margin: 0 }}>{value}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Imagem */}
-          {release.imageUrl && (
-            <div className="card" style={{ marginBottom: 20, overflow: "hidden" }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={release.imageUrl} alt={release.title} style={{ width: "100%", maxHeight: 360, objectFit: "cover", display: "block" }} />
-            </div>
-          )}
-
-          {/* Conteúdo */}
-          <div className="card" style={{ marginBottom: 20 }}>
-            <div className="card-head"><h3>Conteúdo</h3></div>
-            <div style={{ padding: "20px 24px" }}>
-              {release.summary && (
-                <p style={{ fontSize: 15, color: "var(--stone)", fontStyle: "italic", marginBottom: 20, lineHeight: 1.6, borderBottom: "1px solid var(--line)", paddingBottom: 16 }}>{release.summary}</p>
-              )}
-              <div className="prose" style={{ fontSize: 14, lineHeight: 1.8, color: "var(--ink)" }} dangerouslySetInnerHTML={{ __html: release.body }} />
-            </div>
           </div>
 
           {/* Cobertura */}
@@ -984,6 +950,34 @@ export default function EditReleasePage() {
                   </div>
                 );
               })}
+            </div>
+          </div>
+
+          {/* Meta grid */}
+          <div className="card" style={{ marginBottom: 20, overflow: "hidden" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 0 }}>
+              {[
+                { label: "Autor", value: authorName },
+                { label: "Marca", value: brand?.name ?? "—" },
+                { label: "Créditos utilizados", value: `${release.creditsUsed} cr` },
+                { label: "Data de agendamento", value: release.scheduledAt ? fmtFull(release.scheduledAt) : "—" },
+                { label: "Data de publicação", value: release.publishedAt ? fmtFull(release.publishedAt) : "—" },
+                { label: "Criado em", value: fmtFull(release.createdAt) },
+                { label: "Utilizou IA", value: release.aiCreditsUsed > 0 ? `Sim (${release.aiCreditsUsed} cr)` : "Não" },
+              ].map(({ label, value }) => (
+                <div key={label} style={{ padding: "14px 20px", borderRight: "1px solid var(--line)", borderBottom: "1px solid var(--line)" }}>
+                  <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--stone)", margin: "0 0 4px" }}>{label}</p>
+                  <p style={{ fontSize: 14, fontWeight: 600, margin: 0 }}>{value}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Conteúdo — a imagem já está embutida no HTML do body */}
+          <div className="card" style={{ marginBottom: 20 }}>
+            <div className="card-head"><h3>Conteúdo</h3></div>
+            <div style={{ padding: "20px 24px" }}>
+              <div className="prose" style={{ fontSize: 14, lineHeight: 1.8, color: "var(--ink)" }} dangerouslySetInnerHTML={{ __html: release.body }} />
             </div>
           </div>
 

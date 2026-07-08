@@ -40,6 +40,7 @@ model Release {
   scheduledAt          DateTime?
   publishedAt          DateTime?
   creditsUsed          Int           @default(0)
+  aiCreditsUsed        Int           @default(0)
   imageUrl             String?
   vehicles             String[]
   adminNotes           String?
