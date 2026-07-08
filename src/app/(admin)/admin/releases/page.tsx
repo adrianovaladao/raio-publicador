@@ -148,8 +148,6 @@ function ReleaseActions({ release, onSaved, onDeleted }: {
   }
 
   function buildReleaseHtml(forExport = false) {
-    const brandName = release.brand?.name ?? "";
-
     const subtitle = release.summary
       ? `<p style="font-style:italic;font-size:16px;color:#444;margin:0 0 24px;line-height:1.5">${release.summary}</p>`
       : "";
