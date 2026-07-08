@@ -329,7 +329,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       window.removeEventListener("open-plans", openPlans);
       window.removeEventListener("releases-changed", fetchReleaseCount);
     };
-  }, []);
+  }, [fetchReleaseCount, fetchSub]);
 
   const firstName = user?.firstName ?? "";
   const lastName  = user?.lastName  ?? "";
