@@ -93,8 +93,8 @@ export async function sendReleaseScheduledEmail(
   const date = scheduledAt.toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" });
 
   const html = base(`
-    ${h1("Release agendado com sucesso ✓")}
-    ${p(`Olá, <strong>${firstName}</strong>! O release foi agendado e será distribuído na data e hora definidas.`)}
+    ${h1(`Marcado na agenda, ${firstName}! ✓`)}
+    ${p("O release está agendado e vai chegar nas redações certas na data e hora definidas.")}
     <table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0">
       <tr><td style="padding:8px 0;color:#888;width:130px;vertical-align:top">Release</td><td style="padding:8px 0;color:#1a1a1a;font-weight:600">${releaseTitle}</td></tr>
       <tr><td style="padding:8px 0;color:#888;vertical-align:top">Agendado para</td><td style="padding:8px 0;color:#1a1a1a">${date} (Brasília)</td></tr>
@@ -115,8 +115,8 @@ export async function sendReleasePublishedEmail(
   releaseId: string,
 ) {
   const html = base(`
-    ${h1("Release distribuído com sucesso! ⚡")}
-    ${p(`Olá, <strong>${firstName}</strong>! O release foi distribuído para as redações selecionadas.`)}
+    ${h1(`Missão cumprida, ${firstName}! ⚡`)}
+    ${p("O release saiu daqui como um raio e já está nas caixas de entrada das redações selecionadas.")}
     <table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0">
       <tr><td style="padding:8px 0;color:#888;width:130px">Release</td><td style="padding:8px 0;color:#1a1a1a;font-weight:600">${releaseTitle}</td></tr>
       <tr><td style="padding:8px 0;color:#888">Veículos</td><td style="padding:8px 0;color:#1a1a1a">${vehicleCount} veículo${vehicleCount !== 1 ? "s" : ""}</td></tr>
@@ -131,9 +131,9 @@ export async function sendReleasePublishedEmail(
 // ─── 4. Créditos baixos ────────────────────────────────────────────────────────
 export async function sendLowCreditsEmail(to: string, firstName: string, remaining: number) {
   const html = base(`
-    ${h1("Créditos chegando ao fim")}
-    ${p(`Olá, <strong>${firstName}</strong>! A conta tem apenas <strong>${remaining} crédito${remaining !== 1 ? "s" : ""}</strong> disponíveis no momento.`)}
-    ${p("Para continuar agendando releases sem interrupção, adquira créditos avulsos ou faça upgrade do plano.")}
+    ${h1(`${firstName}, os créditos estão no limite! ⚠️`)}
+    ${p(`Restam apenas <strong>${remaining} crédito${remaining !== 1 ? "s" : ""}</strong> na conta. Não deixe o raio apagar antes da hora.`)}
+    ${p("Adquira créditos avulsos ou faça upgrade do plano para continuar publicando sem pausas.")}
     ${btn("Ver opções de créditos", `${APP_URL}/configuracoes`)}
   `);
 
@@ -143,9 +143,9 @@ export async function sendLowCreditsEmail(to: string, firstName: string, remaini
 // ─── 5. Créditos zerados ───────────────────────────────────────────────────────
 export async function sendZeroCreditsEmail(to: string, firstName: string) {
   const html = base(`
-    ${h1("Saldo de créditos esgotado")}
-    ${p(`Olá, <strong>${firstName}</strong>! O saldo de créditos chegou a zero. Não será possível agendar novos releases até recarregar.`)}
-    ${p("Adquira créditos avulsos para retomar agora, ou faça upgrade para um plano com mais créditos mensais.")}
+    ${h1(`${firstName}, o tanque está vazio 😬`)}
+    ${p("Os créditos acabaram e o Raio ficou sem combustível. Nenhum release pode ser agendado até recarregar.")}
+    ${p("Adquira créditos avulsos para voltar agora mesmo, ou faça upgrade para um plano com mais fôlego.")}
     ${btn("Recarregar créditos", `${APP_URL}/configuracoes`)}
   `);
 
@@ -155,8 +155,8 @@ export async function sendZeroCreditsEmail(to: string, firstName: string) {
 // ─── 6. Upgrade confirmado ─────────────────────────────────────────────────────
 export async function sendUpgradeEmail(to: string, firstName: string, planLabel: string, credits: number) {
   const html = base(`
-    ${h1("Upgrade confirmado ✓")}
-    ${p(`Olá, <strong>${firstName}</strong>! O plano foi atualizado e os créditos já estão disponíveis na conta.`)}
+    ${h1(`${firstName}, o Raio ficou mais rápido! ⚡`)}
+    ${p("Upgrade confirmado. O novo plano já está ativo e os créditos caíram na conta.")}
     <table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0">
       <tr><td style="padding:8px 0;color:#888;width:130px">Novo plano</td><td style="padding:8px 0;color:#1a1a1a;font-weight:600">${planLabel}</td></tr>
       <tr><td style="padding:8px 0;color:#888">Créditos</td><td style="padding:8px 0;color:#1a1a1a">${credits.toLocaleString("pt-BR")} créditos/mês</td></tr>
@@ -172,8 +172,8 @@ export async function sendRenewalEmail(to: string, firstName: string, planLabel:
   const date = nextRenewal.toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric", timeZone: "America/Sao_Paulo" });
 
   const html = base(`
-    ${h1("Plano renovado ✓")}
-    ${p(`Olá, <strong>${firstName}</strong>! O plano foi renovado com sucesso e os créditos foram recarregados.`)}
+    ${h1(`Mais um mês de raio, ${firstName}! ✓`)}
+    ${p("Plano renovado e créditos recarregados. Tudo pronto para continuar publicando.")}
     <table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0">
       <tr><td style="padding:8px 0;color:#888;width:130px">Plano</td><td style="padding:8px 0;color:#1a1a1a;font-weight:600">${planLabel}</td></tr>
       <tr><td style="padding:8px 0;color:#888">Créditos</td><td style="padding:8px 0;color:#1a1a1a">${credits.toLocaleString("pt-BR")} créditos disponíveis</td></tr>
@@ -188,11 +188,11 @@ export async function sendRenewalEmail(to: string, firstName: string, planLabel:
 // ─── 8. Falha no pagamento ─────────────────────────────────────────────────────
 export async function sendPaymentFailedEmail(to: string, firstName: string, planLabel: string) {
   const html = base(`
-    ${h1("Problema com o pagamento")}
-    ${p(`Olá, <strong>${firstName}</strong>! Não foi possível processar a cobrança do plano <strong>${planLabel}</strong>.`)}
-    ${p("O acesso pode ser suspenso em breve. Atualize a forma de pagamento para evitar interrupções.")}
+    ${h1(`${firstName}, tem algo errado no pagamento 😕`)}
+    ${p(`Não foi possível processar a cobrança do plano <strong>${planLabel}</strong>. Isso pode acontecer com qualquer cartão — basta atualizar e pronto.`)}
+    ${p("Resolva agora para não perder o acesso à plataforma.")}
     ${btn("Atualizar forma de pagamento", `${APP_URL}/configuracoes`)}
-    ${p('<span style="font-size:13px;color:#999">Se acreditar que isso é um engano, entre em contato com nosso suporte.</span>')}
+    ${p('<span style="font-size:13px;color:#999">Se achar que isso é um engano, fale com nosso suporte.</span>')}
   `);
 
   return getResend().emails.send({ from: FROM, to, subject: "Ação necessária: problema com o pagamento — Raio", html });
@@ -206,12 +206,12 @@ export async function sendReleaseSubmittedEmail(
   releaseId: string,
 ) {
   const html = base(`
-    ${h1("Release enviado para publicação ✓")}
-    ${p(`Olá, <strong>${firstName}</strong>! O release foi enviado e está sendo processado para distribuição.`)}
+    ${h1(`Enviado, ${firstName}! Agora é com a gente. ✓`)}
+    ${p("O release entrou na fila e nossa equipe vai cuidar da distribuição a partir daqui.")}
     <table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0">
       <tr><td style="padding:8px 0;color:#888;width:130px">Release</td><td style="padding:8px 0;color:#1a1a1a;font-weight:600">${releaseTitle}</td></tr>
     </table>
-    ${p("Uma notificação será enviada assim que a distribuição for concluída.")}
+    ${p("Avisamos assim que as redações receberem.")}
     ${btn("Ver release", `${APP_URL}/releases/${releaseId}`)}
   `);
 
@@ -227,8 +227,8 @@ export async function sendReleaseQueuedEmail(
   releaseId: string,
 ) {
   const html = base(`
-    ${h1("Release adicionado à fila ✓")}
-    ${p(`Olá, <strong>${firstName}</strong>! O release foi adicionado à fila de distribuição.`)}
+    ${h1(`Na fila e quase lá, ${firstName}! ✓`)}
+    ${p("O release entrou na fila de distribuição e já está a caminho das redações.")}
     <table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0">
       <tr><td style="padding:8px 0;color:#888;width:130px">Release</td><td style="padding:8px 0;color:#1a1a1a;font-weight:600">${releaseTitle}</td></tr>
       <tr><td style="padding:8px 0;color:#888">Posição na fila</td><td style="padding:8px 0;color:#1a1a1a">${position}º</td></tr>
@@ -250,8 +250,8 @@ export async function sendReleasePublishedInVehicleEmail(
   releaseId: string,
 ) {
   const html = base(`
-    ${h1("Release publicado em um veículo ⚡")}
-    ${p(`Olá, <strong>${firstName}</strong>! O release foi publicado em mais um veículo.`)}
+    ${h1(`Mais uma redação conquistada, ${firstName}! ⚡`)}
+    ${p("O release acaba de ser publicado em mais um veículo. A notícia está se espalhando.")}
     <table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0">
       <tr><td style="padding:8px 0;color:#888;width:130px">Release</td><td style="padding:8px 0;color:#1a1a1a;font-weight:600">${releaseTitle}</td></tr>
       <tr><td style="padding:8px 0;color:#888">Veículo</td><td style="padding:8px 0;color:#1a1a1a;font-weight:600">${vehicleName}</td></tr>
@@ -272,8 +272,8 @@ export async function sendReleaseNeedsReviewEmail(
   releaseId: string,
 ) {
   const html = base(`
-    ${h1("Release precisa de revisão")}
-    ${p(`Olá, <strong>${firstName}</strong>! O release foi analisado e precisa de ajustes antes de ser distribuído.`)}
+    ${h1(`${firstName}, quase lá — só falta um ajuste 🔧`)}
+    ${p("O release foi analisado e precisa de pequenos ajustes antes de ir às redações.")}
     <table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0">
       <tr><td style="padding:8px 0;color:#888;width:130px">Release</td><td style="padding:8px 0;color:#1a1a1a;font-weight:600">${releaseTitle}</td></tr>
       <tr><td style="padding:8px 0;color:#888;vertical-align:top">Motivo</td><td style="padding:8px 0;color:#1a1a1a">${reason}</td></tr>
@@ -294,8 +294,8 @@ export async function sendReleaseRejectedEmail(
   releaseId: string,
 ) {
   const html = base(`
-    ${h1("Release não aprovado")}
-    ${p(`Olá, <strong>${firstName}</strong>! O release não foi aprovado para distribuição.`)}
+    ${h1(`${firstName}, esse release não passou desta vez`)}
+    ${p("O release foi analisado mas não atendeu aos critérios para distribuição. Veja o motivo abaixo e reenvie quando estiver pronto.")}
     <table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0">
       <tr><td style="padding:8px 0;color:#888;width:130px">Release</td><td style="padding:8px 0;color:#1a1a1a;font-weight:600">${releaseTitle}</td></tr>
       ${reason ? `<tr><td style="padding:8px 0;color:#888;vertical-align:top">Motivo</td><td style="padding:8px 0;color:#1a1a1a">${reason}</td></tr>` : ""}
@@ -315,8 +315,8 @@ export async function sendReleaseInPublicationEmail(
   releaseId: string,
 ) {
   const html = base(`
-    ${h1("Release em publicação ⚡")}
-    ${p(`Olá, <strong>${firstName}</strong>! O release foi aprovado e está sendo distribuído para as redações agora.`)}
+    ${h1(`Aprovado e voando, ${firstName}! ⚡`)}
+    ${p("O release passou pela análise e está sendo distribuído para as redações agora. Fique de olho nos links que chegam em breve.")}
     <table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0">
       <tr><td style="padding:8px 0;color:#888;width:130px">Release</td><td style="padding:8px 0;color:#1a1a1a;font-weight:600">${releaseTitle}</td></tr>
     </table>
@@ -341,8 +341,8 @@ export async function sendReleasePublishedWithLinksEmail(
     .join("");
 
   const html = base(`
-    ${h1("Release publicado com sucesso! ⚡")}
-    ${p(`Olá, <strong>${firstName}</strong>! O release foi distribuído em ${vehicleCount} veículo${vehicleCount !== 1 ? "s" : ""}.`)}
+    ${h1(`${firstName}, o raio caiu em ${vehicleCount} lugar${vehicleCount !== 1 ? "es" : ""}! ⚡`)}
+    ${p("O release foi publicado com sucesso. Veja abaixo onde a notícia apareceu.")}
     <table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0">
       <tr><td style="padding:8px 0;color:#888;width:130px">Release</td><td style="padding:8px 0;color:#1a1a1a;font-weight:600">${releaseTitle}</td></tr>
     </table>
@@ -394,8 +394,8 @@ export async function sendInviteAcceptedEmail(
 ) {
   const roleLabel = role === "editor" ? "Editor" : role === "revisor" ? "Revisor" : role;
   const html = base(`
-    ${h1("Convite aceito ✓")}
-    ${p(`Olá, <strong>${firstName}</strong>! Um colaborador aceitou o convite e já faz parte da equipe no Raio.`)}
+    ${h1(`A equipe cresceu, ${firstName}! ✓`)}
+    ${p("Ótima notícia: um novo colaborador aceitou o convite e já está na equipe do Raio.")}
     <table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0">
       <tr><td style="padding:8px 0;color:#888;width:130px">Nome</td><td style="padding:8px 0;color:#1a1a1a;font-weight:600">${inviteeName}</td></tr>
       <tr><td style="padding:8px 0;color:#888">E-mail</td><td style="padding:8px 0;color:#1a1a1a">${inviteeEmail}</td></tr>
