@@ -66,8 +66,8 @@ export async function sendWelcomeEmail(
   const renewal = nextRenewal.toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric", timeZone: "America/Sao_Paulo" });
 
   const html = base(`
-    ${h1(`Bem-vinde ao Raio, ${firstName}!`)}
-    ${p("Sua assinatura foi confirmada e seus créditos já estão disponíveis. Agora é só publicar.")}
+    ${h1(`${firstName}, você está no Raio! ⚡`)}
+    ${p("Assinatura confirmada e créditos disponíveis. Hora de publicar como um raio.")}
     <table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0;background:#f9f9f7;border-radius:8px">
       <tr><td style="padding:10px 14px;color:#888;width:160px">Plano</td><td style="padding:10px 14px;color:#1a1a1a;font-weight:600">${planLabel}</td></tr>
       <tr style="border-top:1px solid #eee"><td style="padding:10px 14px;color:#888">Valor</td><td style="padding:10px 14px;color:#1a1a1a">${price}/mês</td></tr>
@@ -78,7 +78,7 @@ export async function sendWelcomeEmail(
     ${btn("Cadastrar minha marca", `${APP_URL}/boas-vindas`)}
   `);
 
-  return getResend().emails.send({ from: FROM, to, subject: "Bem-vinde ao Raio ⚡ — Assinatura confirmada", html });
+  return getResend().emails.send({ from: FROM, to, subject: `${firstName}, você está no Raio ⚡ — Assinatura confirmada`, html });
 }
 
 // ─── 2. Release agendado ───────────────────────────────────────────────────────
