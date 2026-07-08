@@ -143,7 +143,7 @@ export async function sendLowCreditsEmail(to: string, firstName: string, remaini
 // ─── 5. Créditos zerados ───────────────────────────────────────────────────────
 export async function sendZeroCreditsEmail(to: string, firstName: string) {
   const html = base(`
-    ${h1(`${firstName}, o tanque está vazio 😬`)}
+    ${h1(`${firstName}, hora de recarregar as energias 😬`)}
     ${p("Os créditos acabaram e o Raio ficou sem combustível. Nenhum release pode ser agendado até recarregar.")}
     ${p("Adquira créditos avulsos para voltar agora mesmo, ou faça upgrade para um plano com mais fôlego.")}
     ${btn("Recarregar créditos", `${APP_URL}/configuracoes`)}
