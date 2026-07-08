@@ -375,10 +375,13 @@ export default function AdminReleasesPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
   const [q, setQ] = useState("");
+  const resetPage = () => setPage(1);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [bulkConfirm, setBulkConfirm] = useState(false);
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 20;
 
   const load = useCallback(() => {
     setLoading(true);
@@ -430,6 +433,9 @@ export default function AdminReleasesPage() {
   if (q.trim()) list = list.filter(r =>
     (r.title + r.author.name + r.author.email + (r.brand?.name ?? "")).toLowerCase().includes(q.toLowerCase())
   );
+  const totalPages = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const pageList = list.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
   const needsAction = releases.filter(r => ["SCHEDULED", "IN_PUBLICATION"].includes(r.status)).length;
 
@@ -454,7 +460,7 @@ export default function AdminReleasesPage() {
         <div className="toolbar" style={{ flexWrap: "wrap", gap: 10 }}>
           <div className="chips" style={{ flexWrap: "wrap" }}>
             {FILTER_OPTIONS.map(f => (
-              <button key={f.id} className={`chip${filter === f.id ? " active" : ""}`} onClick={() => setFilter(f.id)}>
+              <button key={f.id} className={`chip${filter === f.id ? " active" : ""}`} onClick={() => { setFilter(f.id); resetPage(); }}>
                 {f.label} <span className="ct">{counts[f.id]}</span>
               </button>
             ))}
@@ -497,7 +503,7 @@ export default function AdminReleasesPage() {
               className="input"
               placeholder="Buscar…"
               value={q}
-              onChange={e => setQ(e.target.value)}
+              onChange={e => { setQ(e.target.value); resetPage(); }}
               style={{ width: 220, padding: "8px 14px", fontSize: 13 }}
             />
           </div>
@@ -511,8 +517,8 @@ export default function AdminReleasesPage() {
             <div className="t">Nenhum release encontrado</div>
           </div>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {list.map(r => {
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, paddingBottom: 32 }}>
+            {pageList.map(r => {
               const isExpanded = expanded === r.id;
               return (
                 <div key={r.id} className="card" style={{ padding: 0, overflow: "hidden" }}>
@@ -567,6 +573,63 @@ export default function AdminReleasesPage() {
                 </div>
               );
             })}
+
+            {/* Paginação */}
+            {totalPages > 1 && (
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 4px 8px", borderTop: "1px solid #f0f0f0", marginTop: 8 }}>
+                <span style={{ fontSize: 13, color: "#888" }}>
+                  {list.length} release{list.length !== 1 ? "s" : ""} · página {safePage} de {totalPages}
+                </span>
+                <div style={{ display: "flex", gap: 6 }}>
+                  <button
+                    onClick={() => setPage(1)}
+                    disabled={safePage === 1}
+                    className="btn btn-ghost btn-sm"
+                    style={{ fontSize: 12, opacity: safePage === 1 ? 0.4 : 1 }}
+                  >«</button>
+                  <button
+                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                    disabled={safePage === 1}
+                    className="btn btn-ghost btn-sm"
+                    style={{ fontSize: 13, opacity: safePage === 1 ? 0.4 : 1 }}
+                  >Anterior</button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter(p => p === 1 || p === totalPages || Math.abs(p - safePage) <= 1)
+                    .reduce<(number | "…")[]>((acc, p, i, arr) => {
+                      if (i > 0 && p - (arr[i - 1] as number) > 1) acc.push("…");
+                      acc.push(p);
+                      return acc;
+                    }, [])
+                    .map((p, i) => p === "…"
+                      ? <span key={`ellipsis-${i}`} style={{ fontSize: 13, color: "#bbb", padding: "0 4px" }}>…</span>
+                      : <button
+                          key={p}
+                          onClick={() => setPage(p as number)}
+                          className="btn btn-sm"
+                          style={{
+                            fontSize: 13, minWidth: 32,
+                            background: safePage === p ? "#1a1a1a" : "transparent",
+                            color: safePage === p ? "#fff" : "#555",
+                            border: safePage === p ? "none" : "1.5px solid #e0e0e0",
+                          }}
+                        >{p}</button>
+                    )
+                  }
+                  <button
+                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                    disabled={safePage === totalPages}
+                    className="btn btn-ghost btn-sm"
+                    style={{ fontSize: 13, opacity: safePage === totalPages ? 0.4 : 1 }}
+                  >Próxima</button>
+                  <button
+                    onClick={() => setPage(totalPages)}
+                    disabled={safePage === totalPages}
+                    className="btn btn-ghost btn-sm"
+                    style={{ fontSize: 12, opacity: safePage === totalPages ? 0.4 : 1 }}
+                  >»</button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
