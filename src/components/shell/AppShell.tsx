@@ -331,6 +331,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     };
   }, [fetchReleaseCount, fetchSub]);
 
+  useEffect(() => {
+    fetchReleaseCount();
+  }, [pathname, fetchReleaseCount]);
+
   const firstName = user?.firstName ?? "";
   const lastName  = user?.lastName  ?? "";
   const fullName  = [firstName, lastName].filter(Boolean).join(" ") || "Usuário";
