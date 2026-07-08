@@ -270,7 +270,8 @@ function ReleaseActions({ release, onSaved, onDeleted }: {
           <select
             value={newStatus}
             onChange={e => setNewStatus(e.target.value)}
-            style={{ padding: "9px 12px", borderRadius: 8, border: "1.5px solid #e0e0e0", fontSize: 14, background: "#fff", cursor: "pointer", width: "auto", minWidth: 200 }}
+            className="input"
+            style={{ width: "auto", minWidth: 200, fontSize: 14 }}
           >
             {ALL_STATUSES.map(s => (
               <option key={s.value} value={s.value}>{s.label}</option>

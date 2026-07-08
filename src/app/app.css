@@ -584,7 +584,15 @@ textarea.input { resize: vertical; line-height: 1.55; }
 .field-row > label { display: block; font-family: var(--mono); font-size: 10px; letter-spacing: 0.13em; text-transform: uppercase; color: var(--sand); margin-bottom: 7px; }
 .select-wrap { position: relative; }
 .select-wrap svg { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--stone); pointer-events: none; }
-select.input { appearance: none; -webkit-appearance: none; padding-right: 36px; }
+select.input {
+  appearance: none; -webkit-appearance: none;
+  padding-right: 36px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23848484' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px 16px;
+  cursor: pointer;
+}
 
 .attach { border: 1.5px dashed var(--line-3); border-radius: var(--r-sm); padding: 20px; text-align: center; color: var(--stone); background: var(--cream); }
 .attach svg { width: 22px; height: 22px; margin-bottom: 8px; }

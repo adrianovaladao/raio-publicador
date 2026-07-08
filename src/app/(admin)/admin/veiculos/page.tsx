@@ -111,18 +111,20 @@ function VehicleModal({ initial, onSave, onClose }: {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             <div>
               <label style={labelStyle}>Editoria</label>
-              <div style={{ position: "relative" }}>
-                <select value={category} onChange={e => setCategory(e.target.value)} style={{ ...inputStyle, appearance: "none", cursor: "pointer" }}>
+              <div className="select-wrap">
+                <select value={category} onChange={e => setCategory(e.target.value)} className="input" style={{ fontSize: 14 }}>
                   {VEH_CATS.map(c => <option key={c}>{c}</option>)}
                 </select>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9" /></svg>
               </div>
             </div>
             <div>
               <label style={labelStyle}>Tier</label>
-              <div style={{ position: "relative" }}>
-                <select value={tier} onChange={e => setTier(e.target.value)} style={{ ...inputStyle, appearance: "none", cursor: "pointer" }}>
+              <div className="select-wrap">
+                <select value={tier} onChange={e => setTier(e.target.value)} className="input" style={{ fontSize: 14 }}>
                   {TIERS.map(t => <option key={t} value={t}>Tier {t} — {TIER_TOKENS[t]} créditos</option>)}
                 </select>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9" /></svg>
               </div>
             </div>
           </div>

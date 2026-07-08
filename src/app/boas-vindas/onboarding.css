@@ -140,7 +140,7 @@
 .onb .in:focus { outline: none; border-color: var(--coral); background: rgba(255,255,255,0.05); box-shadow: 0 0 0 3px rgba(250,181,0,0.18); }
 .onb .select-w { position: relative; }
 .onb .select-w .chev { position: absolute; right: 13px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--tx-3); pointer-events: none; }
-.onb select.in { appearance: none; -webkit-appearance: none; padding-right: 38px; cursor: pointer; }
+.onb select.in { appearance: none; -webkit-appearance: none; padding-right: 38px; cursor: pointer; background-image: none; }
 .onb select.in option { background: var(--ink-2); color: var(--tx); }
 .fgrid { display: grid; grid-template-columns: 200px 1fr; gap: 24px; }
 @media (max-width: 640px) { .fgrid { grid-template-columns: 1fr; } }

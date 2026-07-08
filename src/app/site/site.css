@@ -341,7 +341,7 @@ img { max-width: 100%; }
 textarea.sm-in { resize: vertical; line-height: 1.5; }
 .sm-select { position: relative; }
 .sm-select svg { position: absolute; right: 13px; top: 50%; transform: translateY(-50%); color: var(--tx-3); pointer-events: none; }
-select.sm-in { appearance: none; -webkit-appearance: none; padding-right: 38px; cursor: pointer; }
+select.sm-in { appearance: none; -webkit-appearance: none; padding-right: 38px; cursor: pointer; background-image: none; }
 select.sm-in option { background: var(--ink-2); color: var(--tx); }
 .sm-foot { display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; }
 @media (max-width: 520px) { .sm-foot { flex-direction: column-reverse; } .sm-foot .btn { width: 100%; } }
