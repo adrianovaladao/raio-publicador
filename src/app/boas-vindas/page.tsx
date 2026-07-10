@@ -31,19 +31,21 @@ export default async function BoasVindasPage({
     return <BoasVindasClient />;
   }
 
+  const fmt = (cents: number) =>
+    (cents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+  const allPlans = (["BASIC", "ADVANCED", "PROFESSIONAL"] as PlanId[]).map((id) => {
+    const p = PLANS[id];
+    return { id, label: p.label, priceBRL: fmt(p.priceCents), credits: p.credits, brandsLimit: p.brandsLimit, editorsLimit: p.editorsLimit, reviewersLimit: p.reviewersLimit, tierAIncluded: p.tierAIncluded };
+  });
+
   const plan = PLANS[planId];
-  const priceBRL = (plan.priceCents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
   return (
     <CheckoutConfirmClient
-      planId={planId}
-      label={plan.label}
-      priceBRL={priceBRL}
-      credits={plan.credits}
-      brandsLimit={plan.brandsLimit}
-      editorsLimit={plan.editorsLimit}
-      reviewersLimit={plan.reviewersLimit}
-      tierAIncluded={plan.tierAIncluded}
+      initialPlanId={planId}
+      allPlans={allPlans}
+      initialPriceBRL={fmt(plan.priceCents)}
     />
   );
 }
