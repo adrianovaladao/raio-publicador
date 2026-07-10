@@ -81,7 +81,7 @@ function CadastroInner() {
       const firstName = parts[0];
       const lastName = parts.slice(1).join(" ");
       await signUp.create({ emailAddress: email, password, firstName, lastName });
-      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+      await signUp.prepareVerification({ strategy: "email_code" });
       clerkSuRef.current = signUp;
       setStep("verify");
     } catch (err: unknown) {
@@ -105,7 +105,7 @@ function CadastroInner() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const clerkSu = (window as any).Clerk?.client?.signUp ?? clerkSuRef.current ?? signUp;
       if (!clerkSu) { setError("Tente novamente."); return; }
-      let result = await clerkSu.attemptEmailAddressVerification({ code });
+      let result = await clerkSu.attemptVerification({ code });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const sa = setActive ?? (window as any).Clerk?.setActive;
 
@@ -163,7 +163,7 @@ function CadastroInner() {
     const clerkSu = clerkSuRef.current || signUp;
     if (!clerkSu) return;
     try {
-      await clerkSu.prepareEmailAddressVerification({ strategy: "email_code" });
+      await clerkSu.prepareVerification({ strategy: "email_code" });
       setError(""); setOtp(["","","","","",""]);
       otpRefs.current[0]?.focus();
     } catch (err: unknown) {
