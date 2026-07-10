@@ -16,7 +16,8 @@ export async function POST() {
 
   const stripe = getStripe();
   const now = new Date();
-  const periodStart = sub.currentPeriodStart ?? null;
+  // Use currentPeriodStart from Stripe webhook; fall back to subscription createdAt
+  const periodStart = sub.currentPeriodStart ?? sub.createdAt ?? null;
   const daysSincePeriodStart = periodStart
     ? (now.getTime() - periodStart.getTime()) / (1000 * 60 * 60 * 24)
     : Infinity;
