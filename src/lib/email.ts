@@ -27,8 +27,8 @@ function base(content: string) {
           </td>
         </tr>
         <tr>
-          <td style="padding:0 32px 32px">
-            <p style="margin:24px 0 0;font-size:12px;color:#999;border-top:1px solid #eee;padding-top:20px">
+          <td style="padding:24px 32px;background:#FAB500">
+            <p style="margin:0;font-size:12px;color:#1a1a1a">
               Você está recebendo este e-mail porque possui uma conta no Raio Publicador.<br>
               <a href="${APP_URL}/configuracoes" style="color:#999">Gerenciar notificações</a>
             </p>
