@@ -82,6 +82,8 @@ function CadastroInner() {
       const lastName = parts.slice(1).join(" ");
       const su = await signUp.create({ emailAddress: email, password, firstName, lastName });
       console.log("[cadastro] su keys:", Object.keys(su ?? {}));
+      console.log("[cadastro] su full:", JSON.stringify(su));
+      console.log("[cadastro] su proto methods:", Object.getOwnPropertyNames(Object.getPrototypeOf(su ?? {})));
       console.log("[cadastro] su.prepareVerification:", typeof (su as Record<string, unknown>)?.prepareVerification);
       console.log("[cadastro] su.prepareEmailAddressVerification:", typeof (su as Record<string, unknown>)?.prepareEmailAddressVerification);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
