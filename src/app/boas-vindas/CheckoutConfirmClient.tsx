@@ -171,15 +171,15 @@ export default function CheckoutConfirmClient({ initialPlanId, allPlans }: Props
                 {/* ── VERSO: escolha de plano ── */}
                 <div className="flip-back">
                   <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 16, padding: "28px 24px 24px", textAlign: "left" }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--tx-3)", marginBottom: 20 }}>Escolha seu plano</div>
+                    <div style={{ fontSize: 15.5, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--tx-3)", marginBottom: 20 }}>Escolha seu plano</div>
 
                     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                       {allPlans.map(p => (
                         <div key={p.id} className={`plan-choice${p.id === selectedId ? " active" : ""}`} onClick={() => selectPlan(p.id)}>
                           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
                             <div>
-                              <div style={{ fontSize: 17, fontWeight: 800, color: "var(--tx)", letterSpacing: "-0.01em" }}>{p.label}</div>
-                              <div style={{ fontSize: 13, color: "var(--tx-3)", marginTop: 2 }}>{p.priceBRL}/mês</div>
+                              <div style={{ fontSize: 22, fontWeight: 800, color: "var(--tx)", letterSpacing: "-0.01em" }}>{p.label}</div>
+                              <div style={{ fontSize: 17, color: "var(--tx-3)", marginTop: 2 }}>{p.priceBRL}/mês</div>
                             </div>
                             <div style={{
                               width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
@@ -197,7 +197,7 @@ export default function CheckoutConfirmClient({ initialPlanId, allPlans }: Props
                               `${p.tierAIncluded} Tier A/mês`,
                               `${p.editorsLimit} editor${p.editorsLimit > 1 ? "es" : ""}`,
                             ].map((t, i) => (
-                              <span key={i} style={{ fontSize: 12, color: "var(--tx-3)", display: "flex", alignItems: "center", gap: 4 }}>
+                              <span key={i} style={{ fontSize: 15.5, color: "var(--tx-3)", display: "flex", alignItems: "center", gap: 4 }}>
                                 <Check size={11} style={{ color: "#2F8A5B" }} />{t}
                               </span>
                             ))}
@@ -207,7 +207,7 @@ export default function CheckoutConfirmClient({ initialPlanId, allPlans }: Props
                     </div>
 
                     <button onClick={() => setFlipped(false)}
-                      style={{ background: "none", border: "none", fontSize: 13.5, color: "var(--tx-3)", cursor: "pointer", marginTop: 20, padding: "4px 8px" }}>
+                      style={{ background: "none", border: "none", fontSize: 17.5, color: "var(--tx-3)", cursor: "pointer", marginTop: 20, padding: "4px 8px" }}>
                       ← Voltar
                     </button>
                   </div>
