@@ -23,8 +23,19 @@ export async function POST(req: NextRequest) {
 
   let customerId = sub?.stripeCustomerId ?? undefined;
   if (!customerId) {
-    const customer = await stripe.customers.create({ email, metadata: { clerkId: userId } });
-    customerId = customer.id;
+    // Search for existing Stripe customer by email+clerkId to avoid duplicates
+    const existing = await stripe.customers.list({ email, limit: 100 });
+    const match = existing.data.find(c => c.metadata?.clerkId === userId);
+    if (match) {
+      customerId = match.id;
+    } else {
+      const customer = await stripe.customers.create({ email, metadata: { clerkId: userId } });
+      customerId = customer.id;
+    }
+    // Always persist the customerId so future checkouts reuse it
+    if (sub) {
+      await prisma.subscription.update({ where: { ownerId: userId }, data: { stripeCustomerId: customerId } });
+    }
   }
 
   const origin = req.nextUrl.origin;

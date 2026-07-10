@@ -18,8 +18,9 @@ async function resolveCustomerId(
     } catch { /* stale ID — fallthrough */ }
   }
   if (email) {
-    const existing = await stripe.customers.list({ email, limit: 5 });
-    if (existing.data[0]) return existing.data[0].id;
+    const existing = await stripe.customers.list({ email, limit: 100 });
+    const match = existing.data.find(c => c.metadata?.clerkId === clerkId) ?? existing.data[0];
+    if (match) return match.id;
   }
   const created = await stripe.customers.create({ email, metadata: { clerkId } });
   return created.id;
