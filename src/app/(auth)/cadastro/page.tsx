@@ -80,17 +80,9 @@ function CadastroInner() {
       if (!signUp) { setError("Aguarde um instante e tente novamente."); return; }
       const firstName = parts[0];
       const lastName = parts.slice(1).join(" ");
-      const su = await signUp.create({ emailAddress: email, password, firstName, lastName });
-      console.log("[cadastro] su keys:", Object.keys(su ?? {}));
-      console.log("[cadastro] su full:", JSON.stringify(su));
-      console.log("[cadastro] su proto methods:", Object.getOwnPropertyNames(Object.getPrototypeOf(su ?? {})));
-      console.log("[cadastro] su.prepareVerification:", typeof (su as Record<string, unknown>)?.prepareVerification);
-      console.log("[cadastro] su.prepareEmailAddressVerification:", typeof (su as Record<string, unknown>)?.prepareEmailAddressVerification);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const prepareFn = (su as any)?.prepareVerification ?? (su as any)?.prepareEmailAddressVerification ?? signUp?.prepareVerification ?? signUp?.prepareEmailAddressVerification;
-      if (!prepareFn) throw new Error("Clerk: método prepareVerification não encontrado no objeto su");
-      await prepareFn.call(su, { strategy: "email_code" });
-      clerkSuRef.current = su;
+      await signUp.create({ emailAddress: email, password, firstName, lastName });
+      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+      clerkSuRef.current = signUp;
       setStep("verify");
     } catch (err: unknown) {
       console.error("[cadastro] signUp.create error:", JSON.stringify(err));
@@ -113,7 +105,7 @@ function CadastroInner() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const clerkSu = (window as any).Clerk?.client?.signUp ?? clerkSuRef.current ?? signUp;
       if (!clerkSu) { setError("Tente novamente."); return; }
-      let result = await clerkSu.attemptVerification({ code });
+      let result = await clerkSu.attemptEmailAddressVerification({ code });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const sa = setActive ?? (window as any).Clerk?.setActive;
 
@@ -171,7 +163,7 @@ function CadastroInner() {
     const clerkSu = clerkSuRef.current || signUp;
     if (!clerkSu) return;
     try {
-      await clerkSu.prepareVerification({ strategy: "email_code" });
+      await clerkSu.prepareEmailAddressVerification({ strategy: "email_code" });
       setError(""); setOtp(["","","","","",""]);
       otpRefs.current[0]?.focus();
     } catch (err: unknown) {
