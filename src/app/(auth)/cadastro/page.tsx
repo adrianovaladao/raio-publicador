@@ -81,7 +81,13 @@ function CadastroInner() {
       const firstName = parts[0];
       const lastName = parts.slice(1).join(" ");
       const su = await signUp.create({ emailAddress: email, password, firstName, lastName });
-      await su.prepareVerification({ strategy: "email_code" });
+      console.log("[cadastro] su keys:", Object.keys(su ?? {}));
+      console.log("[cadastro] su.prepareVerification:", typeof (su as Record<string, unknown>)?.prepareVerification);
+      console.log("[cadastro] su.prepareEmailAddressVerification:", typeof (su as Record<string, unknown>)?.prepareEmailAddressVerification);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const prepareFn = (su as any)?.prepareVerification ?? (su as any)?.prepareEmailAddressVerification ?? signUp?.prepareVerification ?? signUp?.prepareEmailAddressVerification;
+      if (!prepareFn) throw new Error("Clerk: método prepareVerification não encontrado no objeto su");
+      await prepareFn.call(su, { strategy: "email_code" });
       clerkSuRef.current = su;
       setStep("verify");
     } catch (err: unknown) {
