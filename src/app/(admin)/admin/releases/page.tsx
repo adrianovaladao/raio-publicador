@@ -78,16 +78,6 @@ function extractImages(html: string): string[] {
   return matches.map(m => m[1]);
 }
 
-const FILTER_OPTIONS = [
-  { id: "all", label: "Todos" },
-  { id: "SCHEDULED", label: "Agendados" },
-  { id: "NEEDS_REVISION", label: "Precisa revisão" },
-  { id: "IN_PUBLICATION", label: "Em publicação" },
-  { id: "PUBLISHED", label: "Publicados" },
-  { id: "REJECTED", label: "Reprovados" },
-  { id: "DRAFT", label: "Rascunhos" },
-];
-
 // ── Painel de ações ───────────────────────────────────────────────────────────
 function ReleaseActions({ release, onSaved, onDeleted }: {
   release: ReleaseRow;
@@ -397,16 +387,12 @@ export default function AdminReleasesPage() {
 
   const [releases, setReleases] = useState<ReleaseRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("all");
+  const [tab, setTab] = useState<"queue" | "published">("queue");
   const [q, setQ] = useState("");
-  const [sort, setSort] = useState("scheduledAt");
-  const resetPage = () => setPage(1);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [bulkConfirm, setBulkConfirm] = useState(false);
-  const [page, setPage] = useState(1);
-  const PAGE_SIZE = 20;
 
   const load = useCallback(() => {
     setLoading(true);
@@ -450,28 +436,99 @@ export default function AdminReleasesPage() {
     </div>
   );
 
-  const counts = Object.fromEntries(FILTER_OPTIONS.map(f => [
-    f.id, f.id === "all" ? releases.length : releases.filter(r => r.status === f.id).length
-  ]));
+  const MONTHS = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
+  const todayStr = new Date().toDateString();
 
-  let list = filter === "all" ? releases : releases.filter(r => r.status === filter);
-  if (q.trim()) list = list.filter(r =>
-    (r.title + r.author.name + r.author.email + (r.brand?.name ?? "")).toLowerCase().includes(q.toLowerCase())
-  );
-  list = [...list].sort((a, b) => {
-    const getVal = (r: ReleaseRow) => {
-      if (sort === "scheduledAt") return new Date(r.scheduledAt ?? r.createdAt).getTime();
-      if (sort === "publishedAt") return new Date(r.publishedAt ?? "1970").getTime();
-      if (sort === "createdAt") return new Date(r.createdAt).getTime();
-      return new Date(r.scheduledAt ?? r.createdAt).getTime();
-    };
-    return getVal(a) - getVal(b);
-  });
-  const totalPages = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
-  const safePage = Math.min(page, totalPages);
-  const pageList = list.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+  function dateKey(iso: string | null, fallback: string) {
+    const d = new Date(iso ?? fallback);
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  }
 
+  function dateLabel(key: string) {
+    const [y, m, d] = key.split("-").map(Number);
+    const date = new Date(y, m - 1, d);
+    const base = `${d} de ${MONTHS[m-1]} de ${y}`;
+    return date.toDateString() === todayStr ? `Hoje — ${base}` : base;
+  }
+
+  function groupByDate<T>(items: T[], keyFn: (item: T) => string): { key: string; label: string; items: T[] }[] {
+    const map = new Map<string, T[]>();
+    for (const item of items) {
+      const k = keyFn(item);
+      if (!map.has(k)) map.set(k, []);
+      map.get(k)!.push(item);
+    }
+    return Array.from(map.entries()).map(([key, items]) => ({ key, label: dateLabel(key), items }));
+  }
+
+  const searchFilter = (r: ReleaseRow) =>
+    !q.trim() || (r.title + r.author.name + r.author.email + (r.brand?.name ?? "")).toLowerCase().includes(q.toLowerCase());
+
+  const queueReleases = releases
+    .filter(r => r.status !== "PUBLISHED" && r.status !== "CANCELLED")
+    .filter(searchFilter)
+    .sort((a, b) => new Date(a.scheduledAt ?? a.createdAt).getTime() - new Date(b.scheduledAt ?? b.createdAt).getTime());
+
+  const publishedReleases = releases
+    .filter(r => r.status === "PUBLISHED")
+    .filter(searchFilter)
+    .sort((a, b) => new Date(b.publishedAt ?? b.createdAt).getTime() - new Date(a.publishedAt ?? a.createdAt).getTime());
+
+  const queueGroups = groupByDate(queueReleases, r => dateKey(r.scheduledAt, r.createdAt));
+  const publishedGroups = groupByDate(publishedReleases, r => dateKey(r.publishedAt, r.createdAt));
+
+  const activeList = tab === "queue" ? queueReleases : publishedReleases;
   const needsAction = releases.filter(r => ["SCHEDULED", "IN_PUBLICATION"].includes(r.status)).length;
+
+  function ReleaseCard({ r }: { r: ReleaseRow }) {
+    const isExpanded = expanded === r.id;
+    return (
+      <div key={r.id} className="card" style={{ padding: 0, overflow: "hidden" }}>
+        <div
+          style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 20px", cursor: "pointer" }}
+          onClick={() => setExpanded(isExpanded ? null : r.id)}
+        >
+          <input
+            type="checkbox"
+            checked={selected.has(r.id)}
+            onClick={e => toggleSelect(r.id, e)}
+            onChange={() => {}}
+            style={{ width: 15, height: 15, flexShrink: 0, cursor: "pointer" }}
+          />
+          {r.imageUrl && (
+            <img src={r.imageUrl} alt="" style={{ width: 44, height: 44, borderRadius: 6, objectFit: "cover", flexShrink: 0, border: "1px solid #eee" }} />
+          )}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 4 }}>
+              <span style={{ fontWeight: 700, fontSize: 14, color: "#1a1a1a" }}>{r.title}</span>
+              <StatusBadge status={r.status} />
+              {r.brand && (
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, color: "#555", background: "#f5f5f3", borderRadius: 99, padding: "2px 9px" }}>
+                  {r.brand.color && <span style={{ width: 8, height: 8, borderRadius: "50%", background: r.brand.color, flexShrink: 0 }} />}
+                  {r.brand.name}
+                </span>
+              )}
+            </div>
+            <div style={{ fontSize: 12, color: "#999", display: "flex", gap: 14, flexWrap: "wrap", alignItems: "center" }}>
+              <span style={{ fontWeight: 500, color: "#555" }}>{r.author.name}</span>
+              <span>{r.author.email}</span>
+              <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                <Clock size={11} /> {fmtDate(r.scheduledAt ?? r.createdAt)}
+              </span>
+              <span>{r.vehicleNames.length} veículo{r.vehicleNames.length !== 1 ? "s" : ""}</span>
+              <span style={{ fontFamily: "var(--mono)", fontSize: 11, color: "#bbb" }}>{r.shortId}</span>
+            </div>
+          </div>
+          <ChevronDown size={16} style={{ color: "#bbb", flexShrink: 0, transform: isExpanded ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
+        </div>
+        {isExpanded && (
+          <ReleaseActions release={r} onSaved={() => load()} onDeleted={() => { setExpanded(null); load(); }} />
+        )}
+      </div>
+    );
+  }
+
+  const activeGroups = tab === "queue" ? queueGroups : publishedGroups;
 
   return (
     <div className="content scroll">
@@ -490,24 +547,37 @@ export default function AdminReleasesPage() {
           )}
         </div>
 
-        {/* Toolbar */}
-        <div className="toolbar" style={{ flexWrap: "wrap", gap: 10 }}>
-          <div className="chips" style={{ flexWrap: "wrap" }}>
-            {FILTER_OPTIONS.map(f => (
-              <button key={f.id} className={`chip${filter === f.id ? " active" : ""}`} onClick={() => { setFilter(f.id); resetPage(); }}>
-                {f.label} <span className="ct">{counts[f.id]}</span>
+        {/* Tabs + toolbar */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 4, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: 2, background: "#f0f0ee", borderRadius: 10, padding: 3 }}>
+            {([["queue", "Fila de publicação", queueReleases.length], ["published", "Publicados", publishedReleases.length]] as const).map(([t, label, count]) => (
+              <button
+                key={t}
+                onClick={() => { setTab(t); setSelected(new Set()); }}
+                style={{
+                  padding: "7px 18px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600,
+                  background: tab === t ? "#fff" : "transparent",
+                  color: tab === t ? "#1a1a1a" : "#888",
+                  boxShadow: tab === t ? "0 1px 4px rgba(0,0,0,0.08)" : "none",
+                  transition: "all 0.15s",
+                  display: "flex", alignItems: "center", gap: 7,
+                }}
+              >
+                {label}
+                <span style={{ fontSize: 11, fontWeight: 700, background: tab === t ? "#f0f0ee" : "#e8e8e8", borderRadius: 99, padding: "1px 7px", color: "#555" }}>{count}</span>
               </button>
             ))}
           </div>
-          <div style={{ display: "flex", gap: 8, alignItems: "center", marginLeft: "auto" }}>
-            {list.length > 0 && (
+
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            {activeList.length > 0 && (
               <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#555", cursor: "pointer", userSelect: "none" }}>
                 <input
                   type="checkbox"
-                  checked={list.length > 0 && list.every(r => selected.has(r.id))}
-                  ref={el => { if (el) el.indeterminate = selected.size > 0 && !list.every(r => selected.has(r.id)); }}
+                  checked={activeList.every(r => selected.has(r.id))}
+                  ref={el => { if (el) el.indeterminate = selected.size > 0 && !activeList.every(r => selected.has(r.id)); }}
                   onChange={e => {
-                    if (e.target.checked) setSelected(new Set(list.map(r => r.id)));
+                    if (e.target.checked) setSelected(new Set(activeList.map(r => r.id)));
                     else setSelected(new Set());
                   }}
                   style={{ width: 15, height: 15 }}
@@ -516,11 +586,7 @@ export default function AdminReleasesPage() {
               </label>
             )}
             {selected.size > 0 && !bulkConfirm && (
-              <button
-                onClick={() => setBulkConfirm(true)}
-                className="btn btn-sm"
-                style={{ background: "#FEF2F2", color: "#D94F4F", border: "1.5px solid #FECACA", display: "flex", alignItems: "center", gap: 6 }}
-              >
+              <button onClick={() => setBulkConfirm(true)} className="btn btn-sm" style={{ background: "#FEF2F2", color: "#D94F4F", border: "1.5px solid #FECACA", display: "flex", alignItems: "center", gap: 6 }}>
                 <Trash2 size={13} /> Excluir {selected.size}
               </button>
             )}
@@ -533,21 +599,11 @@ export default function AdminReleasesPage() {
                 </button>
               </div>
             )}
-            <select
-              value={sort}
-              onChange={e => { setSort(e.target.value); resetPage(); }}
-              className="input"
-              style={{ padding: "8px 12px", fontSize: 13, width: "auto" }}
-            >
-              <option value="scheduledAt">Fila (agendamento ↑)</option>
-              <option value="publishedAt">Publicação ↑</option>
-              <option value="createdAt">Criação ↑</option>
-            </select>
             <input
               className="input"
               placeholder="Buscar…"
               value={q}
-              onChange={e => { setQ(e.target.value); resetPage(); }}
+              onChange={e => setQ(e.target.value)}
               style={{ width: 200, padding: "8px 14px", fontSize: 13 }}
             />
           </div>
@@ -555,125 +611,25 @@ export default function AdminReleasesPage() {
 
         {loading ? (
           <div className="card empty"><div className="muted">Carregando releases…</div></div>
-        ) : list.length === 0 ? (
+        ) : activeGroups.length === 0 ? (
           <div className="card empty">
             <FileText size={34} />
-            <div className="t">Nenhum release encontrado</div>
+            <div className="t">{tab === "queue" ? "Nenhum release na fila" : "Nenhum release publicado"}</div>
           </div>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 8, paddingBottom: 32 }}>
-            {pageList.map(r => {
-              const isExpanded = expanded === r.id;
-              return (
-                <div key={r.id} className="card" style={{ padding: 0, overflow: "hidden" }}>
-                  <div
-                    style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 20px", cursor: "pointer" }}
-                    onClick={() => setExpanded(isExpanded ? null : r.id)}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selected.has(r.id)}
-                      onClick={e => toggleSelect(r.id, e)}
-                      onChange={() => {}}
-                      style={{ width: 15, height: 15, flexShrink: 0, cursor: "pointer" }}
-                    />
-                    {r.imageUrl && (
-                      <img src={r.imageUrl} alt="" style={{ width: 44, height: 44, borderRadius: 6, objectFit: "cover", flexShrink: 0, border: "1px solid #eee" }} />
-                    )}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 4 }}>
-                        <span style={{ fontWeight: 700, fontSize: 14, color: "#1a1a1a" }}>{r.title}</span>
-                        <StatusBadge status={r.status} />
-                        {r.brand && (
-                          <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, color: "#555", background: "#f5f5f3", borderRadius: 99, padding: "2px 9px" }}>
-                            {r.brand.color && <span style={{ width: 8, height: 8, borderRadius: "50%", background: r.brand.color, flexShrink: 0 }} />}
-                            {r.brand.name}
-                          </span>
-                        )}
-                      </div>
-                      <div style={{ fontSize: 12, color: "#999", display: "flex", gap: 14, flexWrap: "wrap", alignItems: "center" }}>
-                        <span style={{ fontWeight: 500, color: "#555" }}>{r.author.name}</span>
-                        <span>{r.author.email}</span>
-                        <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                          <Clock size={11} /> {fmtDate(r.scheduledAt ?? r.createdAt)}
-                        </span>
-                        <span>{r.vehicleNames.length} veículo{r.vehicleNames.length !== 1 ? "s" : ""}</span>
-                        <span style={{ fontFamily: "var(--mono)", fontSize: 11, color: "#bbb" }}>{r.shortId}</span>
-                      </div>
-                    </div>
-                    <ChevronDown
-                      size={16}
-                      style={{ color: "#bbb", flexShrink: 0, transform: isExpanded ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}
-                    />
-                  </div>
-
-                  {isExpanded && (
-                    <ReleaseActions
-                      release={r}
-                      onSaved={() => { load(); }}
-                      onDeleted={() => { setExpanded(null); load(); }}
-                    />
-                  )}
+          <div style={{ display: "flex", flexDirection: "column", gap: 28, paddingBottom: 48 }}>
+            {activeGroups.map(group => (
+              <div key={group.key}>
+                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: "#1a1a1a" }}>{group.label}</span>
+                  <span style={{ fontSize: 12, color: "#aaa" }}>{group.items.length} release{group.items.length !== 1 ? "s" : ""}</span>
+                  <div style={{ flex: 1, height: 1, background: "#ebebeb" }} />
                 </div>
-              );
-            })}
-
-            {/* Paginação */}
-            {totalPages > 1 && (
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 4px 8px", borderTop: "1px solid #f0f0f0", marginTop: 8 }}>
-                <span style={{ fontSize: 13, color: "#888" }}>
-                  {list.length} release{list.length !== 1 ? "s" : ""} · página {safePage} de {totalPages}
-                </span>
-                <div style={{ display: "flex", gap: 6 }}>
-                  <button
-                    onClick={() => setPage(1)}
-                    disabled={safePage === 1}
-                    className="btn btn-ghost btn-sm"
-                    style={{ fontSize: 12, opacity: safePage === 1 ? 0.4 : 1 }}
-                  >«</button>
-                  <button
-                    onClick={() => setPage(p => Math.max(1, p - 1))}
-                    disabled={safePage === 1}
-                    className="btn btn-ghost btn-sm"
-                    style={{ fontSize: 13, opacity: safePage === 1 ? 0.4 : 1 }}
-                  >Anterior</button>
-                  {Array.from({ length: totalPages }, (_, i) => i + 1)
-                    .filter(p => p === 1 || p === totalPages || Math.abs(p - safePage) <= 1)
-                    .reduce<(number | "…")[]>((acc, p, i, arr) => {
-                      if (i > 0 && p - (arr[i - 1] as number) > 1) acc.push("…");
-                      acc.push(p);
-                      return acc;
-                    }, [])
-                    .map((p, i) => p === "…"
-                      ? <span key={`ellipsis-${i}`} style={{ fontSize: 13, color: "#bbb", padding: "0 4px" }}>…</span>
-                      : <button
-                          key={p}
-                          onClick={() => setPage(p as number)}
-                          className="btn btn-sm"
-                          style={{
-                            fontSize: 13, minWidth: 32,
-                            background: safePage === p ? "#1a1a1a" : "transparent",
-                            color: safePage === p ? "#fff" : "#555",
-                            border: safePage === p ? "none" : "1.5px solid #e0e0e0",
-                          }}
-                        >{p}</button>
-                    )
-                  }
-                  <button
-                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                    disabled={safePage === totalPages}
-                    className="btn btn-ghost btn-sm"
-                    style={{ fontSize: 13, opacity: safePage === totalPages ? 0.4 : 1 }}
-                  >Próxima</button>
-                  <button
-                    onClick={() => setPage(totalPages)}
-                    disabled={safePage === totalPages}
-                    className="btn btn-ghost btn-sm"
-                    style={{ fontSize: 12, opacity: safePage === totalPages ? 0.4 : 1 }}
-                  >»</button>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {group.items.map(r => <ReleaseCard key={r.id} r={r} />)}
                 </div>
               </div>
-            )}
+            ))}
           </div>
         )}
       </div>
