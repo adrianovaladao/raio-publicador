@@ -231,6 +231,7 @@ function CancelFlow({ plan, email, periodEnd, periodStart, isCancelled, onDone, 
   const [reactivating, setReactivating] = useState(false);
   const [applyingRetention, setApplyingRetention] = useState(false);
   const [retentionDone, setRetentionDone] = useState(false);
+  const [wasRefunded, setWasRefunded] = useState(false);
   const [err, setErr] = useState("");
 
   const daysSincePeriodStart = periodStart
@@ -298,6 +299,7 @@ function CancelFlow({ plan, email, periodEnd, periodStart, isCancelled, onDone, 
       const res = await fetch("/api/stripe/cancel", { method: "POST" });
       if (!res.ok) throw new Error("Erro ao cancelar");
       const data = await res.json() as { refunded?: boolean };
+      setWasRefunded(data.refunded ?? false);
       setStep("done");
       onDone(data.refunded ?? false);
     } catch {
@@ -310,10 +312,13 @@ function CancelFlow({ plan, email, periodEnd, periodStart, isCancelled, onDone, 
   if (step === "done") {
     return (
       <div style={{ textAlign: "center", padding: "28px 0 8px" }}>
-        <div style={{ fontSize: 40, marginBottom: 12 }}>😔</div>
+        <div style={{ fontSize: 40, marginBottom: 12 }}>{wasRefunded ? "✅" : "😔"}</div>
         <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 6 }}>Assinatura cancelada</div>
         <div style={{ fontSize: 13, color: "var(--stone)", maxWidth: 380, margin: "0 auto" }}>
-          Seu acesso permanece ativo até <b>{periodEndFmt}</b>. Use seus créditos até lá — eles não serão reembolsados.
+          {wasRefunded
+            ? <>O reembolso integral foi processado e será creditado em seu cartão em até 10 dias úteis. Seus dados foram removidos da plataforma.</>
+            : <>Seu acesso permanece ativo até <b>{periodEndFmt}</b>. Use seus créditos até lá — eles não serão reembolsados.</>
+          }
         </div>
       </div>
     );

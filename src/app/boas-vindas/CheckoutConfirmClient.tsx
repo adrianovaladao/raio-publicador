@@ -158,9 +158,14 @@ export default function CheckoutConfirmClient({ initialPlanId, allPlans }: Props
                   </button>
 
                   <button onClick={() => setFlipped(true)}
-                    style={{ background: "none", border: "none", fontSize: 13.5, color: "var(--tx-3)", cursor: "pointer", padding: "4px 8px" }}>
+                    style={{ background: "none", border: "none", fontSize: 13.5, color: "var(--tx-3)", cursor: "pointer", padding: "4px 8px", marginBottom: 20 }}>
                     Mudar de plano
                   </button>
+
+                  <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: 16, fontSize: 12, color: "var(--tx-3)", lineHeight: 1.6, textAlign: "left" }}>
+                    <b style={{ color: "var(--tx-2)" }}>Política de cancelamento (Art. 49, CDC):</b>{" "}
+                    Se cancelar em até 7 dias sem utilizar créditos, você recebe reembolso integral e seus dados são removidos. Após 7 dias ou com créditos utilizados, o acesso permanece até o fim do ciclo sem reembolso.
+                  </div>
                 </div>
 
                 {/* ── VERSO: escolha de plano ── */}

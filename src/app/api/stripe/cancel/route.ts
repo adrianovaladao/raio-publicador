@@ -22,14 +22,24 @@ export async function POST() {
     : Infinity;
   const eligibleForRefund = daysSincePeriodStart <= REFUND_WINDOW_DAYS;
 
+  const creditsUsed = sub.creditsUsed ?? 0;
+  const eligibleForRefund = daysSincePeriodStart <= REFUND_WINDOW_DAYS && creditsUsed === 0;
+
   if (eligibleForRefund) {
-    // Within 7-day window (Art. 49 CDC): cancel immediately + full refund
+    // Within 7-day window with no credits used (Art. 49 CDC): cancel immediately + full refund + wipe data
     const invoices = await stripe.invoices.list({ subscription: sub.stripeSubscriptionId, limit: 1 });
     const lastInvoice = invoices.data[0] as unknown as { payment_intent?: string | null };
     if (lastInvoice?.payment_intent && typeof lastInvoice.payment_intent === "string") {
       await stripe.refunds.create({ payment_intent: lastInvoice.payment_intent });
     }
     await stripe.subscriptions.cancel(sub.stripeSubscriptionId);
+
+    // Delete all user data: releases, brands, subscription
+    const brands = await prisma.brand.findMany({ where: { ownerId: userId }, select: { id: true } });
+    const brandIds = brands.map(b => b.id);
+    await prisma.release.deleteMany({ where: { brandId: { in: brandIds } } });
+    await prisma.brandMember.deleteMany({ where: { brandId: { in: brandIds } } });
+    await prisma.brand.deleteMany({ where: { ownerId: userId } });
     await prisma.subscription.update({
       where: { ownerId: userId },
       data: { status: "CANCELLED", creditsTotal: 0, creditsUsed: 0 },
