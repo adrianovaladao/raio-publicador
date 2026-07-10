@@ -16,7 +16,7 @@ import { useSearchParams } from "next/navigation";
 
 // ─── Subscription data ────────────────────────────────────────────────────────
 
-interface SubInfo { plan: string | null; label: string; priceCents: number | null; credits: number; creditsUsed: number; }
+interface SubInfo { plan: string | null; status: string | null; label: string; priceCents: number | null; credits: number; creditsUsed: number; }
 
 const APP_PLANS = [
   { id: "BASIC",        name: "Básico",       amt: "1.000", credits: "200 créditos",   feats: ["Até 2 marcas", "1 editor + 1 revisor",  "Centenas de veículos"] },
@@ -299,13 +299,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [showNewBrand, setShowNewBrand] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [releaseCount, setReleaseCount] = useState<number | null>(null);
-  const [sub, setSub] = useState<SubInfo>({ plan: null, label: "—", priceCents: null, credits: 0, creditsUsed: 0 });
+  const [sub, setSub] = useState<SubInfo>({ plan: null, status: null, label: "—", priceCents: null, credits: 0, creditsUsed: 0 });
 
   const fetchSub = useCallback(() => {
     fetch("/api/stripe/subscription")
       .then(r => r.json())
       .then((d: Partial<SubInfo>) => {
-        setSub({ plan: d.plan ?? null, label: d.label ?? "—", priceCents: d.priceCents ?? null, credits: d.credits ?? 0, creditsUsed: d.creditsUsed ?? 0 });
+        setSub({ plan: d.plan ?? null, status: d.status ?? null, label: d.label ?? "—", priceCents: d.priceCents ?? null, credits: d.credits ?? 0, creditsUsed: d.creditsUsed ?? 0 });
       })
       .catch(() => {});
   }, []);
@@ -346,6 +346,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   const pct  = sub.credits > 0 ? Math.round((sub.creditsUsed / sub.credits) * 100) : 0;
   const left = sub.credits - sub.creditsUsed;
+  const isCancelled = sub.status === "CANCELLED" || sub.status === "INACTIVE" && sub.credits === 0;
 
   return (
     <div className="app">
@@ -357,18 +358,24 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
         <div className="sb-mid scroll">
           <div style={{ padding: "16px 12px 2px" }}>
-            <Link
-              href="/releases/novo"
-              className="btn btn-primary btn-block btn-lg"
-              onClick={e => {
-                if (pathname === "/releases/novo") {
-                  e.preventDefault();
-                  window.location.href = "/releases/novo";
-                }
-              }}
-            >
-              <FileText size={17} /> Criar release
-            </Link>
+            {isCancelled ? (
+              <button className="btn btn-primary btn-block btn-lg" disabled title="Assine um plano para criar releases">
+                <FileText size={17} /> Criar release
+              </button>
+            ) : (
+              <Link
+                href="/releases/novo"
+                className="btn btn-primary btn-block btn-lg"
+                onClick={e => {
+                  if (pathname === "/releases/novo") {
+                    e.preventDefault();
+                    window.location.href = "/releases/novo";
+                  }
+                }}
+              >
+                <FileText size={17} /> Criar release
+              </Link>
+            )}
           </div>
 
           <div className="sb-section">Navegação</div>
@@ -376,6 +383,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             {NAV_ITEMS.map(({ href, icon: Icon, label }) => {
               const active = pathname === href || pathname.startsWith(href + "/");
               const badge = href === "/releases" && releaseCount ? String(releaseCount) : null;
+              if (isCancelled) return (
+                <span key={href} className="sb-item" style={{ opacity: 0.35, cursor: "not-allowed", pointerEvents: "none" }}>
+                  <Icon size={18} /><span>{label}</span>
+                </span>
+              );
               return (
                 <Link key={href} href={href} className={`sb-item${active ? " active" : ""}`}>
                   <Icon size={18} />

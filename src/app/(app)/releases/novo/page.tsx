@@ -40,7 +40,7 @@ const TIER_FG_MAP:     Record<string, string> = { A: "#fff",    B: "#fff",    C:
 
 type VehSortCol = "name" | "tier" | "reach" | "tokens";
 type VehSortDir = "asc" | "desc";
-type SubInfo = { credits: number; creditsUsed: number; plan?: string | null; brandsLimit?: number | null };
+type SubInfo = { credits: number; creditsUsed: number; plan?: string | null; brandsLimit?: number | null; status?: string | null };
 
 
 const BRAND_COLORS = ["#C25E00","#2A6FDB","#2F8A5B","#6D3BD9","#0E7C86","#B0322E","#8A6500","#1A1A1A"];
@@ -198,13 +198,14 @@ function NewBrandModal({ onClose, onCreate, onLimitReached }: { onClose: () => v
   );
 }
 
-function StepBrand({ selected, onSelect, brands, brandsLimit, onAddBrand, onLimitReached }: {
+function StepBrand({ selected, onSelect, brands, brandsLimit, onAddBrand, onLimitReached, isCancelled }: {
   selected: Brand | null;
   onSelect: (b: Brand) => void;
   brands: Brand[];
   brandsLimit?: number | null;
   onAddBrand: (b: Brand) => void;
   onLimitReached?: () => void;
+  isCancelled?: boolean;
 }) {
   const [mode, setMode] = useState<"grid" | "list">("grid");
   const [q, setQ] = useState("");
@@ -284,14 +285,14 @@ function StepBrand({ selected, onSelect, brands, brandsLimit, onAddBrand, onLimi
           ))}
 
           {/* Card "Nova marca" */}
-          <div
+          {!isCancelled && <div
             className="lib-card-new"
             onClick={handleNewBrand}
           >
             <div className="lib-card-new-icon"><Plus size={22} /></div>
             <div className="lib-card-new-label">Nova marca</div>
             <div className="lib-card-new-sub">CADASTRAR CLIENTE</div>
-          </div>
+          </div>}
         </div>
       )}
 
@@ -327,7 +328,7 @@ function StepBrand({ selected, onSelect, brands, brandsLimit, onAddBrand, onLimi
                 </tr>
               ))}
               {/* Linha "Nova marca" */}
-              <tr style={{ cursor: "pointer", background: "var(--cream)" }} onClick={handleNewBrand}>
+              {!isCancelled && <tr style={{ cursor: "pointer", background: "var(--cream)" }} onClick={handleNewBrand}>
                 <td style={{ display: "flex", alignItems: "center", gap: 10, color: "var(--stone)" }}>
                   <div style={{ width: 28, height: 28, borderRadius: 8, border: "1.5px dashed var(--sand)", display: "grid", placeItems: "center", flex: "none" }}>
                     <Plus size={14} color="var(--stone)" />
@@ -337,7 +338,7 @@ function StepBrand({ selected, onSelect, brands, brandsLimit, onAddBrand, onLimi
                 <td className="muted" style={{ fontSize: 12, fontFamily: "var(--mono)", letterSpacing: "0.08em", textTransform: "uppercase" }}>Cadastrar cliente</td>
                 <td />
                 <td />
-              </tr>
+              </tr>}
             </tbody>
           </table>
         </div>
@@ -1361,7 +1362,7 @@ export default function NovoReleasePage() {
   const [sub, setSub] = useState<SubInfo>({ credits: 0, creditsUsed: 0 });
   const refreshSub = () => {
     fetch("/api/stripe/subscription").then(r => r.json()).then((d: SubInfo) => {
-      if (d.credits != null) setSub({ credits: d.credits, creditsUsed: d.creditsUsed ?? 0, plan: d.plan, brandsLimit: d.brandsLimit });
+      if (d.credits != null) setSub({ credits: d.credits, creditsUsed: d.creditsUsed ?? 0, plan: d.plan, brandsLimit: d.brandsLimit, status: d.status });
     }).catch(() => {});
   };
   useEffect(() => { refreshSub(); }, []);
@@ -1643,7 +1644,7 @@ export default function NovoReleasePage() {
           </div>
         </div>
 
-        {step === 0 && <StepBrand selected={brand} onSelect={setBrand} brands={brands} brandsLimit={sub.brandsLimit} onAddBrand={b => setBrands(prev => [...prev, b])} onLimitReached={() => setShowUpgradeModal(true)} />}
+        {step === 0 && <StepBrand selected={brand} onSelect={setBrand} brands={brands} brandsLimit={sub.brandsLimit} onAddBrand={b => setBrands(prev => [...prev, b])} onLimitReached={() => setShowUpgradeModal(true)} isCancelled={sub.status === "CANCELLED"} />}
         {step === 1 && <StepContent content={content} setContent={setContent} brand={brand} ownerName={ownerName} onAIUsed={refreshSub} />}
         {step === 2 && <StepVehicles selected={selected} setSelected={setSelected} vehicles={vehicles} sub={sub} onBuyCredits={() => { try { sessionStorage.setItem("raio_draft_vehicles", JSON.stringify(selected)); sessionStorage.setItem("raio_draft_brand", JSON.stringify(brand)); } catch { /* ignore */ } setShowBuyCreditsModal(true); }} onUpgrade={() => { try { sessionStorage.setItem("raio_draft_vehicles", JSON.stringify(selected)); sessionStorage.setItem("raio_draft_brand", JSON.stringify(brand)); } catch { /* ignore */ } setShowUpgradeModal(true); }} />}
         {step === 3 && <StepReview content={content} selected={selected} when={when} setWhen={setWhen} brand={brand} onSaveDraft={autosave} vehicles={vehicles} />}

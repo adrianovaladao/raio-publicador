@@ -23,6 +23,9 @@ export async function POST(req: Request) {
     const prisma = getPrisma();
 
     const sub = await prisma.subscription.findUnique({ where: { ownerId: userId } });
+    if (!sub || sub.status === "CANCELLED" || (sub.status === "INACTIVE" && sub.creditsTotal === 0)) {
+      return NextResponse.json({ error: "Assinatura inativa. Assine um plano para criar marcas." }, { status: 403 });
+    }
     const plan = sub ? PLANS[sub.plan as keyof typeof PLANS] : null;
     if (plan) {
       const count = await prisma.brand.count({ where: { ownerId: userId } });

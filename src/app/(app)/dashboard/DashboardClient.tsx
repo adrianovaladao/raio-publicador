@@ -430,15 +430,16 @@ export default function DashboardPage() {
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [brandsLimit, setBrandsLimit] = useState<number | null>(null);
   const [currentPlan, setCurrentPlan] = useState<string | null>(null);
-
+  const [subStatus, setSubStatus] = useState<string | null>(null);
   const [creditsLeft, setCreditsLeft] = useState<number | null>(null);
 
   useEffect(() => {
     fetch("/api/stripe/subscription")
       .then(r => r.json())
-      .then((d: { brandsLimit?: number | null; plan?: string | null; credits?: number; creditsUsed?: number }) => {
+      .then((d: { brandsLimit?: number | null; plan?: string | null; status?: string | null; credits?: number; creditsUsed?: number }) => {
         setBrandsLimit(d.brandsLimit ?? null);
         setCurrentPlan(d.plan ?? null);
+        setSubStatus(d.status ?? null);
         if (d.credits != null) setCreditsLeft((d.credits ?? 0) - (d.creditsUsed ?? 0));
       })
       .catch(() => {});
@@ -498,7 +499,7 @@ export default function DashboardPage() {
             </p>
           </div>
           <div className="actions">
-            {hasBrands && <DashBrandSwitcher brands={brands} brandsLimit={brandsLimit} onNewBrand={() => setShowNew(true)} onUpgrade={() => setShowUpgrade(true)} />}
+            {hasBrands && <DashBrandSwitcher brands={brands} brandsLimit={brandsLimit} onNewBrand={() => { if (subStatus !== "CANCELLED") setShowNew(true); }} onUpgrade={() => setShowUpgrade(true)} />}
           </div>
         </div>
 
