@@ -324,7 +324,7 @@ function NewBrandModal({ onClose, onSave }: { onClose: () => void; onSave: () =>
 
 // ── BrandSwitcher ─────────────────────────────────────────────────────────────
 
-function DashBrandSwitcher({ brands, brandsLimit, onNewBrand, onUpgrade }: { brands: Brand[]; brandsLimit: number | null; onNewBrand: () => void; onUpgrade: () => void }) {
+function DashBrandSwitcher({ brands, brandsLimit, onNewBrand, onUpgrade, isCancelled }: { brands: Brand[]; brandsLimit: number | null; onNewBrand: () => void; onUpgrade: () => void; isCancelled?: boolean }) {
   const [open, setOpen] = useState(false);
   const [activeIdx, setActiveIdx] = useState(0);
 
@@ -359,11 +359,15 @@ function DashBrandSwitcher({ brands, brandsLimit, onNewBrand, onUpgrade }: { bra
             ))}
             <button
               className="tbb-opt tbb-new"
+              disabled={isCancelled}
               onClick={() => {
+                if (isCancelled) return;
                 setOpen(false);
                 if (brandsLimit !== null && brands.length >= brandsLimit) onUpgrade();
                 else onNewBrand();
               }}
+              style={isCancelled ? { opacity: 0.4, cursor: "not-allowed" } : undefined}
+              title={isCancelled ? "Reative sua assinatura para criar marcas" : undefined}
             >
               <span className="tbb-av" style={{ background: "var(--line)", color: "var(--tx-3)" }}><Plus size={14} /></span>
               <span className="tbb-opt-meta">
@@ -499,7 +503,7 @@ export default function DashboardPage() {
             </p>
           </div>
           <div className="actions">
-            {hasBrands && <DashBrandSwitcher brands={brands} brandsLimit={brandsLimit} onNewBrand={() => { if (subStatus !== "CANCELLED") setShowNew(true); }} onUpgrade={() => setShowUpgrade(true)} />}
+            {hasBrands && <DashBrandSwitcher brands={brands} brandsLimit={brandsLimit} isCancelled={subStatus === "CANCELLED"} onNewBrand={() => setShowNew(true)} onUpgrade={() => setShowUpgrade(true)} />}
           </div>
         </div>
 

@@ -448,3 +448,36 @@ export async function sendInviteAcceptedEmail(
 
   return getResend().emails.send({ from: FROM, to, subject: `${inviteeName} aceitou o convite — Raio`, html });
 }
+
+export async function sendCancellationEmail(
+  to: string,
+  firstName: string,
+  refunded: boolean,
+  periodEnd: Date | null,
+  planLabel: string,
+) {
+  if (refunded) {
+    const html = base(`
+      ${h1("Assinatura cancelada e reembolso processado")}
+      ${p(`Olá, ${firstName}.`)}
+      ${p(`Sua assinatura do plano <strong>${planLabel}</strong> foi cancelada com sucesso dentro do prazo de 7 dias (Art. 49 do CDC).`)}
+      ${p("O reembolso integral foi processado e será creditado em seu cartão em até 10 dias úteis. Seus dados (marcas e releases) foram removidos da plataforma.")}
+      ${p("Se mudar de ideia, você pode assinar novamente a qualquer momento.")}
+      ${btn("Voltar ao Raio", APP_URL)}
+    `);
+    return getResend().emails.send({ from: FROM, to, subject: "Assinatura cancelada e reembolso processado — Raio", html });
+  } else {
+    const until = periodEnd
+      ? periodEnd.toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })
+      : "o fim do ciclo atual";
+    const html = base(`
+      ${h1("Assinatura cancelada")}
+      ${p(`Olá, ${firstName}.`)}
+      ${p(`Sua assinatura do plano <strong>${planLabel}</strong> foi cancelada. Seu acesso permanece ativo até <strong>${until}</strong>.`)}
+      ${p("Use seus créditos restantes até essa data — eles não serão reembolsados.")}
+      ${p("Se mudar de ideia, você pode reativar sua assinatura a qualquer momento.")}
+      ${btn("Gerenciar assinatura", `${APP_URL}/configuracoes`)}
+    `);
+    return getResend().emails.send({ from: FROM, to, subject: "Assinatura cancelada — Raio", html });
+  }
+}

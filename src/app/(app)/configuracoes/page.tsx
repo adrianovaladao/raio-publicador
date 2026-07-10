@@ -821,7 +821,7 @@ function ConfirmModal({ message, onConfirm, onCancel }: { message: string; onCon
 
 interface MemberRow { id: string; name: string; email: string; role: string; status: string }
 
-function EquipePanel({ onToast }: { onToast: (m: string) => void }) {
+function EquipePanel({ onToast, isCancelled }: { onToast: (m: string) => void; isCancelled?: boolean }) {
   const { user } = useUser();
   const [showInvite, setShowInvite] = useState(false);
   const [invites, setInvites] = useState<InviteRow[]>([]);
@@ -875,7 +875,12 @@ function EquipePanel({ onToast }: { onToast: (m: string) => void }) {
   return (
     <div className="set-panel">
       <PanelHead title="Equipe e <em>permissões</em>" desc="Convide pessoas e defina o que cada uma pode fazer."
-        action={<button className="btn btn-primary" onClick={() => setShowInvite(true)}><Plus size={16} /> Convidar</button>} />
+        action={
+          <button className="btn btn-primary" onClick={() => !isCancelled && setShowInvite(true)} disabled={isCancelled}
+            title={isCancelled ? "Reative sua assinatura para convidar pessoas" : undefined}>
+            <Plus size={16} /> Convidar
+          </button>
+        } />
 
       <div className="roles-legend">
         {Object.entries(ROLES).map(([k, r]) => (
@@ -1223,7 +1228,7 @@ function BrandFormModal({ brand, onClose, onSaved }: {
   );
 }
 
-function MarcasPanel({ onToast }: { onToast: (m: string) => void }) {
+function MarcasPanel({ onToast, isCancelled }: { onToast: (m: string) => void; isCancelled?: boolean }) {
   const [brands,       setBrands]       = useState<Brand[]>([]);
   const [loading,      setLoading]      = useState(true);
   const [editing,      setEditing]      = useState<Brand | null>(null);
@@ -1274,7 +1279,12 @@ function MarcasPanel({ onToast }: { onToast: (m: string) => void }) {
         title="Suas <em>marcas</em>"
         desc={brandsLimit ? `${brands.length} de ${brandsLimit} marcas utilizadas no seu plano.` : "Clique em uma marca para editar seus dados."}
         action={
-          <button className={`btn ${atLimit ? "btn-ghost" : "btn-primary"}`} onClick={handleNewClick}>
+          <button
+            className={`btn ${atLimit || isCancelled ? "btn-ghost" : "btn-primary"}`}
+            onClick={() => !isCancelled && handleNewClick()}
+            disabled={isCancelled}
+            title={isCancelled ? "Reative sua assinatura para criar marcas" : undefined}
+          >
             <Plus size={16} /> Nova marca
           </button>
         }
@@ -1298,7 +1308,7 @@ function MarcasPanel({ onToast }: { onToast: (m: string) => void }) {
             </thead>
             <tbody>
               {brands.map(b => (
-                <tr key={b.id} style={{ cursor: "pointer" }} onClick={() => setEditing(b)}>
+                <tr key={b.id} style={{ cursor: isCancelled ? "default" : "pointer" }} onClick={() => !isCancelled && setEditing(b)}>
                   <td className="title-cell" style={{ display: "flex", alignItems: "center", gap: 10 }}>
                     <BrandAv name={b.name} color={b.color} logoUrl={b.logoUrl} size={32} />
                     <span style={{ fontWeight: 600 }}>{b.name}</span>
@@ -1306,9 +1316,11 @@ function MarcasPanel({ onToast }: { onToast: (m: string) => void }) {
                   <td className="muted">{b.segment ?? "—"}</td>
                   <td className="muted" style={{ fontSize: 13 }}>{b.site ?? "—"}</td>
                   <td style={{ textAlign: "right" }}>
-                    <button className="btn btn-quiet btn-sm" onClick={e => { e.stopPropagation(); setEditing(b); }}>
-                      Editar
-                    </button>
+                    {!isCancelled && (
+                      <button className="btn btn-quiet btn-sm" onClick={e => { e.stopPropagation(); setEditing(b); }}>
+                        Editar
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -1326,13 +1338,14 @@ function MarcasPanel({ onToast }: { onToast: (m: string) => void }) {
 
 // ─── Cobrança ─────────────────────────────────────────────────────────────────
 
-function CobrancaPanel({ onToast }: { onToast: (m: string) => void }) {
+function CobrancaPanel({ onToast, isCancelled }: { onToast: (m: string) => void; isCancelled?: boolean }) {
   const [planLabel,       setPlanLabel]       = useState<string>("—");
   const [plan,            setPlan]            = useState<string>("BASIC");
   const [priceCents,      setPriceCents]      = useState<number | null>(null);
   const [credits,         setCredits]         = useState(0);
   const [creditsUsed,     setCreditsUsed]     = useState(0);
   const [showBuyCredits,  setShowBuyCredits]  = useState(false);
+  const [reactivating,    setReactivating]    = useState(false);
 
   useEffect(() => {
     fetch("/api/stripe/subscription").then(r => r.json()).then((s: { plan?: string; label?: string; priceCents?: number; credits?: number; creditsUsed?: number }) => {
@@ -1343,6 +1356,20 @@ function CobrancaPanel({ onToast }: { onToast: (m: string) => void }) {
       setCreditsUsed(s.creditsUsed ?? 0);
     }).catch(() => {});
   }, []);
+
+  async function handleReactivate() {
+    setReactivating(true);
+    try {
+      const res = await fetch("/api/stripe/reactivate", { method: "POST" });
+      if (!res.ok) throw new Error();
+      onToast("Assinatura reativada! Bem-vindo de volta.");
+      window.location.reload();
+    } catch {
+      onToast("Falha ao reativar. Tente novamente.");
+    } finally {
+      setReactivating(false);
+    }
+  }
 
   const pct  = credits > 0 ? Math.round((creditsUsed / credits) * 100) : 0;
   const left = credits - creditsUsed;
@@ -1362,8 +1389,16 @@ function CobrancaPanel({ onToast }: { onToast: (m: string) => void }) {
           <div className="bp-name">{planLabel}</div>
           <div className="bp-price">{priceStr} <span>/mês · renova em {(() => { const d = new Date(); const r = new Date(d.getFullYear(), d.getMonth()+1, 1); return `${String(r.getDate()).padStart(2,"0")}/${String(r.getMonth()+1).padStart(2,"0")}/${r.getFullYear()}`; })()}</span></div>
           <div className="row" style={{ gap: 10, marginTop: 16 }}>
-            <button className="btn btn-primary btn-sm" onClick={() => window.dispatchEvent(new Event("open-plans"))}>Mudar de plano</button>
-            <button className="btn btn-ghost btn-sm" onClick={() => setShowBuyCredits(true)}><Zap size={15} /> Comprar créditos</button>
+            {isCancelled ? (
+              <button className="btn btn-primary btn-sm" onClick={handleReactivate} disabled={reactivating}>
+                <Zap size={15} /> {reactivating ? "Reativando…" : "Reativar assinatura"}
+              </button>
+            ) : (
+              <>
+                <button className="btn btn-primary btn-sm" onClick={() => window.dispatchEvent(new Event("open-plans"))}>Mudar de plano</button>
+                <button className="btn btn-ghost btn-sm" onClick={() => setShowBuyCredits(true)}><Zap size={15} /> Comprar créditos</button>
+              </>
+            )}
           </div>
         </div>
         <div className="bp-right">
@@ -2093,8 +2128,16 @@ function ConfiguracoesInner() {
   const initialTab = searchParams.get("tab") ?? "perfil";
   const [tab, setTab] = useState(initialTab);
   const [toast, setToast] = useState<string | null>(null);
+  const [isCancelled, setIsCancelled] = useState(false);
   const { user } = useUser();
   const isRaioAdmin = user?.publicMetadata?.raioAdmin === true;
+
+  useEffect(() => {
+    fetch("/api/stripe/subscription")
+      .then(r => r.json())
+      .then((d: { status?: string }) => { setIsCancelled(d.status === "CANCELLED"); })
+      .catch(() => {});
+  }, []);
 
   const GROUPS = isRaioAdmin
     ? [...BASE_GROUPS, { label: "Raio", items: [{ id: "veiculos", icon: Rss, label: "Veículos" }] }]
@@ -2124,9 +2167,9 @@ function ConfiguracoesInner() {
           <div className="set-body">
             {tab === "perfil"   && <PerfilPanel   onToast={showToast} />}
             {tab === "conta"    && <ContaPanel    onToast={showToast} />}
-            {tab === "equipe"   && <EquipePanel   onToast={showToast} />}
-            {tab === "marcas"   && <MarcasPanel   onToast={showToast} />}
-            {tab === "cobranca" && <CobrancaPanel onToast={showToast} />}
+            {tab === "equipe"   && <EquipePanel   onToast={showToast} isCancelled={isCancelled} />}
+            {tab === "marcas"   && <MarcasPanel   onToast={showToast} isCancelled={isCancelled} />}
+            {tab === "cobranca" && <CobrancaPanel onToast={showToast} isCancelled={isCancelled} />}
             {tab === "suporte"  && <SupportPanel />}
             {tab === "veiculos" && isRaioAdmin && <VeiculosPanel onToast={showToast} />}
           </div>

@@ -3,12 +3,16 @@ import { auth } from "@clerk/nextjs/server";
 import { getStripe } from "@/lib/stripe";
 import { getPrisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { currentUser } from "@clerk/nextjs/server";
+import { sendCancellationEmail } from "@/lib/email";
+import { PLANS } from "@/lib/plans";
 
 const REFUND_WINDOW_DAYS = 7;
 
 export async function POST() {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const clerkUser = await currentUser();
 
   const prisma = getPrisma();
   const sub = await prisma.subscription.findUnique({ where: { ownerId: userId } });
@@ -43,6 +47,12 @@ export async function POST() {
       where: { ownerId: userId },
       data: { status: "CANCELLED", creditsTotal: 0, creditsUsed: 0 },
     });
+    const email = clerkUser?.emailAddresses?.[0]?.emailAddress;
+    const firstName = clerkUser?.firstName ?? "Cliente";
+    const planLabel = PLANS[sub.plan as keyof typeof PLANS]?.label ?? sub.plan;
+    if (email) {
+      await sendCancellationEmail(email, firstName, true, null, planLabel).catch(console.error);
+    }
     return NextResponse.json({ ok: true, refunded: true, periodEnd: null });
   } else {
     // After 7 days: cancel at period end, access maintained
@@ -51,6 +61,12 @@ export async function POST() {
       where: { ownerId: userId },
       data: { status: "CANCELLED" },
     });
+    const email = clerkUser?.emailAddresses?.[0]?.emailAddress;
+    const firstName = clerkUser?.firstName ?? "Cliente";
+    const planLabel = PLANS[sub.plan as keyof typeof PLANS]?.label ?? sub.plan;
+    if (email) {
+      await sendCancellationEmail(email, firstName, false, sub.currentPeriodEnd ?? null, planLabel).catch(console.error);
+    }
     return NextResponse.json({ ok: true, refunded: false, periodEnd: sub.currentPeriodEnd?.toISOString() ?? null });
   }
 }

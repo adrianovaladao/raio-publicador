@@ -93,6 +93,28 @@ export async function GET() {
     });
   }
 
+  // Fetch refunds (subscription cancellation refunds via Art. 49 CDC)
+  const refunds = await stripe.refunds.list({ limit: 100 });
+  const invoicePaymentIntents = new Set(
+    invoices.data
+      .map(inv => (inv as unknown as { payment_intent?: string }).payment_intent)
+      .filter(Boolean)
+  );
+  for (const refund of refunds.data) {
+    const pi = (refund as unknown as { payment_intent?: string }).payment_intent;
+    if (!pi || !invoicePaymentIntents.has(pi)) continue;
+    rows.push({
+      id: refund.id,
+      date: new Date(refund.created * 1000).toISOString(),
+      type: "refund",
+      description: "Reembolso de assinatura (Art. 49 CDC)",
+      amount: refund.amount,
+      currency: refund.currency,
+      status: refund.status ?? "succeeded",
+      receiptUrl: null,
+    });
+  }
+
   rows.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   return NextResponse.json(rows);
