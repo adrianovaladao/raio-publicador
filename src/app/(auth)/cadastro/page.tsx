@@ -80,12 +80,9 @@ function CadastroInner() {
       if (!signUp) { setError("Aguarde um instante e tente novamente."); return; }
       const firstName = parts[0];
       const lastName = parts.slice(1).join(" ");
-      await signUp.create({ emailAddress: email, password, firstName, lastName });
-      // After create(), access the updated signUp from window.Clerk to avoid stale closure
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const liveSignUp = (window as any).Clerk?.client?.signUp ?? signUp;
-      await liveSignUp.prepareEmailAddressVerification({ strategy: "email_code" });
-      clerkSuRef.current = liveSignUp;
+      const createdSignUp = await signUp.create({ emailAddress: email, password, firstName, lastName });
+      await createdSignUp.prepareEmailAddressVerification({ strategy: "email_code" });
+      clerkSuRef.current = createdSignUp;
       setStep("verify");
     } catch (err: unknown) {
       console.error("[cadastro] signUp.create error:", err);
