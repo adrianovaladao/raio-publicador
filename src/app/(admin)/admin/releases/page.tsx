@@ -1,9 +1,113 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useUser } from "@clerk/nextjs";
-import { Crown, FileText, Trash2, ChevronDown, AlertTriangle, Clock, ExternalLink, Send, Copy, Download, Check } from "lucide-react";
+import { Crown, FileText, Trash2, ChevronDown, AlertTriangle, Clock, ExternalLink, Send, Copy, Download, Check, Calendar, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { isAnyAdmin } from "@/lib/admin";
+
+// ── DatePicker do admin (sem restrições de feriado) ───────────────────────────
+const MESES_FULL = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+const DOW_SHORT  = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
+
+function AdminDatePicker({ value, onChange }: { value: string; onChange: (d: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const now = new Date();
+  const [viewY, setViewY] = useState(value ? new Date(value + "T12:00:00").getFullYear() : now.getFullYear());
+  const [viewM, setViewM] = useState(value ? new Date(value + "T12:00:00").getMonth() : now.getMonth());
+
+  const toKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  const todayKey = toKey(now);
+
+  const fmtDisplay = (iso: string) => {
+    const d = new Date(iso + "T12:00:00");
+    return `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`;
+  };
+
+  const closeOnOutside = useCallback((e: MouseEvent) => {
+    if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+  }, []);
+  useEffect(() => {
+    if (open) document.addEventListener("mousedown", closeOnOutside);
+    return () => document.removeEventListener("mousedown", closeOnOutside);
+  }, [open, closeOnOutside]);
+
+  const lead = new Date(viewY, viewM, 1).getDay();
+  const dim  = new Date(viewY, viewM + 1, 0).getDate();
+  const prevDim = new Date(viewY, viewM, 0).getDate();
+  const cells: { d: number; out: boolean; key: string }[] = [];
+  for (let i = 0; i < lead; i++) {
+    const d = new Date(viewY, viewM - 1, prevDim - lead + 1 + i);
+    cells.push({ d: d.getDate(), out: true, key: toKey(d) });
+  }
+  for (let d = 1; d <= dim; d++) cells.push({ d, out: false, key: toKey(new Date(viewY, viewM, d)) });
+  while (cells.length % 7 !== 0) {
+    const d = new Date(viewY, viewM + 1, cells.length - (lead + dim) + 1);
+    cells.push({ d: d.getDate(), out: true, key: toKey(d) });
+  }
+
+  function shiftMonth(dir: number) {
+    let nm = viewM + dir, ny = viewY;
+    if (nm < 0) { nm = 11; ny--; }
+    if (nm > 11) { nm = 0; ny++; }
+    setViewM(nm); setViewY(ny);
+  }
+
+  return (
+    <div ref={ref} style={{ position: "relative" }}>
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        className="input"
+        style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", background: value ? "#1a1a1a" : "#fff", color: value ? "#fff" : "#555", borderColor: value ? "#1a1a1a" : undefined, whiteSpace: "nowrap" }}
+      >
+        <Calendar size={14} />
+        <span style={{ fontSize: 13 }}>{value ? fmtDisplay(value) : "Filtrar por data"}</span>
+        {value && (
+          <span
+            onClick={e => { e.stopPropagation(); onChange(""); }}
+            style={{ marginLeft: 2, display: "flex", alignItems: "center", opacity: 0.7, cursor: "pointer" }}
+          >
+            <X size={12} />
+          </span>
+        )}
+      </button>
+      {open && (
+        <div style={{ position: "absolute", top: "calc(100% + 8px)", right: 0, zIndex: 999, background: "#fff", border: "1px solid #e8e8e8", borderRadius: 12, boxShadow: "0 8px 32px rgba(0,0,0,0.10)", padding: 16, width: 280 }}>
+          <div style={{ display: "flex", alignItems: "center", marginBottom: 12 }}>
+            <button type="button" onClick={() => shiftMonth(-1)} style={{ background: "none", border: "none", cursor: "pointer", padding: "4px 6px", borderRadius: 6, color: "#888" }}><ChevronLeft size={14} /></button>
+            <span style={{ flex: 1, textAlign: "center", fontWeight: 700, fontSize: 13, color: "#1a1a1a" }}>{MESES_FULL[viewM]} {viewY}</span>
+            <button type="button" onClick={() => shiftMonth(1)} style={{ background: "none", border: "none", cursor: "pointer", padding: "4px 6px", borderRadius: 6, color: "#888" }}><ChevronRight size={14} /></button>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", marginBottom: 4 }}>
+            {DOW_SHORT.map(d => <div key={d} style={{ textAlign: "center", fontSize: 11, fontWeight: 600, paddingBottom: 6, color: "#aaa" }}>{d}</div>)}
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 2 }}>
+            {cells.map((c, i) => {
+              const sel = c.key === value;
+              const isToday = c.key === todayKey;
+              return (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => { onChange(c.key); setOpen(false); }}
+                  style={{
+                    border: isToday && !sel ? "1.5px solid #1a1a1a" : "1.5px solid transparent",
+                    borderRadius: 8,
+                    background: sel ? "#1a1a1a" : "none",
+                    color: sel ? "#fff" : c.out ? "#ddd" : "#1a1a1a",
+                    fontSize: 12, fontWeight: sel ? 700 : 400,
+                    padding: "6px 0", cursor: "pointer", textAlign: "center",
+                  }}
+                >{c.d}</button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 interface VehicleRef { id: string; name: string; }
 
@@ -389,6 +493,7 @@ export default function AdminReleasesPage() {
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<"queue" | "published">("queue");
   const [q, setQ] = useState("");
+  const [dateFilter, setDateFilter] = useState("");
   const [expanded, setExpanded] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkDeleting, setBulkDeleting] = useState(false);
@@ -464,14 +569,19 @@ export default function AdminReleasesPage() {
   const searchFilter = (r: ReleaseRow) =>
     !q.trim() || (r.title + r.author.name + r.author.email + (r.brand?.name ?? "")).toLowerCase().includes(q.toLowerCase());
 
+  const dateFilterFn = (r: ReleaseRow, dateField: string | null) =>
+    !dateFilter || dateKey(dateField, r.createdAt) === dateFilter;
+
   const queueReleases = releases
     .filter(r => r.status !== "PUBLISHED" && r.status !== "CANCELLED")
     .filter(searchFilter)
+    .filter(r => dateFilterFn(r, r.scheduledAt))
     .sort((a, b) => new Date(a.scheduledAt ?? a.createdAt).getTime() - new Date(b.scheduledAt ?? b.createdAt).getTime());
 
   const publishedReleases = releases
     .filter(r => r.status === "PUBLISHED")
     .filter(searchFilter)
+    .filter(r => dateFilterFn(r, r.publishedAt))
     .sort((a, b) => new Date(b.publishedAt ?? b.createdAt).getTime() - new Date(a.publishedAt ?? a.createdAt).getTime());
 
   const queueGroups = groupByDate(queueReleases, r => dateKey(r.scheduledAt, r.createdAt));
@@ -547,28 +657,29 @@ export default function AdminReleasesPage() {
           )}
         </div>
 
-        {/* Tabs + toolbar */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 4, flexWrap: "wrap" }}>
-          <div style={{ display: "flex", gap: 2, background: "#f0f0ee", borderRadius: 10, padding: 3 }}>
-            {([["queue", "Fila de publicação", queueReleases.length], ["published", "Publicados", publishedReleases.length]] as const).map(([t, label, count]) => (
-              <button
-                key={t}
-                onClick={() => { setTab(t); setSelected(new Set()); }}
-                style={{
-                  padding: "7px 18px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600,
-                  background: tab === t ? "#fff" : "transparent",
-                  color: tab === t ? "#1a1a1a" : "#888",
-                  boxShadow: tab === t ? "0 1px 4px rgba(0,0,0,0.08)" : "none",
-                  transition: "all 0.15s",
-                  display: "flex", alignItems: "center", gap: 7,
-                }}
-              >
-                {label}
-                <span style={{ fontSize: 11, fontWeight: 700, background: tab === t ? "#f0f0ee" : "#e8e8e8", borderRadius: 99, padding: "1px 7px", color: "#555" }}>{count}</span>
-              </button>
-            ))}
-          </div>
+        {/* Tabs */}
+        <div style={{ display: "flex", gap: 2, background: "#f0f0ee", borderRadius: 10, padding: 3, alignSelf: "flex-start", marginBottom: 20 }}>
+          {([["queue", "Fila de publicação", queueReleases.length], ["published", "Publicados", publishedReleases.length]] as const).map(([t, label, count]) => (
+            <button
+              key={t}
+              onClick={() => { setTab(t); setSelected(new Set()); setDateFilter(""); }}
+              style={{
+                padding: "7px 18px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600,
+                background: tab === t ? "#fff" : "transparent",
+                color: tab === t ? "#1a1a1a" : "#888",
+                boxShadow: tab === t ? "0 1px 4px rgba(0,0,0,0.08)" : "none",
+                transition: "all 0.15s",
+                display: "flex", alignItems: "center", gap: 7,
+              }}
+            >
+              {label}
+              <span style={{ fontSize: 11, fontWeight: 700, background: tab === t ? "#f0f0ee" : "#e8e8e8", borderRadius: 99, padding: "1px 7px", color: "#555" }}>{count}</span>
+            </button>
+          ))}
+        </div>
 
+        {/* Toolbar */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 24, flexWrap: "wrap" }}>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             {activeList.length > 0 && (
               <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#555", cursor: "pointer", userSelect: "none" }}>
@@ -599,6 +710,9 @@ export default function AdminReleasesPage() {
                 </button>
               </div>
             )}
+          </div>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <AdminDatePicker value={dateFilter} onChange={setDateFilter} />
             <input
               className="input"
               placeholder="Buscar…"
@@ -617,15 +731,15 @@ export default function AdminReleasesPage() {
             <div className="t">{tab === "queue" ? "Nenhum release na fila" : "Nenhum release publicado"}</div>
           </div>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 28, paddingBottom: 48 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 40, paddingBottom: 64 }}>
             {activeGroups.map(group => (
               <div key={group.key}>
-                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: "#1a1a1a" }}>{group.label}</span>
-                  <span style={{ fontSize: 12, color: "#aaa" }}>{group.items.length} release{group.items.length !== 1 ? "s" : ""}</span>
-                  <div style={{ flex: 1, height: 1, background: "#ebebeb" }} />
+                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: "#1a1a1a", whiteSpace: "nowrap" }}>{group.label}</span>
+                  <span style={{ fontSize: 12, color: "#bbb", whiteSpace: "nowrap" }}>{group.items.length} release{group.items.length !== 1 ? "s" : ""}</span>
+                  <div style={{ flex: 1, height: 1, background: "#e8e8e8" }} />
                 </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                   {group.items.map(r => <ReleaseCard key={r.id} r={r} />)}
                 </div>
               </div>
