@@ -80,19 +80,38 @@ function CadastroInner() {
       if (!signUp) { setError("Aguarde um instante e tente novamente."); return; }
       const firstName = parts[0];
       const lastName = parts.slice(1).join(" ");
-      await signUp.create({ emailAddress: email, password, firstName, lastName });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const suBefore = signUp as any;
+      console.log("[cadastro] BEFORE create — typeof prepareEmailAddressVerification:", typeof suBefore?.prepareEmailAddressVerification, "| proto methods:", Object.getOwnPropertyNames(Object.getPrototypeOf(suBefore ?? {})).join(","));
+
+      // Use the return value of create() — Clerk returns an updated SignUpResource
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const created = await signUp.create({ emailAddress: email, password, firstName, lastName }) as any;
+
+      // Also read the live object from window.Clerk as a fallback
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const liveSignUp = (window as any).Clerk?.client?.signUp ?? created ?? signUp;
+      console.log("[cadastro] AFTER create — created.status:", created?.status, "| liveSignUp.status:", liveSignUp?.status, "| created.prepareEmailAddressVerification:", typeof created?.prepareEmailAddressVerification, "| live.prepareEmailAddressVerification:", typeof liveSignUp?.prepareEmailAddressVerification);
 
       // If Clerk completes signup immediately (no email verification required)
-      if (signUp.status === "complete" && signUp.createdSessionId) {
+      if (created?.status === "complete" && created?.createdSessionId) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const sa = setActive ?? (window as any).Clerk?.setActive;
-        await sa({ session: signUp.createdSessionId });
+        await sa({ session: created.createdSessionId });
         goToCheckout();
         return;
       }
 
-      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
-      clerkSuRef.current = signUp;
+      // Use the most capable object: prefer liveSignUp (window.Clerk), fall back to created
+      const su = liveSignUp;
+      if (typeof su?.prepareEmailAddressVerification === "function") {
+        await su.prepareEmailAddressVerification({ strategy: "email_code" });
+      } else if (typeof su?.prepareVerification === "function") {
+        await su.prepareVerification({ strategy: "email_code" });
+      } else {
+        throw new Error(`prepareEmailAddressVerification unavailable. created keys: ${Object.keys(created ?? {}).join(",")}, live keys: ${Object.keys(liveSignUp ?? {}).join(",")}`);
+      }
+      clerkSuRef.current = su;
       setStep("verify");
     } catch (err: unknown) {
       console.error("[cadastro] signUp.create error:", JSON.stringify(err));
