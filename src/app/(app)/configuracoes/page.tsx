@@ -221,8 +221,8 @@ function PerfilPanel({ onToast }: { onToast: (m: string) => void }) {
 
 type CancelStep = "idle" | "retention" | "policy" | "confirm" | "done" | "reactivate";
 
-function CancelFlow({ plan, email, periodEnd, isCancelled, onDone, onReactivated }: {
-  plan: string; email: string; periodEnd: string | null; isCancelled?: boolean; onDone: () => void; onReactivated: () => void;
+function CancelFlow({ plan, email, periodEnd, periodStart, isCancelled, onDone, onReactivated }: {
+  plan: string; email: string; periodEnd: string | null; periodStart: string | null; isCancelled?: boolean; onDone: (refunded: boolean) => void; onReactivated: () => void;
 }) {
   const [step, setStep] = useState<CancelStep>("idle");
   const [zapping, setZapping] = useState(false);
@@ -232,6 +232,11 @@ function CancelFlow({ plan, email, periodEnd, isCancelled, onDone, onReactivated
   const [applyingRetention, setApplyingRetention] = useState(false);
   const [retentionDone, setRetentionDone] = useState(false);
   const [err, setErr] = useState("");
+
+  const daysSincePeriodStart = periodStart
+    ? (Date.now() - new Date(periodStart).getTime()) / (1000 * 60 * 60 * 24)
+    : Infinity;
+  const eligibleForRefund = daysSincePeriodStart <= 7;
 
   const isAdvanced = plan === "ADVANCED";
   const isProfessional = plan === "PROFESSIONAL";
@@ -292,8 +297,9 @@ function CancelFlow({ plan, email, periodEnd, isCancelled, onDone, onReactivated
     try {
       const res = await fetch("/api/stripe/cancel", { method: "POST" });
       if (!res.ok) throw new Error("Erro ao cancelar");
+      const data = await res.json() as { refunded?: boolean };
       setStep("done");
-      onDone();
+      onDone(data.refunded ?? false);
     } catch {
       setErr("Falha ao cancelar. Tente novamente ou entre em contato com o suporte.");
     } finally {
@@ -496,11 +502,13 @@ function CancelFlow({ plan, email, periodEnd, isCancelled, onDone, onReactivated
             <div style={{ padding: "20px 32px" }}>
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                 {[
-                  { icon: <Ban size={16} />, color: "var(--stone)", bg: "var(--cream)", title: "Sem reembolso", desc: "O valor pago não será devolvido." },
-                  { icon: <Clock size={16} />, color: "var(--stone)", bg: "var(--cream)", title: "Créditos", desc: `Use seus créditos até ${periodEndFmt}. Após isso, expiram.` },
-                  { icon: <FileText size={16} />, color: "var(--stone)", bg: "var(--cream)", title: "Releases não publicados", desc: `Podem ser editados até ${periodEndFmt}. Depois ficam arquivados.` },
+                  eligibleForRefund
+                    ? { icon: <CheckCircle2 size={16} />, color: "#15803D", bg: "#F0FDF4", title: "Reembolso integral garantido", desc: "Sua cobrança tem menos de 7 dias. Você tem direito ao reembolso completo conforme o Art. 49 do CDC. O cancelamento será imediato." }
+                    : { icon: <Ban size={16} />, color: "var(--stone)", bg: "var(--cream)", title: "Sem reembolso", desc: "O prazo de 7 dias para arrependimento (Art. 49, CDC) já expirou. O valor pago não será devolvido." },
+                  { icon: <Clock size={16} />, color: "var(--stone)", bg: "var(--cream)", title: "Créditos", desc: eligibleForRefund ? "Seu acesso e créditos serão encerrados imediatamente." : `Use seus créditos até ${periodEndFmt}. Após isso, expiram.` },
+                  { icon: <FileText size={16} />, color: "var(--stone)", bg: "var(--cream)", title: "Releases não publicados", desc: eligibleForRefund ? "Ficam arquivados imediatamente." : `Podem ser editados até ${periodEndFmt}. Depois ficam arquivados.` },
                   { icon: <CheckCircle2 size={16} />, color: "var(--stone)", bg: "var(--cream)", title: "Releases já publicados", desc: "Permanecem nos veículos normalmente." },
-                  { icon: <Lock size={16} />, color: "var(--stone)", bg: "var(--cream)", title: "Acesso", desc: `Sua conta será suspensa automaticamente em ${periodEndFmt}.` },
+                  { icon: <Lock size={16} />, color: "var(--stone)", bg: "var(--cream)", title: "Acesso", desc: eligibleForRefund ? "Sua conta será suspensa imediatamente." : `Sua conta será suspensa automaticamente em ${periodEndFmt}.` },
                 ].map(({ icon, color, bg, title, desc }) => (
                   <div key={title} style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: "12px 14px", background: "var(--cream)", borderRadius: 10 }}>
                     <div style={{ width: 30, height: 30, borderRadius: 8, background: bg, display: "grid", placeItems: "center", flexShrink: 0, color }}>{icon}</div>
@@ -533,9 +541,15 @@ function CancelFlow({ plan, email, periodEnd, isCancelled, onDone, onReactivated
               <div style={{ fontSize: 13, color: "var(--stone)" }}>Essa ação não pode ser desfeita.</div>
             </div>
             <div style={{ padding: "20px 32px" }}>
-              <div style={{ background: "#fff5f5", border: "1.5px solid #fecaca", borderRadius: 10, padding: "12px 14px", marginBottom: 18, fontSize: 13, color: "#991b1b", lineHeight: 1.5 }}>
-                Seus créditos não serão reembolsados e seu acesso encerrará em <b>{periodEndFmt}</b>.
-              </div>
+              {eligibleForRefund ? (
+                <div style={{ background: "#F0FDF4", border: "1.5px solid #BBF7D0", borderRadius: 10, padding: "12px 14px", marginBottom: 18, fontSize: 13, color: "#15803D", lineHeight: 1.5 }}>
+                  Sua cobrança tem menos de 7 dias. O valor será <b>reembolsado integralmente</b> e o cancelamento será imediato (Art. 49, CDC).
+                </div>
+              ) : (
+                <div style={{ background: "#fff5f5", border: "1.5px solid #fecaca", borderRadius: 10, padding: "12px 14px", marginBottom: 18, fontSize: 13, color: "#991b1b", lineHeight: 1.5 }}>
+                  Seus créditos não serão reembolsados e seu acesso encerrará em <b>{periodEndFmt}</b>.
+                </div>
+              )}
               <div className="field" style={{ marginBottom: 4 }}>
                 <label style={{ fontSize: 12, fontWeight: 600, color: "var(--stone)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
                   Digite seu e-mail para confirmar
@@ -571,7 +585,7 @@ function CancelFlow({ plan, email, periodEnd, isCancelled, onDone, onReactivated
 function ContaPanel({ onToast }: { onToast: (m: string) => void }) {
   const { user, isLoaded } = useUser();
   const [notif, setNotif] = useState({ sent: true, queued: true, published: true, review: false });
-  const [subInfo, setSubInfo] = useState<{ plan: string; periodEnd: string | null; status: string | null } | null>(null);
+  const [subInfo, setSubInfo] = useState<{ plan: string; periodEnd: string | null; periodStart: string | null; status: string | null } | null>(null);
 
   // troca de senha
   const [showPwForm, setShowPwForm] = useState(false);
@@ -587,7 +601,7 @@ function ContaPanel({ onToast }: { onToast: (m: string) => void }) {
   useEffect(() => {
     fetch("/api/stripe/subscription")
       .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d) setSubInfo({ plan: d.plan ?? "BASIC", periodEnd: d.currentPeriodEnd ?? null, status: d.status ?? null }); })
+      .then(d => { if (d) setSubInfo({ plan: d.plan ?? "BASIC", periodEnd: d.currentPeriodEnd ?? null, periodStart: d.currentPeriodStart ?? null, status: d.status ?? null }); })
       .catch(() => {});
   }, []);
 
@@ -675,8 +689,9 @@ function ContaPanel({ onToast }: { onToast: (m: string) => void }) {
           plan={subInfo.plan}
           email={email}
           periodEnd={subInfo.periodEnd}
+          periodStart={subInfo.periodStart}
           isCancelled={subInfo.status === "CANCELLED"}
-          onDone={() => onToast("Assinatura cancelada. Seu acesso permanece até o fim do ciclo.")}
+          onDone={(refunded) => onToast(refunded ? "Assinatura cancelada e reembolso processado." : "Assinatura cancelada. Seu acesso permanece até o fim do ciclo.")}
           onReactivated={() => { onToast("Assinatura reativada! Bem-vindo de volta."); setSubInfo(s => s ? { ...s, status: "ACTIVE" } : s); }}
         />
       )}

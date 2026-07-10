@@ -8,6 +8,7 @@ import Stripe from "stripe";
 import {
   sendWelcomeEmail,
   sendRenewalEmail,
+  sendRenewalReminderEmail,
   sendPaymentFailedEmail,
   sendUpgradeEmail,
 } from "@/lib/email";
@@ -113,6 +114,25 @@ export async function POST(req: NextRequest) {
           const nextRenewal = new Date(subscription.items.data[0].current_period_end * 1000);
           await sendWelcomeEmail(email, firstName, PLANS[planId].label, PLANS[planId].priceCents, PLANS[planId].credits, nextRenewal).catch(console.error);
         }
+      }
+      break;
+    }
+
+    case "invoice.upcoming": {
+      const invoice = event.data.object as Stripe.Invoice;
+      const subscriptionId = (invoice as unknown as { subscription?: string }).subscription;
+      if (!subscriptionId) break;
+
+      const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+      const clerkId = subscription.metadata?.clerkId;
+      const planId = subscription.metadata?.planId as PlanId | undefined;
+      if (!clerkId || !planId || !PLANS[planId]) break;
+
+      const renewalDate = new Date(subscription.items.data[0].current_period_end * 1000);
+      const amountBRL = (PLANS[planId].priceCents / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 });
+      const { firstName, email } = await getClerkUser(clerkId);
+      if (email) {
+        await sendRenewalReminderEmail(email, firstName, PLANS[planId].label, amountBRL, renewalDate).catch(console.error);
       }
       break;
     }

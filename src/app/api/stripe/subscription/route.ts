@@ -22,5 +22,7 @@ export async function GET() {
     priceCents: planMeta?.priceCents ?? null,
     credits: sub.creditsTotal,
     creditsUsed: sub.creditsUsed,
+    currentPeriodStart: sub.currentPeriodStart?.toISOString() ?? null,
+    currentPeriodEnd: sub.currentPeriodEnd?.toISOString() ?? null,
   });
 }

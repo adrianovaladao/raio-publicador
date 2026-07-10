@@ -185,7 +185,27 @@ export async function sendRenewalEmail(to: string, firstName: string, planLabel:
   return getResend().emails.send({ from: FROM, to, subject: `Plano ${planLabel} renovado — Raio`, html });
 }
 
-// ─── 8. Falha no pagamento ─────────────────────────────────────────────────────
+// ─── 8. Aviso de renovação (7 dias antes) ─────────────────────────────────────
+export async function sendRenewalReminderEmail(to: string, firstName: string, planLabel: string, amountBRL: string, renewalDate: Date) {
+  const date = renewalDate.toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric", timeZone: "America/Sao_Paulo" });
+
+  const html = base(`
+    ${h1(`${firstName}, sua assinatura renova em 7 dias`)}
+    ${p(`O plano <strong>${planLabel}</strong> será renovado automaticamente em <strong>${date}</strong> no valor de <strong>R$ ${amountBRL}</strong>.`)}
+    ${p("Se não quiser renovar, cancele antes dessa data em Configurações. Após a cobrança, o reembolso é garantido por lei em até 7 dias (Art. 49, CDC).")}
+    <table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0">
+      <tr><td style="padding:8px 0;color:#888;width:130px">Plano</td><td style="padding:8px 0;color:#1a1a1a;font-weight:600">${planLabel}</td></tr>
+      <tr><td style="padding:8px 0;color:#888">Renovação em</td><td style="padding:8px 0;color:#1a1a1a">${date}</td></tr>
+      <tr><td style="padding:8px 0;color:#888">Valor</td><td style="padding:8px 0;color:#1a1a1a">R$ ${amountBRL}/mês</td></tr>
+    </table>
+    ${btn("Gerenciar assinatura", `${APP_URL}/configuracoes`)}
+    ${p('<span style="font-size:12px;color:#999">Direito de arrependimento: cancelamentos solicitados em até 7 dias após a cobrança têm direito a reembolso integral conforme o Art. 49 do Código de Defesa do Consumidor.</span>')}
+  `);
+
+  return getResend().emails.send({ from: FROM, to, subject: `Lembrete: plano ${planLabel} renova em 7 dias — Raio`, html });
+}
+
+// ─── 9. Falha no pagamento ─────────────────────────────────────────────────────
 export async function sendPaymentFailedEmail(to: string, firstName: string, planLabel: string) {
   const html = base(`
     ${h1(`${firstName}, tem algo errado no pagamento 😕`)}
