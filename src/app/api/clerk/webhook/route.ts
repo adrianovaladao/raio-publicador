@@ -34,7 +34,8 @@ export async function POST(req: NextRequest) {
     await prisma.supportConversation.deleteMany({ where: { ownerId: clerkId } });
     await prisma.supportTicket.deleteMany({ where: { ownerId: clerkId } });
     await prisma.invite.deleteMany({ where: { ownerId: clerkId } });
-    await prisma.brandMember.deleteMany({ where: { teamMember: { ownerId: clerkId } } });
+    const members = await prisma.teamMember.findMany({ where: { ownerId: clerkId }, select: { id: true } });
+    await prisma.brandMember.deleteMany({ where: { teamMemberId: { in: members.map(m => m.id) } } });
     await prisma.teamMember.deleteMany({ where: { ownerId: clerkId } });
     await prisma.release.deleteMany({ where: { brand: { ownerId: clerkId } } });
     await prisma.brand.deleteMany({ where: { ownerId: clerkId } });
