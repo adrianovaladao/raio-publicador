@@ -80,9 +80,9 @@ function CadastroInner() {
       if (!signUp) { setError("Aguarde um instante e tente novamente."); return; }
       const firstName = parts[0];
       const lastName = parts.slice(1).join(" ");
-      const createdSignUp = await signUp.create({ emailAddress: email, password, firstName, lastName });
-      await createdSignUp.prepareEmailAddressVerification({ strategy: "email_code" });
-      clerkSuRef.current = createdSignUp;
+      await signUp.create({ emailAddress: email, password, firstName, lastName });
+      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+      clerkSuRef.current = signUp;
       setStep("verify");
     } catch (err: unknown) {
       console.error("[cadastro] signUp.create error:", JSON.stringify(err));
