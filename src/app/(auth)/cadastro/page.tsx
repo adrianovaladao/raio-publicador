@@ -85,11 +85,11 @@ function CadastroInner() {
       clerkSuRef.current = createdSignUp;
       setStep("verify");
     } catch (err: unknown) {
-      console.error("[cadastro] signUp.create error:", err);
-      const e = err as { errors?: { longMessage?: string; message?: string; code?: string }[] };
-      const raw = e?.errors?.[0]?.longMessage || e?.errors?.[0]?.message || "";
+      console.error("[cadastro] signUp.create error:", JSON.stringify(err));
+      const e = err as { errors?: { longMessage?: string; message?: string; code?: string }[]; message?: string };
+      const raw = e?.errors?.[0]?.longMessage || e?.errors?.[0]?.message || e?.message || "";
       const code = e?.errors?.[0]?.code || "";
-      setError(translateClerkError(raw) || raw || code || "Erro ao criar conta.");
+      setError(translateClerkError(raw) || translateClerkError(code) || raw || code || "Erro ao criar conta.");
     } finally {
       setLoading(false);
     }
