@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { PLANS, type PlanId } from "@/lib/plans";
+import { getPrisma } from "@/lib/prisma";
 import BoasVindasClient from "./BoasVindasClient";
 import CheckoutConfirmClient from "./CheckoutConfirmClient";
 
@@ -23,7 +24,6 @@ export default async function BoasVindasPage({
 
   // Has a plan param — check if already has active subscription
   const planId = planParam as PlanId;
-  const { getPrisma } = await import("@/lib/prisma");
   const prisma = getPrisma();
   const sub = await prisma.subscription.findUnique({ where: { ownerId: userId } });
 
