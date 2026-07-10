@@ -81,6 +81,16 @@ function CadastroInner() {
       const firstName = parts[0];
       const lastName = parts.slice(1).join(" ");
       await signUp.create({ emailAddress: email, password, firstName, lastName });
+
+      // If Clerk completes signup immediately (no email verification required)
+      if (signUp.status === "complete" && signUp.createdSessionId) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const sa = setActive ?? (window as any).Clerk?.setActive;
+        await sa({ session: signUp.createdSessionId });
+        goToCheckout();
+        return;
+      }
+
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
       clerkSuRef.current = signUp;
       setStep("verify");
