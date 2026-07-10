@@ -1,9 +1,8 @@
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-import { getStripe } from "@/lib/stripe";
-import { getPrisma } from "@/lib/prisma";
 import { PLANS, type PlanId } from "@/lib/plans";
 import BoasVindasClient from "./BoasVindasClient";
+import CheckoutConfirmClient from "./CheckoutConfirmClient";
 
 const VALID_PLANS: PlanId[] = ["BASIC", "ADVANCED", "PROFESSIONAL"];
 
@@ -24,6 +23,7 @@ export default async function BoasVindasPage({
 
   // Has a plan param — check if already has active subscription
   const planId = planParam as PlanId;
+  const { getPrisma } = await import("@/lib/prisma");
   const prisma = getPrisma();
   const sub = await prisma.subscription.findUnique({ where: { ownerId: userId } });
 
@@ -31,69 +31,19 @@ export default async function BoasVindasPage({
     return <BoasVindasClient />;
   }
 
-  // Start Stripe checkout
-  try {
-    const plan = PLANS[planId];
-    const user = await currentUser();
-    const email = user?.emailAddresses[0]?.emailAddress;
-    const stripe = getStripe();
+  const plan = PLANS[planId];
+  const priceBRL = (plan.priceCents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-    // Try to find or create a valid live-mode customer
-    let customerId: string | undefined;
-
-    // If there's a stored customer ID, verify it works in live mode
-    if (sub?.stripeCustomerId) {
-      try {
-        await stripe.customers.retrieve(sub.stripeCustomerId);
-        customerId = sub.stripeCustomerId;
-      } catch {
-        // Stale (test-mode) customer ID — ignore and create new one
-      }
-    }
-
-    // Fallback: search by email in Stripe
-    if (!customerId && email) {
-      const existing = await stripe.customers.list({ email, limit: 5 });
-      customerId = existing.data[0]?.id;
-    }
-
-    // Last resort: create new customer
-    if (!customerId) {
-      const customer = await stripe.customers.create({ email, metadata: { clerkId: userId } });
-      customerId = customer.id;
-    }
-
-    const origin = process.env.NEXT_PUBLIC_APP_URL ?? "https://raiopublicador.com.br";
-    const session = await stripe.checkout.sessions.create({
-      mode: "subscription",
-      customer: customerId,
-      currency: "brl",
-      line_items: [{ price: plan.stripePriceId, quantity: 1 }],
-      success_url: `${origin}/boas-vindas?checkout=success`,
-      cancel_url: `${origin}/site#planos`,
-      locale: "pt-BR",
-      metadata: { clerkId: userId, planId },
-      subscription_data: { metadata: { clerkId: userId, planId } },
-    });
-
-    // Persist/update subscription record with correct live-mode customer ID
-    if (!sub) {
-      await prisma.subscription.create({
-        data: { ownerId: userId, plan: planId, status: "INACTIVE", creditsTotal: plan.credits, stripeCustomerId: customerId },
-      });
-    } else {
-      await prisma.subscription.update({
-        where: { ownerId: userId },
-        data: { stripeCustomerId: customerId },
-      });
-    }
-
-    redirect(session.url!);
-  } catch (err) {
-    if ((err as { digest?: string })?.digest?.startsWith("NEXT_REDIRECT")) throw err;
-    const msg = err instanceof Error ? err.message : String(err);
-    console.error("[boas-vindas] Stripe checkout error:", msg);
-  }
-
-  return <BoasVindasClient />;
+  return (
+    <CheckoutConfirmClient
+      planId={planId}
+      label={plan.label}
+      priceBRL={priceBRL}
+      credits={plan.credits}
+      brandsLimit={plan.brandsLimit}
+      editorsLimit={plan.editorsLimit}
+      reviewersLimit={plan.reviewersLimit}
+      tierAIncluded={plan.tierAIncluded}
+    />
+  );
 }
