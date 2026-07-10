@@ -20,9 +20,31 @@ export async function POST() {
   }
 
   const stripe = getStripe();
-  await stripe.subscriptions.update(sub.stripeSubscriptionId, {
-    cancel_at_period_end: false,
-  });
+
+  // Check the actual Stripe subscription status
+  let stripeSub;
+  try {
+    stripeSub = await stripe.subscriptions.retrieve(sub.stripeSubscriptionId);
+  } catch (e) {
+    console.error("[reactivate] retrieve error", e);
+    return NextResponse.json({ error: "Assinatura não encontrada no Stripe." }, { status: 404 });
+  }
+
+  const stripeStatus = (stripeSub as unknown as { status: string }).status;
+
+  if (stripeStatus === "canceled") {
+    // Subscription was fully cancelled (refund case) — cannot reactivate, must re-subscribe
+    return NextResponse.json({ error: "FULLY_CANCELLED" }, { status: 409 });
+  }
+
+  try {
+    await stripe.subscriptions.update(sub.stripeSubscriptionId, {
+      cancel_at_period_end: false,
+    });
+  } catch (e) {
+    console.error("[reactivate] update error", e);
+    return NextResponse.json({ error: String(e) }, { status: 500 });
+  }
 
   await prisma.subscription.update({
     where: { ownerId: userId },

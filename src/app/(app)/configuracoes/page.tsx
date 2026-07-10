@@ -1361,11 +1361,17 @@ function CobrancaPanel({ onToast, isCancelled }: { onToast: (m: string) => void;
     setReactivating(true);
     try {
       const res = await fetch("/api/stripe/reactivate", { method: "POST" });
-      if (!res.ok) throw new Error();
+      const data = await res.json() as { ok?: boolean; error?: string };
+      if (data.error === "FULLY_CANCELLED") {
+        // Subscription was fully cancelled (refund applied) — redirect to choose a new plan
+        window.dispatchEvent(new Event("open-plans"));
+        return;
+      }
+      if (!res.ok) throw new Error(data.error ?? "Erro desconhecido");
       onToast("Assinatura reativada! Bem-vindo de volta.");
       window.location.reload();
-    } catch {
-      onToast("Falha ao reativar. Tente novamente.");
+    } catch (e) {
+      onToast(e instanceof Error ? e.message : "Falha ao reativar. Tente novamente.");
     } finally {
       setReactivating(false);
     }
