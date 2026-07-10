@@ -399,6 +399,7 @@ export default function AdminReleasesPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
   const [q, setQ] = useState("");
+  const [sort, setSort] = useState("scheduledAt");
   const resetPage = () => setPage(1);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -457,6 +458,15 @@ export default function AdminReleasesPage() {
   if (q.trim()) list = list.filter(r =>
     (r.title + r.author.name + r.author.email + (r.brand?.name ?? "")).toLowerCase().includes(q.toLowerCase())
   );
+  list = [...list].sort((a, b) => {
+    const getVal = (r: ReleaseRow) => {
+      if (sort === "scheduledAt") return new Date(r.scheduledAt ?? r.createdAt).getTime();
+      if (sort === "publishedAt") return new Date(r.publishedAt ?? "1970").getTime();
+      if (sort === "createdAt") return new Date(r.createdAt).getTime();
+      return new Date(r.scheduledAt ?? r.createdAt).getTime();
+    };
+    return getVal(a) - getVal(b);
+  });
   const totalPages = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
   const pageList = list.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
@@ -523,12 +533,22 @@ export default function AdminReleasesPage() {
                 </button>
               </div>
             )}
+            <select
+              value={sort}
+              onChange={e => { setSort(e.target.value); resetPage(); }}
+              className="input"
+              style={{ padding: "8px 12px", fontSize: 13, width: "auto" }}
+            >
+              <option value="scheduledAt">Fila (agendamento ↑)</option>
+              <option value="publishedAt">Publicação ↑</option>
+              <option value="createdAt">Criação ↑</option>
+            </select>
             <input
               className="input"
               placeholder="Buscar…"
               value={q}
               onChange={e => { setQ(e.target.value); resetPage(); }}
-              style={{ width: 220, padding: "8px 14px", fontSize: 13 }}
+              style={{ width: 200, padding: "8px 14px", fontSize: 13 }}
             />
           </div>
         </div>
