@@ -20,8 +20,6 @@ export async function POST() {
   const daysSincePeriodStart = periodStart
     ? (now.getTime() - periodStart.getTime()) / (1000 * 60 * 60 * 24)
     : Infinity;
-  const eligibleForRefund = daysSincePeriodStart <= REFUND_WINDOW_DAYS;
-
   const creditsUsed = sub.creditsUsed ?? 0;
   const eligibleForRefund = daysSincePeriodStart <= REFUND_WINDOW_DAYS && creditsUsed === 0;
 
