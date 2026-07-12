@@ -6,7 +6,7 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
       "port": 3000,
-      "cwd": "/Users/adrianovjfreitas/Documents/Adriano Freitas/_Raio Publicador/raio-publicador"
+      "cwd": "."
     }
   ]
 }

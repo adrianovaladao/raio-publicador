@@ -879,6 +879,82 @@ export default function EditReleasePage() {
 
   const brand = release?.brand ?? null;
 
+  // ── Menções na web (Exa) ──────────────────────────────────────────────────
+  function WebMentions({ releaseId }: { releaseId: string }) {
+    const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
+    const [results, setResults] = useState<{ title: string; url: string; publishedDate?: string; highlights: string[] }[]>([]);
+    const [errMsg, setErrMsg] = useState("");
+
+    async function search() {
+      setStatus("loading");
+      try {
+        const res = await fetch(`/api/releases/${releaseId}/coverage`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error ?? "Erro");
+        setResults(data.results);
+        setStatus("done");
+      } catch (e) {
+        setErrMsg(e instanceof Error ? e.message : "Erro ao buscar");
+        setStatus("error");
+      }
+    }
+
+    const fmtDate = (iso?: string) => iso ? new Date(iso).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" }) : "";
+
+    return (
+      <div className="card" style={{ marginBottom: 20, overflow: "hidden" }}>
+        <div className="card-head">
+          <h3>Menções na web</h3>
+          {status === "idle" && (
+            <button className="btn btn-ghost btn-sm" onClick={search}>Buscar menções</button>
+          )}
+          {status === "loading" && <span style={{ fontSize: 12, color: "var(--stone)" }}>Buscando…</span>}
+          {status === "done" && (
+            <button className="btn btn-ghost btn-sm" onClick={search}>Atualizar</button>
+          )}
+        </div>
+        {status === "idle" && (
+          <div className="card-pad muted" style={{ fontSize: 13 }}>
+            Clique em "Buscar menções" para encontrar publicações deste release na web via Exa.
+          </div>
+        )}
+        {status === "error" && (
+          <div className="card-pad" style={{ fontSize: 13, color: "var(--coral)" }}>{errMsg}</div>
+        )}
+        {status === "done" && results.length === 0 && (
+          <div className="card-pad muted" style={{ fontSize: 13 }}>Nenhuma menção encontrada ainda.</div>
+        )}
+        {status === "done" && results.length > 0 && (
+          <div>
+            {results.map((r, i) => (
+              <div key={r.url} style={{ padding: "14px 20px", borderTop: i === 0 ? "none" : "1px solid var(--line)" }}>
+                <div style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 4 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <a href={r.url} target="_blank" rel="noreferrer" style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", textDecoration: "none" }}>
+                      {r.title || r.url}
+                    </a>
+                    <div style={{ fontSize: 11, color: "var(--stone)", marginTop: 2 }}>
+                      {new URL(r.url).hostname.replace("www.", "")}
+                      {r.publishedDate && <> · {fmtDate(r.publishedDate)}</>}
+                    </div>
+                  </div>
+                  <a href={r.url} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: "#2563EB", fontWeight: 500, whiteSpace: "nowrap", flexShrink: 0 }}>
+                    Ver ↗
+                  </a>
+                </div>
+                {r.highlights[0] && (
+                  <p style={{ fontSize: 12, color: "var(--stone)", margin: 0, lineHeight: 1.6, borderLeft: "2px solid var(--line)", paddingLeft: 10 }}>
+                    {r.highlights[0]}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
   // ── Read-only view for published releases ─────────────────────────────────
   if (release?.status === "PUBLISHED") {
     const pubUrls = release.publishedVehicleUrls ?? {};
@@ -952,6 +1028,9 @@ export default function EditReleasePage() {
               })}
             </div>
           </div>
+
+          {/* Menções na web */}
+          <WebMentions releaseId={release.id} />
 
           {/* Meta grid */}
           <div className="card" style={{ marginBottom: 20, overflow: "hidden" }}>
