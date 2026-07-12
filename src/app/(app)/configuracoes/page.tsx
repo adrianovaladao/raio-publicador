@@ -251,6 +251,12 @@ function CancelFlow({ plan, email, periodEnd, periodStart, isCancelled, onDone, 
     setErr("");
     try {
       const res = await fetch("/api/stripe/reactivate", { method: "POST" });
+      const data = await res.json();
+      if (data.error === "FULLY_CANCELLED") {
+        setStep("idle");
+        window.dispatchEvent(new Event("open-plans"));
+        return;
+      }
       if (!res.ok) throw new Error("Erro ao reativar");
       setStep("idle");
       onReactivated();
