@@ -589,8 +589,8 @@ function CancelFlow({ plan, email, periodEnd, periodStart, isCancelled, onDone, 
 
 // ─── Notification Preferences Card ───────────────────────────────────────────
 
-import type { NotifType } from "@/lib/notify";
-import { DEFAULT_PREFS, NOTIF_LABELS } from "@/lib/notify";
+import type { NotifType } from "@/lib/notify-types";
+import { DEFAULT_PREFS, NOTIF_LABELS } from "@/lib/notify-types";
 
 type PrefsMap = Record<NotifType, { inApp: boolean; email: boolean }>;
 

@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 import { auth } from "@clerk/nextjs/server";
 import { getPrisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { DEFAULT_PREFS } from "@/lib/notify";
+import { DEFAULT_PREFS } from "@/lib/notify-types";
 
 export async function GET() {
   const { userId } = await auth();
