@@ -6,7 +6,7 @@ import { useUser, useClerk } from "@clerk/nextjs";
 import {
   LayoutDashboard, FileText, CalendarDays, Rss, Settings, ShieldCheck,
   Bell, Search, LogOut, Zap, Check, X,
-  Megaphone, CreditCard, Users, Radio, RefreshCw,
+  Megaphone, CreditCard, Users, Radio,
 } from "lucide-react";
 import { RaioLockup } from "@/components/logo/RaioLockup";
 import { SupportWidget } from "@/components/support/SupportWidget";
