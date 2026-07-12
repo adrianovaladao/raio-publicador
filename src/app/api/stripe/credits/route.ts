@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { getStripe } from "@/lib/stripe";
 import { getPrisma } from "@/lib/prisma";
+import { PLANS } from "@/lib/plans";
 import { NextRequest, NextResponse } from "next/server";
 
 // Price per credit in cents per plan
@@ -50,7 +51,7 @@ export async function POST(req: NextRequest) {
           unit_amount: totalCents,
           product_data: {
             name: `${quantity.toLocaleString("pt-BR")} créditos avulsos`,
-            description: `Pacote de ${quantity} créditos para o plano ${plan.charAt(0) + plan.slice(1).toLowerCase()}`,
+            description: `Pacote de ${quantity} créditos para o plano ${PLANS[plan as keyof typeof PLANS]?.label ?? plan}`,
           },
         },
         quantity: 1,
