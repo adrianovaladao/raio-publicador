@@ -955,72 +955,77 @@ export default function EditReleasePage() {
     );
   }
 
-  // ── Menções na web (Exa) ──────────────────────────────────────────────────
+  // ── Conteúdo publicado (Exa /contents) ───────────────────────────────────
+  type CoverageResult = { vehicleId: string; vehicleName: string; vehicleDomain: string; url: string; title: string | null; highlights: string[] };
+
   function WebMentions({ releaseId }: { releaseId: string }) {
     const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
-    const [results, setResults] = useState<{ title: string; url: string; publishedDate?: string; highlights: string[] }[]>([]);
+    const [results, setResults] = useState<CoverageResult[]>([]);
     const [errMsg, setErrMsg] = useState("");
 
-    async function search() {
+    async function fetch_() {
       setStatus("loading");
       try {
         const res = await fetch(`/api/releases/${releaseId}/coverage`);
         const data = await res.json();
         if (!res.ok) throw new Error(data.error ?? "Erro");
+        if (data.results.length === 0) { setResults([]); setStatus("done"); return; }
         setResults(data.results);
         setStatus("done");
       } catch (e) {
-        setErrMsg(e instanceof Error ? e.message : "Erro ao buscar");
+        setErrMsg(e instanceof Error ? e.message : "Erro ao verificar");
         setStatus("error");
       }
     }
 
-    const fmtDate = (iso?: string) => iso ? new Date(iso).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" }) : "";
-
     return (
       <div className="card" style={{ marginBottom: 20, overflow: "hidden" }}>
         <div className="card-head">
-          <h3>Menções na web</h3>
-          {status === "idle" && (
-            <button className="btn btn-ghost btn-sm" onClick={search}>Buscar menções</button>
+          <h3>Conteúdo publicado</h3>
+          {status !== "loading" && (
+            <button className="btn btn-ghost btn-sm" onClick={fetch_}>
+              {status === "idle" ? "Verificar conteúdo" : "Atualizar"}
+            </button>
           )}
-          {status === "loading" && <span style={{ fontSize: 12, color: "var(--stone)" }}>Buscando…</span>}
-          {status === "done" && (
-            <button className="btn btn-ghost btn-sm" onClick={search}>Atualizar</button>
-          )}
+          {status === "loading" && <span style={{ fontSize: 12, color: "var(--stone)" }}>Extraindo conteúdo…</span>}
         </div>
         {status === "idle" && (
           <div className="card-pad muted" style={{ fontSize: 13 }}>
-            Clique em &ldquo;Buscar menções&rdquo; para encontrar publicações deste release na web via Exa.
+            Clique em &ldquo;Verificar conteúdo&rdquo; para confirmar que o texto do release está presente em cada URL cadastrada.
           </div>
         )}
         {status === "error" && (
           <div className="card-pad" style={{ fontSize: 13, color: "var(--coral)" }}>{errMsg}</div>
         )}
         {status === "done" && results.length === 0 && (
-          <div className="card-pad muted" style={{ fontSize: 13 }}>Nenhuma menção encontrada ainda.</div>
+          <div className="card-pad muted" style={{ fontSize: 13 }}>Nenhuma URL cadastrada para verificar.</div>
         )}
         {status === "done" && results.length > 0 && (
           <div>
             {results.map((r, i) => (
-              <div key={r.url} style={{ padding: "14px 20px", borderTop: i === 0 ? "none" : "1px solid var(--line)" }}>
-                <div style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 4 }}>
+              <div key={r.vehicleId} style={{ padding: "14px 20px", borderTop: i === 0 ? "none" : "1px solid var(--line)" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: r.highlights.length > 0 ? 8 : 0 }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <a href={r.url} target="_blank" rel="noreferrer" style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", textDecoration: "none" }}>
-                      {r.title || r.url}
-                    </a>
+                    <div style={{ fontSize: 14, fontWeight: 600 }}>{r.vehicleName}</div>
                     <div style={{ fontSize: 11, color: "var(--stone)", marginTop: 2 }}>
-                      {new URL(r.url).hostname.replace("www.", "")}
-                      {r.publishedDate && <> · {fmtDate(r.publishedDate)}</>}
+                      {r.title ?? r.vehicleDomain}
                     </div>
                   </div>
                   <a href={r.url} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: "#2563EB", fontWeight: 500, whiteSpace: "nowrap", flexShrink: 0 }}>
-                    Ver ↗
+                    Ver publicação ↗
                   </a>
                 </div>
-                {r.highlights[0] && (
-                  <p style={{ fontSize: 12, color: "var(--stone)", margin: 0, lineHeight: 1.6, borderLeft: "2px solid var(--line)", paddingLeft: 10 }}>
-                    {r.highlights[0]}
+                {r.highlights.length > 0 ? (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    {r.highlights.map((h, hi) => (
+                      <p key={hi} style={{ fontSize: 12, color: "var(--stone)", margin: 0, lineHeight: 1.6, borderLeft: "2px solid var(--line)", paddingLeft: 10 }}>
+                        {h}
+                      </p>
+                    ))}
+                  </div>
+                ) : (
+                  <p style={{ fontSize: 12, color: "var(--stone)", margin: 0, fontStyle: "italic" }}>
+                    Sem trechos extraídos — a Exa pode não ter indexado esta URL ainda.
                   </p>
                 )}
               </div>

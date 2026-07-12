@@ -13,12 +13,17 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 
   const release = await prisma.release.findUnique({
     where: { id },
-    select: { title: true, authorId: true, publishedAt: true, status: true, brand: { select: { ownerId: true } } },
+    select: {
+      title: true,
+      status: true,
+      publishedVehicleUrls: true,
+      vehicles: true,
+      brand: { select: { ownerId: true } },
+    },
   });
 
   if (!release) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  // Only owner or team members can query
   const isMember = await prisma.teamMember.findFirst({ where: { ownerId: release.brand.ownerId, clerkId: userId } });
   if (release.brand.ownerId !== userId && !isMember) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -28,32 +33,54 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     return NextResponse.json({ error: "Release ainda não publicado" }, { status: 400 });
   }
 
+  const pubUrls = (release.publishedVehicleUrls ?? {}) as Record<string, string>;
+  const urlEntries = Object.entries(pubUrls).filter(([, u]) => u?.trim());
+
+  if (urlEntries.length === 0) {
+    return NextResponse.json({ results: [] });
+  }
+
   const apiKey = process.env.EXA_API_KEY;
   if (!apiKey) return NextResponse.json({ error: "EXA_API_KEY não configurada" }, { status: 500 });
+
+  // Fetch vehicle names for labels
+  const vehicles = await prisma.vehicle.findMany({
+    where: { id: { in: urlEntries.map(([vid]) => vid) } },
+    select: { id: true, name: true, domain: true },
+  });
+  const vehicleMap = Object.fromEntries(vehicles.map(v => [v.id, v]));
+
+  const toAbs = (u: string) => /^https?:\/\//i.test(u) ? u : `https://${u}`;
+  const urls = urlEntries.map(([, u]) => toAbs(u));
 
   const exa = new Exa(apiKey);
 
   try {
-    const results = await exa.search(`"${release.title}"`, {
-      type: "auto",
-      numResults: 10,
-      contents: { highlights: true },
-      ...(release.publishedAt && {
-        startPublishedDate: new Date(release.publishedAt).toISOString().split("T")[0],
-      }),
+    const contents = await exa.getContents(urls, {
+      highlights: { numSentences: 3, highlightsPerUrl: 2 } as Parameters<typeof exa.getContents>[1],
     });
 
-    return NextResponse.json({
-      query: release.title,
-      results: results.results.map(r => ({
-        title: r.title,
-        url: r.url,
-        publishedDate: r.publishedDate,
-        highlights: (r as unknown as { highlights?: string[] }).highlights ?? [],
-      })),
+    const byUrl = Object.fromEntries(
+      (contents.results ?? []).map((r: { url: string; title?: string; highlights?: string[] }) => [r.url, r])
+    );
+
+    const results = urlEntries.map(([vehicleId, rawUrl]) => {
+      const url = toAbs(rawUrl);
+      const r = byUrl[url] as { url: string; title?: string; highlights?: string[] } | undefined;
+      const vehicle = vehicleMap[vehicleId];
+      return {
+        vehicleId,
+        vehicleName: vehicle?.name ?? vehicleId,
+        vehicleDomain: vehicle?.domain ?? "",
+        url,
+        title: r?.title ?? null,
+        highlights: r?.highlights ?? [],
+      };
     });
+
+    return NextResponse.json({ results });
   } catch (err) {
     console.error("[coverage] exa error", err);
-    return NextResponse.json({ error: "Erro ao buscar menções" }, { status: 500 });
+    return NextResponse.json({ error: "Erro ao extrair conteúdo das URLs" }, { status: 500 });
   }
 }
