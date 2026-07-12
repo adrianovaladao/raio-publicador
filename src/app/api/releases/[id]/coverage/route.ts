@@ -56,9 +56,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const exa = new Exa(apiKey);
 
   try {
-    const contents = await exa.getContents(urls, {
-      highlights: { numSentences: 3, highlightsPerUrl: 2 } as Parameters<typeof exa.getContents>[1],
-    });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const contents = await (exa as any).getContents(urls, { highlights: true });
 
     const byUrl = Object.fromEntries(
       (contents.results ?? []).map((r: { url: string; title?: string; highlights?: string[] }) => [r.url, r])
