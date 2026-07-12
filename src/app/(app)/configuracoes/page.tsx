@@ -6,7 +6,7 @@ import { useUser, useReverification } from "@clerk/nextjs";
 import Image from "next/image";
 import { extractDominantColor, extractDominantColorFromUrl } from "@/lib/color";
 import {
-  UserCircle, Settings2, Users, Building2, CreditCard,
+  UserCircle, Settings2, Users, Building2, CreditCard, Bell,
   Plus, ChevronDown, Camera, Lock,
   Mail, Download, Check, X, MoreHorizontal, Ban, Trash2, Send, Upload, Zap,
   Rss, Pencil, SlidersHorizontal, ArrowUpDown, ArrowUp, ArrowDown,
@@ -675,6 +675,17 @@ function NotifPrefsCard({ onToast }: { onToast: (m: string) => void }) {
   );
 }
 
+// ─── Notificações Panel ───────────────────────────────────────────────────────
+
+function NotificacoesPanel({ onToast }: { onToast: (m: string) => void }) {
+  return (
+    <div className="set-panel">
+      <PanelHead title="<em>Notificações</em>" desc="Escolha como e quando deseja ser notificado." />
+      <NotifPrefsCard onToast={onToast} />
+    </div>
+  );
+}
+
 // ─── Conta ────────────────────────────────────────────────────────────────────
 
 function ContaPanel({ onToast }: { onToast: (m: string) => void }) {
@@ -765,8 +776,6 @@ function ContaPanel({ onToast }: { onToast: (m: string) => void }) {
           )}
         </div>
       </div>
-
-      <NotifPrefsCard onToast={onToast} />
 
       {subInfo && (
         <CancelFlow
@@ -2203,7 +2212,7 @@ function SupportPanel() {
 }
 
 const BASE_GROUPS = [
-  { label: "Você", items: [{ id: "perfil", icon: UserCircle, label: "Perfil" }, { id: "conta", icon: Settings2, label: "Conta" }] },
+  { label: "Você", items: [{ id: "perfil", icon: UserCircle, label: "Perfil" }, { id: "conta", icon: Settings2, label: "Conta" }, { id: "notificacoes", icon: Bell, label: "Notificações" }] },
   { label: "Organização", items: [{ id: "equipe", icon: Users, label: "Equipe e permissões" }, { id: "marcas", icon: Building2, label: "Marcas" }, { id: "cobranca", icon: CreditCard, label: "Cobrança" }] },
   { label: "Suporte", items: [{ id: "suporte", icon: MessageCircle, label: "Histórico de suporte" }] },
 ];
@@ -2250,8 +2259,9 @@ function ConfiguracoesInner() {
             ))}
           </nav>
           <div className="set-body">
-            {tab === "perfil"   && <PerfilPanel   onToast={showToast} />}
-            {tab === "conta"    && <ContaPanel    onToast={showToast} />}
+            {tab === "perfil"        && <PerfilPanel        onToast={showToast} />}
+            {tab === "conta"         && <ContaPanel         onToast={showToast} />}
+            {tab === "notificacoes"  && <NotificacoesPanel  onToast={showToast} />}
             {tab === "equipe"   && <EquipePanel   onToast={showToast} isCancelled={isCancelled} />}
             {tab === "marcas"   && <MarcasPanel   onToast={showToast} isCancelled={isCancelled} />}
             {tab === "cobranca" && <CobrancaPanel onToast={showToast} isCancelled={isCancelled} />}

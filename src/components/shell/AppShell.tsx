@@ -174,7 +174,7 @@ function NotificationPanel({ onClose }: { onClose: () => void }) {
 
         {/* Footer */}
         <div style={{ padding: "10px 18px", borderTop: "1px solid var(--line)", flexShrink: 0, textAlign: "center" }}>
-          <a href="/configuracoes?tab=conta" style={{ fontSize: 12, color: "var(--stone)", textDecoration: "none" }} onClick={onClose}>
+          <a href="/configuracoes?tab=notificacoes" style={{ fontSize: 12, color: "var(--stone)", textDecoration: "none" }} onClick={onClose}>
             Gerenciar preferências de notificação →
           </a>
         </div>
