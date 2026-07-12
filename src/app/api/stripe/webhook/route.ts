@@ -12,6 +12,7 @@ import {
   sendPaymentFailedEmail,
   sendUpgradeEmail,
 } from "@/lib/email";
+import { createNotification } from "@/lib/notify";
 
 async function getClerkUser(clerkId: string) {
   const clerk = await clerkClient();
@@ -169,6 +170,11 @@ export async function POST(req: NextRequest) {
         if (email) {
           await sendRenewalEmail(email, firstName, PLANS[planId].label, PLANS[planId].credits, periodEnd).catch(console.error);
         }
+        await createNotification(clerkId, "plan_renewed",
+          "Plano renovado",
+          `Seu Plano ${PLANS[planId].label} foi renovado. Você tem ${PLANS[planId].credits.toLocaleString("pt-BR")} créditos disponíveis.`,
+          "/configuracoes?tab=cobranca",
+        ).catch(console.error);
       }
       // billing_reason === "subscription_create" and "subscription_update" are handled by checkout.session.completed
       break;
@@ -190,6 +196,11 @@ export async function POST(req: NextRequest) {
       if (email) {
         await sendPaymentFailedEmail(email, firstName, planId ? PLANS[planId]?.label : "atual").catch(console.error);
       }
+      await createNotification(clerkId, "payment_failed",
+        "Pagamento falhou",
+        "Não foi possível processar a cobrança do seu plano. Atualize seu cartão para continuar.",
+        "/configuracoes?tab=cobranca",
+      ).catch(console.error);
       break;
     }
 

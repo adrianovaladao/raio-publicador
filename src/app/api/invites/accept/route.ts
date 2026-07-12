@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { getPrisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { createNotification } from "@/lib/notify";
 
 // GET /api/invites/accept?token=xxx — validate invite without accepting
 export async function GET(req: Request) {
@@ -51,6 +52,14 @@ export async function POST(req: Request) {
       },
     }),
   ]);
+
+  // Notify the workspace owner
+  const ROLE_LABELS: Record<string, string> = { EDITOR: "Editor", REVIEWER: "Revisor", ADMIN: "Administrador" };
+  await createNotification(invite.ownerId, "member_joined",
+    "Novo membro na equipe",
+    `${name} aceitou o convite e entrou como ${ROLE_LABELS[invite.role] ?? invite.role}.`,
+    "/configuracoes?tab=equipe",
+  ).catch(console.error);
 
   return NextResponse.json({ ok: true });
 }

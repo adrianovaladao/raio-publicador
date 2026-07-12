@@ -3,6 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { getStripe } from "@/lib/stripe";
 import { getPrisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { createNotification } from "@/lib/notify";
 
 export async function POST() {
   const { userId } = await auth();
@@ -50,6 +51,12 @@ export async function POST() {
     where: { ownerId: userId },
     data: { status: "ACTIVE" },
   });
+
+  await createNotification(userId, "subscription_reactivated",
+    "Assinatura reativada",
+    "Sua assinatura foi reativada com sucesso. Bem-vindo de volta!",
+    "/configuracoes?tab=cobranca",
+  ).catch(console.error);
 
   return NextResponse.json({ ok: true });
 }

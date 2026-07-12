@@ -6,6 +6,7 @@ import { NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
 import { sendCancellationEmail } from "@/lib/email";
 import { PLANS } from "@/lib/plans";
+import { createNotification } from "@/lib/notify";
 
 const REFUND_WINDOW_DAYS = 7;
 
@@ -53,6 +54,11 @@ export async function POST() {
     if (email) {
       await sendCancellationEmail(email, firstName, true, null, planLabel).catch(console.error);
     }
+    await createNotification(userId, "subscription_cancelled",
+      "Assinatura cancelada e reembolso processado",
+      `Seu reembolso do Plano ${planLabel} foi processado. O valor será creditado em até 10 dias úteis.`,
+      "/configuracoes?tab=cobranca",
+    ).catch(console.error);
     return NextResponse.json({ ok: true, refunded: true, periodEnd: null });
   } else {
     // After 7 days: cancel at period end, access maintained
@@ -67,6 +73,14 @@ export async function POST() {
     if (email) {
       await sendCancellationEmail(email, firstName, false, sub.currentPeriodEnd ?? null, planLabel).catch(console.error);
     }
+    const until = sub.currentPeriodEnd
+      ? sub.currentPeriodEnd.toLocaleDateString("pt-BR", { day: "2-digit", month: "long" })
+      : "o fim do ciclo";
+    await createNotification(userId, "subscription_cancelled",
+      "Assinatura cancelada",
+      `Seu acesso ao Plano ${planLabel} permanece ativo até ${until}.`,
+      "/configuracoes?tab=cobranca",
+    ).catch(console.error);
     return NextResponse.json({ ok: true, refunded: false, periodEnd: sub.currentPeriodEnd?.toISOString() ?? null });
   }
 }

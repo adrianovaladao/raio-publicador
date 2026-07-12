@@ -587,9 +587,98 @@ function CancelFlow({ plan, email, periodEnd, periodStart, isCancelled, onDone, 
   );
 }
 
+// ─── Notification Preferences Card ───────────────────────────────────────────
+
+import type { NotifType } from "@/lib/notify";
+import { DEFAULT_PREFS, NOTIF_LABELS } from "@/lib/notify";
+
+type PrefsMap = Record<NotifType, { inApp: boolean; email: boolean }>;
+
+function NotifPrefsCard({ onToast }: { onToast: (m: string) => void }) {
+  const [prefs, setPrefs] = useState<PrefsMap>(DEFAULT_PREFS as PrefsMap);
+  const [saving, setSaving] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/notifications/preferences")
+      .then(r => r.json())
+      .then((d: PrefsMap) => { setPrefs(d); setLoaded(true); })
+      .catch(() => setLoaded(true));
+  }, []);
+
+  async function save(next: PrefsMap) {
+    setPrefs(next);
+    setSaving(true);
+    try {
+      await fetch("/api/notifications/preferences", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(next),
+      });
+      onToast("Preferências salvas");
+    } catch {
+      onToast("Erro ao salvar preferências");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function toggle(type: NotifType, channel: "inApp" | "email") {
+    const next = { ...prefs, [type]: { ...prefs[type], [channel]: !prefs[type][channel] } };
+    save(next as PrefsMap);
+  }
+
+  const groups = Array.from(new Set(Object.values(NOTIF_LABELS).map(l => l.group)));
+
+  return (
+    <div className="card" style={{ marginTop: 16 }}>
+      <div className="card-head">
+        <h3>Notificações</h3>
+        {saving && <span style={{ fontSize: 12, color: "var(--stone)" }}>Salvando…</span>}
+      </div>
+      {!loaded ? (
+        <div className="card-pad muted" style={{ fontSize: 13 }}>Carregando…</div>
+      ) : (
+        <>
+          {/* Column headers */}
+          <div style={{ display: "flex", alignItems: "center", padding: "0 22px 6px", gap: 8 }}>
+            <div style={{ flex: 1 }} />
+            <span style={{ width: 44, textAlign: "center", fontSize: 11, fontWeight: 600, color: "var(--stone)", textTransform: "uppercase", letterSpacing: "0.06em" }}>App</span>
+            <span style={{ width: 44, textAlign: "center", fontSize: 11, fontWeight: 600, color: "var(--stone)", textTransform: "uppercase", letterSpacing: "0.06em" }}>E-mail</span>
+          </div>
+          {groups.map((group, gi) => (
+            <div key={group}>
+              <div style={{ padding: "8px 22px 4px", fontSize: 11, fontWeight: 600, color: "var(--stone)", textTransform: "uppercase", letterSpacing: "0.06em", borderTop: gi > 0 ? "1px solid var(--line)" : undefined }}>
+                {group}
+              </div>
+              {(Object.entries(NOTIF_LABELS) as [NotifType, { title: string; desc: string; group: string }][])
+                .filter(([, v]) => v.group === group)
+                .map(([type, meta]) => (
+                  <div key={type} style={{ display: "flex", alignItems: "center", padding: "10px 22px", gap: 8 }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div className="sir-title">{meta.title}</div>
+                      <div className="sir-sub">{meta.desc}</div>
+                    </div>
+                    <div style={{ width: 44, display: "flex", justifyContent: "center" }}>
+                      <button className={`toggle${prefs[type]?.inApp ? " on" : ""}`} onClick={() => toggle(type, "inApp")}><span className="knob" /></button>
+                    </div>
+                    <div style={{ width: 44, display: "flex", justifyContent: "center" }}>
+                      <button className={`toggle${prefs[type]?.email ? " on" : ""}`} onClick={() => toggle(type, "email")}><span className="knob" /></button>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          ))}
+        </>
+      )}
+    </div>
+  );
+}
+
+// ─── Conta ────────────────────────────────────────────────────────────────────
+
 function ContaPanel({ onToast }: { onToast: (m: string) => void }) {
   const { user, isLoaded } = useUser();
-  const [notif, setNotif] = useState({ sent: true, queued: true, published: true, review: false });
   const [subInfo, setSubInfo] = useState<{ plan: string; periodEnd: string | null; periodStart: string | null; status: string | null } | null>(null);
 
   // troca de senha
@@ -677,17 +766,7 @@ function ContaPanel({ onToast }: { onToast: (m: string) => void }) {
         </div>
       </div>
 
-      <div className="card" style={{ marginTop: 16 }}>
-        <div className="card-head"><h3>Notificações</h3></div>
-        <div className="card-pad" style={{ paddingTop: 8, paddingBottom: 8 }}>
-          {([["sent","Release enviado para publicação","Confirmação quando o release é submetido."],["queued","Release adicionado à fila","Quando o release é recebido e entra na fila de publicação."],["published","Release publicado no veículo","Quando o release entra no ar em cada veículo selecionado."],["review","Release precisa de revisão","Quando um veículo solicita ajustes antes de publicar."]] as [keyof typeof notif,string,string][]).map(([k,t,d]) => (
-            <div className="set-inline-row" key={k}>
-              <div><div className="sir-title">{t}</div><div className="sir-sub">{d}</div></div>
-              <button className={`toggle${notif[k] ? " on" : ""}`} onClick={() => setNotif(n => ({ ...n, [k]: !n[k] }))}><span className="knob" /></button>
-            </div>
-          ))}
-        </div>
-      </div>
+      <NotifPrefsCard onToast={onToast} />
 
       {subInfo && (
         <CancelFlow

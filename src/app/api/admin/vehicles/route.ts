@@ -3,6 +3,7 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { getPrisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { isAnyAdmin } from "@/lib/admin";
+import { createNotification } from "@/lib/notify";
 
 async function assertRaioAdmin() {
   const { userId } = await auth();
@@ -40,9 +41,24 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Campos obrigatórios faltando" }, { status: 400 });
 
   try {
-    const vehicle = await getPrisma().vehicle.create({
+    const prisma = getPrisma();
+    const vehicle = await prisma.vehicle.create({
       data: { name, domain, category, tier, reach: Number(reach), logoUrl: logoUrl ?? null },
     });
+
+    // Notify all active subscription owners
+    const subs = await prisma.subscription.findMany({
+      where: { status: "ACTIVE" },
+      select: { ownerId: true },
+    });
+    await Promise.allSettled(subs.map(s =>
+      createNotification(s.ownerId, "vehicle_added",
+        "Novo veículo disponível",
+        `${name} (${category} · Tier ${tier}) foi adicionado à plataforma.`,
+        "/veiculos",
+      )
+    ));
+
     return NextResponse.json(vehicle, { status: 201 });
   } catch {
     return NextResponse.json({ error: "Domínio já cadastrado" }, { status: 409 });

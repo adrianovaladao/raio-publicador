@@ -11,6 +11,7 @@ import {
 } from "@/lib/email";
 
 import { isAnyAdmin } from "@/lib/admin";
+import { createNotification } from "@/lib/notify";
 
 async function assertAdmin() {
   const { userId } = await auth();
@@ -56,13 +57,29 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       if (email) {
         if (body.status === "NEEDS_REVISION") {
           await sendReleaseNeedsReviewEmail(email, firstName, prev.title, body.adminNotes ?? "", id);
+          await createNotification(prev.authorId, "release_needs_revision",
+            "Release precisa de revisão",
+            `"${prev.title}" precisa de ajustes antes de ser publicado.`,
+            `/releases/${id}`,
+          ).catch(console.error);
         } else if (body.status === "REJECTED") {
           await sendReleaseRejectedEmail(email, firstName, prev.title, body.adminNotes ?? "", id);
+          await createNotification(prev.authorId, "release_rejected",
+            "Release rejeitado",
+            `"${prev.title}" foi recusado. Veja os detalhes e entre em contato com o suporte.`,
+            `/releases/${id}`,
+          ).catch(console.error);
         } else if (body.status === "IN_PUBLICATION") {
           await sendReleaseInPublicationEmail(email, firstName, prev.title, id);
         } else if (body.status === "PUBLISHED") {
           const urls = body.publishedVehicleUrls ?? {};
           await sendReleasePublishedWithLinksEmail(email, firstName, prev.title, urls, id);
+          const vehicleCount = Object.keys(urls).length || prev.vehicles.length;
+          await createNotification(prev.authorId, "release_published",
+            "Release publicado",
+            `"${prev.title}" foi publicado em ${vehicleCount} veículo${vehicleCount !== 1 ? "s" : ""}.`,
+            `/releases/${id}`,
+          ).catch(console.error);
         }
       }
     } catch (err) {

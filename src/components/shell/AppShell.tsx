@@ -6,6 +6,7 @@ import { useUser, useClerk } from "@clerk/nextjs";
 import {
   LayoutDashboard, FileText, CalendarDays, Rss, Settings, ShieldCheck,
   Bell, Search, LogOut, Zap, Check, X,
+  Megaphone, CreditCard, Users, Radio, RefreshCw,
 } from "lucide-react";
 import { RaioLockup } from "@/components/logo/RaioLockup";
 import { SupportWidget } from "@/components/support/SupportWidget";
@@ -32,6 +33,155 @@ function getInitials(name: string | null | undefined) {
   return name.split(" ").filter(Boolean).slice(0, 2).map(w => w[0]).join("").toUpperCase();
 }
 
+
+// ─── Notification Panel ───────────────────────────────────────────────────────
+
+interface NotifRow {
+  id: string; type: string; title: string; body: string;
+  link: string | null; read: boolean; createdAt: string;
+}
+
+function notifIcon(type: string) {
+  if (type.startsWith("release"))    return <Megaphone size={15} />;
+  if (type.startsWith("plan") || type.startsWith("subscription") || type.includes("credits") || type.includes("payment")) return <CreditCard size={15} />;
+  if (type === "member_joined")      return <Users size={15} />;
+  if (type === "vehicle_added")      return <Radio size={15} />;
+  return <Bell size={15} />;
+}
+
+function notifColor(type: string): string {
+  if (type === "release_published")        return "#2F8A5B";
+  if (type === "release_needs_revision")   return "#8A6500";
+  if (type === "release_rejected")         return "#B0322E";
+  if (type.includes("credit") || type === "payment_failed") return "#B0322E";
+  if (type.startsWith("plan") || type.startsWith("subscription")) return "#2A6FDB";
+  return "#6D3BD9";
+}
+
+function timeAgo(iso: string) {
+  const diff = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1)  return "agora";
+  if (m < 60) return `${m}min atrás`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h atrás`;
+  const d = Math.floor(h / 24);
+  if (d < 7)  return `${d}d atrás`;
+  return new Date(iso).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
+}
+
+function NotificationPanel({ onClose }: { onClose: () => void }) {
+  const [notifs, setNotifs] = useState<NotifRow[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/notifications")
+      .then(r => r.json())
+      .then((d: NotifRow[]) => { setNotifs(d); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, []);
+
+  async function markRead(id: string) {
+    setNotifs(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+    await fetch(`/api/notifications/${id}/read`, { method: "PATCH" });
+  }
+
+  async function markAllRead() {
+    setNotifs(prev => prev.map(n => ({ ...n, read: true })));
+    await fetch("/api/notifications/read-all", { method: "PATCH" });
+  }
+
+  const unread = notifs.filter(n => !n.read).length;
+
+  return (
+    <>
+      <div style={{ position: "fixed", inset: 0, zIndex: 1099 }} onClick={onClose} />
+      <div style={{
+        position: "fixed", top: 60, right: 16, width: 380, maxHeight: "calc(100vh - 80px)",
+        background: "var(--paper)", borderRadius: 16, border: "1px solid var(--line)",
+        boxShadow: "0 8px 32px rgba(0,0,0,.12)", zIndex: 1100,
+        display: "flex", flexDirection: "column", overflow: "hidden",
+      }}>
+        {/* Header */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 18px 12px", borderBottom: "1px solid var(--line)", flexShrink: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ fontWeight: 700, fontSize: 15, color: "var(--ink)" }}>Notificações</span>
+            {unread > 0 && (
+              <span style={{ background: "var(--coral)", color: "#fff", fontSize: 11, fontWeight: 700, borderRadius: 99, padding: "1px 7px" }}>{unread}</span>
+            )}
+          </div>
+          <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+            {unread > 0 && (
+              <button onClick={markAllRead} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, color: "var(--stone)", display: "flex", alignItems: "center", gap: 4, padding: "4px 8px", borderRadius: 6 }}>
+                <Check size={13} /> Marcar todas como lidas
+              </button>
+            )}
+            <button onClick={onClose} style={{ background: "var(--cream)", border: "none", borderRadius: "50%", width: 28, height: 28, display: "grid", placeItems: "center", cursor: "pointer", color: "var(--stone)" }}>
+              <X size={14} />
+            </button>
+          </div>
+        </div>
+
+        {/* List */}
+        <div style={{ overflowY: "auto", flex: 1 }}>
+          {loading ? (
+            <div style={{ padding: "32px 18px", textAlign: "center", color: "var(--stone)", fontSize: 13 }}>Carregando…</div>
+          ) : notifs.length === 0 ? (
+            <div style={{ padding: "48px 24px", textAlign: "center" }}>
+              <Bell size={32} style={{ color: "var(--line)", margin: "0 auto 12px" }} />
+              <div style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", marginBottom: 4 }}>Tudo tranquilo por aqui</div>
+              <div style={{ fontSize: 13, color: "var(--stone)" }}>Você não tem notificações ainda.</div>
+            </div>
+          ) : (
+            notifs.map(n => (
+              <div
+                key={n.id}
+                onClick={() => {
+                  markRead(n.id);
+                  if (n.link) window.location.href = n.link;
+                  else onClose();
+                }}
+                style={{
+                  display: "flex", gap: 12, padding: "13px 18px", borderBottom: "1px solid var(--line)",
+                  background: n.read ? "transparent" : "var(--cream)",
+                  cursor: "pointer", transition: "background .15s",
+                }}
+                onMouseEnter={e => (e.currentTarget.style.background = "var(--cream)")}
+                onMouseLeave={e => (e.currentTarget.style.background = n.read ? "transparent" : "var(--cream)")}
+              >
+                <div style={{
+                  width: 34, height: 34, borderRadius: 9, flexShrink: 0,
+                  background: notifColor(n.type) + "18",
+                  color: notifColor(n.type),
+                  display: "grid", placeItems: "center",
+                }}>
+                  {notifIcon(n.type)}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
+                    <span style={{ fontWeight: n.read ? 500 : 700, fontSize: 13.5, color: "var(--ink)", lineHeight: 1.3 }}>{n.title}</span>
+                    <span style={{ fontSize: 11, color: "var(--stone)", whiteSpace: "nowrap", flexShrink: 0, marginTop: 1 }}>{timeAgo(n.createdAt)}</span>
+                  </div>
+                  <div style={{ fontSize: 12.5, color: "var(--stone)", lineHeight: 1.45, marginTop: 2 }}>{n.body}</div>
+                </div>
+                {!n.read && (
+                  <div style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--coral)", flexShrink: 0, marginTop: 13 }} />
+                )}
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Footer */}
+        <div style={{ padding: "10px 18px", borderTop: "1px solid var(--line)", flexShrink: 0, textAlign: "center" }}>
+          <a href="/configuracoes?tab=conta" style={{ fontSize: 12, color: "var(--stone)", textDecoration: "none" }} onClick={onClose}>
+            Gerenciar preferências de notificação →
+          </a>
+        </div>
+      </div>
+    </>
+  );
+}
 
 // ─── PlansModal ───────────────────────────────────────────────────────────────
 
@@ -297,6 +447,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [showPlans, setShowPlans] = useState(false);
   const [showBuyCredits, setShowBuyCredits] = useState(false);
   const [showNewBrand, setShowNewBrand] = useState(false);
+  const [showNotifs, setShowNotifs] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [toast, setToast] = useState<string | null>(null);
   const [releaseCount, setReleaseCount] = useState<number | null>(null);
   const [sub, setSub] = useState<SubInfo>({ plan: null, status: null, label: "—", priceCents: null, credits: 0, creditsUsed: 0 });
@@ -317,19 +469,30 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       .catch(() => {});
   }, []);
 
+  const fetchUnread = useCallback(() => {
+    fetch("/api/notifications")
+      .then(r => r.json())
+      .then((d: { read: boolean }[]) => setUnreadCount(Array.isArray(d) ? d.filter(n => !n.read).length : 0))
+      .catch(() => {});
+  }, []);
+
   useEffect(() => {
     fetchReleaseCount();
     fetchSub();
+    fetchUnread();
     const openPlans = () => setShowPlans(true);
+    const refreshNotifs = () => fetchUnread();
     window.addEventListener("credits-changed", fetchSub);
     window.addEventListener("open-plans", openPlans);
     window.addEventListener("releases-changed", fetchReleaseCount);
+    window.addEventListener("notifications-changed", refreshNotifs);
     return () => {
       window.removeEventListener("credits-changed", fetchSub);
       window.removeEventListener("open-plans", openPlans);
       window.removeEventListener("releases-changed", fetchReleaseCount);
+      window.removeEventListener("notifications-changed", refreshNotifs);
     };
-  }, [fetchReleaseCount, fetchSub]);
+  }, [fetchReleaseCount, fetchSub, fetchUnread]);
 
   useEffect(() => {
     fetchReleaseCount();
@@ -484,10 +647,24 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <Search size={16} />
             <input placeholder="Buscar releases, veículos…" />
           </div>
-          <button className="icon-btn" title="Notificações">
+          <button
+            className="icon-btn"
+            title="Notificações"
+            style={{ position: "relative" }}
+            onClick={() => { setShowNotifs(o => !o); }}
+          >
             <Bell size={18} />
-            <span className="dot" />
+            {unreadCount > 0 && (
+              <span style={{
+                position: "absolute", top: 5, right: 5,
+                width: 8, height: 8, borderRadius: "50%",
+                background: "var(--coral)", border: "2px solid var(--paper)",
+              }} />
+            )}
           </button>
+          {showNotifs && (
+            <NotificationPanel onClose={() => { setShowNotifs(false); fetchUnread(); }} />
+          )}
         </header>
 
         {children}
