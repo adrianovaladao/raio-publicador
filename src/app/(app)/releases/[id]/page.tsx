@@ -915,7 +915,7 @@ export default function EditReleasePage() {
         </div>
         {status === "idle" && (
           <div className="card-pad muted" style={{ fontSize: 13 }}>
-            Clique em "Buscar menções" para encontrar publicações deste release na web via Exa.
+            Clique em &ldquo;Buscar menções&rdquo; para encontrar publicações deste release na web via Exa.
           </div>
         )}
         {status === "error" && (
