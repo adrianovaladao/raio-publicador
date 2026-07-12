@@ -648,14 +648,14 @@ function NotifPrefsCard({ onToast }: { onToast: (m: string) => void }) {
           </div>
           {groups.map((group, gi) => (
             <div key={group}>
-              <div style={{ padding: "14px 22px 8px", fontSize: 11, fontWeight: 600, color: "var(--stone)", textTransform: "uppercase", letterSpacing: "0.06em", borderTop: gi > 0 ? "1px solid var(--line)" : undefined }}>
+              <div style={{ padding: gi === 0 ? "24px 22px 24px" : "0 22px 24px", fontSize: 11, fontWeight: 600, color: "var(--stone)", textTransform: "uppercase", letterSpacing: "0.06em", borderTop: gi > 0 ? "1px solid var(--line)" : undefined }}>
                 {group}
               </div>
               {(Object.entries(NOTIF_LABELS) as [NotifType, { title: string; desc: string; group: string }][])
                 .filter(([, v]) => v.group === group)
                 .map(([type, meta]) => (
-                  <div key={type} style={{ display: "flex", alignItems: "center", padding: "14px 22px 8px", gap: 8 }}>
-                    <div style={{ flex: 1, minWidth: 0 }}>
+                  <div key={type} style={{ display: "flex", alignItems: "center", padding: "0 22px 24px", gap: 8 }}>
+                    <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 8 }}>
                       <div className="sir-title">{meta.title}</div>
                       <div className="sir-sub">{meta.desc}</div>
                     </div>
