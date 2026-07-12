@@ -660,10 +660,10 @@ function NotifPrefsCard({ onToast }: { onToast: (m: string) => void }) {
                       <div className="sir-sub">{meta.desc}</div>
                     </div>
                     <div style={{ width: 44, display: "flex", justifyContent: "center" }}>
-                      <button className={`toggle${prefs[type]?.inApp ? " on" : ""}`} onClick={() => toggle(type, "inApp")}><span className="knob" /></button>
+                      <input type="checkbox" checked={!!prefs[type]?.inApp} onChange={() => toggle(type, "inApp")} style={{ width: 16, height: 16, accentColor: "var(--coral)", cursor: "pointer" }} />
                     </div>
                     <div style={{ width: 44, display: "flex", justifyContent: "center" }}>
-                      <button className={`toggle${prefs[type]?.email ? " on" : ""}`} onClick={() => toggle(type, "email")}><span className="knob" /></button>
+                      <input type="checkbox" checked={!!prefs[type]?.email} onChange={() => toggle(type, "email")} style={{ width: 16, height: 16, accentColor: "var(--coral)", cursor: "pointer" }} />
                     </div>
                   </div>
                 ))}
