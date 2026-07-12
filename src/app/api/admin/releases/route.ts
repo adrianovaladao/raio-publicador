@@ -12,6 +12,7 @@ export async function GET() {
 
   const prisma = getPrisma();
   const releases = await prisma.release.findMany({
+    where: { status: { not: "DRAFT" } },
     include: { brand: { select: { name: true, color: true, logoUrl: true } } },
     orderBy: { updatedAt: "desc" },
   });
