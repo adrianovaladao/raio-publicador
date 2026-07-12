@@ -879,6 +879,82 @@ export default function EditReleasePage() {
 
   const brand = release?.brand ?? null;
 
+  // ── Cobertura com ping ────────────────────────────────────────────────────
+  function CoberturaCard({ releaseId, coveredVehicles, pubUrls, tierCounts, toAbsUrl }: {
+    releaseId: string;
+    coveredVehicles: VehicleItem[];
+    pubUrls: Record<string, string>;
+    tierCounts: Record<string, number>;
+    toAbsUrl: (u: string) => string;
+  }) {
+    const [pingStatus, setPingStatus] = useState<Record<string, { ok: boolean; status: number }>>({});
+    const [pinging, setPinging] = useState(false);
+
+    async function ping() {
+      setPinging(true);
+      try {
+        const res = await fetch(`/api/releases/${releaseId}/ping-urls`);
+        const data = await res.json();
+        const map: Record<string, { ok: boolean; status: number }> = {};
+        for (const r of data.results ?? []) map[r.vehicleId] = { ok: r.ok, status: r.status };
+        setPingStatus(map);
+      } finally {
+        setPinging(false);
+      }
+    }
+
+    const urlCount = Object.keys(pubUrls).length;
+
+    return (
+      <div className="card-head" style={{ display: "block", padding: 0 }}>
+        <div className="card-head">
+          <h3>Cobertura</h3>
+          <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+            {Object.entries(tierCounts).sort().map(([tier, count]) => (
+              <span key={tier} style={{ fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 5, background: TIER_COLORS_MAP[tier] ?? "#888", color: TIER_FG_MAP[tier] ?? "#fff" }}>
+                {count}× {tier}
+              </span>
+            ))}
+            <span style={{ fontSize: 12, color: "var(--stone)", marginLeft: 4 }}>{coveredVehicles.length} veículos</span>
+            {urlCount > 0 && (
+              <button className="btn btn-ghost btn-sm" onClick={ping} disabled={pinging} style={{ marginLeft: 4 }}>
+                {pinging ? "Verificando…" : "Verificar URLs"}
+              </button>
+            )}
+          </div>
+        </div>
+        <div>
+          {coveredVehicles.length === 0 && (
+            <div className="card empty"><div className="muted">Nenhum veículo registrado.</div></div>
+          )}
+          {coveredVehicles.map((v, i) => {
+            const url = pubUrls[v.id];
+            const ps = pingStatus[v.id];
+            return (
+              <div key={v.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 20px", borderTop: i === 0 ? "none" : "1px solid var(--line)" }}>
+                <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 6px", borderRadius: 5, background: TIER_COLORS_MAP[v.tier] ?? "#888", color: TIER_FG_MAP[v.tier] ?? "#fff", flexShrink: 0 }}>{v.tier}</span>
+                <span style={{ fontSize: 14, fontWeight: 600, flex: 1 }}>{v.name}</span>
+                <span style={{ fontSize: 12, color: "var(--stone)" }}>{v.domain}</span>
+                {ps && (
+                  <span style={{ fontSize: 11, fontWeight: 600, padding: "2px 7px", borderRadius: 5, background: ps.ok ? "#F0FDF4" : "#FEF2F2", color: ps.ok ? "#16A34A" : "#DC2626", flexShrink: 0 }}>
+                    {ps.ok ? `${ps.status} OK` : ps.status === 0 ? "Offline" : `${ps.status} Erro`}
+                  </span>
+                )}
+                {url ? (
+                  <a href={toAbsUrl(url)} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: "#2563EB", fontWeight: 500, whiteSpace: "nowrap" }}>
+                    Ver publicação ↗
+                  </a>
+                ) : (
+                  <span style={{ fontSize: 12, color: "var(--stone)" }}>URL pendente</span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
   // ── Menções na web (Exa) ──────────────────────────────────────────────────
   function WebMentions({ releaseId }: { releaseId: string }) {
     const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
@@ -957,7 +1033,7 @@ export default function EditReleasePage() {
 
   // ── Read-only view for published releases ─────────────────────────────────
   if (release?.status === "PUBLISHED") {
-    const pubUrls = release.publishedVehicleUrls ?? {};
+    const pubUrls = release.publishedVehicleUrls ?? {} as Record<string, string>;
     const toAbsUrl = (u: string) => /^https?:\/\//i.test(u) ? u : `https://${u}`;
     const fmtFull = (iso: string) => new Date(iso).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
     const coveredVehicles = vehicles.filter(v => release.vehicles.includes(v.id));
@@ -994,39 +1070,13 @@ export default function EditReleasePage() {
 
           {/* Cobertura */}
           <div className="card" style={{ marginBottom: 20, overflow: "hidden" }}>
-            <div className="card-head">
-              <h3>Cobertura</h3>
-              <div style={{ display: "flex", gap: 6 }}>
-                {Object.entries(tierCounts).sort().map(([tier, count]) => (
-                  <span key={tier} style={{ fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 5, background: TIER_COLORS_MAP[tier] ?? "#888", color: TIER_FG_MAP[tier] ?? "#fff" }}>
-                    {count}× {tier}
-                  </span>
-                ))}
-                <span style={{ fontSize: 12, color: "var(--stone)", marginLeft: 4, alignSelf: "center" }}>{coveredVehicles.length} veículos</span>
-              </div>
-            </div>
-            <div>
-              {coveredVehicles.length === 0 && (
-                <div className="card empty"><div className="muted">Nenhum veículo registrado.</div></div>
-              )}
-              {coveredVehicles.map((v, i) => {
-                const url = pubUrls[v.id];
-                return (
-                  <div key={v.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 20px", borderTop: i === 0 ? "none" : "1px solid var(--line)" }}>
-                    <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 6px", borderRadius: 5, background: TIER_COLORS_MAP[v.tier] ?? "#888", color: TIER_FG_MAP[v.tier] ?? "#fff", flexShrink: 0 }}>{v.tier}</span>
-                    <span style={{ fontSize: 14, fontWeight: 600, flex: 1 }}>{v.name}</span>
-                    <span style={{ fontSize: 12, color: "var(--stone)" }}>{v.domain}</span>
-                    {url ? (
-                      <a href={toAbsUrl(url)} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: "#2563EB", fontWeight: 500, whiteSpace: "nowrap" }}>
-                        Ver publicação ↗
-                      </a>
-                    ) : (
-                      <span style={{ fontSize: 12, color: "var(--stone)" }}>URL pendente</span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+            <CoberturaCard
+              releaseId={release.id}
+              coveredVehicles={coveredVehicles}
+              pubUrls={pubUrls as Record<string, string>}
+              tierCounts={tierCounts}
+              toAbsUrl={toAbsUrl}
+            />
           </div>
 
           {/* Menções na web */}
