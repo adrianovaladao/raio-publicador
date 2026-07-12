@@ -641,14 +641,14 @@ function NotifPrefsCard({ onToast }: { onToast: (m: string) => void }) {
       ) : (
         <>
           {/* Column headers */}
-          <div style={{ display: "flex", alignItems: "center", padding: "0 22px 6px", gap: 8 }}>
+          <div style={{ display: "flex", alignItems: "center", padding: "24px 22px 0", gap: 8 }}>
             <div style={{ flex: 1 }} />
             <span style={{ width: 44, textAlign: "center", fontSize: 11, fontWeight: 600, color: "var(--stone)", textTransform: "uppercase", letterSpacing: "0.06em" }}>App</span>
             <span style={{ width: 44, textAlign: "center", fontSize: 11, fontWeight: 600, color: "var(--stone)", textTransform: "uppercase", letterSpacing: "0.06em" }}>E-mail</span>
           </div>
           {groups.map((group, gi) => (
             <div key={group}>
-              <div style={{ padding: "24px 22px", fontSize: 11, fontWeight: 600, color: "var(--stone)", textTransform: "uppercase", letterSpacing: "0.06em", borderTop: gi > 0 ? "1px solid var(--line)" : undefined }}>
+              <div style={{ padding: gi === 0 ? "0 22px 24px" : "24px 22px", fontSize: 11, fontWeight: 600, color: "var(--stone)", textTransform: "uppercase", letterSpacing: "0.06em", borderTop: gi > 0 ? "1px solid var(--line)" : undefined }}>
                 {group}
               </div>
               {(Object.entries(NOTIF_LABELS) as [NotifType, { title: string; desc: string; group: string }][])
