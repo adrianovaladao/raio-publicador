@@ -654,7 +654,7 @@ function NotifPrefsCard({ onToast }: { onToast: (m: string) => void }) {
               {(Object.entries(NOTIF_LABELS) as [NotifType, { title: string; desc: string; group: string }][])
                 .filter(([, v]) => v.group === group)
                 .map(([type, meta]) => (
-                  <div key={type} style={{ display: "flex", alignItems: "center", padding: "14px 22px", gap: 8 }}>
+                  <div key={type} style={{ display: "flex", alignItems: "center", padding: "14px 22px 8px", gap: 8 }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div className="sir-title">{meta.title}</div>
                       <div className="sir-sub">{meta.desc}</div>
