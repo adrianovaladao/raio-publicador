@@ -543,7 +543,7 @@ export default function DashboardPage() {
 
             {hasReleases && (
               <div className="dash-2col">
-                <PerformanceDonut />
+                <PerformanceDonut brandId={activeBrand?.id} />
                 <TopVehicles />
               </div>
             )}
@@ -617,13 +617,15 @@ const TIER_FG:     Record<string, string> = { A: "#fff",    B: "#fff",    C: "#f
 
 type VehStat = { id: string; name: string; domain: string; tier: string; reach: number; count: number };
 
-function PerformanceDonut() {
+function PerformanceDonut({ brandId }: { brandId?: string }) {
   const [data,   setData]   = useState<VehStat[]>([]);
   const [total,  setTotal]  = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/vehicles-stats")
+    setLoading(true);
+    const url = brandId ? `/api/vehicles-stats?brandId=${brandId}` : "/api/vehicles-stats";
+    fetch(url)
       .then(r => r.json())
       .then((res: { ranked: { id: string; count: number; name: string; domain: string; tier: string; reach: number }[]; totalReleases: number }) => {
         const top5 = res.ranked.slice(0, 5).map(r => ({
@@ -633,7 +635,7 @@ function PerformanceDonut() {
         setTotal(res.totalReleases);
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [brandId]);
 
   const totalCount = data.reduce((s, d) => s + d.count, 0);
   const r = 70, C = 2 * Math.PI * r;
