@@ -87,17 +87,17 @@ export async function GET() {
         });
       }
 
-      // Charges → créditos avulsos
-      const charges = await stripe.charges.list({ customer: sub.stripeCustomerId, limit: 100 });
-      for (const charge of charges.data) {
-        if ((charge as unknown as { invoice?: string }).invoice) continue;
-        const meta = charge.metadata ?? {};
+      // Checkout Sessions → créditos avulsos (metadata fica na session, não no charge)
+      const sessions = await stripe.checkout.sessions.list({ customer: sub.stripeCustomerId, limit: 100 });
+      for (const sess of sessions.data) {
+        if (sess.payment_status !== "paid") continue;
+        const meta = sess.metadata ?? {};
         if (meta.type !== "credit_purchase" && !meta.creditQty) continue;
         const qty = meta.creditQty ? parseInt(meta.creditQty, 10) : 0;
         if (!qty) continue;
         rows.push({
-          id: `chg-${charge.id}`,
-          date: new Date(charge.created * 1000).toISOString(),
+          id: `sess-${sess.id}`,
+          date: new Date(sess.created * 1000).toISOString(),
           direction: "in",
           description: `Créditos avulsos · ${qty.toLocaleString("pt-BR")} cr`,
           credits: qty,

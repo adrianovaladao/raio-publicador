@@ -60,6 +60,10 @@ export async function POST(req: NextRequest) {
       cancel_url: returnUrl ?? `${origin}/configuracoes`,
       locale: "pt-BR",
       metadata: { clerkId: userId, creditQty: String(quantity), type: "credit_purchase" },
+      // Copia metadata para o PaymentIntent/Charge para que apareça no extrato e cobrança
+      payment_intent_data: {
+        metadata: { clerkId: userId, creditQty: String(quantity), type: "credit_purchase" },
+      },
     });
 
     if (!session.url) return NextResponse.json({ error: "Erro ao criar sessão de pagamento" }, { status: 500 });

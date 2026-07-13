@@ -14,9 +14,6 @@ export async function GET() {
 
   const stripe = getStripe();
 
-  // Fetch charges (one-time payments like credit purchases)
-  const charges = await stripe.charges.list({ customer: sub.stripeCustomerId, limit: 100 });
-
   // Fetch invoices (subscription payments)
   const invoices = await stripe.invoices.list({ customer: sub.stripeCustomerId, limit: 100 });
 
@@ -71,25 +68,37 @@ export async function GET() {
     });
   }
 
-  for (const charge of charges.data) {
-    // Skip charges already covered by invoices
-    if ((charge as unknown as { invoice?: string }).invoice) continue;
-    const meta = charge.metadata ?? {};
-    // Only show charges that are explicitly credit purchases
+  // Checkout Sessions → compras de créditos avulsos (metadata fica na session, não no charge)
+  const sessions = await stripe.checkout.sessions.list({ customer: sub.stripeCustomerId, limit: 100 });
+  for (const sess of sessions.data) {
+    if (sess.payment_status !== "paid") continue;
+    const meta = sess.metadata ?? {};
     if (meta.type !== "credit_purchase" && !meta.creditQty) continue;
     const qty = meta.creditQty ? parseInt(meta.creditQty, 10) : null;
     const planId = meta.planId ?? sub.plan ?? "";
     const planLabel = PLAN_LABELS[planId] ?? "";
     const planSuffix = planLabel ? ` · Plano ${planLabel}` : "";
+    // Busca o charge vinculado para obter receipt_url e amount real
+    const pi = sess.payment_intent as string | null;
+    let receiptUrl: string | null = null;
+    let amount = sess.amount_total ?? 0;
+    let currency = sess.currency ?? "brl";
+    if (pi) {
+      try {
+        const chargesForPi = await stripe.charges.list({ payment_intent: pi, limit: 1 });
+        const ch = chargesForPi.data[0];
+        if (ch) { receiptUrl = ch.receipt_url ?? null; amount = ch.amount; currency = ch.currency; }
+      } catch { /* ignore */ }
+    }
     rows.push({
-      id: charge.id,
-      date: new Date(charge.created * 1000).toISOString(),
-      type: charge.refunded ? "refund" : "credits",
+      id: sess.id,
+      date: new Date(sess.created * 1000).toISOString(),
+      type: "credits",
       description: qty ? `${qty.toLocaleString("pt-BR")} créditos avulsos${planSuffix}` : `Créditos avulsos${planSuffix}`,
-      amount: charge.amount,
-      currency: charge.currency,
-      status: charge.status,
-      receiptUrl: charge.receipt_url ?? null,
+      amount,
+      currency,
+      status: "paid",
+      receiptUrl,
     });
   }
 
