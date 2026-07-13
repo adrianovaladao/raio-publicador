@@ -14,6 +14,14 @@ import { SelectBox } from "@/components/SelectBox";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
+interface RecentRelease {
+  id: string;
+  title: string;
+  status: string;
+  date: string;
+  creditsUsed: number;
+}
+
 interface Brand {
   id: string;
   name: string;
@@ -24,6 +32,9 @@ interface Brand {
   description: string | null;
   logoUrl: string | null;
   releases: number;
+  creditsUsed: number;
+  publishedCount: number;
+  recentReleases: RecentRelease[];
 }
 
 interface DashboardData {
@@ -34,6 +45,18 @@ interface DashboardData {
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const BRAND_COLORS = ["#C25E00","#2A6FDB","#2F8A5B","#6D3BD9","#0E7C86","#B0322E","#8A6500","#1A1A1A"];
+
+const STATUS_LABEL: Record<string, string> = {
+  published: "Publicado", scheduled: "Agendado", draft: "Rascunho",
+  review: "Em revisão", in_review: "Em análise", needs_revision: "Precisa revisão",
+  rejected: "Reprovado", in_publication: "Em publicação", cancelled: "Cancelado",
+};
+
+function fmtDate(iso: string) {
+  const d = new Date(iso);
+  const m = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+  return `${String(d.getDate()).padStart(2,"0")} ${m[d.getMonth()]} ${d.getFullYear()}`;
+}
 const BRAND_SEGMENTS = ["Franquias","Tecnologia","Saúde","Economia","Varejo","Negócios","Educação","Serviços","Indústria","Outro"];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -324,9 +347,8 @@ function NewBrandModal({ onClose, onSave }: { onClose: () => void; onSave: () =>
 
 // ── BrandSwitcher ─────────────────────────────────────────────────────────────
 
-function DashBrandSwitcher({ brands, brandsLimit, onNewBrand, onUpgrade, isCancelled }: { brands: Brand[]; brandsLimit: number | null; onNewBrand: () => void; onUpgrade: () => void; isCancelled?: boolean }) {
+function DashBrandSwitcher({ brands, brandsLimit, activeIdx, setActiveIdx, onNewBrand, onUpgrade, isCancelled }: { brands: Brand[]; brandsLimit: number | null; activeIdx: number; setActiveIdx: (i: number) => void; onNewBrand: () => void; onUpgrade: () => void; isCancelled?: boolean }) {
   const [open, setOpen] = useState(false);
-  const [activeIdx, setActiveIdx] = useState(0);
 
   if (brands.length === 0) return null;
   const active = brands[activeIdx] ?? brands[0];
@@ -348,7 +370,7 @@ function DashBrandSwitcher({ brands, brandsLimit, onNewBrand, onUpgrade, isCance
             <div className="tbb-menu-label">Trocar de marca</div>
             {brands.map((b, i) => (
               <button key={b.id} className={`tbb-opt${i === activeIdx ? " on" : ""}`}
-                onClick={() => { setActiveIdx(i); setOpen(false); }}>
+                onClick={() => { setActiveIdx(i); setOpen(false); }}  >
                 <BrandAvatar name={b.name} color={b.color} logoUrl={b.logoUrl} size={26} />
                 <span className="tbb-opt-meta">
                   <span className="tbb-nm">{b.name}</span>
@@ -436,6 +458,7 @@ export default function DashboardPage() {
   const [currentPlan, setCurrentPlan] = useState<string | null>(null);
   const [subStatus, setSubStatus] = useState<string | null>(null);
   const [creditsLeft, setCreditsLeft] = useState<number | null>(null);
+  const [activeIdx, setActiveIdx] = useState(0);
 
   useEffect(() => {
     fetch("/api/stripe/subscription")
@@ -477,16 +500,17 @@ export default function DashboardPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  const stats    = data?.stats;
-  const brands   = data?.brands ?? [];
+  const stats      = data?.stats;
+  const brands     = data?.brands ?? [];
+  const activeBrand = brands[activeIdx] ?? brands[0] ?? null;
   const hasBrands   = brands.length > 0;
   const hasReleases = (stats?.total ?? 0) > 0;
 
   const KPIS = [
-    { id: "k1", icon: Send,      label: "Releases publicados", val: String(stats?.published ?? 0), accent: true },
+    { id: "k1", icon: Send,      label: "Releases publicados", val: String(activeBrand?.publishedCount ?? stats?.published ?? 0), accent: true },
     { id: "k2", icon: Eye,       label: "Alcance estimado",    val: "—" },
     { id: "k3", icon: Newspaper, label: "Veículos ativos",     val: "—" },
-    { id: "k4", icon: Zap,       label: "Créditos restantes",  val: creditsLeft !== null ? creditsLeft.toLocaleString("pt-BR") : "—" },
+    { id: "k4", icon: Zap,       label: "Créditos utilizados por essa marca", val: activeBrand ? (activeBrand.creditsUsed).toLocaleString("pt-BR") : "—" },
   ];
 
   return (
@@ -498,12 +522,12 @@ export default function DashboardPage() {
             <h2>Olá, {firstName} 👋</h2>
             <p className="sub">
               {hasBrands
-                ? <>Você tem <b style={{ color: "var(--ink)" }}>{brands.length} marca{brands.length !== 1 ? "s" : ""}</b> e <b style={{ color: "var(--ink)" }}>{stats?.total ?? 0} release{(stats?.total ?? 0) !== 1 ? "s" : ""}</b> no total.</>
+                ? <>{activeBrand ? <><b style={{ color: "var(--ink)" }}>{activeBrand.releases} release{activeBrand.releases !== 1 ? "s" : ""}</b> nessa marca · </> : ""}<b style={{ color: "var(--ink)" }}>{brands.length} marca{brands.length !== 1 ? "s" : ""}</b> no total.</>
                 : "Bem-vindo! Cadastre sua primeira marca para começar."}
             </p>
           </div>
           <div className="actions">
-            {hasBrands && <DashBrandSwitcher brands={brands} brandsLimit={brandsLimit} isCancelled={subStatus === "CANCELLED"} onNewBrand={() => setShowNew(true)} onUpgrade={() => setShowUpgrade(true)} />}
+            {hasBrands && <DashBrandSwitcher brands={brands} brandsLimit={brandsLimit} activeIdx={activeIdx} setActiveIdx={setActiveIdx} isCancelled={subStatus === "CANCELLED"} onNewBrand={() => setShowNew(true)} onUpgrade={() => setShowUpgrade(true)} />}
           </div>
         </div>
 
@@ -526,32 +550,40 @@ export default function DashboardPage() {
 
             <div className="card" style={{ marginBottom: 32 }}>
               <div className="card-head">
-                <h3>Suas <em>marcas</em></h3>
-                <a href="/configuracoes?tab=marcas" className="link">Gerenciar</a>
+                <h3>Releases <em>mais recentes</em></h3>
+                <a href="/releases" className="link">Ver todos</a>
               </div>
-              <table className="tbl">
-                <thead>
-                  <tr>
-                    <th style={{ width: "44%" }}>Marca</th>
-                    <th>Segmento</th>
-                    <th style={{ textAlign: "right" }}>Releases</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {brands.map(b => (
-                    <tr key={b.id} onClick={() => setEditBrand(b)}
-                      style={{ cursor: "pointer" }}
-                      className="tbl-row-hover">
-                      <td className="title-cell" style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        <BrandAvatar name={b.name} color={b.color} logoUrl={b.logoUrl} size={28} />
-                        {b.name}
-                      </td>
-                      <td className="muted">{b.segment ?? "—"}</td>
-                      <td className="num" style={{ textAlign: "right", fontWeight: 600 }}>{b.releases}</td>
+              {!activeBrand || activeBrand.recentReleases.length === 0 ? (
+                <div style={{ padding: "32px 22px", textAlign: "center", color: "var(--stone)", fontSize: 14 }}>
+                  Nenhum release criado para essa marca ainda.
+                </div>
+              ) : (
+                <table className="tbl">
+                  <thead>
+                    <tr>
+                      <th style={{ width: "55%" }}>Release</th>
+                      <th>Status</th>
+                      <th style={{ textAlign: "right" }}>Data</th>
+                      <th style={{ textAlign: "right" }}>Créditos</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {activeBrand.recentReleases.map(r => (
+                      <tr key={r.id} style={{ cursor: "pointer" }} className="tbl-row-hover"
+                        onClick={() => window.location.href = `/releases/${r.id}`}>
+                        <td className="title-cell">{r.title.length > 60 ? r.title.slice(0, 60) + "…" : r.title}</td>
+                        <td><span className={`badge-status ${r.status}`}>{STATUS_LABEL[r.status] ?? r.status}</span></td>
+                        <td className="muted num" style={{ textAlign: "right" }}>{fmtDate(r.date)}</td>
+                        <td className="num" style={{ textAlign: "right" }}>
+                          {r.creditsUsed > 0
+                            ? <span style={{ fontSize: 12, fontWeight: 600, color: "var(--coral-ink)", background: "var(--amber-soft)", padding: "2px 8px", borderRadius: 99 }}>{r.creditsUsed} cr</span>
+                            : <span style={{ fontSize: 12, color: "var(--stone)" }}>—</span>}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
           </>
         )}
