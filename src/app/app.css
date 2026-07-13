@@ -12,7 +12,7 @@ body {
   font-family: var(--sans);
   background: var(--bg);
   color: var(--ink);
-  font-size: 17.25px;
+  font-size: 15px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -164,7 +164,7 @@ textarea.input { resize: vertical; line-height: 1.55; }
 /* ============================================================
    APP SHELL
    ============================================================ */
-.app { height: 100vh; display: grid; grid-template-columns: var(--sidebar-w) 1fr; grid-template-rows: minmax(0, 1fr); }
+.app { height: 100vh; display: grid; grid-template-columns: var(--sidebar-w) 1fr; grid-template-rows: minmax(0, 1fr); zoom: 1.15; }
 .app > * { min-height: 0; }
 
 .sidebar {
