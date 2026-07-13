@@ -31,7 +31,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "220px 1fr", height: "calc(100vh / 1.15)", background: "var(--bg)", zoom: 1.15 }}>
+    <div style={{ zoom: 1.15, height: "calc(100vh / 1.15)", overflow: "hidden" }}>
+    <div style={{ display: "grid", gridTemplateColumns: "220px 1fr", height: "100%", background: "var(--bg)" }}>
       {/* ── Sidebar ── */}
       <aside style={{
         display: "flex", flexDirection: "column",
@@ -138,6 +139,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       <main style={{ overflow: "auto", background: "var(--bg)" }}>
         {children}
       </main>
+    </div>
     </div>
   );
 }
