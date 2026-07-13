@@ -16,7 +16,7 @@ const TIERS = ["A","B","C"];
 const TIER_ORDER: Record<string, number> = { A: 0, B: 1, C: 2 };
 const PAGE_SIZE = 30;
 
-interface VehicleRow { id: string; name: string; domain: string; category: string; tier: string; reach: number; logoUrl?: string | null }
+interface VehicleRow { id: string; name: string; domain: string; site?: string | null; location?: string | null; category: string; tier: string; reach: number; logoUrl?: string | null }
 type SortCol = "name" | "category" | "tier" | "reach";
 type SortDir = "asc" | "desc";
 
@@ -399,6 +399,8 @@ export default function AdminVeiculos() {
                     />
                   </th>
                   <th style={{ ...thS, width: "35%" }} onClick={() => toggleSort("name")}><span style={{ display: "flex", alignItems: "center", gap: 4 }}>Veículo <SortIcon col="name" /></span></th>
+                  <th style={{ ...thS, cursor: "default" }}>Estado/Cidade</th>
+                  <th style={{ ...thS, cursor: "default" }}>Site</th>
                   <th style={thS} onClick={() => toggleSort("category")}><span style={{ display: "flex", alignItems: "center", gap: 4 }}>Editoria <SortIcon col="category" /></span></th>
                   <th style={thS} onClick={() => toggleSort("tier")}><span style={{ display: "flex", alignItems: "center", gap: 4 }}>Tier <SortIcon col="tier" /></span></th>
                   <th style={{ ...thS, textAlign: "right" }} onClick={() => toggleSort("reach")}><span style={{ display: "flex", alignItems: "center", gap: 4, justifyContent: "flex-end" }}>Alcance/mês <SortIcon col="reach" /></span></th>
@@ -408,7 +410,7 @@ export default function AdminVeiculos() {
               </thead>
               <tbody>
                 {list.length === 0 ? (
-                  <tr><td colSpan={7} style={{ padding: 40, textAlign: "center", color: "var(--stone)" }}>Nenhum veículo encontrado.</td></tr>
+                  <tr><td colSpan={9} style={{ padding: 40, textAlign: "center", color: "var(--stone)" }}>Nenhum veículo encontrado.</td></tr>
                 ) : list.map(v => (
                   <tr key={v.id}
                     onMouseEnter={e => (e.currentTarget.style.background = "var(--bg)")}
@@ -427,6 +429,13 @@ export default function AdminVeiculos() {
                           <div style={{ fontSize: 11, color: "var(--stone)" }}>{v.domain}</div>
                         </div>
                       </div>
+                    </td>
+                    <td style={{ ...tdS, color: "var(--stone)", background: selected.has(v.id) ? "var(--cream)" : "" }}>{v.location ?? "—"}</td>
+                    <td style={{ ...tdS, background: selected.has(v.id) ? "var(--cream)" : "" }}>
+                      {v.site
+                        ? <a href={v.site} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11, fontFamily: "var(--mono)", color: "var(--coral-ink)" }}>{v.domain}</a>
+                        : <span style={{ color: "var(--stone)" }}>—</span>
+                      }
                     </td>
                     <td style={{ ...tdS, color: "var(--stone)", background: selected.has(v.id) ? "var(--cream)" : "" }}>{v.category}</td>
                     <td style={{ ...tdS, background: selected.has(v.id) ? "var(--cream)" : "" }}>
