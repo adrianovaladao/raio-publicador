@@ -79,7 +79,7 @@ export default function CheckoutConfirmClient({ initialPlanId, allPlans }: Props
   }
 
   return (
-    <div data-theme="dark" style={{ minHeight: "100vh", background: "var(--ink)" }}>
+    <div data-theme="dark" style={{ minHeight: "100vh", background: "var(--ink)", zoom: 1.15 }}>
       <div className="onb">
         <span className="bg-glow" />
         <header className="onb-top">

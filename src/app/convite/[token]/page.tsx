@@ -51,7 +51,7 @@ export default function ConvitePage({ params }: { params: Promise<{ token: strin
   const roleLabel: Record<string, string> = { ADMIN: "Administração", EDITOR: "Edição", REVIEWER: "Revisão" };
 
   return (
-    <div style={{ minHeight: "100vh", display: "grid", placeItems: "center", background: "var(--cream, #FAF9F7)", fontFamily: "var(--font-dm-sans, sans-serif)", padding: 24 }}>
+    <div style={{ minHeight: "100vh", display: "grid", placeItems: "center", background: "var(--cream, #FAF9F7)", fontFamily: "var(--font-dm-sans, sans-serif)", padding: 24, zoom: 1.15 }}>
       <div style={{ background: "#fff", borderRadius: 16, padding: "48px 40px", maxWidth: 440, width: "100%", boxShadow: "0 2px 24px rgba(0,0,0,0.07)", textAlign: "center" }}>
 
         <svg width="48" height="48" viewBox="0 0 101 101" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ margin: "0 auto 24px", display: "block" }}>
