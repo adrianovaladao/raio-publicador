@@ -42,17 +42,27 @@ export async function GET(req: Request) {
     return { id, count, name: v.name, domain: v.domain, tier: v.tier, reach: v.reach };
   });
 
-  // Top 1 por tier (A, B, C) por alcance — dados globais do catálogo
-  const topByTierRaw = await getPrisma().vehicle.findMany({
-    where: { tier: { in: ["A", "B", "C"] } },
-    select: { id: true, name: true, domain: true, tier: true, reach: true },
-    orderBy: { reach: "desc" },
-  });
+  // Top 1 por tier (A, B, C) por alcance + total de veículos + última atualização
+  const [topByTierRaw, vehicleCount, lastUpdated] = await Promise.all([
+    getPrisma().vehicle.findMany({
+      where: { tier: { in: ["A", "B", "C"] } },
+      select: { id: true, name: true, domain: true, tier: true, reach: true },
+      orderBy: { reach: "desc" },
+    }),
+    getPrisma().vehicle.count(),
+    getPrisma().vehicle.findFirst({ orderBy: { updatedAt: "desc" }, select: { updatedAt: true } }),
+  ]);
   const topPerTier: Record<string, { id: string; name: string; domain: string; tier: string; reach: number }> = {};
   for (const v of topByTierRaw) {
     if (!topPerTier[v.tier]) topPerTier[v.tier] = v;
   }
   const topVehicles = ["A", "B", "C"].map(t => topPerTier[t]).filter(Boolean);
 
-  return NextResponse.json({ ranked, totalReleases: releases.length, topVehicles });
+  return NextResponse.json({
+    ranked,
+    totalReleases: releases.length,
+    topVehicles,
+    vehicleCount,
+    lastUpdated: lastUpdated?.updatedAt?.toISOString() ?? null,
+  });
 }

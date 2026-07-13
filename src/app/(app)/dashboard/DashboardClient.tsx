@@ -709,13 +709,19 @@ function fmtReachStatic(n: number) {
 type TopVeh = { id: string; name: string; domain: string; tier: string; reach: number };
 
 function TopVehicles() {
-  const [vehicles, setVehicles] = useState<TopVeh[]>([]);
-  const [loading, setLoading]   = useState(true);
+  const [vehicles, setVehicles]       = useState<TopVeh[]>([]);
+  const [vehicleCount, setCount]      = useState<number | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<string | null>(null);
+  const [loading, setLoading]         = useState(true);
 
   useEffect(() => {
     fetch("/api/vehicles-stats")
       .then(r => r.json())
-      .then((res: { topVehicles?: TopVeh[] }) => setVehicles(res.topVehicles ?? []))
+      .then((res: { topVehicles?: TopVeh[]; vehicleCount?: number; lastUpdated?: string | null }) => {
+        setVehicles(res.topVehicles ?? []);
+        setCount(res.vehicleCount ?? null);
+        setLastUpdated(res.lastUpdated ?? null);
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -748,6 +754,16 @@ function TopVehicles() {
           </div>
         ))}
       </div>
+      )}
+      {!loading && vehicleCount !== null && (
+        <div style={{ padding: "12px 22px", borderTop: "1px solid var(--line)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span className="muted" style={{ fontSize: 13 }}>{vehicleCount.toLocaleString("pt-BR")} veículos cadastrados</span>
+          {lastUpdated && (
+            <span className="muted" style={{ fontSize: 13 }}>
+              Atualizado em {new Date(lastUpdated).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}
+            </span>
+          )}
+        </div>
       )}
     </div>
   );
