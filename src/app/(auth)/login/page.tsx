@@ -157,7 +157,7 @@ export default function LoginPage() {
           </div>
           <div className="by">A distribuição de releases por créditos do Brasil</div>
 
-          <div className="steps-mini" style={{ marginTop: 32 }}>
+          <div className="steps-mini" style={{ marginTop: 18 }}>
             {STEPS_MINI.map(({ icon: Icon, t }, i) => (
               <div className="sm" key={i}>
                 <span className="ic"><Icon size={17} /></span>
@@ -265,7 +265,7 @@ export default function LoginPage() {
           {/* ── Login normal ── */}
           {!totpStep && resetStep === "none" && (
             <>
-              <h1 style={{ marginTop: 28 }}>
+              <h1 style={{ marginTop: 10 }}>
                 Bem-vindo<br />de <em>volta</em>.
               </h1>
               <p className="lead">Entre na sua conta para continuar distribuindo.</p>
