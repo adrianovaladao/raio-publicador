@@ -1248,7 +1248,7 @@ function BrandFormModal({ brand, onClose, onSaved }: {
               <input
                 className="input"
                 style={{ flex: 1 }}
-                placeholder="Nome do autor ou porta-voz"
+                placeholder="Nome do autor"
                 value={authorInput}
                 onChange={e => setAuthorInput(e.target.value)}
                 onKeyDown={e => {
@@ -1633,6 +1633,93 @@ function BillingData({ onToast }: { onToast: (m: string) => void }) {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+// ─── Credit History (usage extract) ─────────────────────────────────────────
+
+interface CreditRow { id: string; title: string; creditsUsed: number; status: string; date: string; brandName: string }
+const CR_PER_PAGE = 10;
+
+const STATUS_LABEL_CR: Record<string, string> = {
+  published: "Publicado", scheduled: "Agendado", draft: "Rascunho",
+  in_review: "Em análise", needs_revision: "Precisa revisão",
+  rejected: "Reprovado", in_publication: "Em publicação", cancelled: "Cancelado",
+};
+
+function CreditHistory() {
+  const [rows, setRows] = useState<CreditRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    fetch("/api/credits/history")
+      .then(r => r.json())
+      .then((d: CreditRow[]) => { setRows(d); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, []);
+
+  const totalPages = Math.max(1, Math.ceil(rows.length / CR_PER_PAGE));
+  const paginated  = rows.slice((page - 1) * CR_PER_PAGE, page * CR_PER_PAGE);
+  const total      = rows.reduce((s, r) => s + r.creditsUsed, 0);
+
+  return (
+    <div style={{ marginTop: 16 }}>
+      <div className="card">
+        <div className="card-head">
+          <h3>Extrato de <em>créditos</em></h3>
+          {!loading && rows.length > 0 && (
+            <span style={{ fontSize: 12, color: "var(--stone)", fontFamily: "var(--mono)" }}>
+              {total.toLocaleString("pt-BR")} créditos consumidos
+            </span>
+          )}
+        </div>
+        {loading ? (
+          <div className="card-pad muted" style={{ textAlign: "center", padding: 32 }}>Carregando…</div>
+        ) : rows.length === 0 ? (
+          <div className="card-pad muted" style={{ textAlign: "center", padding: 32 }}>Nenhum crédito utilizado ainda.</div>
+        ) : (
+          <div style={{ overflowX: "auto" }}>
+            <table className="tbl">
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th style={{ width: "40%" }}>Release</th>
+                  <th>Marca</th>
+                  <th>Status</th>
+                  <th style={{ textAlign: "right" }}>Créditos</th>
+                </tr>
+              </thead>
+              <tbody>
+                {paginated.map(r => (
+                  <tr key={r.id}>
+                    <td className="muted" style={{ whiteSpace: "nowrap", fontFamily: "var(--mono)", fontSize: 12.5 }}>{fmtDate(r.date)}</td>
+                    <td style={{ fontSize: 13 }}>{r.title.length > 60 ? r.title.slice(0, 60) + "…" : r.title}</td>
+                    <td className="muted" style={{ fontSize: 13 }}>{r.brandName}</td>
+                    <td>
+                      <span className={`badge-status ${r.status}`}>{STATUS_LABEL_CR[r.status] ?? r.status}</span>
+                    </td>
+                    <td style={{ textAlign: "right" }}>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: "var(--coral-ink)", background: "var(--amber-soft)", padding: "2px 8px", borderRadius: 99, fontFamily: "var(--mono)" }}>
+                        {r.creditsUsed} ⚡
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {!loading && totalPages > 1 && (
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 4px 8px", fontSize: 13 }}>
+          <button className="btn btn-ghost btn-sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>← Anterior</button>
+          <span style={{ color: "var(--stone)" }}>{page} / {totalPages}</span>
+          <button className="btn btn-ghost btn-sm" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>Próxima →</button>
+        </div>
+      )}
     </div>
   );
 }
@@ -2217,9 +2304,18 @@ function SupportPanel() {
   );
 }
 
+function ExtratoCreditosPanel() {
+  return (
+    <div className="set-panel">
+      <PanelHead title="Extrato de <em>créditos</em>" desc="Histórico de consumo de créditos por release." />
+      <CreditHistory />
+    </div>
+  );
+}
+
 const BASE_GROUPS = [
   { label: "Você", items: [{ id: "perfil", icon: UserCircle, label: "Perfil" }, { id: "conta", icon: Settings2, label: "Conta" }, { id: "notificacoes", icon: Bell, label: "Notificações" }] },
-  { label: "Organização", items: [{ id: "equipe", icon: Users, label: "Equipe e permissões" }, { id: "marcas", icon: Building2, label: "Marcas" }, { id: "cobranca", icon: CreditCard, label: "Cobrança" }] },
+  { label: "Organização", items: [{ id: "equipe", icon: Users, label: "Equipe e permissões" }, { id: "marcas", icon: Building2, label: "Marcas" }, { id: "cobranca", icon: CreditCard, label: "Cobrança" }, { id: "extrato-creditos", icon: Zap, label: "Extrato de créditos" }] },
   { label: "Suporte", items: [{ id: "suporte", icon: MessageCircle, label: "Histórico de suporte" }] },
 ];
 
@@ -2270,8 +2366,9 @@ function ConfiguracoesInner() {
             {tab === "notificacoes"  && <NotificacoesPanel  onToast={showToast} />}
             {tab === "equipe"   && <EquipePanel   onToast={showToast} isCancelled={isCancelled} />}
             {tab === "marcas"   && <MarcasPanel   onToast={showToast} isCancelled={isCancelled} />}
-            {tab === "cobranca" && <CobrancaPanel onToast={showToast} isCancelled={isCancelled} />}
-            {tab === "suporte"  && <SupportPanel />}
+            {tab === "cobranca"         && <CobrancaPanel onToast={showToast} isCancelled={isCancelled} />}
+            {tab === "extrato-creditos" && <ExtratoCreditosPanel />}
+            {tab === "suporte"          && <SupportPanel />}
             {tab === "veiculos" && isRaioAdmin && <VeiculosPanel onToast={showToast} />}
           </div>
         </div>

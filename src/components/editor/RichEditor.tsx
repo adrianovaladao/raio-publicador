@@ -309,10 +309,10 @@ export function RichEditor({
           onClick={runAI}
           disabled={aiLoading}
           title="Gerar ou reescrever com IA (custa 25 créditos)"
-          style={{ display: "flex", alignItems: "center", gap: 5, padding: "0 10px", width: "auto", color: "var(--coral-ink)", fontWeight: 600, fontSize: 13 }}
+          style={{ display: "flex", alignItems: "center", gap: 5, padding: "0 12px", width: "auto", background: aiLoading ? "#e6a800" : "#FAB500", color: "#000", fontWeight: 700, fontSize: 13, borderRadius: 99, height: 32 }}
         >
           {aiLoading ? <Loader size={14} className="spin" /> : <Sparkles size={14} />}
-          {aiLoading ? "Gerando…" : "✦ IA · 25 créditos"}
+          {aiLoading ? "Gerando…" : "Gerar ou reescrever com IA (custa 25 créditos)"}
         </button>
       </div>
 

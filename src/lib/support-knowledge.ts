@@ -28,7 +28,7 @@ O mais fácil de usar e rápido publicador de releases para a imprensa. A plataf
 - **Revisor**: apenas visualiza releases e adiciona comentários — não edita nem agenda
 
 ## CANCELAMENTO E REEMBOLSO
-- Cancelamento pode ser feito a qualquer momento nas configurações
+- Cancelamento pode ser feito a qualquer momento no Gerenciamento
 - Créditos restantes ficam válidos até o fim do ciclo de renovação atual
 - Não há reembolso em nenhuma condição
 - Créditos comprados avulsos também ficam válidos até o fim da assinatura

@@ -75,9 +75,13 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
           const urls = body.publishedVehicleUrls ?? {};
           await sendReleasePublishedWithLinksEmail(email, firstName, prev.title, urls, id);
           const vehicleCount = Object.keys(urls).length || prev.vehicles.length;
+          const urlValues = Object.values(urls as Record<string, string>).map(u => u.trim()).filter(Boolean);
+          const notifBody = urlValues.length > 0
+            ? `"${prev.title}" foi publicado em ${vehicleCount} veículo${vehicleCount !== 1 ? "s" : ""}.\n${urlValues.join("\n")}`
+            : `"${prev.title}" foi publicado em ${vehicleCount} veículo${vehicleCount !== 1 ? "s" : ""}.`;
           await createNotification(prev.authorId, "release_published",
             "Release publicado",
-            `"${prev.title}" foi publicado em ${vehicleCount} veículo${vehicleCount !== 1 ? "s" : ""}.`,
+            notifBody,
             `/releases/${id}`,
           ).catch(console.error);
         }

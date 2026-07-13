@@ -496,10 +496,12 @@ function StepVehicles({ selected, setSelected, vehicles, sub, onUpgrade, onBuyCr
 
   const hasSelectedTierA = selected.some(id => vehicles.find(v => v.id === id)?.tier === "A");
 
+  const [showTierAModal, setShowTierAModal] = useState(false);
+
   const toggle = (id: string) => {
     if (selected.includes(id)) { setSelected(selected.filter(x => x !== id)); return; }
     const v = vehicles.find(x => x.id === id);
-    if (v?.tier === "A" && hasSelectedTierA) return; // só um tier A por release
+    if (v?.tier === "A" && hasSelectedTierA) { setShowTierAModal(true); return; }
     setSelected([...selected, id]);
   };
   const remove = (id: string) => setSelected(selected.filter(x => x !== id));
@@ -594,8 +596,8 @@ function StepVehicles({ selected, setSelected, vehicles, sub, onUpgrade, onBuyCr
             return (
               <div key={v.id}
                 className={`veh-row${isSel ? " sel" : ""}`}
-                onClick={() => !isDisabled && toggle(v.id)}
-                style={isDisabled ? { opacity: 0.35, cursor: "not-allowed", pointerEvents: "none" } : undefined}
+                onClick={() => isDisabled ? setShowTierAModal(true) : toggle(v.id)}
+                style={isDisabled ? { opacity: 0.45, cursor: "pointer" } : undefined}
               >
                 <div className="cbx">{isSel && <Check size={13} />}</div>
                 <div className="logo" style={{ background: TIER_COLORS_MAP[v.tier], color: TIER_FG_MAP[v.tier] ?? "#fff", overflow: "hidden" }}>
@@ -720,6 +722,36 @@ function StepVehicles({ selected, setSelected, vehicles, sub, onUpgrade, onBuyCr
         onApply={(c, t) => { setFilterCats(c); setFilterTiers(t); resetPage(); }}
         onClose={() => setShowFilter(false)}
       />
+    )}
+
+    {showTierAModal && (
+      <div className="overlay" onClick={() => setShowTierAModal(false)}>
+        <div className="modal" style={{ maxWidth: 480, borderRadius: 20, padding: 0, overflow: "hidden" }} onClick={e => e.stopPropagation()}>
+          <div style={{ padding: "28px 32px 0", position: "relative" }}>
+            <button onClick={() => setShowTierAModal(false)} style={{ position: "absolute", top: 20, right: 20, background: "var(--cream)", border: "none", borderRadius: "50%", width: 30, height: 30, display: "grid", placeItems: "center", cursor: "pointer", color: "var(--stone)" }}>
+              <X size={15} />
+            </button>
+            <div style={{ width: 40, height: 40, borderRadius: 10, background: "#FEE2E2", display: "grid", placeItems: "center", marginBottom: 14 }}>
+              <ShieldCheck size={20} color="#C0392B" />
+            </div>
+            <div style={{ fontWeight: 800, fontSize: 18, color: "var(--ink)", letterSpacing: "-0.3px", marginBottom: 6 }}>Exclusividade Tier A</div>
+            <div style={{ fontSize: 13, color: "var(--stone)", lineHeight: 1.6, marginBottom: 20 }}>
+              Cada release pode conter apenas <strong>um veículo Tier A</strong>. Esses veículos têm política de exclusividade — o mesmo conteúdo não pode ser enviado para dois grandes ao mesmo tempo.
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 24 }}>
+              <div style={{ display: "flex", gap: 10, alignItems: "flex-start", padding: "12px 14px", background: "var(--cream)", borderRadius: 10 }}>
+                <Sparkles size={16} style={{ color: "var(--coral-ink)", flexShrink: 0, marginTop: 1 }} />
+                <div style={{ fontSize: 13, color: "var(--ink)", lineHeight: 1.5 }}>
+                  <strong>Sugestão:</strong> crie um novo release e use a IA para reescrever o conteúdo com um enfoque diferente — cada veículo Tier A merece uma abordagem personalizada.
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style={{ padding: "0 32px 28px", display: "flex", gap: 10, justifyContent: "flex-end" }}>
+            <button className="btn btn-ghost btn-sm" onClick={() => setShowTierAModal(false)}>Entendi</button>
+          </div>
+        </div>
+      </div>
     )}
     </>
   );
@@ -1360,10 +1392,16 @@ export default function NovoReleasePage() {
   }, []);
 
   const [sub, setSub] = useState<SubInfo>({ credits: 0, creditsUsed: 0 });
+  const [creditToast, setCreditToast] = useState<string | null>(null);
   const refreshSub = () => {
     fetch("/api/stripe/subscription").then(r => r.json()).then((d: SubInfo) => {
       if (d.credits != null) setSub({ credits: d.credits, creditsUsed: d.creditsUsed ?? 0, plan: d.plan, brandsLimit: d.brandsLimit, status: d.status });
     }).catch(() => {});
+  };
+  const handleAIUsed = () => {
+    refreshSub();
+    setCreditToast("25 créditos usados pela IA");
+    setTimeout(() => setCreditToast(null), 3500);
   };
   useEffect(() => { refreshSub(); }, []);
 
@@ -1529,6 +1567,10 @@ export default function NovoReleasePage() {
                 <div style={{ fontFamily: "var(--mono)", fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 6 }}>Marca</div>
                 <div style={{ fontWeight: 800, fontSize: 16, letterSpacing: "-0.02em", marginTop: 6 }}>{brand?.name ?? "—"}</div>
               </div>
+              <div className="card" style={{ flex: 1, padding: "16px 20px", textAlign: "center" }}>
+                <div style={{ fontFamily: "var(--mono)", fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 6 }}>Créditos usados</div>
+                <div style={{ fontWeight: 800, fontSize: 28, letterSpacing: "-0.03em", color: "var(--coral-ink)" }}>{selTokens}</div>
+              </div>
             </div>
 
             {/* Ações */}
@@ -1645,7 +1687,7 @@ export default function NovoReleasePage() {
         </div>
 
         {step === 0 && <StepBrand selected={brand} onSelect={setBrand} brands={brands} brandsLimit={sub.brandsLimit} onAddBrand={b => setBrands(prev => [...prev, b])} onLimitReached={() => setShowUpgradeModal(true)} isCancelled={sub.status === "CANCELLED"} />}
-        {step === 1 && <StepContent content={content} setContent={setContent} brand={brand} ownerName={ownerName} onAIUsed={refreshSub} />}
+        {step === 1 && <StepContent content={content} setContent={setContent} brand={brand} ownerName={ownerName} onAIUsed={handleAIUsed} />}
         {step === 2 && <StepVehicles selected={selected} setSelected={setSelected} vehicles={vehicles} sub={sub} onBuyCredits={() => { try { sessionStorage.setItem("raio_draft_vehicles", JSON.stringify(selected)); sessionStorage.setItem("raio_draft_brand", JSON.stringify(brand)); } catch { /* ignore */ } setShowBuyCreditsModal(true); }} onUpgrade={() => { try { sessionStorage.setItem("raio_draft_vehicles", JSON.stringify(selected)); sessionStorage.setItem("raio_draft_brand", JSON.stringify(brand)); } catch { /* ignore */ } setShowUpgradeModal(true); }} />}
         {step === 3 && <StepReview content={content} selected={selected} when={when} setWhen={setWhen} brand={brand} onSaveDraft={autosave} vehicles={vehicles} />}
       </div>
@@ -1671,6 +1713,12 @@ export default function NovoReleasePage() {
         onClose={() => setShowBuyCreditsModal(false)}
         returnUrl={typeof window !== "undefined" ? window.location.href : undefined}
       />
+    )}
+
+    {creditToast && (
+      <div className="toast-wrap">
+        <div className="toast"><span className="ic">⚡</span>{creditToast}</div>
+      </div>
     )}
     </>
   );

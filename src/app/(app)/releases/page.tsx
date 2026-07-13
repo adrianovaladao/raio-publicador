@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useEscapeKey } from "@/hooks/useEscapeKey";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { List, LayoutGrid, Plus, Inbox, Trash2, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { List, LayoutGrid, Plus, Inbox, Trash2, Copy, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 
 interface Release {
   id: string;
@@ -123,6 +123,28 @@ export default function ReleasesPage() {
   const [releases, setReleases] = useState<ReleaseRow[]>([]);
   const [loading, setLoading]   = useState(true);
   const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [duplicating, setDuplicating] = useState<string | null>(null);
+
+  async function duplicateRelease(id: string) {
+    setDuplicating(id);
+    try {
+      const res = await fetch(`/api/releases/${id}/duplicate`, { method: "POST" });
+      if (!res.ok) return;
+      const copy = await res.json() as ReleaseRow & { title: string; createdAt: string };
+      setReleases(prev => [{
+        id: copy.id,
+        title: copy.title,
+        cat: prev.find(r => r.id === id)?.cat ?? "—",
+        author: "Você",
+        status: "draft",
+        date: copy.createdAt,
+        creditsUsed: 0,
+        brandColor: prev.find(r => r.id === id)?.brandColor,
+      }, ...prev]);
+    } finally {
+      setDuplicating(null);
+    }
+  }
 
   async function deleteRelease(id: string) {
     const releasing = releases.find(r => r.id === id);
@@ -253,10 +275,20 @@ export default function ReleasesPage() {
                         ? <span style={{ fontSize: 12, fontWeight: 600, color: "var(--coral-ink)", background: "var(--amber-soft)", padding: "2px 8px", borderRadius: 99 }}>{r.creditsUsed} cr</span>
                         : <span style={{ fontSize: 12, color: "var(--stone)" }}>—</span>}
                     </td>
-                    <td onClick={e => e.stopPropagation()}>
+                    <td onClick={e => e.stopPropagation()} style={{ whiteSpace: "nowrap" }}>
+                      {r.status === "scheduled" && (
+                        <button
+                          onClick={() => duplicateRelease(r.id)}
+                          disabled={duplicating === r.id}
+                          style={{ background: "none", border: "none", cursor: "pointer", padding: "4px 6px", color: "var(--stone)", borderRadius: 6, display: "inline-flex", alignItems: "center" }}
+                          title="Duplicar como rascunho"
+                        >
+                          <Copy size={15} />
+                        </button>
+                      )}
                       <button
                         onClick={() => setConfirmId(r.id)}
-                        style={{ background: "none", border: "none", cursor: "pointer", padding: "4px 6px", color: "var(--stone)", borderRadius: 6, display: "flex", alignItems: "center" }}
+                        style={{ background: "none", border: "none", cursor: "pointer", padding: "4px 6px", color: "var(--stone)", borderRadius: 6, display: "inline-flex", alignItems: "center" }}
                         title="Excluir release"
                       >
                         <Trash2 size={15} />
