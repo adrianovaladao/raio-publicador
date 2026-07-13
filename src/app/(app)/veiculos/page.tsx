@@ -237,7 +237,8 @@ export default function VeiculosPage() {
                 <th style={{ ...thStyle("name"), width: "36%" }} onClick={() => handleSort("name")}>
                   {thInner("Veículo", "name")}
                 </th>
-                <th style={{ whiteSpace: "nowrap" }}>Localização</th>
+                <th style={{ whiteSpace: "nowrap" }}>Estado/Cidade</th>
+                <th style={{ whiteSpace: "nowrap" }}>Site</th>
                 <th style={thStyle("cat")} onClick={() => handleSort("cat")}>
                   {thInner("Editoria", "cat")}
                 </th>
@@ -266,14 +267,17 @@ export default function VeiculosPage() {
                         </div>
                         <div>
                           <div style={{ fontSize: 14, fontWeight: 600, letterSpacing: "-0.01em" }}>{v.name}</div>
-                          {v.site
-                            ? <a href={v.site} target="_blank" rel="noopener noreferrer" style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--stone)", textDecoration: "underline" }} onClick={e => e.stopPropagation()}>{v.domain}</a>
-                            : <div style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--stone)" }}>{v.domain}</div>
-                          }
+                          <div style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--stone)" }}>{v.domain}</div>
                         </div>
                       </div>
                     </td>
                     <td className="muted" style={{ fontSize: 12 }}>{v.location ?? "—"}</td>
+                    <td style={{ fontSize: 12 }}>
+                      {v.site
+                        ? <a href={v.site} target="_blank" rel="noopener noreferrer" style={{ color: "var(--coral-ink)", fontFamily: "var(--mono)", fontSize: 11 }} onClick={e => e.stopPropagation()}>{v.domain}</a>
+                        : <span className="muted" style={{ fontFamily: "var(--mono)", fontSize: 11 }}>—</span>
+                      }
+                    </td>
                     <td className="muted">{v.cat}</td>
                     <td><span className={`tier t-${v.tier.toLowerCase()}`}>{v.tier}</span></td>
                     <td className="num" style={{ textAlign: "right", fontWeight: 600 }}>{fmtReach(v.reach)}</td>
