@@ -17,7 +17,7 @@ const TIER_ORDER: Record<string, number> = { A: 0, B: 1, C: 2 };
 const PAGE_SIZE = 30;
 
 interface VehicleRow { id: string; name: string; domain: string; site?: string | null; location?: string | null; category: string; tier: string; reach: number; logoUrl?: string | null }
-type SortCol = "name" | "category" | "tier" | "reach";
+type SortCol = "name" | "category" | "tier" | "reach" | "location" | "site";
 type SortDir = "asc" | "desc";
 
 function fmtReach(n: number) {
@@ -33,6 +33,8 @@ function sortVehicles(arr: VehicleRow[], col: SortCol, dir: SortDir) {
     let va: string | number, vb: string | number;
     if (col === "tier")  { va = TIER_ORDER[a.tier] ?? 99; vb = TIER_ORDER[b.tier] ?? 99; }
     else if (col === "reach") { va = a.reach; vb = b.reach; }
+    else if (col === "location") { va = (a.location ?? "").toLowerCase(); vb = (b.location ?? "").toLowerCase(); }
+    else if (col === "site") { va = (a.site ?? "").toLowerCase(); vb = (b.site ?? "").toLowerCase(); }
     else { va = (a[col] as string).toLowerCase(); vb = (b[col] as string).toLowerCase(); }
     if (va < vb) return dir === "asc" ? -1 : 1;
     if (va > vb) return dir === "asc" ? 1 : -1;
@@ -399,8 +401,8 @@ export default function AdminVeiculos() {
                     />
                   </th>
                   <th style={{ ...thS, width: "35%" }} onClick={() => toggleSort("name")}><span style={{ display: "flex", alignItems: "center", gap: 4 }}>Veículo <SortIcon col="name" /></span></th>
-                  <th style={{ ...thS, cursor: "default" }}>Estado/Cidade</th>
-                  <th style={{ ...thS, cursor: "default" }}>Site</th>
+                  <th style={thS} onClick={() => toggleSort("location")}><span style={{ display: "flex", alignItems: "center", gap: 4 }}>Estado/Cidade <SortIcon col="location" /></span></th>
+                  <th style={thS} onClick={() => toggleSort("site")}><span style={{ display: "flex", alignItems: "center", gap: 4 }}>Site <SortIcon col="site" /></span></th>
                   <th style={thS} onClick={() => toggleSort("category")}><span style={{ display: "flex", alignItems: "center", gap: 4 }}>Editoria <SortIcon col="category" /></span></th>
                   <th style={thS} onClick={() => toggleSort("tier")}><span style={{ display: "flex", alignItems: "center", gap: 4 }}>Tier <SortIcon col="tier" /></span></th>
                   <th style={{ ...thS, textAlign: "right" }} onClick={() => toggleSort("reach")}><span style={{ display: "flex", alignItems: "center", gap: 4, justifyContent: "flex-end" }}>Alcance/mês <SortIcon col="reach" /></span></th>
