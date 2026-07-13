@@ -53,14 +53,16 @@ export async function GET() {
       const stripe = getStripe();
 
       // Invoices → créditos de assinatura (renovação / primeiro pagamento / upgrade)
-      const invoices = await stripe.invoices.list({ customer: sub.stripeCustomerId, limit: 100 });
+      // Filtra apenas faturas da assinatura atual para evitar duplicatas de assinaturas anteriores
+      const invoiceParams: Parameters<typeof stripe.invoices.list>[0] = { customer: sub.stripeCustomerId, limit: 100 };
+      if (sub.stripeSubscriptionId) invoiceParams.subscription = sub.stripeSubscriptionId;
+      const invoices = await stripe.invoices.list(invoiceParams);
       for (const inv of invoices.data) {
         if (inv.amount_paid === 0) continue;
 
-        // Determina o plano pela subscrição ou pelo valor pago
         let planId = sub.plan;
         const subscriptionId = (inv as unknown as { subscription?: string }).subscription;
-        if (subscriptionId) {
+        if (subscriptionId && subscriptionId !== sub.stripeSubscriptionId) {
           try {
             const stripeSub = await stripe.subscriptions.retrieve(subscriptionId);
             if (stripeSub.metadata?.planId) planId = stripeSub.metadata.planId as typeof planId;
