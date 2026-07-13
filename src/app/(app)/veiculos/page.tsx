@@ -255,7 +255,7 @@ export default function VeiculosPage() {
               {list.map(v => {
                 const tkn = TIER_TOKENS[v.tier] ?? 0;
                 return (
-                  <tr key={v.id}>
+                  <tr key={v.id} style={{ cursor: "default" }}>
                     <td>
                       <div className="row" style={{ gap: 12 }}>
                         <div style={{ background: TIER_COLORS[v.tier], width: 32, height: 32, borderRadius: 8, display: "grid", placeItems: "center", fontFamily: "var(--mono)", fontWeight: 700, fontSize: 11, color: TIER_FG[v.tier] ?? "#fff", flex: "none", overflow: "hidden" }}>
