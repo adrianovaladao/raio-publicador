@@ -1639,14 +1639,8 @@ function BillingData({ onToast }: { onToast: (m: string) => void }) {
 
 // ─── Credit History (usage extract) ─────────────────────────────────────────
 
-interface CreditRow { id: string; title: string; creditsUsed: number; status: string; date: string; brandName: string }
-const CR_PER_PAGE = 10;
-
-const STATUS_LABEL_CR: Record<string, string> = {
-  published: "Publicado", scheduled: "Agendado", draft: "Rascunho",
-  in_review: "Em análise", needs_revision: "Precisa revisão",
-  rejected: "Reprovado", in_publication: "Em publicação", cancelled: "Cancelado",
-};
+interface CreditRow { id: string; direction: "in" | "out"; description: string; credits: number; date: string; detail?: string }
+const CR_PER_PAGE = 15;
 
 function CreditHistory() {
   const [rows, setRows] = useState<CreditRow[]>([]);
@@ -1660,53 +1654,73 @@ function CreditHistory() {
       .catch(() => setLoading(false));
   }, []);
 
-  const totalPages = Math.max(1, Math.ceil(rows.length / CR_PER_PAGE));
-  const paginated  = rows.slice((page - 1) * CR_PER_PAGE, page * CR_PER_PAGE);
-  const total      = rows.reduce((s, r) => s + r.creditsUsed, 0);
+  const totalPages  = Math.max(1, Math.ceil(rows.length / CR_PER_PAGE));
+  const paginated   = rows.slice((page - 1) * CR_PER_PAGE, page * CR_PER_PAGE);
+  const totalIn     = rows.filter(r => r.direction === "in").reduce((s, r) => s + r.credits, 0);
+  const totalOut    = rows.filter(r => r.direction === "out").reduce((s, r) => s + r.credits, 0);
 
   return (
     <div style={{ marginTop: 16 }}>
+      {/* Resumo */}
+      {!loading && rows.length > 0 && (
+        <div style={{ display: "flex", gap: 12, marginBottom: 12 }}>
+          <div className="card" style={{ flex: 1, padding: "14px 18px" }}>
+            <div style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 4 }}>Recebidos</div>
+            <div style={{ fontWeight: 800, fontSize: 22, color: "#2F8A5B" }}>+{totalIn.toLocaleString("pt-BR")} <span style={{ fontSize: 13, fontWeight: 400, color: "var(--stone)" }}>cr</span></div>
+          </div>
+          <div className="card" style={{ flex: 1, padding: "14px 18px" }}>
+            <div style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 4 }}>Consumidos</div>
+            <div style={{ fontWeight: 800, fontSize: 22, color: "var(--coral-ink)" }}>−{totalOut.toLocaleString("pt-BR")} <span style={{ fontSize: 13, fontWeight: 400, color: "var(--stone)" }}>cr</span></div>
+          </div>
+          <div className="card" style={{ flex: 1, padding: "14px 18px" }}>
+            <div style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 4 }}>Saldo do ciclo</div>
+            <div style={{ fontWeight: 800, fontSize: 22, color: "var(--ink)" }}>{(totalIn - totalOut).toLocaleString("pt-BR")} <span style={{ fontSize: 13, fontWeight: 400, color: "var(--stone)" }}>cr</span></div>
+          </div>
+        </div>
+      )}
+
       <div className="card">
         <div className="card-head">
           <h3>Extrato de <em>créditos</em></h3>
-          {!loading && rows.length > 0 && (
-            <span style={{ fontSize: 12, color: "var(--stone)", fontFamily: "var(--mono)" }}>
-              {total.toLocaleString("pt-BR")} créditos consumidos
-            </span>
-          )}
         </div>
         {loading ? (
           <div className="card-pad muted" style={{ textAlign: "center", padding: 32 }}>Carregando…</div>
         ) : rows.length === 0 ? (
-          <div className="card-pad muted" style={{ textAlign: "center", padding: 32 }}>Nenhum crédito utilizado ainda.</div>
+          <div className="card-pad muted" style={{ textAlign: "center", padding: 32 }}>Nenhuma movimentação encontrada.</div>
         ) : (
           <div style={{ overflowX: "auto" }}>
             <table className="tbl">
               <thead>
                 <tr>
                   <th>Data</th>
-                  <th style={{ width: "40%" }}>Release</th>
-                  <th>Marca</th>
-                  <th>Status</th>
+                  <th style={{ width: "50%" }}>Descrição</th>
+                  <th>Detalhe</th>
                   <th style={{ textAlign: "right" }}>Créditos</th>
                 </tr>
               </thead>
               <tbody>
-                {paginated.map(r => (
-                  <tr key={r.id}>
-                    <td className="muted" style={{ whiteSpace: "nowrap", fontFamily: "var(--mono)", fontSize: 12.5 }}>{fmtDate(r.date)}</td>
-                    <td style={{ fontSize: 13 }}>{r.title.length > 60 ? r.title.slice(0, 60) + "…" : r.title}</td>
-                    <td className="muted" style={{ fontSize: 13 }}>{r.brandName}</td>
-                    <td>
-                      <span className={`badge-status ${r.status}`}>{STATUS_LABEL_CR[r.status] ?? r.status}</span>
-                    </td>
-                    <td style={{ textAlign: "right" }}>
-                      <span style={{ fontSize: 12, fontWeight: 700, color: "var(--coral-ink)", background: "var(--amber-soft)", padding: "2px 8px", borderRadius: 99, fontFamily: "var(--mono)" }}>
-                        {r.creditsUsed} ⚡
-                      </span>
-                    </td>
-                  </tr>
-                ))}
+                {paginated.map(r => {
+                  const isIn = r.direction === "in";
+                  return (
+                    <tr key={r.id}>
+                      <td className="muted" style={{ whiteSpace: "nowrap", fontFamily: "var(--mono)", fontSize: 12.5 }}>{fmtDate(r.date)}</td>
+                      <td style={{ fontSize: 13 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                          <span style={{ width: 20, height: 20, borderRadius: "50%", background: isIn ? "#E3F2E9" : "#FEE9E9", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0 }}>
+                            {isIn ? "+" : "−"}
+                          </span>
+                          {r.description.length > 55 ? r.description.slice(0, 55) + "…" : r.description}
+                        </div>
+                      </td>
+                      <td className="muted" style={{ fontSize: 12.5 }}>{r.detail ?? "—"}</td>
+                      <td style={{ textAlign: "right" }}>
+                        <span style={{ fontSize: 12, fontWeight: 700, fontFamily: "var(--mono)", color: isIn ? "#2F8A5B" : "var(--coral-ink)", background: isIn ? "#E3F2E9" : "var(--amber-soft)", padding: "2px 8px", borderRadius: 99 }}>
+                          {isIn ? "+" : "−"}{r.credits.toLocaleString("pt-BR")}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
