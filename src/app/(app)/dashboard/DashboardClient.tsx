@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   TrendingUp, TrendingDown, Send, Eye, Newspaper, Zap,
   ChevronDown, Check, Building2, X, Plus, ImageIcon, Upload,
@@ -447,6 +448,7 @@ function EmptyState() {
 
 export default function DashboardPage() {
   const { user } = useUser();
+  const router = useRouter();
   const firstName = user?.firstName ?? "Usuário";
 
   const [data, setData]           = useState<DashboardData | null>(null);
@@ -457,17 +459,15 @@ export default function DashboardPage() {
   const [brandsLimit, setBrandsLimit] = useState<number | null>(null);
   const [currentPlan, setCurrentPlan] = useState<string | null>(null);
   const [subStatus, setSubStatus] = useState<string | null>(null);
-  const [creditsLeft, setCreditsLeft] = useState<number | null>(null);
   const [activeIdx, setActiveIdx] = useState(0);
 
   useEffect(() => {
     fetch("/api/stripe/subscription")
       .then(r => r.json())
-      .then((d: { brandsLimit?: number | null; plan?: string | null; status?: string | null; credits?: number; creditsUsed?: number }) => {
+      .then((d: { brandsLimit?: number | null; plan?: string | null; status?: string | null }) => {
         setBrandsLimit(d.brandsLimit ?? null);
         setCurrentPlan(d.plan ?? null);
         setSubStatus(d.status ?? null);
-        if (d.credits != null) setCreditsLeft((d.credits ?? 0) - (d.creditsUsed ?? 0));
       })
       .catch(() => {});
   }, []);
@@ -551,7 +551,7 @@ export default function DashboardPage() {
             <div className="card" style={{ marginBottom: 32 }}>
               <div className="card-head">
                 <h3>Releases <em>mais recentes</em></h3>
-                <a href="/releases" className="link">Ver todos</a>
+                <Link href="/releases" className="link">Ver todos</Link>
               </div>
               {!activeBrand || activeBrand.recentReleases.length === 0 ? (
                 <div style={{ padding: "32px 22px", textAlign: "center", color: "var(--stone)", fontSize: 14 }}>
@@ -570,7 +570,7 @@ export default function DashboardPage() {
                   <tbody>
                     {activeBrand.recentReleases.map(r => (
                       <tr key={r.id} style={{ cursor: "pointer" }} className="tbl-row-hover"
-                        onClick={() => window.location.href = `/releases/${r.id}`}>
+                        onClick={() => router.push(`/releases/${r.id}`)}>
                         <td className="title-cell">{r.title.length > 60 ? r.title.slice(0, 60) + "…" : r.title}</td>
                         <td><span className={`badge-status ${r.status}`}>{STATUS_LABEL[r.status] ?? r.status}</span></td>
                         <td className="muted num" style={{ textAlign: "right" }}>{fmtDate(r.date)}</td>
