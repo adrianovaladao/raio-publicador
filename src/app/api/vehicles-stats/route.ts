@@ -42,5 +42,17 @@ export async function GET(req: Request) {
     return { id, count, name: v.name, domain: v.domain, tier: v.tier, reach: v.reach };
   });
 
-  return NextResponse.json({ ranked, totalReleases: releases.length });
+  // Top 1 por tier (A, B, C) por alcance — dados globais do catálogo
+  const topByTierRaw = await getPrisma().vehicle.findMany({
+    where: { tier: { in: ["A", "B", "C"] } },
+    select: { id: true, name: true, domain: true, tier: true, reach: true },
+    orderBy: { reach: "desc" },
+  });
+  const topPerTier: Record<string, { id: string; name: string; domain: string; tier: string; reach: number }> = {};
+  for (const v of topByTierRaw) {
+    if (!topPerTier[v.tier]) topPerTier[v.tier] = v;
+  }
+  const topVehicles = ["A", "B", "C"].map(t => topPerTier[t]).filter(Boolean);
+
+  return NextResponse.json({ ranked, totalReleases: releases.length, topVehicles });
 }

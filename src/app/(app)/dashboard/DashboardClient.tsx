@@ -706,24 +706,32 @@ function fmtReachStatic(n: number) {
   return String(n);
 }
 
-// Top vehicles — exactly one per tier (A→E), highest reach in each
-const TOP_ONE_PER_TIER = [
-  { id: "v1",   name: "Ge Globo",        domain: "ge.globo.com",          tier: "A", reach: 100000000 },
-  { id: "v13",  name: "Rollingstone",    domain: "rollingstone.com.br",   tier: "B", reach: 2700000   },
-  { id: "v11",  name: "Mixvale",         domain: "mixvale.com.br",        tier: "C", reach: 3700000   },
-  { id: "v6",   name: "Revistakdea360",  domain: "revistakdea360.com.br", tier: "D", reach: 5614333   },
-  { id: "v117", name: "Revistadetetive", domain: "revistadetetive.com.br",tier: "E", reach: 22000     },
-];
+type TopVeh = { id: string; name: string; domain: string; tier: string; reach: number };
 
 function TopVehicles() {
+  const [vehicles, setVehicles] = useState<TopVeh[]>([]);
+  const [loading, setLoading]   = useState(true);
+
+  useEffect(() => {
+    fetch("/api/vehicles-stats")
+      .then(r => r.json())
+      .then((res: { topVehicles?: TopVeh[] }) => setVehicles(res.topVehicles ?? []))
+      .finally(() => setLoading(false));
+  }, []);
+
   return (
     <div className="card">
       <div className="card-head">
         <h3>Veículos com maior entrega <em>por tier</em></h3>
-        <a href="/veiculos" className="link">Ver todos</a>
+        <Link href="/veiculos" className="link">Ver todos</Link>
       </div>
+      {loading ? (
+        <div style={{ padding: "32px 22px", textAlign: "center", color: "var(--stone)", fontSize: 13 }}>Carregando…</div>
+      ) : vehicles.length === 0 ? (
+        <div style={{ padding: "32px 22px", textAlign: "center", color: "var(--stone)", fontSize: 13 }}>Sem dados de veículos.</div>
+      ) : (
       <div className="rank">
-        {TOP_ONE_PER_TIER.map(v => (
+        {vehicles.map(v => (
           <div className="rank-row" key={v.id}>
             <div className="logo" style={{ background: TIER_COLORS[v.tier] ?? "#ccc", color: TIER_FG[v.tier] ?? "#fff" }}>{getInitials(v.name)}</div>
             <div style={{ minWidth: 0 }}>
@@ -740,6 +748,7 @@ function TopVehicles() {
           </div>
         ))}
       </div>
+      )}
     </div>
   );
 }
