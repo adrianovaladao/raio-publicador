@@ -110,6 +110,8 @@ model Vehicle {
   tier      String
   reach     Int
   logoUrl   String?
+  site      String?
+  location  String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

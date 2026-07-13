@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useEscapeKey } from "@/hooks/useEscapeKey";
 import { ArrowUpDown, ArrowUp, ArrowDown, SlidersHorizontal, X } from "lucide-react";
 
-type VehicleItem = { id: string; name: string; domain: string; cat: string; tier: string; reach: number; logoUrl?: string | null };
+type VehicleItem = { id: string; name: string; domain: string; site?: string | null; location?: string | null; cat: string; tier: string; reach: number; logoUrl?: string | null };
 
 
 
@@ -132,8 +132,8 @@ export default function VeiculosPage() {
   useEffect(() => {
     fetch("/api/vehicles")
       .then(r => r.json())
-      .then((data: { id: string; name: string; domain: string; category: string; tier: string; reach: number; logoUrl?: string | null }[]) => {
-        setVehicles(data.map(v => ({ id: v.id, name: v.name, domain: v.domain, cat: v.category, tier: v.tier, reach: v.reach, logoUrl: v.logoUrl })));
+      .then((data: { id: string; name: string; domain: string; site?: string | null; location?: string | null; category: string; tier: string; reach: number; logoUrl?: string | null }[]) => {
+        setVehicles(data.map(v => ({ id: v.id, name: v.name, domain: v.domain, site: v.site, location: v.location, cat: v.category, tier: v.tier, reach: v.reach, logoUrl: v.logoUrl })));
       })
       .catch(() => {});
   }, []);
@@ -237,6 +237,7 @@ export default function VeiculosPage() {
                 <th style={{ ...thStyle("name"), width: "36%" }} onClick={() => handleSort("name")}>
                   {thInner("Veículo", "name")}
                 </th>
+                <th style={{ whiteSpace: "nowrap" }}>Localização</th>
                 <th style={thStyle("cat")} onClick={() => handleSort("cat")}>
                   {thInner("Editoria", "cat")}
                 </th>
@@ -265,10 +266,14 @@ export default function VeiculosPage() {
                         </div>
                         <div>
                           <div style={{ fontSize: 14, fontWeight: 600, letterSpacing: "-0.01em" }}>{v.name}</div>
-                          <div style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--stone)" }}>{v.domain}</div>
+                          {v.site
+                            ? <a href={v.site} target="_blank" rel="noopener noreferrer" style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--stone)", textDecoration: "underline" }} onClick={e => e.stopPropagation()}>{v.domain}</a>
+                            : <div style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--stone)" }}>{v.domain}</div>
+                          }
                         </div>
                       </div>
                     </td>
+                    <td className="muted" style={{ fontSize: 12 }}>{v.location ?? "—"}</td>
                     <td className="muted">{v.cat}</td>
                     <td><span className={`tier t-${v.tier.toLowerCase()}`}>{v.tier}</span></td>
                     <td className="num" style={{ textAlign: "right", fontWeight: 600 }}>{fmtReach(v.reach)}</td>
