@@ -21,7 +21,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
   const copy = await prisma.release.create({
     data: {
       authorId:    userId,
-      title:       `CÓPIA DE ${original.title}`,
+      title:       `[CÓPIA] ${original.title}`,
       body:        original.body ?? "",
       summary:     original.summary ?? "",
       status:      "DRAFT",
