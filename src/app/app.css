@@ -166,7 +166,6 @@ textarea.input { resize: vertical; line-height: 1.55; }
    ============================================================ */
 .app { height: calc(100vh / 1.15); display: grid; grid-template-columns: var(--sidebar-w) 1fr; grid-template-rows: minmax(0, 1fr); zoom: 1.15; overflow: hidden; }
 .app > * { min-height: 0; overflow: hidden; }
-.app > .content { overflow-y: auto; }
 
 .sidebar {
   background: var(--ink);
@@ -175,6 +174,7 @@ textarea.input { resize: vertical; line-height: 1.55; }
   position: relative;
   z-index: 5;
   overflow: hidden;
+  height: 100%;
 }
 .sb-mid { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
 .sb-mid::-webkit-scrollbar { width: 0; }
@@ -254,7 +254,7 @@ textarea.input { resize: vertical; line-height: 1.55; }
 .sb-user .out svg { width: 17px; height: 17px; }
 
 /* área principal */
-.main { display: flex; flex-direction: column; min-width: 0; height: 100%; }
+.main { display: flex; flex-direction: column; min-width: 0; height: 100%; overflow: hidden; }
 .topbar {
   height: var(--topbar-h); flex: none;
   position: relative; z-index: 30;
