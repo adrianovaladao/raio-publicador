@@ -35,7 +35,7 @@ const VEH_TIERS_ALL = ["A","B","C"];
 const PAGE_SIZE      = 25;
 const TIER_TOKENS_MAP: Record<string, number> = { A: 100, B: 50, C: 25 };
 const TIER_ORDER_MAP:  Record<string, number> = { A: 0, B: 1, C: 2 };
-const TIER_COLORS_MAP: Record<string, string> = { A: "#C0392B", B: "#E07B2A", C: "#D4A017" };
+const TIER_COLORS_MAP: Record<string, string> = { A: "#C0392B", B: "#E07B2A", C: "#1551B1" };
 const TIER_FG_MAP:     Record<string, string> = { A: "#fff",    B: "#fff",    C: "#fff"    };
 
 type VehSortCol = "name" | "tier" | "reach" | "tokens";

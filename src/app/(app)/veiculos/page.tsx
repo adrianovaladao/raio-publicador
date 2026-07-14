@@ -12,7 +12,7 @@ const VEH_CATS  = ["Geral","Negócios","Tecnologia","Esportes","Economia","Saúd
 const VEH_TIERS = ["A","B","C"];
 
 const TIER_TOKENS:  Record<string, number> = { A: 100, B: 50, C: 25 };
-const TIER_COLORS:  Record<string, string> = { A: "#C0392B", B: "#E07B2A", C: "#D4A017" };
+const TIER_COLORS:  Record<string, string> = { A: "#C0392B", B: "#E07B2A", C: "#1551B1" };
 const TIER_FG:      Record<string, string> = { A: "#fff",    B: "#fff",    C: "#fff"    };
 
 const TIER_INFO = [

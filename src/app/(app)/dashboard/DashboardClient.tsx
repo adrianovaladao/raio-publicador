@@ -611,7 +611,7 @@ export default function DashboardPage() {
 
 // ── Vehicle charts ────────────────────────────────────────────────────────────
 
-const TIER_COLORS: Record<string, string> = { A: "#C0392B", B: "#E07B2A", C: "#D4A017", D: "#3A7DC9", E: "#D0DFF0" };
+const TIER_COLORS: Record<string, string> = { A: "#C0392B", B: "#E07B2A", C: "#1551B1", D: "#3A7DC9", E: "#D0DFF0" };
 const TIER_FG:     Record<string, string> = { A: "#fff",    B: "#fff",    C: "#fff",    D: "#fff",    E: "#3A5A80" };
 
 

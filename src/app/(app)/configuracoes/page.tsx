@@ -1854,7 +1854,7 @@ function TransactionHistory() {
 // ─── VeiculosPanel (Raio admin only) ─────────────────────────────────────────
 
 const TIER_TOKENS_ADM: Record<string, number> = { A: 100, B: 50, C: 25 };
-const TIER_COLORS_ADM: Record<string, string> = { A: "#C0392B", B: "#E07B2A", C: "#D4A017" };
+const TIER_COLORS_ADM: Record<string, string> = { A: "#C0392B", B: "#E07B2A", C: "#1551B1" };
 const TIER_FG_ADM:     Record<string, string> = { A: "#fff",    B: "#fff",    C: "#fff"    };
 const VEH_CATS_ADM = ["Negócios","Tecnologia","Cultura","Esportes","Saúde","Entretenimento","Política","Educação","Lifestyle","Gastronomia","Moda","Sustentabilidade","Finanças","Variedades","Automotivo","Imóveis"];
 const TIERS_ADM = ["A","B","C"];
