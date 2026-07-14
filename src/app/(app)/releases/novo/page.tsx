@@ -1561,7 +1561,7 @@ export default function NovoReleasePage() {
               </div>
               <div className="card" style={{ flex: 1, padding: "16px 20px", textAlign: "center" }}>
                 <div style={{ fontFamily: "var(--mono)", fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 6 }}>Alcance</div>
-                <div style={{ fontWeight: 800, fontSize: 28, letterSpacing: "-0.03em" }}>{fmtReach(selReach)}</div>
+                <div style={{ fontWeight: 800, fontSize: 22, letterSpacing: "-0.03em", whiteSpace: "nowrap" }}>{fmtReach(selReach)}</div>
               </div>
               <div className="card" style={{ flex: 1, padding: "16px 20px", textAlign: "center" }}>
                 <div style={{ fontFamily: "var(--mono)", fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 6 }}>Marca</div>
