@@ -13,6 +13,7 @@ const TIER_COLORS: Record<string, string> = { A: "#C0392B", B: "#E07B2A", C: "#1
 const TIER_FG:     Record<string, string> = { A: "#fff",    B: "#fff",    C: "#fff"    };
 const VEH_CATS = ["Negócios","Tecnologia","Cultura","Esportes","Saúde","Entretenimento","Política","Educação","Lifestyle","Gastronomia","Moda","Sustentabilidade","Finanças","Variedades","Automotivo","Imóveis"];
 const TIERS = ["A","B","C"];
+const BR_STATES = ["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"];
 const TIER_ORDER: Record<string, number> = { A: 0, B: 1, C: 2 };
 const PAGE_SIZE = 30;
 
@@ -114,7 +115,7 @@ function VehicleModal({ initial, onSave, onClose }: {
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             <div><label style={labelStyle}>Site</label><input style={inputStyle} value={site} onChange={e => setSite(e.target.value)} placeholder="https://folha.uol.com.br" /></div>
-            <div><label style={labelStyle}>Estado/Cidade</label><input style={inputStyle} value={location} onChange={e => setLocation(e.target.value)} placeholder="São Paulo" /></div>
+            <div><label style={labelStyle}>Estado</label><select style={inputStyle} value={location} onChange={e => setLocation(e.target.value)}><option value="">—</option>{BR_STATES.map(s => <option key={s} value={s}>{s}</option>)}</select></div>
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
@@ -408,7 +409,7 @@ export default function AdminVeiculos() {
                     />
                   </th>
                   <th style={{ ...thS, width: "35%" }} onClick={() => toggleSort("name")}><span style={{ display: "flex", alignItems: "center", gap: 4 }}>Veículo <SortIcon col="name" /></span></th>
-                  <th style={thS} onClick={() => toggleSort("location")}><span style={{ display: "flex", alignItems: "center", gap: 4 }}>Estado/Cidade <SortIcon col="location" /></span></th>
+                  <th style={thS} onClick={() => toggleSort("location")}><span style={{ display: "flex", alignItems: "center", gap: 4 }}>Estado <SortIcon col="location" /></span></th>
                   <th style={thS} onClick={() => toggleSort("site")}><span style={{ display: "flex", alignItems: "center", gap: 4 }}>Site <SortIcon col="site" /></span></th>
                   <th style={thS} onClick={() => toggleSort("category")}><span style={{ display: "flex", alignItems: "center", gap: 4 }}>Editoria <SortIcon col="category" /></span></th>
                   <th style={thS} onClick={() => toggleSort("tier")}><span style={{ display: "flex", alignItems: "center", gap: 4 }}>Categoria <SortIcon col="tier" /></span></th>

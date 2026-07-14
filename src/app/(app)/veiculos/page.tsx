@@ -237,7 +237,7 @@ export default function VeiculosPage() {
                 <th style={{ ...thStyle("name"), width: "36%" }} onClick={() => handleSort("name")}>
                   {thInner("Veículo", "name")}
                 </th>
-                <th style={{ whiteSpace: "nowrap" }}>Estado/Cidade</th>
+                <th style={{ whiteSpace: "nowrap" }}>Estado</th>
                 <th style={{ whiteSpace: "nowrap" }}>Site</th>
                 <th style={thStyle("cat")} onClick={() => handleSort("cat")}>
                   {thInner("Editoria", "cat")}
