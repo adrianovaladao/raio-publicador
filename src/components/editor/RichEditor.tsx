@@ -582,7 +582,7 @@ function AIBriefingModal({ title, subtitle, action, direction, tone, wordRange, 
               </div>
             </div>
             <p style={{ margin: "8px 0 0", fontSize: 12, color: "var(--stone)", lineHeight: 1.5 }}>
-              💡 O ideal para releases de assessoria de imprensa é entre <strong>500 e 600 palavras</strong> — informativo o suficiente sem ser longo demais.
+              💡 A média ideal é entre <strong>500 e 600 palavras</strong>.
             </p>
           </div>
 
