@@ -289,7 +289,7 @@ textarea.input { resize: vertical; line-height: 1.55; }
 .icon-btn svg { width: 18px; height: 18px; }
 .icon-btn .dot { position: absolute; top: 8px; right: 9px; width: 7px; height: 7px; border-radius: 99px; background: var(--coral); border: 1.5px solid var(--paper); }
 
-.content { flex: 1; overflow-y: auto; padding: 28px; }
+.content { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 28px; }
 .content-inner { max-width: 1180px; margin: 0 auto; }
 
 /* cabeçalho de página */
