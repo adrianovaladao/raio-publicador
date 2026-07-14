@@ -13,7 +13,7 @@ const TIER_COLORS: Record<string, string> = { A: "#C0392B", B: "#E07B2A", C: "#1
 const TIER_FG:     Record<string, string> = { A: "#fff",    B: "#fff",    C: "#fff"    };
 const VEH_CATS = ["Negócios","Tecnologia","Cultura","Esportes","Saúde","Entretenimento","Política","Educação","Lifestyle","Gastronomia","Moda","Sustentabilidade","Finanças","Variedades","Automotivo","Imóveis"];
 const TIERS = ["A","B","C"];
-const BR_STATES = ["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"];
+const BR_STATES = ["Nacional","AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"];
 const TIER_ORDER: Record<string, number> = { A: 0, B: 1, C: 2 };
 const PAGE_SIZE = 30;
 
