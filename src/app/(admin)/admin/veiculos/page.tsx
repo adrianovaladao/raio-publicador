@@ -11,7 +11,7 @@ import { isAnyAdmin } from "@/lib/admin";
 const TIER_TOKENS: Record<string, number> = { A: 100, B: 50, C: 25 };
 const TIER_COLORS: Record<string, string> = { A: "#C0392B", B: "#E07B2A", C: "#1551B1" };
 const TIER_FG:     Record<string, string> = { A: "#fff",    B: "#fff",    C: "#fff"    };
-const VEH_CATS = ["Lifestyle","Gastronomia","Beleza & Moda","Saúde","Automóveis","Empreendedorismo & Negócios","Variedades","Pet","Tecnologia & Inovação","Marketing","Indústria","Agro","Meio Ambiente & Sustentabilidade","Educação","Turismo","Entretenimento","Carreira","Varejo"];
+const VEH_CATS = ["Agro","Automóveis","Beleza & Moda","Carreira","Educação","Empreendedorismo & Negócios","Entretenimento","Gastronomia","Indústria","Lifestyle","Marketing","Meio Ambiente & Sustentabilidade","Pet","Saúde","Tecnologia & Inovação","Turismo","Varejo","Variedades"];
 const TIERS = ["A","B","C"];
 const BR_STATES = ["Nacional","AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"];
 const TIER_ORDER: Record<string, number> = { A: 0, B: 1, C: 2 };
