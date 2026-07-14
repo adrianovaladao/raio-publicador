@@ -115,7 +115,16 @@ function VehicleModal({ initial, onSave, onClose }: {
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             <div><label style={labelStyle}>Site</label><input style={inputStyle} value={site} onChange={e => setSite(e.target.value)} placeholder="https://folha.uol.com.br" /></div>
-            <div><label style={labelStyle}>Estado</label><select style={inputStyle} value={location} onChange={e => setLocation(e.target.value)}><option value="">—</option>{BR_STATES.map(s => <option key={s} value={s}>{s}</option>)}</select></div>
+            <div>
+              <label style={labelStyle}>Estado</label>
+              <div className="select-wrap">
+                <select value={location} onChange={e => setLocation(e.target.value)} className="input" style={{ fontSize: 14 }}>
+                  <option value="">—</option>
+                  {BR_STATES.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9" /></svg>
+              </div>
+            </div>
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
