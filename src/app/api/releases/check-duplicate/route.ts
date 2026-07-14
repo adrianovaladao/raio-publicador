@@ -31,11 +31,11 @@ export async function POST(req: Request) {
 
   const match = existing.find(r => {
     if (excludeId && r.id === excludeId) return false;
-    return (
-      r.title.trim().toLowerCase()     === normTitle    &&
-      (r.summary ?? "").trim().toLowerCase() === normSubtitle &&
-      normalize(r.body)                === normBody
-    );
+    const bodyMatch     = normalize(r.body) === normBody;
+    const titleMatch    = r.title.trim().toLowerCase() === normTitle;
+    const subtitleMatch = (r.summary ?? "").trim().toLowerCase() === normSubtitle;
+    // Block if body is identical, OR if title+subtitle are both identical
+    return bodyMatch || (titleMatch && subtitleMatch);
   });
 
   if (!match) return NextResponse.json({ duplicate: false });

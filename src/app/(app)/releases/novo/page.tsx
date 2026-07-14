@@ -1726,7 +1726,7 @@ export default function NovoReleasePage() {
               <div style={{ margin: "12px 0", padding: "10px 14px", background: "var(--cream)", borderRadius: 8, fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>
                 &ldquo;{dupWarning.matchTitle}&rdquo;
               </div>
-              <p>Veículos parceiros rejeitam conteúdo duplicado. Para prosseguir, altere pelo menos o <strong>título</strong>, o <strong>subtítulo</strong> ou o <strong>corpo do release</strong> antes de continuar.</p>
+              <p>Veículos de grande alcance rejeitam conteúdo duplicado. Para prosseguir, você precisa alterar o <strong>título</strong>, o <strong>subtítulo</strong> <em>e</em> o <strong>corpo do release</strong> — todos os três devem ser diferentes do original.</p>
             </div>
             <div className="m-foot" style={{ justifyContent: "flex-end" }}>
               <button className="btn btn-primary btn-sm" onClick={() => setDupWarning(null)}>
