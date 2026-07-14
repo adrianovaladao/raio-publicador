@@ -199,7 +199,7 @@ export default function AdminAdministradores() {
                             value={a.role}
                             onChange={e => handleChangeRole(a.clerkId, e.target.value as AdminRole)}
                             className="input"
-                            style={{ fontSize: 12, padding: "4px 8px", width: "auto", fontWeight: 600, backgroundColor: c.bg, color: c.fg, border: "none", borderRadius: 6 }}
+                            style={{ fontSize: 12, padding: "4px 24px 4px 8px", width: "auto", fontWeight: 600, backgroundColor: c.bg, color: c.fg, border: "none", borderRadius: 6, appearance: "none", WebkitAppearance: "none", cursor: "pointer" }}
                           >
                             <option value="editor">Editor Admin</option>
                             <option value="master">Master Admin</option>
