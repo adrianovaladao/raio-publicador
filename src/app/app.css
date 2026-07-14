@@ -164,8 +164,9 @@ textarea.input { resize: vertical; line-height: 1.55; }
 /* ============================================================
    APP SHELL
    ============================================================ */
-.app { height: calc(100vh / 1.15); display: grid; grid-template-columns: var(--sidebar-w) 1fr; grid-template-rows: minmax(0, 1fr); zoom: 1.15; }
-.app > * { min-height: 0; }
+.app { height: calc(100vh / 1.15); display: grid; grid-template-columns: var(--sidebar-w) 1fr; grid-template-rows: minmax(0, 1fr); zoom: 1.15; overflow: hidden; }
+.app > * { min-height: 0; overflow: hidden; }
+.app > .content { overflow-y: auto; }
 
 .sidebar {
   background: var(--ink);
