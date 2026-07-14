@@ -1407,6 +1407,8 @@ export default function NovoReleasePage() {
 
   const [step, setStep] = useState(0);
   const [done, setDone] = useState(false);
+  const [dupWarning, setDupWarning] = useState<{ matchTitle: string } | null>(null);
+  const [dupChecking, setDupChecking] = useState(false);
   const [brand, setBrand] = useState<Brand | null>(null);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [content, setContent] = useState<Content>({ title: "", subtitle: "", body: "", cat: "Negócios", author: "", imageUrls: [] });
@@ -1631,8 +1633,21 @@ export default function NovoReleasePage() {
               </button>
             )}
             {step < last ? (
-              <button className="btn btn-dark" disabled={!canNext} onClick={() => {
-                if (step === 0) { setShowPolicyModal(true); return; }
+              <button className="btn btn-dark" disabled={!canNext || dupChecking} onClick={async () => {
+                if (step === 0) {
+                  setDupChecking(true);
+                  try {
+                    const res = await fetch("/api/releases/check-duplicate", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ title: content.title, subtitle: content.subtitle, body: content.body, excludeId: draftIdRef.current ?? undefined }),
+                    });
+                    const data = await res.json() as { duplicate: boolean; matchTitle?: string };
+                    if (data.duplicate) { setDupWarning({ matchTitle: data.matchTitle ?? "outro release" }); return; }
+                  } finally { setDupChecking(false); }
+                  setShowPolicyModal(true);
+                  return;
+                }
                 setStep(s => s + 1);
               }}>
                 Continuar <ArrowRight size={16} />
@@ -1696,6 +1711,31 @@ export default function NovoReleasePage() {
     {showPolicyModal && (
       <PolicyModal
         onAccept={() => { setShowPolicyModal(false); setStep(1); }}
+      />
+
+      {dupWarning && (
+        <div className="overlay" onClick={() => setDupWarning(null)}>
+          <div className="modal" style={{ maxWidth: 480 }} onClick={e => e.stopPropagation()}>
+            <div className="m-head">
+              <h3 style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ fontSize: 22 }}>🚫</span> Conteúdo idêntico detectado
+              </h3>
+            </div>
+            <div className="m-body" style={{ fontSize: 14, lineHeight: 1.6 }}>
+              <p>O título, subtítulo e corpo deste release são <strong>idênticos</strong> ao release:</p>
+              <div style={{ margin: "12px 0", padding: "10px 14px", background: "var(--cream)", borderRadius: 8, fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>
+                &ldquo;{dupWarning.matchTitle}&rdquo;
+              </div>
+              <p>Veículos parceiros rejeitam conteúdo duplicado. Para prosseguir, altere pelo menos o <strong>título</strong>, o <strong>subtítulo</strong> ou o <strong>corpo do release</strong> antes de continuar.</p>
+            </div>
+            <div className="m-foot" style={{ justifyContent: "flex-end" }}>
+              <button className="btn btn-primary btn-sm" onClick={() => setDupWarning(null)}>
+                Entendi, vou editar
+              </button>
+            </div>
+          </div>
+        </div>
+
         onClose={() => setShowPolicyModal(false)}
       />
     )}
