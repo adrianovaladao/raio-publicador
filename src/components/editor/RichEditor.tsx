@@ -561,7 +561,7 @@ function AIBriefingModal({ title, subtitle, action, direction, tone, wordRange, 
           {/* Contagem de palavras */}
           <div>
             <label style={mono}>Contagem de palavras</label>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <div style={{ display: "flex", gap: 8 }}>
               {WORD_PRESETS.map(p => {
                 const active = wordRange[0] === p.range[0] && wordRange[1] === p.range[1];
                 return (
