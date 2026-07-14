@@ -105,11 +105,11 @@
    ============================================================ */
 *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 :focus:not(:focus-visible) { outline: none; }
-html { height: 100%; overflow: hidden; scroll-behavior: smooth; }
+html { height: 100%; scroll-behavior: smooth; }
+body:has(.app) { overflow: hidden; }
 body {
   margin: 0;
   height: 100%;
-  overflow: hidden;
   font-family: var(--sans);
   background: var(--bg);
   color: var(--ink);
