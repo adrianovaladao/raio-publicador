@@ -1228,6 +1228,7 @@ export default function EditReleasePage() {
                 &ldquo;{dupWarning.matchTitle}&rdquo;
               </div>
               <p>Veículos de grande alcance rejeitam conteúdo duplicado. Para prosseguir, você precisa alterar o <strong>título</strong>, o <strong>subtítulo</strong> <em>e</em> o <strong>corpo do release</strong> — todos os três devem ser diferentes do original.</p>
+              <p style={{ marginTop: 10, padding: "10px 14px", background: "#FFF7ED", borderRadius: 8, fontSize: 13, color: "#92400E" }}>💡 Use a <strong>IA</strong> para reescrever o conteúdo com um novo ângulo.</p>
             </div>
             <div className="m-foot" style={{ justifyContent: "flex-end" }}>
               <button className="btn btn-primary btn-sm" onClick={() => setDupWarning(null)}>
