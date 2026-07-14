@@ -25,7 +25,7 @@
 @media (max-width: 860px) { .stepper .st .nm { display: none; } .stepper .seg { width: 18px; margin: 0 7px; } }
 
 /* ---------- corpo ---------- */
-.onb-body { flex: 1; position: relative; z-index: 2; display: grid; place-items: start center; padding: 16px 28px 24px; }
+.onb-body { flex: 1; position: relative; z-index: 2; display: grid; place-items: center; padding: 16px 28px 24px; }
 .onb-card { width: 100%; animation: onbIn .35s ease both; }
 @keyframes onbIn { from { opacity: 0; } to { opacity: 1; } }
 .onb-card.narrow { max-width: 560px; }
