@@ -126,6 +126,7 @@ export function RichEditor({
   const [aiAction,     setAiAction]     = useState<"generate"|"rewrite"|"summarize"|"tone">("generate");
   const [aiDirection,  setAiDirection]  = useState("");
   const [aiTone,       setAiTone]       = useState<"institucional"|"jornalistico"|"descontraido">("jornalistico");
+  const [aiWordRange,  setAiWordRange]  = useState<[number, number]>([400, 600]);
   const [wordCount,  setWordCount]  = useState(0);
   const [linkModal,  setLinkModal]  = useState<{ open: boolean; initial: string }>({ open: false, initial: "" });
 
@@ -197,7 +198,7 @@ export function RichEditor({
     finally { setImgUploading(false); }
   }
 
-  async function runAI(action: "generate"|"rewrite"|"summarize"|"tone", direction: string, tone: string) {
+  async function runAI(action: "generate"|"rewrite"|"summarize"|"tone", direction: string, tone: string, wordRange?: [number, number]) {
     if (!editor || aiLoading) return;
     setBriefingOpen(false);
     setAiErr("");
@@ -215,7 +216,7 @@ export function RichEditor({
       const res = await fetch("/api/ai", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, subtitle, body, brandName, mode, direction, tone }),
+        body: JSON.stringify({ title, subtitle, body, brandName, mode, direction, tone, wordRange }),
       });
       const data = await res.json() as { text?: string; error?: string };
       if (!res.ok || !data.text) { setAiErr(data.error ?? "Erro na IA."); return; }
@@ -372,10 +373,12 @@ export function RichEditor({
         action={aiAction}
         direction={aiDirection}
         tone={aiTone}
+        wordRange={aiWordRange}
         onActionChange={setAiAction}
         onDirectionChange={setAiDirection}
         onToneChange={setAiTone}
-        onConfirm={() => runAI(aiAction, aiDirection, aiTone)}
+        onWordRangeChange={setAiWordRange}
+        onConfirm={() => runAI(aiAction, aiDirection, aiTone, aiWordRange)}
         onClose={() => setBriefingOpen(false)}
       />
     )}
@@ -466,13 +469,21 @@ const AI_TONES = [
   { key: "descontraido",   label: "Descontraído"   },
 ] as const;
 
-function AIBriefingModal({ title, subtitle, action, direction, tone, onActionChange, onDirectionChange, onToneChange, onConfirm, onClose }: {
+const WORD_PRESETS: { label: string; range: [number, number] }[] = [
+  { label: "Curto (200–350)",   range: [200, 350] },
+  { label: "Médio (400–600)",   range: [400, 600] },
+  { label: "Longo (700–1000)",  range: [700, 1000] },
+];
+
+function AIBriefingModal({ title, subtitle, action, direction, tone, wordRange, onActionChange, onDirectionChange, onToneChange, onWordRangeChange, onConfirm, onClose }: {
   title: string; subtitle: string;
   action: "generate"|"rewrite"|"summarize"|"tone";
   direction: string; tone: string;
+  wordRange: [number, number];
   onActionChange: (v: "generate"|"rewrite"|"summarize"|"tone") => void;
   onDirectionChange: (v: string) => void;
   onToneChange: (v: "institucional"|"jornalistico"|"descontraido") => void;
+  onWordRangeChange: (v: [number, number]) => void;
   onConfirm: () => void; onClose: () => void;
 }) {
   const canConfirm = title.trim().length > 0 && subtitle.trim().length > 0;
@@ -544,6 +555,23 @@ function AIBriefingModal({ title, subtitle, action, direction, tone, onActionCha
                   {t.label}
                 </button>
               ))}
+            </div>
+          </div>
+
+          {/* Contagem de palavras */}
+          <div>
+            <label style={mono}>Contagem de palavras</label>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              {WORD_PRESETS.map(p => {
+                const active = wordRange[0] === p.range[0] && wordRange[1] === p.range[1];
+                return (
+                  <button key={p.label} type="button"
+                    style={active ? chipOn : chipBase}
+                    onClick={() => onWordRangeChange(p.range)}>
+                    {p.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
 

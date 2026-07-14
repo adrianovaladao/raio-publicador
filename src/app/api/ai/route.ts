@@ -29,7 +29,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const { title, subtitle, body, brandName, mode, direction, tone } = await req.json() as {
+  const { title, subtitle, body, brandName, mode, direction, tone, wordRange } = await req.json() as {
     title?: string;
     subtitle?: string;
     body?: string;
@@ -37,15 +37,19 @@ export async function POST(req: Request) {
     mode?: "generate" | "rewrite" | "summarize" | "tone";
     direction?: string;
     tone?: string;
+    wordRange?: [number, number];
   };
 
   const toneLabel = tone === "institucional" ? "institucional e formal" : tone === "descontraido" ? "descontraído e acessível" : "jornalístico e objetivo";
   const directionBlock = direction?.trim() ? `\nOrientação adicional do usuário: ${direction.trim()}` : "";
+  const wordMin = wordRange?.[0] ?? 400;
+  const wordMax = wordRange?.[1] ?? 600;
+  const wordBlock = `O texto deve ter entre ${wordMin} e ${wordMax} palavras.`;
   const ctx = `Marca: ${brandName ?? "não informada"} · Título: ${title ?? ""} · Subtítulo: ${subtitle ?? ""}`;
 
   let prompt: string;
   if (mode === "rewrite") {
-    prompt = `Você é um redator especialista em assessoria de imprensa. Reescreva e aprimore APENAS o trecho abaixo, mantendo as informações essenciais. Tom desejado: ${toneLabel}.${directionBlock}
+    prompt = `Você é um redator especialista em assessoria de imprensa. Reescreva e aprimore APENAS o trecho abaixo, mantendo as informações essenciais. Tom desejado: ${toneLabel}. ${wordBlock}${directionBlock}
 
 Contexto — ${ctx}
 
@@ -54,7 +58,7 @@ ${body}
 
 Retorne apenas o trecho reescrito, sem comentários, introdução ou explicações. Texto puro, sem markdown.`;
   } else if (mode === "summarize") {
-    prompt = `Você é um redator especialista em assessoria de imprensa. Resuma o texto abaixo em 2-3 parágrafos concisos, preservando os pontos mais importantes. Tom desejado: ${toneLabel}.${directionBlock}
+    prompt = `Você é um redator especialista em assessoria de imprensa. Resuma o texto abaixo preservando os pontos mais importantes. Tom desejado: ${toneLabel}. ${wordBlock}${directionBlock}
 
 Contexto — ${ctx}
 
@@ -63,7 +67,7 @@ ${body}
 
 Retorne apenas o resumo, sem comentários. Texto puro, sem markdown.`;
   } else if (mode === "tone") {
-    prompt = `Você é um redator especialista em assessoria de imprensa. Ajuste o tom do texto abaixo para ${toneLabel}, sem alterar as informações ou a estrutura.${directionBlock}
+    prompt = `Você é um redator especialista em assessoria de imprensa. Ajuste o tom do texto abaixo para ${toneLabel}, sem alterar as informações ou a estrutura. ${wordBlock}${directionBlock}
 
 Contexto — ${ctx}
 
@@ -76,7 +80,7 @@ Retorne apenas o texto com o tom ajustado, sem comentários. Texto puro, sem mar
 
 ${ctx}
 
-Escreva com lide (quem, o quê, quando, onde, por quê) seguido de 3-4 parágrafos de desenvolvimento. O texto deve ter entre 500 e 600 palavras. Texto puro com parágrafos separados por linhas em branco, sem markdown.`;
+Escreva com lide (quem, o quê, quando, onde, por quê) seguido de parágrafos de desenvolvimento. ${wordBlock} Texto puro com parágrafos separados por linhas em branco, sem markdown.`;
   }
 
   try {
