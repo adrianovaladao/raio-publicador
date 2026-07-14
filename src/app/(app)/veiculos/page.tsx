@@ -8,7 +8,7 @@ type VehicleItem = { id: string; name: string; domain: string; site?: string | n
 
 
 
-const VEH_CATS  = ["Geral","Negócios","Tecnologia","Esportes","Economia","Saúde","Entretenimento","Política","Jurídico","Agronegócio"];
+const VEH_CATS = ["Lifestyle","Gastronomia","Beleza & Moda","Saúde","Automóveis","Empreendedorismo & Negócios","Variedades","Pet","Tecnologia & Inovação","Marketing","Indústria","Agro","Meio Ambiente & Sustentabilidade","Educação","Turismo","Entretenimento","Carreira","Varejo"];
 const VEH_TIERS = ["A","B","C"];
 
 const TIER_TOKENS:  Record<string, number> = { A: 100, B: 50, C: 25 };
