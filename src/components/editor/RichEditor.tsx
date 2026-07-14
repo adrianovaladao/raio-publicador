@@ -126,7 +126,7 @@ export function RichEditor({
   const [aiAction,     setAiAction]     = useState<"generate"|"rewrite"|"summarize"|"tone">("generate");
   const [aiDirection,  setAiDirection]  = useState("");
   const [aiTone,       setAiTone]       = useState<"institucional"|"jornalistico"|"descontraido">("jornalistico");
-  const [aiWordRange,  setAiWordRange]  = useState<[number, number]>([400, 600]);
+  const [aiWordRange,  setAiWordRange]  = useState<[number, number]>([500, 600]);
   const [wordCount,  setWordCount]  = useState(0);
   const [linkModal,  setLinkModal]  = useState<{ open: boolean; initial: string }>({ open: false, initial: "" });
 
@@ -469,11 +469,6 @@ const AI_TONES = [
   { key: "descontraido",   label: "Descontraído"   },
 ] as const;
 
-const WORD_PRESETS: { label: string; range: [number, number] }[] = [
-  { label: "Curto (200–350)",   range: [200, 350] },
-  { label: "Médio (400–600)",   range: [400, 600] },
-  { label: "Longo (700–1000)",  range: [700, 1000] },
-];
 
 function AIBriefingModal({ title, subtitle, action, direction, tone, wordRange, onActionChange, onDirectionChange, onToneChange, onWordRangeChange, onConfirm, onClose }: {
   title: string; subtitle: string;
@@ -561,18 +556,34 @@ function AIBriefingModal({ title, subtitle, action, direction, tone, wordRange, 
           {/* Contagem de palavras */}
           <div>
             <label style={mono}>Contagem de palavras</label>
-            <div style={{ display: "flex", gap: 8 }}>
-              {WORD_PRESETS.map(p => {
-                const active = wordRange[0] === p.range[0] && wordRange[1] === p.range[1];
-                return (
-                  <button key={p.label} type="button"
-                    style={active ? chipOn : chipBase}
-                    onClick={() => onWordRangeChange(p.range)}>
-                    {p.label}
-                  </button>
-                );
-              })}
+            <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 4, flex: 1 }}>
+                <span style={{ fontSize: 11, color: "var(--stone)" }}>Mínimo</span>
+                <input
+                  type="number"
+                  min={50}
+                  max={wordRange[1] - 50}
+                  value={wordRange[0]}
+                  onChange={e => onWordRangeChange([Math.max(50, Number(e.target.value)), wordRange[1]])}
+                  style={{ border: "1px solid var(--line)", borderRadius: 8, padding: "7px 10px", fontSize: 13, width: "100%", boxSizing: "border-box" }}
+                />
+              </div>
+              <span style={{ color: "var(--stone)", marginTop: 18 }}>—</span>
+              <div style={{ display: "flex", flexDirection: "column", gap: 4, flex: 1 }}>
+                <span style={{ fontSize: 11, color: "var(--stone)" }}>Máximo</span>
+                <input
+                  type="number"
+                  min={wordRange[0] + 50}
+                  max={2000}
+                  value={wordRange[1]}
+                  onChange={e => onWordRangeChange([wordRange[0], Math.min(2000, Number(e.target.value))])}
+                  style={{ border: "1px solid var(--line)", borderRadius: 8, padding: "7px 10px", fontSize: 13, width: "100%", boxSizing: "border-box" }}
+                />
+              </div>
             </div>
+            <p style={{ margin: "8px 0 0", fontSize: 12, color: "var(--stone)", lineHeight: 1.5 }}>
+              💡 O ideal para releases de assessoria de imprensa é entre <strong>500 e 600 palavras</strong> — informativo o suficiente sem ser longo demais.
+            </p>
           </div>
 
           {/* Orientação livre */}
