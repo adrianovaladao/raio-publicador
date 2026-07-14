@@ -36,14 +36,14 @@ export async function POST(req: Request) {
   if (!await assertRaioAdmin())
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const { name, domain, category, tier, reach, logoUrl } = await req.json();
+  const { name, domain, site, location, category, tier, reach, logoUrl } = await req.json();
   if (!name || !domain || !category || !tier || reach == null)
     return NextResponse.json({ error: "Campos obrigatórios faltando" }, { status: 400 });
 
   try {
     const prisma = getPrisma();
     const vehicle = await prisma.vehicle.create({
-      data: { name, domain, category, tier, reach: Number(reach), logoUrl: logoUrl ?? null },
+      data: { name, domain, site: site ?? null, location: location ?? null, category, tier, reach: Number(reach), logoUrl: logoUrl ?? null },
     });
 
     // Notify all active subscription owners

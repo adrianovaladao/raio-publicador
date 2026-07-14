@@ -51,6 +51,8 @@ function VehicleModal({ initial, onSave, onClose }: {
 }) {
   const [name,      setName]      = useState(initial?.name     ?? "");
   const [domain,    setDomain]    = useState(initial?.domain   ?? "");
+  const [site,      setSite]      = useState(initial?.site     ?? "");
+  const [location,  setLocation]  = useState(initial?.location ?? "");
   const [category,  setCategory]  = useState(initial?.category ?? VEH_CATS[0]);
   const [tier,      setTier]      = useState(initial?.tier     ?? "B");
   const [reach,     setReach]     = useState(String(initial?.reach ?? ""));
@@ -73,7 +75,7 @@ function VehicleModal({ initial, onSave, onClose }: {
     if (!name.trim() || !domain.trim() || !reach) { setErr("Preencha todos os campos."); return; }
     setSaving(true); setErr("");
     try {
-      await onSave({ name: name.trim(), domain: domain.trim(), category, tier, reach: Number(reach), logoUrl: logoUrl || null });
+      await onSave({ name: name.trim(), domain: domain.trim(), site: site.trim() || null, location: location.trim() || null, category, tier, reach: Number(reach), logoUrl: logoUrl || null });
       onClose();
     } catch (e: unknown) {
       setErr(e instanceof Error ? e.message : "Erro ao salvar");
@@ -109,6 +111,11 @@ function VehicleModal({ initial, onSave, onClose }: {
 
           <div><label style={labelStyle}>Nome</label><input style={inputStyle} value={name} onChange={e => setName(e.target.value)} placeholder="Ex.: Folha de S.Paulo" /></div>
           <div><label style={labelStyle}>Domínio</label><input style={inputStyle} value={domain} onChange={e => setDomain(e.target.value)} placeholder="folha.uol.com.br" /></div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div><label style={labelStyle}>Site</label><input style={inputStyle} value={site} onChange={e => setSite(e.target.value)} placeholder="https://folha.uol.com.br" /></div>
+            <div><label style={labelStyle}>Estado/Cidade</label><input style={inputStyle} value={location} onChange={e => setLocation(e.target.value)} placeholder="São Paulo" /></div>
+          </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             <div>
