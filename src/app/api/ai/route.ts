@@ -29,30 +29,55 @@ export async function POST(req: Request) {
     );
   }
 
-  const { title, subtitle, body, brandName, mode } = await req.json() as {
+  const { title, subtitle, body, brandName, mode, direction, tone } = await req.json() as {
     title?: string;
     subtitle?: string;
     body?: string;
     brandName?: string;
-    mode?: "generate" | "rewrite";
+    mode?: "generate" | "rewrite" | "summarize" | "tone";
+    direction?: string;
+    tone?: string;
   };
 
-  const prompt = mode === "rewrite"
-    ? `Você é um redator especialista em assessoria de imprensa. Reescreva e aprimore APENAS o trecho abaixo, mantendo as informações essenciais mas tornando-o mais profissional, objetivo e atrativo para jornalistas. Não adicione informações que não estejam no trecho original.
+  const toneLabel = tone === "institucional" ? "institucional e formal" : tone === "descontraido" ? "descontraído e acessível" : "jornalístico e objetivo";
+  const directionBlock = direction?.trim() ? `\nOrientação adicional do usuário: ${direction.trim()}` : "";
+  const ctx = `Marca: ${brandName ?? "não informada"} · Título: ${title ?? ""} · Subtítulo: ${subtitle ?? ""}`;
 
-Contexto — Marca: ${brandName ?? "não informada"} · Título: ${title ?? ""} · Subtítulo: ${subtitle ?? ""}
+  let prompt: string;
+  if (mode === "rewrite") {
+    prompt = `Você é um redator especialista em assessoria de imprensa. Reescreva e aprimore APENAS o trecho abaixo, mantendo as informações essenciais. Tom desejado: ${toneLabel}.${directionBlock}
+
+Contexto — ${ctx}
 
 Trecho a reescrever:
 ${body}
 
-Retorne apenas o trecho reescrito, sem comentários, introdução ou explicações. Texto puro, sem markdown.`
-    : `Você é um redator especialista em assessoria de imprensa. Escreva um release profissional completo para a seguinte informação:
+Retorne apenas o trecho reescrito, sem comentários, introdução ou explicações. Texto puro, sem markdown.`;
+  } else if (mode === "summarize") {
+    prompt = `Você é um redator especialista em assessoria de imprensa. Resuma o texto abaixo em 2-3 parágrafos concisos, preservando os pontos mais importantes. Tom desejado: ${toneLabel}.${directionBlock}
 
-Marca: ${brandName ?? "não informada"}
-Título: ${title ?? "não informado"}
-Subtítulo: ${subtitle ?? "não informado"}
+Contexto — ${ctx}
 
-Escreva com lide (quem, o quê, quando, onde, por quê) seguido de 3-4 parágrafos de desenvolvimento. O texto deve ter entre 500 e 600 palavras. Use linguagem jornalística, objetiva e profissional. Texto puro com parágrafos separados por linhas em branco, sem markdown.`;
+Texto:
+${body}
+
+Retorne apenas o resumo, sem comentários. Texto puro, sem markdown.`;
+  } else if (mode === "tone") {
+    prompt = `Você é um redator especialista em assessoria de imprensa. Ajuste o tom do texto abaixo para ${toneLabel}, sem alterar as informações ou a estrutura.${directionBlock}
+
+Contexto — ${ctx}
+
+Texto:
+${body}
+
+Retorne apenas o texto com o tom ajustado, sem comentários. Texto puro, sem markdown.`;
+  } else {
+    prompt = `Você é um redator especialista em assessoria de imprensa. Escreva um release profissional completo. Tom desejado: ${toneLabel}.${directionBlock}
+
+${ctx}
+
+Escreva com lide (quem, o quê, quando, onde, por quê) seguido de 3-4 parágrafos de desenvolvimento. O texto deve ter entre 500 e 600 palavras. Texto puro com parágrafos separados por linhas em branco, sem markdown.`;
+  }
 
   try {
     const message = await client.messages.create({

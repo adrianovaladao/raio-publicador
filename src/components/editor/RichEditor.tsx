@@ -120,8 +120,12 @@ export function RichEditor({
 }: RichEditorProps) {
   const imageFileRef = useRef<HTMLInputElement>(null);
   const [imgUploading, setImgUploading] = useState(false);
-  const [aiLoading,  setAiLoading]  = useState(false);
-  const [aiErr,      setAiErr]      = useState("");
+  const [aiLoading,    setAiLoading]    = useState(false);
+  const [aiErr,        setAiErr]        = useState("");
+  const [briefingOpen, setBriefingOpen] = useState(false);
+  const [aiAction,     setAiAction]     = useState<"generate"|"rewrite"|"summarize"|"tone">("generate");
+  const [aiDirection,  setAiDirection]  = useState("");
+  const [aiTone,       setAiTone]       = useState<"institucional"|"jornalistico"|"descontraido">("jornalistico");
   const [wordCount,  setWordCount]  = useState(0);
   const [linkModal,  setLinkModal]  = useState<{ open: boolean; initial: string }>({ open: false, initial: "" });
 
@@ -193,47 +197,38 @@ export function RichEditor({
     finally { setImgUploading(false); }
   }
 
-  async function runAI() {
+  async function runAI(action: "generate"|"rewrite"|"summarize"|"tone", direction: string, tone: string) {
     if (!editor || aiLoading) return;
+    setBriefingOpen(false);
     setAiErr("");
 
-    const { from, to, empty } = editor.state.selection;
+    const { from, to } = editor.state.selection;
     const fullText = editor.getText();
     const hasContent = fullText.trim().length > 0;
+    const selectedText = hasContent ? editor.state.doc.textBetween(from, to, " ") : "";
 
-    if (hasContent && empty) {
-      setAiErr("Selecione um trecho para a IA editar, ou apague o conteúdo para gerar do zero.");
-      return;
-    }
+    const mode = !hasContent ? "generate" : action;
+    const body = selectedText || fullText;
 
     setAiLoading(true);
     try {
-      if (!hasContent) {
-        const res = await fetch("/api/ai", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ title, subtitle, body: "", brandName, mode: "generate" }),
-        });
-        const data = await res.json() as { text?: string; error?: string };
-        if (!res.ok || !data.text) { setAiErr(data.error ?? "Erro na IA."); return; }
+      const res = await fetch("/api/ai", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, subtitle, body, brandName, mode, direction, tone }),
+      });
+      const data = await res.json() as { text?: string; error?: string };
+      if (!res.ok || !data.text) { setAiErr(data.error ?? "Erro na IA."); return; }
+
+      if (!hasContent || (selectedText.length === 0)) {
         editor.commands.setContent(data.text);
         onContentChange(editor.getHTML());
-        onAIUsed?.();
-        window.dispatchEvent(new Event("credits-changed"));
       } else {
-        const selectedText = editor.state.doc.textBetween(from, to, " ");
-        const res = await fetch("/api/ai", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ title, subtitle, body: selectedText, brandName, mode: "rewrite" }),
-        });
-        const data = await res.json() as { text?: string; error?: string };
-        if (!res.ok || !data.text) { setAiErr(data.error ?? "Erro na IA."); return; }
         editor.chain().focus().deleteRange({ from, to }).insertContentAt(from, data.text).run();
         onContentChange(editor.getHTML());
-        onAIUsed?.();
-        window.dispatchEvent(new Event("credits-changed"));
       }
+      onAIUsed?.();
+      window.dispatchEvent(new Event("credits-changed"));
     } catch { setAiErr("Falha de conexão com a IA."); }
     finally { setAiLoading(false); }
   }
@@ -306,13 +301,13 @@ export function RichEditor({
         <button
           type="button"
           className="tb ai-btn"
-          onClick={runAI}
+          onClick={() => { setAiErr(""); setBriefingOpen(true); }}
           disabled={aiLoading}
-          title="Gerar ou reescrever com IA (custa 25 créditos)"
+          title="Gerar ou reescrever com IA"
           style={{ display: "flex", alignItems: "center", gap: 5, padding: "0 12px", width: "auto", background: aiLoading ? "#e6a800" : "#FAB500", color: "#000", fontWeight: 700, fontSize: 13, borderRadius: 99, height: 32 }}
         >
           {aiLoading ? <Loader size={14} className="spin" /> : <Sparkles size={14} />}
-          {aiLoading ? "Gerando…" : "Gerar ou reescrever com IA (custa 25 créditos)"}
+          {aiLoading ? "Gerando…" : "Gerar ou reescrever com IA"}
         </button>
       </div>
 
@@ -367,6 +362,21 @@ export function RichEditor({
         initial={linkModal.initial}
         onConfirm={applyLink}
         onClose={() => setLinkModal({ open: false, initial: "" })}
+      />
+    )}
+
+    {briefingOpen && (
+      <AIBriefingModal
+        title={title}
+        subtitle={subtitle}
+        action={aiAction}
+        direction={aiDirection}
+        tone={aiTone}
+        onActionChange={setAiAction}
+        onDirectionChange={setAiDirection}
+        onToneChange={setAiTone}
+        onConfirm={() => runAI(aiAction, aiDirection, aiTone)}
+        onClose={() => setBriefingOpen(false)}
       />
     )}
     </>
@@ -434,6 +444,133 @@ function LinkModal({ initial, onConfirm, onClose }: {
           <button className="btn btn-ghost btn-sm" onClick={onClose}>Cancelar</button>
           <button className="btn btn-primary btn-sm" onClick={() => onConfirm(url)}>
             Aplicar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── AI Briefing Modal ────────────────────────────────────────────────────────
+
+const AI_ACTIONS = [
+  { key: "generate",  label: "Gerar do zero"  },
+  { key: "rewrite",   label: "Reescrever"     },
+  { key: "summarize", label: "Resumir"         },
+  { key: "tone",      label: "Ajustar tom"    },
+] as const;
+
+const AI_TONES = [
+  { key: "institucional",  label: "Institucional"  },
+  { key: "jornalistico",   label: "Jornalístico"   },
+  { key: "descontraido",   label: "Descontraído"   },
+] as const;
+
+function AIBriefingModal({ title, subtitle, action, direction, tone, onActionChange, onDirectionChange, onToneChange, onConfirm, onClose }: {
+  title: string; subtitle: string;
+  action: "generate"|"rewrite"|"summarize"|"tone";
+  direction: string; tone: string;
+  onActionChange: (v: "generate"|"rewrite"|"summarize"|"tone") => void;
+  onDirectionChange: (v: string) => void;
+  onToneChange: (v: "institucional"|"jornalistico"|"descontraido") => void;
+  onConfirm: () => void; onClose: () => void;
+}) {
+  const canConfirm = title.trim().length > 0 && subtitle.trim().length > 0;
+
+  useEffect(() => {
+    const fn = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", fn);
+    return () => window.removeEventListener("keydown", fn);
+  }, [onClose]);
+
+  const mono: React.CSSProperties = { fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--stone)", display: "block", marginBottom: 8 };
+  const chipBase: React.CSSProperties = { border: "1px solid var(--line)", borderRadius: 99, padding: "6px 14px", fontSize: 13, fontWeight: 500, cursor: "pointer", background: "none", transition: "all .14s" };
+  const chipOn:   React.CSSProperties = { ...chipBase, background: "#FAB500", borderColor: "#FAB500", color: "#000", fontWeight: 700 };
+
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 9999, display: "grid", placeItems: "center" }} onClick={onClose}>
+      <div style={{ background: "var(--paper,#fff)", borderRadius: 18, width: 480, maxWidth: "calc(100vw - 32px)", boxShadow: "0 24px 64px rgba(0,0,0,0.2)", overflow: "hidden" }} onClick={e => e.stopPropagation()}>
+
+        {/* Header */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 22px 16px", borderBottom: "1px solid var(--line)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ width: 32, height: 32, borderRadius: 9, background: "#FAB500", display: "grid", placeItems: "center" }}>
+              <Sparkles size={16} color="#000" />
+            </span>
+            <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, letterSpacing: "-0.01em" }}>Direcionamento para a IA</h3>
+          </div>
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--stone)", display: "flex" }}><X size={18} /></button>
+        </div>
+
+        <div style={{ padding: "20px 22px", display: "flex", flexDirection: "column", gap: 20 }}>
+
+          {/* Title/subtitle validation */}
+          {(!title.trim() || !subtitle.trim()) && (
+            <div style={{ background: "rgba(250,181,0,0.10)", border: "1px solid rgba(250,181,0,0.35)", borderRadius: 10, padding: "10px 14px", fontSize: 13, color: "var(--ink,#111)", lineHeight: 1.5 }}>
+              <strong>Título e subtítulo obrigatórios.</strong> Preencha-os no editor antes de gerar — eles são o ponto de partida da IA.
+              <div style={{ marginTop: 6, display: "flex", flexDirection: "column", gap: 3 }}>
+                <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>
+                  {title.trim() ? "✅" : "⬜"} <span style={{ color: title.trim() ? "var(--green,#2f8a5b)" : "var(--stone)" }}>Título</span>
+                </span>
+                <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>
+                  {subtitle.trim() ? "✅" : "⬜"} <span style={{ color: subtitle.trim() ? "var(--green,#2f8a5b)" : "var(--stone)" }}>Subtítulo</span>
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* O que você quer? */}
+          <div>
+            <label style={mono}>O que você quer?</label>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {AI_ACTIONS.map(a => (
+                <button key={a.key} type="button"
+                  style={action === a.key ? chipOn : chipBase}
+                  onClick={() => onActionChange(a.key)}>
+                  {a.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Tom */}
+          <div>
+            <label style={mono}>Tom</label>
+            <div style={{ display: "flex", gap: 8 }}>
+              {AI_TONES.map(t => (
+                <button key={t.key} type="button"
+                  style={tone === t.key ? chipOn : chipBase}
+                  onClick={() => onToneChange(t.key as "institucional"|"jornalistico"|"descontraido")}>
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Orientação livre */}
+          <div>
+            <label style={mono}>Orientação <span style={{ textTransform: "none", letterSpacing: 0, fontSize: 10 }}>(opcional · máx. 280 caracteres)</span></label>
+            <textarea
+              value={direction}
+              onChange={e => onDirectionChange(e.target.value.slice(0, 280))}
+              placeholder="Ex: Foque nos benefícios para o consumidor final, use linguagem direta e evite jargões técnicos."
+              rows={3}
+              style={{ width: "100%", boxSizing: "border-box", resize: "none", border: "1px solid var(--line)", borderRadius: 10, padding: "10px 12px", fontSize: 13, fontFamily: "var(--sans)", lineHeight: 1.5, background: "var(--bg,#f9f9f9)", color: "var(--ink)" }}
+            />
+            <div style={{ textAlign: "right", fontSize: 11, color: "var(--stone)", marginTop: 4 }}>{direction.length}/280</div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", padding: "0 22px 20px" }}>
+          <button className="btn btn-ghost btn-sm" onClick={onClose}>Cancelar</button>
+          <button
+            className="btn btn-sm"
+            disabled={!canConfirm}
+            onClick={onConfirm}
+            style={{ background: canConfirm ? "#FAB500" : "var(--line)", color: canConfirm ? "#000" : "var(--stone)", border: "none", fontWeight: 700, gap: 6, cursor: canConfirm ? "pointer" : "not-allowed", transition: "all .15s" }}
+          >
+            <Sparkles size={14} /> Gerar com IA · 25 créditos
           </button>
         </div>
       </div>
