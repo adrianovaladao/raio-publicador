@@ -1711,33 +1711,31 @@ export default function NovoReleasePage() {
     {showPolicyModal && (
       <PolicyModal
         onAccept={() => { setShowPolicyModal(false); setStep(1); }}
-      />
-
-      {dupWarning && (
-        <div className="overlay" onClick={() => setDupWarning(null)}>
-          <div className="modal" style={{ maxWidth: 480 }} onClick={e => e.stopPropagation()}>
-            <div className="m-head">
-              <h3 style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <span style={{ fontSize: 22 }}>🚫</span> Conteúdo idêntico detectado
-              </h3>
-            </div>
-            <div className="m-body" style={{ fontSize: 14, lineHeight: 1.6 }}>
-              <p>O título, subtítulo e corpo deste release são <strong>idênticos</strong> ao release:</p>
-              <div style={{ margin: "12px 0", padding: "10px 14px", background: "var(--cream)", borderRadius: 8, fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>
-                &ldquo;{dupWarning.matchTitle}&rdquo;
-              </div>
-              <p>Veículos de grande alcance rejeitam conteúdo duplicado. Para prosseguir, você precisa alterar o <strong>título</strong>, o <strong>subtítulo</strong> <em>e</em> o <strong>corpo do release</strong> — todos os três devem ser diferentes do original.</p>
-            </div>
-            <div className="m-foot" style={{ justifyContent: "flex-end" }}>
-              <button className="btn btn-primary btn-sm" onClick={() => setDupWarning(null)}>
-                Entendi, vou editar
-              </button>
-            </div>
-          </div>
-        </div>
-
         onClose={() => setShowPolicyModal(false)}
       />
+    )}
+    {dupWarning && (
+      <div className="overlay" onClick={() => setDupWarning(null)}>
+        <div className="modal" style={{ maxWidth: 480 }} onClick={e => e.stopPropagation()}>
+          <div className="m-head">
+            <h3 style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ fontSize: 22 }}>🚫</span> Conteúdo idêntico detectado
+            </h3>
+          </div>
+          <div className="m-body" style={{ fontSize: 14, lineHeight: 1.6 }}>
+            <p>O título, subtítulo e corpo deste release são <strong>idênticos</strong> ao release:</p>
+            <div style={{ margin: "12px 0", padding: "10px 14px", background: "var(--cream)", borderRadius: 8, fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>
+              &ldquo;{dupWarning.matchTitle}&rdquo;
+            </div>
+            <p>Veículos de grande alcance rejeitam conteúdo duplicado. Para prosseguir, você precisa alterar o <strong>título</strong>, o <strong>subtítulo</strong> <em>e</em> o <strong>corpo do release</strong> — todos os três devem ser diferentes do original.</p>
+          </div>
+          <div className="m-foot" style={{ justifyContent: "flex-end" }}>
+            <button className="btn btn-primary btn-sm" onClick={() => setDupWarning(null)}>
+              Entendi, vou editar
+            </button>
+          </div>
+        </div>
+      </div>
     )}
     {showUpgradeModal && (
       <UpgradeModal
