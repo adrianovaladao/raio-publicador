@@ -21,7 +21,7 @@ const TIER_INFO = [
   { t: "C", label: "Portal médio / nicho",   range: "Até 100 mil leitores/mês", tokens: 25,  cls: "t-c" },
 ];
 
-type SortCol = "name" | "cat" | "tier" | "reach" | "tokens";
+type SortCol = "name" | "cat" | "tier" | "reach" | "tokens" | "location";
 type SortDir = "asc" | "desc";
 
 function fmtReach(n: number) {
@@ -43,6 +43,7 @@ function sortVehicles(arr: VehicleItem[], col: SortCol, dir: SortDir) {
     if (col === "tokens") { va = TIER_TOKENS[a.tier] ?? 0; vb = TIER_TOKENS[b.tier] ?? 0; }
     else if (col === "tier") { va = TIER_ORDER[a.tier] ?? 99; vb = TIER_ORDER[b.tier] ?? 99; }
     else if (col === "reach") { va = a.reach; vb = b.reach; }
+    else if (col === "location") { va = (a.location ?? "").toLowerCase(); vb = (b.location ?? "").toLowerCase(); }
     else { va = (a[col] as string).toLowerCase(); vb = (b[col] as string).toLowerCase(); }
     if (va < vb) return dir === "asc" ? -1 : 1;
     if (va > vb) return dir === "asc" ? 1 : -1;
@@ -237,7 +238,9 @@ export default function VeiculosPage() {
                 <th style={{ ...thStyle("name"), width: "36%" }} onClick={() => handleSort("name")}>
                   {thInner("Veículo", "name")}
                 </th>
-                <th style={{ whiteSpace: "nowrap" }}>Estado</th>
+                <th style={{ ...thStyle("location"), whiteSpace: "nowrap" }} onClick={() => handleSort("location")}>
+                  {thInner("Estado", "location")}
+                </th>
                 <th style={{ whiteSpace: "nowrap" }}>Site</th>
                 <th style={thStyle("cat")} onClick={() => handleSort("cat")}>
                   {thInner("Editoria", "cat")}
