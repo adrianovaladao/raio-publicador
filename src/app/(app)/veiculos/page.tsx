@@ -91,12 +91,12 @@ function FilterModal({ cats, tiers, onApply, onClose }: {
             </div>
           </div>
           <div>
-            <p style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 10 }}>Tier</p>
+            <p style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 10 }}>Categoria</p>
             <div style={{ display: "flex", gap: 8 }}>
               {VEH_TIERS.map(t => (
                 <button key={t} onClick={() => toggleTier(t)}
                   className={`chip${selTiers.includes(t) ? " active" : ""}`}>
-                  Tier {t}
+                  Categoria {t}
                 </button>
               ))}
             </div>
@@ -243,7 +243,7 @@ export default function VeiculosPage() {
                   {thInner("Editoria", "cat")}
                 </th>
                 <th style={thStyle("tier")} onClick={() => handleSort("tier")}>
-                  {thInner("Tier", "tier")}
+                  {thInner("Categoria", "tier")}
                 </th>
                 <th style={{ ...thStyle("reach"), textAlign: "right" }} onClick={() => handleSort("reach")}>
                   {thInner("Alcance/mês", "reach", "right")}

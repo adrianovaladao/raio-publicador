@@ -27,7 +27,7 @@ function PlanFeatures({ plan }: { plan: PlanData }) {
   const features = [
     { icon: Coins,     text: `${plan.credits.toLocaleString("pt-BR")} créditos mensais` },
     { icon: Building2, text: `${plan.brandsLimit} marca${plan.brandsLimit > 1 ? "s" : ""}` },
-    { icon: Newspaper, text: `${plan.tierAIncluded} publicações/mês em veículos Tier A` },
+    { icon: Newspaper, text: `${plan.tierAIncluded} publicações/mês em veículos Categoria A` },
     { icon: Users,     text: `${plan.editorsLimit} editor${plan.editorsLimit > 1 ? "es" : ""} · ${plan.reviewersLimit} revisor${plan.reviewersLimit > 1 ? "es" : ""}` },
   ];
   return (
@@ -194,7 +194,7 @@ export default function CheckoutConfirmClient({ initialPlanId, allPlans }: Props
                             {[
                               `${p.credits.toLocaleString("pt-BR")} créditos`,
                               `${p.brandsLimit} marca${p.brandsLimit > 1 ? "s" : ""}`,
-                              `${p.tierAIncluded} Tier A/mês`,
+                              `${p.tierAIncluded} Categoria A/mês`,
                               `${p.editorsLimit} editor${p.editorsLimit > 1 ? "es" : ""}`,
                             ].map((t, i) => (
                               <span key={i} style={{ fontSize: 15.5, color: "var(--tx-3)", display: "flex", alignItems: "center", gap: 4 }}>

@@ -433,10 +433,10 @@ function VehFilterModal({ cats, tiers, onApply, onClose }: {
             </div>
           </div>
           <div>
-            <p style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 10 }}>Tier</p>
+            <p style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 10 }}>Categoria</p>
             <div style={{ display: "flex", gap: 8 }}>
               {VEH_TIERS_ALL.map(t => (
-                <button key={t} onClick={() => toggleTier(t)} className={`chip${selTiers.includes(t) ? " active" : ""}`}>Tier {t}</button>
+                <button key={t} onClick={() => toggleTier(t)} className={`chip${selTiers.includes(t) ? " active" : ""}`}>Categoria {t}</button>
               ))}
             </div>
           </div>
@@ -734,15 +734,15 @@ function StepVehicles({ selected, setSelected, vehicles, sub, onUpgrade, onBuyCr
             <div style={{ width: 40, height: 40, borderRadius: 10, background: "#FEE2E2", display: "grid", placeItems: "center", marginBottom: 14 }}>
               <ShieldCheck size={20} color="#C0392B" />
             </div>
-            <div style={{ fontWeight: 800, fontSize: 18, color: "var(--ink)", letterSpacing: "-0.3px", marginBottom: 6 }}>Exclusividade Tier A</div>
+            <div style={{ fontWeight: 800, fontSize: 18, color: "var(--ink)", letterSpacing: "-0.3px", marginBottom: 6 }}>Exclusividade Categoria A</div>
             <div style={{ fontSize: 13, color: "var(--stone)", lineHeight: 1.6, marginBottom: 20 }}>
-              Cada release pode conter apenas <strong>um veículo Tier A</strong>. Esses veículos têm política de exclusividade — o mesmo conteúdo não pode ser enviado para dois grandes ao mesmo tempo.
+              Cada release pode conter apenas <strong>um veículo Categoria A</strong>. Esses veículos têm política de exclusividade — o mesmo conteúdo não pode ser enviado para dois grandes ao mesmo tempo.
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 24 }}>
               <div style={{ display: "flex", gap: 10, alignItems: "flex-start", padding: "12px 14px", background: "var(--cream)", borderRadius: 10 }}>
                 <Sparkles size={16} style={{ color: "var(--coral-ink)", flexShrink: 0, marginTop: 1 }} />
                 <div style={{ fontSize: 13, color: "var(--ink)", lineHeight: 1.5 }}>
-                  <strong>Sugestão:</strong> crie um novo release e use a IA para reescrever o conteúdo com um enfoque diferente — cada veículo Tier A merece uma abordagem personalizada.
+                  <strong>Sugestão:</strong> crie um novo release e use a IA para reescrever o conteúdo com um enfoque diferente — cada veículo Categoria A merece uma abordagem personalizada.
                 </div>
               </div>
             </div>
@@ -1151,7 +1151,7 @@ async function downloadDocx(content: Content, selVehicles: VehicleItem[], brand:
             rows: [
               new TableRow({
                 tableHeader: true,
-                children: ["Veículo", "Editoria", "UF", "Tier", "Alcance"].map(h =>
+                children: ["Veículo", "Editoria", "UF", "Categoria", "Alcance"].map(h =>
                   new TableCell({
                     shading: { type: ShadingType.SOLID, color: "F1F0EC" },
                     children: [new Paragraph({ children: [new TextRun({ text: h, bold: true, size: 18, font: "Calibri" })] })],

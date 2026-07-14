@@ -287,10 +287,10 @@ function VehFilterModal({ cats, tiers, onApply, onClose }: {
             </div>
           </div>
           <div>
-            <p style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 10 }}>Tier</p>
+            <p style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 10 }}>Categoria</p>
             <div style={{ display: "flex", gap: 8 }}>
               {VEH_TIERS_ALL.map(t => (
-                <button key={t} onClick={() => toggleTier(t)} className={`chip${selTiers.includes(t) ? " active" : ""}`}>Tier {t}</button>
+                <button key={t} onClick={() => toggleTier(t)} className={`chip${selTiers.includes(t) ? " active" : ""}`}>Categoria {t}</button>
               ))}
             </div>
           </div>

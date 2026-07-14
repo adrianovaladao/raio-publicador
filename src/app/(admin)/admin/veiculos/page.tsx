@@ -128,10 +128,10 @@ function VehicleModal({ initial, onSave, onClose }: {
               </div>
             </div>
             <div>
-              <label style={labelStyle}>Tier</label>
+              <label style={labelStyle}>Categoria</label>
               <div className="select-wrap">
                 <select value={tier} onChange={e => setTier(e.target.value)} className="input" style={{ fontSize: 14 }}>
-                  {TIERS.map(t => <option key={t} value={t}>Tier {t} — {TIER_TOKENS[t]} créditos</option>)}
+                  {TIERS.map(t => <option key={t} value={t}>Categoria {t} — {TIER_TOKENS[t]} créditos</option>)}
                 </select>
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9" /></svg>
               </div>
@@ -194,11 +194,11 @@ function FilterModal({ cats, tiers, onApply, onClose }: { cats: string[]; tiers:
           </div>
         </div>
         <div style={{ marginBottom: 20 }}>
-          <p style={{ fontSize: 11, fontFamily: "var(--mono)", letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 10 }}>Tier</p>
+          <p style={{ fontSize: 11, fontFamily: "var(--mono)", letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 10 }}>Categoria</p>
           <div style={{ display: "flex", gap: 8 }}>
             {TIERS.map(t => (
               <button key={t} onClick={() => setSelTiers(p => p.includes(t) ? p.filter(x => x !== t) : [...p, t])}
-                className={`chip${selTiers.includes(t) ? " active" : ""}`}>Tier {t}</button>
+                className={`chip${selTiers.includes(t) ? " active" : ""}`}>Categoria {t}</button>
             ))}
           </div>
         </div>
@@ -411,7 +411,7 @@ export default function AdminVeiculos() {
                   <th style={thS} onClick={() => toggleSort("location")}><span style={{ display: "flex", alignItems: "center", gap: 4 }}>Estado/Cidade <SortIcon col="location" /></span></th>
                   <th style={thS} onClick={() => toggleSort("site")}><span style={{ display: "flex", alignItems: "center", gap: 4 }}>Site <SortIcon col="site" /></span></th>
                   <th style={thS} onClick={() => toggleSort("category")}><span style={{ display: "flex", alignItems: "center", gap: 4 }}>Editoria <SortIcon col="category" /></span></th>
-                  <th style={thS} onClick={() => toggleSort("tier")}><span style={{ display: "flex", alignItems: "center", gap: 4 }}>Tier <SortIcon col="tier" /></span></th>
+                  <th style={thS} onClick={() => toggleSort("tier")}><span style={{ display: "flex", alignItems: "center", gap: 4 }}>Categoria <SortIcon col="tier" /></span></th>
                   <th style={{ ...thS, textAlign: "right" }} onClick={() => toggleSort("reach")}><span style={{ display: "flex", alignItems: "center", gap: 4, justifyContent: "flex-end" }}>Alcance/mês <SortIcon col="reach" /></span></th>
                   <th style={{ ...thS, textAlign: "right" }}>Créditos</th>
                   <th style={{ ...thS, width: 80 }}></th>

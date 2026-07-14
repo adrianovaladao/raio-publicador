@@ -1908,9 +1908,9 @@ function VAdmFilterModal({ cats, tiers, onApply, onClose }: { cats: string[]; ti
             </div>
           </div>
           <div>
-            <p style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 10 }}>Tier</p>
+            <p style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 10 }}>Categoria</p>
             <div style={{ display: "flex", gap: 8 }}>
-              {TIERS_ADM.map(t => <button key={t} onClick={() => setSelTiers(p => p.includes(t) ? p.filter(x => x !== t) : [...p, t])} className={`chip${selTiers.includes(t) ? " active" : ""}`}>Tier {t}</button>)}
+              {TIERS_ADM.map(t => <button key={t} onClick={() => setSelTiers(p => p.includes(t) ? p.filter(x => x !== t) : [...p, t])} className={`chip${selTiers.includes(t) ? " active" : ""}`}>Categoria {t}</button>)}
             </div>
           </div>
         </div>
@@ -1996,8 +1996,8 @@ function VehicleModal({ initial, onSave, onClose }: {
               <SelectBox value={category} options={VEH_CATS_ADM} onChange={setCategory} />
             </div>
             <div className="field">
-              <label>Tier</label>
-              <SelectBox value={tier} options={TIERS_ADM.map(t => ({ value: t, label: `Tier ${t} — ${TIER_TOKENS_ADM[t]} créditos` }))} onChange={setTier} />
+              <label>Categoria</label>
+              <SelectBox value={tier} options={TIERS_ADM.map(t => ({ value: t, label: `Categoria ${t} — ${TIER_TOKENS_ADM[t]} créditos` }))} onChange={setTier} />
             </div>
           </div>
           <div className="field"><label>Alcance/mês</label><input className="input" type="number" value={reach} onChange={e => setReach(e.target.value)} placeholder="Ex.: 5000000" /></div>
@@ -2150,7 +2150,7 @@ function VeiculosPanel({ onToast }: { onToast: (m: string) => void }) {
               <tr>
                 <th style={{ ...thStyle("name"), width: "34%" }} onClick={() => handleSort("name")}>{thInner("Veículo", "name")}</th>
                 <th style={thStyle("category")} onClick={() => handleSort("category")}>{thInner("Editoria", "category")}</th>
-                <th style={thStyle("tier")} onClick={() => handleSort("tier")}>{thInner("Tier", "tier")}</th>
+                <th style={thStyle("tier")} onClick={() => handleSort("tier")}>{thInner("Categoria", "tier")}</th>
                 <th style={{ ...thStyle("reach"), textAlign: "right" }} onClick={() => handleSort("reach")}>{thInner("Alcance/mês", "reach", "right")}</th>
                 <th style={{ textAlign: "right" }}>Créditos</th>
                 <th style={{ width: 72 }}></th>
