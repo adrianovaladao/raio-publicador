@@ -16,9 +16,9 @@ const TIER_COLORS:  Record<string, string> = { A: "#C0392B", B: "#E07B2A", C: "#
 const TIER_FG:      Record<string, string> = { A: "#fff",    B: "#fff",    C: "#fff"    };
 
 const TIER_INFO = [
-  { t: "A", label: "Grande portal nacional", range: "10 mi+ leitores/mês",  tokens: 100, cls: "t-a" },
-  { t: "B", label: "Portal regional forte",  range: "100 mil–10 mi/mês",    tokens: 50,  cls: "t-b" },
-  { t: "C", label: "Portal médio / nicho",   range: "10 mil–100 mil/mês",   tokens: 25,  cls: "t-c" },
+  { t: "A", label: "Grande portal nacional", range: "+500 mil leitores/mês",    tokens: 100, cls: "t-a" },
+  { t: "B", label: "Portal regional forte",  range: "100–500 mil leitores/mês", tokens: 50,  cls: "t-b" },
+  { t: "C", label: "Portal médio / nicho",   range: "Até 100 mil leitores/mês", tokens: 25,  cls: "t-c" },
 ];
 
 type SortCol = "name" | "cat" | "tier" | "reach" | "tokens";
