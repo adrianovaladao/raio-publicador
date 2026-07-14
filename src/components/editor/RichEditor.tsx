@@ -302,9 +302,9 @@ export function RichEditor({
           type="button"
           className="tb ai-btn"
           onClick={() => { setAiErr(""); setBriefingOpen(true); }}
-          disabled={aiLoading}
-          title="Gerar ou reescrever com IA"
-          style={{ display: "flex", alignItems: "center", gap: 5, padding: "0 12px", width: "auto", background: aiLoading ? "#e6a800" : "#FAB500", color: "#000", fontWeight: 700, fontSize: 13, borderRadius: 99, height: 32 }}
+          disabled={aiLoading || !title.trim() || !subtitle.trim()}
+          title={!title.trim() || !subtitle.trim() ? "Preencha o título e o subtítulo para usar a IA" : "Gerar ou reescrever com IA"}
+          style={{ display: "flex", alignItems: "center", gap: 5, padding: "0 12px", width: "auto", background: aiLoading ? "#e6a800" : (!title.trim() || !subtitle.trim()) ? "var(--line)" : "#FAB500", color: (!title.trim() || !subtitle.trim()) ? "var(--stone)" : "#000", fontWeight: 700, fontSize: 13, borderRadius: 99, height: 32, cursor: (!title.trim() || !subtitle.trim()) ? "not-allowed" : "pointer" }}
         >
           {aiLoading ? <Loader size={14} className="spin" /> : <Sparkles size={14} />}
           {aiLoading ? "Gerando…" : "Gerar ou reescrever com IA"}
