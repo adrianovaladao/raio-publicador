@@ -81,7 +81,7 @@ const FAQS = [
   { q: "O que acontece se meus créditos acabarem?", a: "Você pode fazer um upgrade de plano a qualquer momento diretamente pelo seu painel para ganhar mais créditos com desconto. Se preferir, também oferecemos a opção de comprar créditos avulsos para complementar o seu mês, sem a necessidade de mudar de assinatura." },
   { q: "Em quantos veículos posso publicar?", a: "Em quantos veículos o seu saldo de créditos permitir! Temos uma rede parceira ativa com mais de 50 portais de notícias brasileiros, cobrindo desde veículos de cobertura nacional e economia até canais regionais." },
   { q: "Posso adicionar minha equipe e clientes?", a: "Sim! Dependendo do plano escolhido, você pode cadastrar múltiplas marcas, criar perfis de editores para sua equipe de redatores e convidar revisores. Toda a colaboração e aprovação de textos acontece de forma integrada dentro do próprio painel do Raio." },
-  { q: "Existe plano anual?", a: "Sim! Para empresas e agências que planejam estratégias de longo prazo, oferecemos planos anuais com descontos exclusivos e condições de faturamento diferenciadas. Para saber mais sobre o plano anual e garantir seu desconto, basta entrar em contato com o nosso time comercial no link abaixo." },
+  { q: "Existe plano anual?", a: <>Sim! Para empresas e agências que planejam estratégias de longo prazo, oferecemos planos anuais com descontos exclusivos e condições de faturamento diferenciadas. Para saber mais sobre o plano anual e garantir seu desconto, basta entrar em contato com o nosso <a href="mailto:raiopublicador@gmail.com" style={{ color: "inherit", textDecoration: "underline" }}>time comercial</a> no link abaixo.</> },
 ];
 
 // ─── hook: reveal on scroll ───────────────────────────────────────────────────
