@@ -374,7 +374,7 @@ select.sm-in option { background: var(--ink-2); color: var(--tx); }
 .whatsapp-fab {
   position: fixed; bottom: 28px; right: 28px; z-index: 200;
   width: 56px; height: 56px; border-radius: 50%;
-  background: #25D366; color: #fff;
+  background: #FAB500; color: #111;
   display: flex; align-items: center; justify-content: center;
   box-shadow: 0 4px 16px rgba(0,0,0,0.25);
   transition: transform .2s, box-shadow .2s;
