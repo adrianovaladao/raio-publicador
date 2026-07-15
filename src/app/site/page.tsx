@@ -613,7 +613,7 @@ export default function SitePage() {
       <CtaBand />
       <Footer onContact={() => setContact(true)} />
       <MobileNotice />
-      {contact && <ContactModal onClose={() => setContact(false)} />
+      {contact && <ContactModal onClose={() => setContact(false)} />}
     </>
   );
 }
