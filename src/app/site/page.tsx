@@ -72,7 +72,7 @@ const PLANS = [
 const TESTIMONIALS = [
   { q: <>Centralizamos toda a nossa operação de branded content em uma só plataforma. O sistema de créditos nos deu uma <em>previsibilidade financeira incrível</em> e hoje publicamos 3x mais matérias nacionais com o mesmo orçamento.</>, nm: "Thais Caetano", rl: "Representante comercial", av: "TC", photo: "/assets/testimonials/thais-caetano.jpg" },
   { q: <>Negociar publicações individualmente consumia dias de trabalho. Com o Raio, basta escolher os portais, subir o artigo e <em>acompanhar os links publicados de forma garantida</em>.</>, nm: "Leticia da Costa", rl: "Diretora de marketing", av: "LC" },
-  { q: <>O custo por publicação garantida foi o grande diferencial. Economizamos mais de 60% em relação ao modelo antigo de disparo de releases em massa e mantivemos nossa marca em destaque e na pauta de grandes veículos do país.</>, nm: "Renato Nose", rl: "Diretor de expansão", av: "RN" },
+  { q: <>O custo por publicação garantida foi o grande diferencial. Economizamos mais de 60% em relação ao <em>modelo antigo de disparo de releases em massa</em> e mantivemos nossa marca em destaque e na pauta de grandes veículos do país.</>, nm: "Renato Nose", rl: "Diretor de expansão", av: "RN" },
 ];
 
 const FAQS = [
