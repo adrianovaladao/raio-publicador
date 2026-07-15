@@ -203,6 +203,37 @@ function Logos() {
   );
 }
 
+// ─── O que é um release ───────────────────────────────────────────────────────
+
+function OQueE() {
+  return (
+    <section className="section" style={{ background: "var(--bg, #fff)", paddingTop: 80, paddingBottom: 80 }}>
+      <div className="wrap" style={{ maxWidth: 760, textAlign: "center" }}>
+        <div className="sec-head reveal">
+          <span className="eyebrow">O que é um release</span>
+          <h2>A ferramenta mais poderosa da <em>assessoria de imprensa</em></h2>
+          <p className="sub" style={{ maxWidth: 620, margin: "0 auto" }}>
+            Um release é um texto jornalístico produzido por uma marca ou assessoria e enviado a redações para gerar cobertura espontânea na imprensa. Quando bem escrito e distribuído para os veículos certos, ele transforma novidades em notícia — sem pagar por anúncio.
+          </p>
+        </div>
+        <div className="steps-grid reveal" style={{ marginTop: 48, gridTemplateColumns: "repeat(3, 1fr)" }}>
+          {[
+            { n: "01", t: "Cobertura orgânica", d: "O release gera menções editoriais — muito mais credíveis do que anúncios pagos para o leitor." },
+            { n: "02", t: "Alcance multiplicado", d: "Um único texto pode ser publicado em dezenas de portais simultaneamente, ampliando o alcance da mensagem." },
+            { n: "03", t: "Autoridade de marca", d: "Aparecer na imprensa constrói reputação e posiciona a marca como referência no seu setor." },
+          ].map(({ n, t, d }) => (
+            <div className="step-card reveal" key={n}>
+              <div className="n">{n}</div>
+              <h3>{t}</h3>
+              <p>{d}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 // ─── Como funciona ────────────────────────────────────────────────────────────
 
 function Como() {
@@ -587,6 +618,7 @@ export default function SitePage() {
       <Nav onContact={() => setContact(true)} />
       <Hero />
       <Logos />
+      <OQueE />
       <Como />
       <Compare />
       <Metrics />
