@@ -191,7 +191,7 @@ function Logos() {
         <div className="ll">Distribua em veículos como</div>
         <div className="row">
           {PARTNERS.map((p) => (
-            <Image key={p} src={`/assets/partners/${p}.svg`} alt="" width={80} height={34} style={{ height: 34, width: "auto", opacity: 0.8 }} />
+            <Image key={p} src={`/assets/partners/${p}.svg`} alt="" width={80} height={34} style={{ height: p === "f5" ? 29 : 34, width: "auto", opacity: 0.8 }} />
           ))}
         </div>
       </div>
