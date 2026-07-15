@@ -205,7 +205,7 @@ function Logos() {
 
 function OQueE() {
   return (
-    <section className="section">
+    <section className="section" style={{ background: "#242424" }}>
       <div className="wrap" style={{ maxWidth: 760, textAlign: "center" }}>
         <div className="sec-head reveal">
           <h2>O que é um <em>release?</em></h2>
