@@ -140,7 +140,7 @@ export default function AdminDashboard() {
             <p className="eyebrow" style={{ marginBottom: 12 }}>Plataforma</p>
             <div className="kpi-grid" style={{ gridTemplateColumns: "repeat(3,1fr)" }}>
               <KpiCard icon={FileText} label="Releases este mês"   val={S.releasesThisMonth}
-                sub={`${S.totalMatérias} no total`} />
+                sub={`${S.totalReleases} no total`} />
               <KpiCard icon={FileText} label="Releases publicados" val={S.releasesByStatus.PUBLISHED ?? 0}
                 sub={`${S.releasesByStatus.SCHEDULED ?? 0} agendados · ${S.releasesByStatus.DRAFT ?? 0} rascunhos`} />
               <KpiCard icon={Zap}      label="Créditos consumidos" val={(S.totalCreditsConsumed ?? 0).toLocaleString("pt-BR")}
