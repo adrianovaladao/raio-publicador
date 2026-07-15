@@ -77,11 +77,11 @@ const TESTIMONIALS = [
 ];
 
 const FAQS = [
-  { q: "Como funciona o modelo de créditos?", a: "Cada plano inclui um saldo mensal de créditos. Ao publicar um release, você seleciona os veículos e cada um consome uma quantidade de créditos proporcional à sua audiência. Você usa os créditos em quantos releases quiser dentro do mês — sem custo por nota." },
-  { q: "Qual a diferença para ferramentas que cobram por notícia?", a: "Na cobrança por nota, cada release publicado em cada veículo gera um custo avulso. No Raio, o mesmo plano cobre diversas publicações: quanto mais você distribui, menor o custo por release. É a mesma rede de veículos, num modelo muito mais vantajoso." },
-  { q: "O que acontece se meus créditos acabarem?", a: "Você pode fazer upgrade de plano a qualquer momento ou adquirir um pacote avulso de créditos. Seus releases agendados continuam preservados e nada é perdido na virada do ciclo." },
-  { q: "Em quantos veículos posso publicar?", a: "São 600 veículos parceiros, de grandes portais nacionais a jornais regionais. O número de veículos AAA (grande audiência) por release varia conforme o plano; o acesso à rede completa está em todos eles." },
-  { q: "Posso adicionar minha equipe e clientes?", a: "Sim. Os planos Avançado e Profissional permitem múltiplos usuários, e você pode convidar membros da equipe ou clientes para colaborar e acompanhar os resultados." },
+  { q: "Como funciona o modelo de créditos?", a: "Cada plano oferece uma carteira mensal de créditos flexíveis. Você escolhe onde quer publicar sua matéria: portais grandes nacionais (Categoria A) consomem 100 créditos, portais de nicho (Categoria B) consomem 50 créditos, e portais regionais consomem 25 créditos (Categoria C). Você distribui esses créditos entre as matérias que quiser ao longo do mês, sem taxas individuais por publicação." },
+  { q: "Qual a diferença para ferramentas que cobram por notícia?", a: "A concorrência cobra pacotes fechados onde cada publicação em um veículo custa um valor fixo alto. Com o nosso modelo de créditos, você ganha autonomia para \"comprar no atacado\". Por um valor semelhante (R$ 1.000), você ganha créditos suficientes para publicar até 2 matérias em portais Categoria A, ou pulverizar sua estratégia em até 8 portais Categoria C." },
+  { q: "O que acontece se meus créditos acabarem?", a: "Você pode fazer um upgrade de plano a qualquer momento diretamente pelo seu painel para ganhar mais créditos com desconto. Se preferir, também oferecemos a opção de comprar créditos avulsos para complementar o seu mês, sem a necessidade de mudar de assinatura." },
+  { q: "Em quantos veículos posso publicar?", a: "Em quantos o seu saldo de créditos permitir! Temos uma rede parceira ativa com mais de 50 portais de notícias brasileiros, cobrindo desde veículos de cobertura nacional e economia até canais regionais." },
+  { q: "Posso adicionar minha equipe e clientes?", a: "Sim! Dependendo do plano escolhido, você pode cadastrar múltiplas marcas, criar perfis de editores para sua equipe de redatores e convidar revisores. Toda a colaboração e aprovação de textos acontece de forma integrada dentro do próprio painel do Raio." },
   { q: "Existe plano anual?", a: "Sim, com condições especiais. Fale com nosso time comercial para montar um plano anual sob medida para o seu volume de distribuição." },
 ];
 
