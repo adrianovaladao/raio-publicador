@@ -216,19 +216,6 @@ function OQueE() {
             Um release é um texto enviado diretamente a jornalistas e editores de portais de notícias. Ele apresenta uma novidade de forma objetiva e, no Raio, ele estará pronto para ser publicado como matéria e virar notícia. Rápido, sem anúncio e sem intermediários.
           </p>
         </div>
-        <div className="steps-grid reveal" style={{ marginTop: 48, gridTemplateColumns: "repeat(3, 1fr)" }}>
-          {[
-            { n: "01", t: "Cobertura orgânica", d: "O release gera menções editoriais, muito mais credíveis do que anúncios pagos para o leitor." },
-            { n: "02", t: "Alcance multiplicado", d: "Um único texto pode ser publicado em dezenas de portais simultaneamente, ampliando o alcance da mensagem." },
-            { n: "03", t: "Autoridade de marca", d: "Aparecer na imprensa constrói reputação e posiciona você como referência no seu setor." },
-          ].map(({ n, t, d }) => (
-            <div className="step-card reveal" key={n}>
-              <div className="n">{n}</div>
-              <h3>{t}</h3>
-              <p>{d}</p>
-            </div>
-          ))}
-        </div>
       </div>
     </section>
   );
