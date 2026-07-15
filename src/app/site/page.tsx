@@ -34,7 +34,6 @@ const PLANS = [
       ["Calendário e agendamento de publicações", true],
       ["Biblioteca de releases divulgados", true],
       ["1 usuário administrador", true],
-      ["Relatórios avançados", false],
     ],
     cta: "Assinar Básico", featured: false,
   },
