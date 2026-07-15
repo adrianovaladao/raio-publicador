@@ -203,7 +203,7 @@ function PerfilPanel({ onToast }: { onToast: (m: string) => void }) {
         </div>
         <div className="field" style={{ marginTop: 4 }}>
           <label>Bio curta</label>
-          <textarea className="input" rows={3} value={bio} onChange={e => setBio(e.target.value)} placeholder="Em uma frase, o que você faz." />
+          <textarea className="input" rows={3} value={bio} onChange={e => setBio(e.target.value)} placeholder="Escreva uma frase curta resumindo sua atuação profissional" />
         </div>
         <div className="set-foot">
           <button className="btn btn-primary" onClick={handleSave} disabled={saving}>
@@ -377,7 +377,7 @@ function CancelFlow({ plan, email, periodEnd, periodStart, isCancelled, onDone, 
           <div className="card-pad set-inline-row" style={{ padding: 22 }}>
             <div>
               <div className="sir-title">Cancelar assinatura</div>
-              <div className="sir-sub">Você mantém o acesso até o fim do ciclo atual. Créditos não são reembolsados.</div>
+              <div className="sir-sub">Ao cancelar, você continuará com acesso à plataforma e poderá usar seus créditos ativos até o final do ciclo de cobrança atual. Após esse período, nenhuma nova cobrança será feita e seus créditos restantes serão expirados.</div>
             </div>
             <button
               className="btn btn-danger btn-sm btn-cancel-zap"
@@ -738,7 +738,7 @@ function ContaPanel({ onToast }: { onToast: (m: string) => void }) {
 
   return (
     <div className="set-panel">
-      <PanelHead title="Conta" desc="Login, segurança e preferências de notificação." />
+      <PanelHead title="Conta" desc="Gerencie seus dados de acesso, segurança e assinatura" />
 
       <div className="card">
         <div className="card-head"><h3>Acesso</h3></div>
