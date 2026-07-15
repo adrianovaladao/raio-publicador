@@ -155,7 +155,7 @@ export default function CalendarioPage() {
       fetch("/api/releases").then(r => r.json()),
       fetch("/api/team").then(r => r.json()),
     ])
-      .then(([matérias, team]: [
+      .then(([releases, team]: [
         (CalEvent & { scheduledAt?: string | null; publishedAt?: string | null; createdAt: string })[],
         { id: string; name: string }[]
       ]) => {
