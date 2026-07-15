@@ -211,7 +211,7 @@ function OQueE() {
       <div className="wrap" style={{ maxWidth: 760, textAlign: "center" }}>
         <div className="sec-head reveal">
           <h2>O que é um <em>release?</em></h2>
-          <p className="sub" style={{ maxWidth: 620, margin: "0 auto" }}>
+          <p className="sub">
             Um release é o texto enviado diretamente a jornalistas e editores de portais de notícias. É o atalho entre a sua novidade e a imprensa e, no Raio, seu release estará pronto para ser publicado como matéria e virar notícia. Rápido e sem intermediários.
           </p>
         </div>
