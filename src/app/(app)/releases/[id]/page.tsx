@@ -582,7 +582,7 @@ function StepVehicles({ selected, setSelected, vehicles, sub, onUpgrade, onBuyCr
 function StepSchedule({
   schedDate, setSchedDate,
   title, body, subtitle, cat, selectedVeh, brand,
-  matériaStatus, onSaveDraft, saving, vehicles,
+  releaseStatus, onSaveDraft, saving, vehicles,
 }: {
   schedDate: string; setSchedDate: (v: string) => void;
   title: string; body: string; subtitle: string; cat: string;

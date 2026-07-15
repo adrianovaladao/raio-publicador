@@ -35,7 +35,7 @@ interface Brand {
   releases: number;
   creditsUsed: number;
   publishedCount: number;
-  recentReleases: RecentMatéria[];
+  recentReleases: RecentRelease[];
 }
 
 interface DashboardData {
