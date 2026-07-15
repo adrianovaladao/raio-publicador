@@ -373,7 +373,7 @@ function Testimonials() {
       <div className="wrap">
         <div className="sec-head reveal">
           <span className="eyebrow">Quem usa, comprova os resultados</span>
-          <h2>Assessorias que publicam <em>mais e melhor</em></h2>
+          <h2>Nossos clientes publicam <em>mais rápido e com um custo menor</em></h2>
           <p className="sub">Veja por que grandes marcas e agências escolheram o Raio para escalar suas publicações.</p>
         </div>
         <div className="tst-grid">
