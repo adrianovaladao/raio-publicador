@@ -136,7 +136,6 @@ const ALL_STATUSES = [
   { value: "SCHEDULED",      label: "Agendado" },
   { value: "NEEDS_REVISION", label: "Precisa revisão" },
   { value: "REJECTED",       label: "Reprovado" },
-  { value: "IN_PUBLICATION", label: "Em publicação" },
   { value: "PUBLISHED",      label: "Publicado" },
   { value: "CANCELLED",      label: "Cancelado" },
 ];
