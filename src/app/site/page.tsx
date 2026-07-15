@@ -82,7 +82,7 @@ const FAQS = [
   { q: "O que acontece se meus créditos acabarem?", a: "Você pode fazer um upgrade de plano a qualquer momento diretamente pelo seu painel para ganhar mais créditos com desconto. Se preferir, também oferecemos a opção de comprar créditos avulsos para complementar o seu mês, sem a necessidade de mudar de assinatura." },
   { q: "Em quantos veículos posso publicar?", a: "Em quantos o seu saldo de créditos permitir! Temos uma rede parceira ativa com mais de 50 portais de notícias brasileiros, cobrindo desde veículos de cobertura nacional e economia até canais regionais." },
   { q: "Posso adicionar minha equipe e clientes?", a: "Sim! Dependendo do plano escolhido, você pode cadastrar múltiplas marcas, criar perfis de editores para sua equipe de redatores e convidar revisores. Toda a colaboração e aprovação de textos acontece de forma integrada dentro do próprio painel do Raio." },
-  { q: "Existe plano anual?", a: "Sim, com condições especiais. Fale com nosso time comercial para montar um plano anual sob medida para o seu volume de distribuição." },
+  { q: "Existe plano anual?", a: "Sim! Para empresas e agências que planejam estratégias de longo prazo, oferecemos planos anuais com descontos exclusivos e condições de faturamento diferenciadas. Para saber mais sobre o plano anual e garantir seu desconto, basta entrar em contato com o nosso time comercial no link abaixo." },
 ];
 
 // ─── hook: reveal on scroll ───────────────────────────────────────────────────
@@ -170,7 +170,7 @@ function Hero() {
           </p>
           <div className="cta-row">
             <a className="btn btn-primary btn-lg" href="#planos">
-              Ver planos <ArrowRight size={17} />
+              Comece a publicar <ArrowRight size={17} />
             </a>
             <Link className="btn btn-ghost btn-lg" href="/login">Já tenho conta</Link>
           </div>
@@ -436,8 +436,8 @@ function CtaBand() {
       <div className="wrap">
         <div className="cta-inner reveal">
           <span className="glow" />
-          <h2>Pronto para publicar <em>como um raio?</em></h2>
-          <p className="sub">Escolha um plano, crie sua conta e dispare seu primeiro release ainda hoje.</p>
+          <h2>Pronto para publicar como um Raio e colocar sua marca em <em>destaque nacional?</em></h2>
+          <p className="sub">Escolha o seu plano de créditos, envie o seu conteúdo e garanta sua primeira grande matéria ainda hoje.</p>
           <div className="cta-row">
             <a className="btn btn-primary btn-lg" href="#planos">
               Ver planos <ArrowRight size={17} />
@@ -459,7 +459,7 @@ function Footer({ onContact }: { onContact: () => void }) {
         <div className="top">
           <div className="brand-col">
             <a href="#top"><RaioLockup height={27} variant="dark" /></a>
-            <p>A primeira plataforma de distribuição de releases por créditos do Brasil.</p>
+            <p>A primeira plataforma de publicação garantida e branded content por créditos do Brasil.</p>
           </div>
           <div className="col">
             <h4>Produto</h4>
