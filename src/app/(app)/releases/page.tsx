@@ -18,6 +18,19 @@ interface ReleaseRow {
   brandColor?: string | null;
 }
 
+interface ReleaseApiRow {
+  id: string;
+  title: string;
+  status: string;
+  createdAt: string;
+  scheduledAt?: string | null;
+  publishedAt?: string | null;
+  creditsUsed: number;
+  authorId: string;
+  imageUrl?: string | null;
+  brand: { name: string; color: string | null } | null;
+}
+
 const STATUS_FILTERS = [
   { id: "all",             label: "Todos" },
   { id: "published",       label: "Publicados" },
@@ -144,7 +157,7 @@ export default function ReleasesPage() {
   useEffect(() => {
     fetch("/api/releases")
       .then(r => r.json())
-      .then((data: ReleaseRow[]) => {
+      .then((data: ReleaseApiRow[]) => {
         const rows: ReleaseRow[] = data.map(r => ({
           id: r.id,
           title: r.title,
