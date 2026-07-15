@@ -97,7 +97,7 @@ const TOUR = [
   { n: "01", mock: <MockEditor />,   t: <>Escreva seu <em>release</em></>,            d: "Você pode colar seu artigo pronto ou usar nossa IA para estruturar um conteúdo impecável e otimizado em segundos." },
   { n: "02", mock: <MockVehicles />, t: <>Escolha entre <em>dezenas de veículos</em></>, d: "Filtre por categoria, estado e audiência. O custo em créditos aparece em tempo real — e tudo cabe no seu plano." },
   { n: "03", mock: <MockCalendar />, t: <>Agende no <em>calendário</em></>,            d: "Publique imediatamente ou programe o dia e horário. Visualize todo o cronograma do mês e acompanhe o status de cada publicação em uma única tela" },
-  { n: "04", mock: <MockResults />,  t: <>Acompanhe os <em>resultados</em></>,         d: "Alcance, veículos ativos e desempenho por release num painel único e em tempo real." },
+  { n: "04", mock: <MockResults />,  t: <>Acompanhe <em>seus resultados</em></>,        d: "Monitore o status dos seus releases, veja e exporte links ativos para acompanhar o desempenho de cada matéria." },
 ];
 
 const STAGES: { id: Stage; nm: string }[] = [
@@ -237,7 +237,7 @@ function Brand({ go, data, setData }: { go: (s: Stage) => void; data: OnbData; s
       <div className="onb-head">
         <span className="eyebrow">Passo 1 de 2 · Configuração</span>
         <h1>Cadastre sua primeira <em>marca</em></h1>
-        <p className="sub">É a marca ou cliente para quem você vai distribuir releases. Você pode adicionar outras depois.</p>
+        <p className="sub">Este é o perfil da marca para quem você criará e publicará os conteúdos. Você poderá cadastrar outras a qualquer momento</p>
       </div>
       <div className="onb-form">
         <div className="fgrid">
@@ -289,7 +289,7 @@ function Brand({ go, data, setData }: { go: (s: Stage) => void; data: OnbData; s
         </div>
         <div className="fld" style={{ marginTop: 16 }}>
           <label>Descrição curta</label>
-          <textarea className="in" placeholder="Em uma ou duas frases, o que é a marca e o que ela faz. Isso ajuda a IA a contextualizar seus releases." value={data.desc} onChange={e => up("desc", e.target.value)} />
+          <textarea className="in" placeholder="Em uma ou duas frases, resuma o que a marca faz e seu público-alvo. Isso ajuda a nossa Inteligência Artificial a criar matérias e artigos sob medida com contexto perfeito" value={data.desc} onChange={e => up("desc", e.target.value)} />
         </div>
       </div>
       {err && <p style={{ color: "var(--red, #c0392b)", fontSize: 13, margin: "12px 0 0", fontWeight: 500 }}>{err}</p>}
