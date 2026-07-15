@@ -483,6 +483,63 @@ function ReleaseActions({ release, onSaved, onDeleted }: {
   );
 }
 
+// ── Release Card ──────────────────────────────────────────────────────────────
+function ReleaseCard({ r, expanded, setExpanded, selected, toggleSelect, onSaved, onDeleted }: {
+  r: ReleaseRow;
+  expanded: string | null;
+  setExpanded: (id: string | null) => void;
+  selected: Set<string>;
+  toggleSelect: (id: string, e: { stopPropagation: () => void }) => void;
+  onSaved: () => void;
+  onDeleted: () => void;
+}) {
+  const isExpanded = expanded === r.id;
+  return (
+    <div className="card" style={{ padding: 0, overflow: "hidden" }}>
+      <div
+        style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 20px", cursor: "pointer" }}
+        onClick={() => setExpanded(isExpanded ? null : r.id)}
+      >
+        <input
+          type="checkbox"
+          checked={selected.has(r.id)}
+          onClick={e => toggleSelect(r.id, e)}
+          onChange={() => {}}
+          style={{ width: 15, height: 15, flexShrink: 0, cursor: "pointer" }}
+        />
+        {r.imageUrl && (
+          <img src={r.imageUrl} alt="" style={{ width: 44, height: 44, borderRadius: 6, objectFit: "cover", flexShrink: 0, border: "1px solid #eee" }} />
+        )}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 4 }}>
+            <span style={{ fontWeight: 700, fontSize: 14, color: "#1a1a1a" }}>{r.title}</span>
+            <StatusBadge status={r.status} />
+            {r.brand && (
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, color: "#555", background: "#f5f5f3", borderRadius: 99, padding: "2px 9px" }}>
+                {r.brand.color && <span style={{ width: 8, height: 8, borderRadius: "50%", background: r.brand.color, flexShrink: 0 }} />}
+                {r.brand.name}
+              </span>
+            )}
+          </div>
+          <div style={{ fontSize: 12, color: "#999", display: "flex", gap: 14, flexWrap: "wrap", alignItems: "center" }}>
+            <span style={{ fontWeight: 500, color: "#555" }}>{r.author.name}</span>
+            <span>{r.author.email}</span>
+            <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              <Clock size={11} /> {fmtDate(r.scheduledAt ?? r.createdAt)}
+            </span>
+            <span>{r.vehicleNames.length} veículo{r.vehicleNames.length !== 1 ? "s" : ""}</span>
+            <span style={{ fontFamily: "var(--mono)", fontSize: 11, color: "#bbb" }}>{r.shortId}</span>
+          </div>
+        </div>
+        <ChevronDown size={16} style={{ color: "#bbb", flexShrink: 0, transform: isExpanded ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
+      </div>
+      {isExpanded && (
+        <ReleaseActions release={r} onSaved={onSaved} onDeleted={onDeleted} />
+      )}
+    </div>
+  );
+}
+
 // ── Página principal ──────────────────────────────────────────────────────────
 export default function AdminReleasesPage() {
   const { user, isLoaded } = useUser();
@@ -589,54 +646,6 @@ export default function AdminReleasesPage() {
   const activeList = tab === "queue" ? queueReleases : publishedReleases;
   const needsAction = releases.filter(r => ["SCHEDULED", "IN_PUBLICATION"].includes(r.status)).length;
 
-  function ReleaseCard({ r }: { r: ReleaseRow }) {
-    const isExpanded = expanded === r.id;
-    return (
-      <div key={r.id} className="card" style={{ padding: 0, overflow: "hidden" }}>
-        <div
-          style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 20px", cursor: "pointer" }}
-          onClick={() => setExpanded(isExpanded ? null : r.id)}
-        >
-          <input
-            type="checkbox"
-            checked={selected.has(r.id)}
-            onClick={e => toggleSelect(r.id, e)}
-            onChange={() => {}}
-            style={{ width: 15, height: 15, flexShrink: 0, cursor: "pointer" }}
-          />
-          {r.imageUrl && (
-            <img src={r.imageUrl} alt="" style={{ width: 44, height: 44, borderRadius: 6, objectFit: "cover", flexShrink: 0, border: "1px solid #eee" }} />
-          )}
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 4 }}>
-              <span style={{ fontWeight: 700, fontSize: 14, color: "#1a1a1a" }}>{r.title}</span>
-              <StatusBadge status={r.status} />
-              {r.brand && (
-                <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, color: "#555", background: "#f5f5f3", borderRadius: 99, padding: "2px 9px" }}>
-                  {r.brand.color && <span style={{ width: 8, height: 8, borderRadius: "50%", background: r.brand.color, flexShrink: 0 }} />}
-                  {r.brand.name}
-                </span>
-              )}
-            </div>
-            <div style={{ fontSize: 12, color: "#999", display: "flex", gap: 14, flexWrap: "wrap", alignItems: "center" }}>
-              <span style={{ fontWeight: 500, color: "#555" }}>{r.author.name}</span>
-              <span>{r.author.email}</span>
-              <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                <Clock size={11} /> {fmtDate(r.scheduledAt ?? r.createdAt)}
-              </span>
-              <span>{r.vehicleNames.length} veículo{r.vehicleNames.length !== 1 ? "s" : ""}</span>
-              <span style={{ fontFamily: "var(--mono)", fontSize: 11, color: "#bbb" }}>{r.shortId}</span>
-            </div>
-          </div>
-          <ChevronDown size={16} style={{ color: "#bbb", flexShrink: 0, transform: isExpanded ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
-        </div>
-        {isExpanded && (
-          <ReleaseActions release={r} onSaved={() => load()} onDeleted={() => { setExpanded(null); load(); }} />
-        )}
-      </div>
-    );
-  }
-
   const activeGroups = tab === "queue" ? queueGroups : publishedGroups;
 
   return (
@@ -739,7 +748,7 @@ export default function AdminReleasesPage() {
                   <div style={{ flex: 1, height: 1, background: "#e8e8e8" }} />
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                  {group.items.map(r => <ReleaseCard key={r.id} r={r} />)}
+                  {group.items.map(r => <ReleaseCard key={r.id} r={r} expanded={expanded} setExpanded={setExpanded} selected={selected} toggleSelect={toggleSelect} onSaved={load} onDeleted={() => { setExpanded(null); load(); }} />)}
                 </div>
               </div>
             ))}
