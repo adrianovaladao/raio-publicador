@@ -118,7 +118,7 @@ function Welcome({ go, firstName }: { go: (s: Stage) => void; firstName: string 
         </svg>
       </div>
       <h1>Boas energias para os seus <em>releases</em>{firstName ? `, ${firstName}` : ""}!</h1>
-      <p className="sub">Sua conta está pronta. Agora você já pode configurar sua primeira marca, definir um tom de voz, criar seu release e publicar nos veículos que quiser.</p>
+      <p className="sub">Sua conta está pronta. Agora você já pode configurar sua primeira marca, definir um tom de voz, criar sua matéria e publicar nos veículos que quiser.</p>
       <div className="choice">
         <div className="choice-card primary" onClick={() => go("tour")}>
           <div className="ic"><Sparkles size={22} /></div>
