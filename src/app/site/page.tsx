@@ -290,7 +290,7 @@ function Compare() {
 function Metrics() {
   const items = [
     { n: <><em>50</em>+</>, l: "Portais parceiros" },
-    { n: <>64<em>mi</em></>, l: "Alcance mensal" },
+    { n: <>64<em>mi</em></>, l: "Alcance aproximado" },
     { n: <><em>1</em></>, l: "Plano · sem custo por nota" },
     { n: <>5<em>min</em></>, l: "Para publicar a 1a. matéria" },
   ];
