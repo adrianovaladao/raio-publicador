@@ -44,12 +44,11 @@ const PLANS = [
     desc: "O equilíbrio ideal de alcance e custo.",
     amt: "3.000", credits: "1.000 créditos/mês", cl: "R$ 3,00 por crédito",
     feats: [
-      ["Até 5 marcas por plano", true],
-      ["Até 5 veículos AAA por release", true],
-      ["Acesso aos 600 veículos parceiros", true],
-      ["Calendário e agendamento", true],
-      ["Relatórios de desempenho", true],
-      ["Até 3 editores + 5 revisores", true],
+      ["Até 5 marcas cadastradas por plano", true],
+      ["Publique em até 10 portais categoria A", true],
+      ["Acesso completo aos 50 portais parceiros", true],
+      ["Calendário e agendamento inteligente", true],
+      ["Até 3 editores + 5 revisores incluídos", true],
       ["Suporte prioritário", true],
     ],
     cta: "Assinar Avançado", featured: true,
@@ -60,13 +59,12 @@ const PLANS = [
     desc: "Para assessorias com alto volume de distribuição.",
     amt: "5.000", credits: "2.000 créditos/mês", cl: "R$ 2,50 por crédito",
     feats: [
-      ["Até 10 marcas por plano", true],
-      ["Até 10 veículos AAA por release", true],
-      ["Acesso aos 600 veículos parceiros", true],
-      ["Calendário e agendamento", true],
-      ["Relatórios avançados + exportação", true],
-      ["Até 5 editores + 10 revisores", true],
-      ["Gerente de conta dedicado", true],
+      ["Até 10 marcas cadastradas por plano", true],
+      ["Publique em até 20 portais categoria A", true],
+      ["Acesso completo aos 50 portais parceiros", true],
+      ["Calendário e agendamento inteligente", true],
+      ["Até 5 editores + 10 revisores incluídos", true],
+      ["Suporte prioritário", true],
     ],
     cta: "Assinar Profissional", featured: false,
   },
@@ -75,7 +73,7 @@ const PLANS = [
 const TESTIMONIALS = [
   { q: <>Trocamos 4 ferramentas por uma só. O modelo de créditos <em>cabe no orçamento</em> e a gente publica muito mais.</>, nm: "Samara Perez", rl: "Diretora · Markable", av: "SP" },
   { q: <>Distribuir para 15 portais levava uma tarde inteira. Hoje é <em>um clique</em> e o calendário inteiro do mês fica organizado.</>, nm: "Liliane Pires", rl: "Assessora de imprensa", av: "LP" },
-  { q: <>O comparativo de custo por nota foi decisivo. <em>Economizamos 60%</em> mantendo o mesmo alcance de antes.</>, nm: "Daiana Napoleão", rl: "Comunicação · Franquia", av: "DN" },
+  { q: <>O custo por publicação garantida foi o grande diferencial. <em>Economizamos mais de 60% em relação ao modelo antigo</em> de assessoria de imprensa e mantivemos nossa marca em destaque nos maiores veículos do país.</>, nm: "Daiana Napoleão", rl: "Comunicação · Franquia", av: "DN" },
 ];
 
 const FAQS = [
@@ -375,8 +373,9 @@ function Testimonials() {
     <section className="section alt" id="depoimentos">
       <div className="wrap">
         <div className="sec-head reveal">
-          <span className="eyebrow">Quem usa, recomenda</span>
+          <span className="eyebrow">Quem usa, comprova os resultados</span>
           <h2>Assessorias que publicam <em>mais e melhor</em></h2>
+          <p className="sub">Veja por que grandes marcas e agências escolheram o Raio para escalar suas publicações.</p>
         </div>
         <div className="tst-grid">
           {TESTIMONIALS.map((t, i) => (
