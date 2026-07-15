@@ -279,26 +279,29 @@ export default function ReleasesPage() {
           </div>
         </div>
 
-        <div className="toolbar">
-          <div className="chips">
-            {STATUS_FILTERS.map(f => (
-              <button key={f.id} className={`chip${filter === f.id ? " active" : ""}`} onClick={() => setFilter(f.id)}>
-                {f.label} <span className="ct">{counts[f.id]}</span>
-              </button>
-            ))}
+        <div style={{ marginBottom: 18 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+            <div className="chips">
+              {STATUS_FILTERS.map(f => (
+                <button key={f.id} className={`chip${filter === f.id ? " active" : ""}`} onClick={() => setFilter(f.id)}>
+                  {f.label} <span className="ct">{counts[f.id]}</span>
+                </button>
+              ))}
+            </div>
           </div>
-          <div className="spacer" />
-          <BrandSelector brands={brands} activeBrandId={activeBrandId} onChange={setActiveBrandId} />
-          <input
-            className="input"
-            placeholder="Buscar releases…"
-            value={q}
-            onChange={e => setQ(e.target.value)}
-            style={{ width: 220, padding: "8px 14px", fontSize: 13 }}
-          />
-          <div className="seg" style={{ marginLeft: 8 }}>
-            <button className={mode === "list" ? "active" : ""} onClick={() => setMode("list")}><List size={15} /> Lista</button>
-            <button className={mode === "grid" ? "active" : ""} onClick={() => setMode("grid")}><LayoutGrid size={15} /> Grade</button>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, justifyContent: "flex-end" }}>
+            <BrandSelector brands={brands} activeBrandId={activeBrandId} onChange={setActiveBrandId} />
+            <input
+              className="input"
+              placeholder="Buscar releases…"
+              value={q}
+              onChange={e => setQ(e.target.value)}
+              style={{ width: 220, padding: "8px 14px", fontSize: 13 }}
+            />
+            <div className="seg">
+              <button className={mode === "list" ? "active" : ""} onClick={() => setMode("list")}><List size={15} /> Lista</button>
+              <button className={mode === "grid" ? "active" : ""} onClick={() => setMode("grid")}><LayoutGrid size={15} /> Grade</button>
+            </div>
           </div>
         </div>
 
