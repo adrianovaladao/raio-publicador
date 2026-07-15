@@ -42,7 +42,6 @@ interface ReleaseApiRow {
 const STATUS_FILTERS = [
   { id: "all",             label: "Todos" },
   { id: "published",       label: "Publicados" },
-  { id: "in_publication",  label: "Em publicação" },
   { id: "scheduled",       label: "Agendados" },
   { id: "needs_revision",  label: "Precisa revisão" },
   { id: "draft",           label: "Rascunhos" },
@@ -56,7 +55,7 @@ const STATUS_LABEL: Record<string, string> = {
   in_review: "Em análise",
   needs_revision: "Precisa revisão",
   rejected: "Reprovado",
-  in_publication: "Em publicação",
+  in_publication: "Agendado",
   cancelled: "Cancelado",
 };
 
@@ -70,7 +69,7 @@ type SortCol = "title" | "status" | "date" | "author" | "cat" | "creditsUsed";
 type SortDir = "asc" | "desc";
 
 const STATUS_ORDER: Record<string, number> = {
-  published: 0, in_publication: 1, scheduled: 2, in_review: 3,
+  published: 0, scheduled: 1, in_publication: 1, in_review: 2,
   needs_revision: 4, rejected: 5, draft: 6, cancelled: 7,
 };
 
@@ -241,7 +240,7 @@ export default function ReleasesPage() {
   }, []);
 
   const counts = Object.fromEntries(
-    STATUS_FILTERS.map(f => [f.id, f.id === "all" ? releases.length : releases.filter(r => r.status === f.id).length])
+    STATUS_FILTERS.map(f => [f.id, f.id === "all" ? releases.length : f.id === "scheduled" ? releases.filter(r => r.status === "scheduled" || r.status === "in_publication").length : releases.filter(r => r.status === f.id).length])
   );
 
   function handleSort(col: SortCol) {
@@ -259,7 +258,7 @@ export default function ReleasesPage() {
     </span>
   );
 
-  let list = releases.filter(r => filter === "all" || r.status === filter);
+  let list = releases.filter(r => filter === "all" || (filter === "scheduled" ? (r.status === "scheduled" || r.status === "in_publication") : r.status === filter));
   if (activeBrandId) list = list.filter(r => r.brandId === activeBrandId);
   if (q.trim()) list = list.filter(r => (r.title + r.cat + r.author).toLowerCase().includes(q.toLowerCase()));
   list = sortReleases(list, sortCol, sortDir);

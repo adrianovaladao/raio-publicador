@@ -50,7 +50,7 @@ const BRAND_COLORS = ["#C25E00","#2A6FDB","#2F8A5B","#6D3BD9","#0E7C86","#B0322E
 const STATUS_LABEL: Record<string, string> = {
   published: "Publicado", scheduled: "Agendado", draft: "Rascunho",
   review: "Em revisão", in_review: "Em análise", needs_revision: "Precisa revisão",
-  rejected: "Reprovado", in_publication: "Em publicação", cancelled: "Cancelado",
+  rejected: "Reprovado", in_publication: "Agendado", cancelled: "Cancelado",
 };
 
 function fmtDate(iso: string) {
