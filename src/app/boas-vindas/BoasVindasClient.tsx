@@ -94,7 +94,7 @@ function MockResults() {
 }
 
 const TOUR = [
-  { n: "01", mock: <MockEditor />,   t: <>Escreva seu <em>release</em></>,            d: "Um editor limpo com título, linha-fina e corpo. Cole seu texto pronto ou gere um rascunho com IA em segundos." },
+  { n: "01", mock: <MockEditor />,   t: <>Escreva seu <em>release</em></>,            d: "Você pode colar seu artigo pronto ou usar nossa IA para estruturar um conteúdo impecável e otimizado em segundos." },
   { n: "02", mock: <MockVehicles />, t: <>Escolha entre <em>centenas de veículos</em></>, d: "Filtre por categoria, estado e audiência. O custo em créditos aparece em tempo real — e tudo cabe no seu plano." },
   { n: "03", mock: <MockCalendar />, t: <>Agende no <em>calendário</em></>,            d: "Publique na hora ou programe. Visualize todo o mês de distribuição organizado por status." },
   { n: "04", mock: <MockResults />,  t: <>Acompanhe os <em>resultados</em></>,         d: "Alcance, veículos ativos e desempenho por release num painel único e em tempo real." },
@@ -123,7 +123,7 @@ function Welcome({ go, firstName }: { go: (s: Stage) => void; firstName: string 
         <div className="choice-card primary" onClick={() => go("tour")}>
           <div className="ic"><Sparkles size={22} /></div>
           <h3>Fazer o tour</h3>
-          <p>Conheça os recursos em 4 passos rápidos antes de começar.</p>
+          <p>Descubra em 4 passos rápidos como publicar o seu primeiro conteúdo</p>
           <span className="go">Recomendado <ArrowRight size={14} /></span>
         </div>
         <div className="choice-card" onClick={() => go("brand")}>
