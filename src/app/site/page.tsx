@@ -263,9 +263,9 @@ function Compare() {
               <li><X size={19} /> Cada publicação gera um custo novo</li>
               <li><X size={19} /> Orçamento imprevisível no fim do mês</li>
               <li><X size={19} /> Distribuir em 10 veículos = 10 cobranças</li>
-              <li><X size={19} /><span className="muted">Sem painel unificado de resultados</span></li>
+              <li><X size={19} />Sem painel unificado de resultados</li>
             </ul>
-            <div className="foot-note">10 releases em 10 veículos: <b>~R$ 39.000/mês</b></div>
+            <div className="foot-note">10 releases em 10 veículos: <b>~R$ 9.000/mês</b></div>
           </div>
           <div className="comp-card us reveal" style={{ transitionDelay: "90ms" }}>
             <span className="tag">Raio Publicador</span>
