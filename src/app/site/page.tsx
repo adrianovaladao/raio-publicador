@@ -71,9 +71,9 @@ const PLANS = [
 ];
 
 const TESTIMONIALS = [
-  { q: <>Trocamos 4 ferramentas por uma só. O modelo de créditos <em>cabe no orçamento</em> e a gente publica muito mais.</>, nm: "Samara Perez", rl: "Diretora · Markable", av: "SP" },
-  { q: <>Distribuir para 15 portais levava uma tarde inteira. Hoje é <em>um clique</em> e o calendário inteiro do mês fica organizado.</>, nm: "Liliane Pires", rl: "Assessora de imprensa", av: "LP" },
-  { q: <>O custo por publicação garantida foi o grande diferencial. <em>Economizamos mais de 60% em relação ao modelo antigo</em> de assessoria de imprensa e mantivemos nossa marca em destaque nos maiores veículos do país.</>, nm: "Daiana Napoleão", rl: "Comunicação · Franquia", av: "DN" },
+  { q: <>Centralizamos toda a nossa operação de branded content em uma só plataforma. O sistema de créditos nos deu uma <em>previsibilidade financeira incrível</em> e hoje publicamos 3x mais matérias nacionais com o mesmo orçamento.</>, nm: "Thais Caetano", rl: "Representante comercial", av: "TC" },
+  { q: <>Negociar publicações individualmente consumia dias de trabalho. Com o Raio, basta escolher os portais, subir o artigo e <em>acompanhar os links publicados de forma garantida</em>.</>, nm: "Leticia da Costa", rl: "Diretora de marketing", av: "LC" },
+  { q: <>O custo por publicação garantida foi o grande diferencial. <em>Economizamos mais de 60% em relação ao modelo antigo</em> de assessoria de imprensa e mantivemos nossa marca em destaque nos maiores veículos do país.</>, nm: "Renato Nose", rl: "Diretor de expansão", av: "RN" },
 ];
 
 const FAQS = [
