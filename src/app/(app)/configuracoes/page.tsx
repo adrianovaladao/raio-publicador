@@ -1694,7 +1694,7 @@ function CreditHistory() {
                 <tr>
                   <th>Data</th>
                   <th style={{ width: "50%" }}>Descrição</th>
-                  <th>Detalhe</th>
+                  <th>Usado para</th>
                   <th style={{ textAlign: "right" }}>Créditos</th>
                 </tr>
               </thead>
