@@ -9,19 +9,6 @@ import { List, LayoutGrid, Plus, Inbox, Trash2, Copy, ArrowUpDown, ArrowUp, Arro
 interface ReleaseRow {
   id: string;
   title: string;
-  status: string;
-  createdAt: string;
-  scheduledAt?: string | null;
-  publishedAt?: string | null;
-  creditsUsed: number;
-  authorId: string;
-  imageUrl?: string | null;
-  brand: { name: string; color: string | null } | null;
-}
-
-interface ReleaseRow {
-  id: string;
-  title: string;
   cat: string;
   author: string;
   status: string;
