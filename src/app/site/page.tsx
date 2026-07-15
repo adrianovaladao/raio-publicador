@@ -17,8 +17,8 @@ const PARTNERS = ["f1","f2","f3","f4","f5","f6","f7"];
 const STEPS = [
   { icon: Feather,    n: "01", t: "Escreva o release",    d: "Editor limpo com título, linha-fina e corpo. Cole seu texto ou gere um rascunho com IA." },
   { icon: Newspaper,  n: "02", t: "Escolha os veículos",  d: "Filtre mais de 50 portais de notícia por nicho, região e volume de acessos. Você vê exatamente quantos créditos cada publicação consome na hora." },
-  { icon: Send,       n: "03", t: "Publique ou agende",   d: "Dispare na hora ou programe no calendário. Um clique distribui para todos os veículos." },
-  { icon: BarChart2,  n: "04", t: "Acompanhe resultados", d: "Alcance, veículos ativos e desempenho por release num painel único e em tempo real." },
+  { icon: Send,       n: "03", t: "Publique ou agende",   d: "Programe no calendário ou publique imediatamente. Esqueça as tentativas de envio: no Raio, o seu artigo vai ao ar de forma 100% garantida nos canais escolhidos." },
+  { icon: BarChart2,  n: "04", t: "Acompanhe resultados", d: "Seu conteúdo vai ao ar nos maiores portais do país tão rápido quanto um raio. Acompanhe a audiência das suas matérias e veja os links ativos num painel único." },
 ];
 
 const PLANS = [
@@ -227,7 +227,7 @@ function Como() {
       <div className="wrap">
         <div className="sec-head reveal">
           <span className="eyebrow">Como funciona</span>
-          <h2>Do rascunho à publicação garantida em <em>cinco passos</em></h2>
+          <h2>Do rascunho à publicação garantida em <em>quatro passos</em></h2>
           <p className="sub">Um fluxo feito para marcas, agências e profissionais que precisam de resultados reais — sem burocracia e com controle absoluto.</p>
         </div>
         <div className="steps-grid">
@@ -254,13 +254,13 @@ function Compare() {
         <div className="sec-head reveal">
           <span className="eyebrow">Créditos vs. cobrança por nota</span>
           <h2>O mesmo alcance por <em>uma fração</em> do custo</h2>
-          <p className="sub">Enquanto a concorrência cobra por cada notícia em cada veículo, o Raio coloca tudo num único plano.</p>
+          <p className="sub">Enquanto a concorrência te prende a uma única publicação por valor, no Raio você assina, ganha <strong>créditos</strong> e monta a estratégia que fizer mais sentido para o seu momento.</p>
         </div>
         <div className="compare">
           <div className="comp-card them reveal">
             <span className="tag">Modelo tradicional</span>
             <h3>Cobrança por nota</h3>
-            <p className="price-line">~R$ 390 por veículo, por release</p>
+            <p className="price-line">Cobrança por nota = R$ 900,00 por veículo, por release</p>
             <ul>
               <li><X size={19} /> Cada publicação gera um custo novo</li>
               <li><X size={19} /> Orçamento imprevisível no fim do mês</li>
@@ -271,7 +271,7 @@ function Compare() {
           </div>
           <div className="comp-card us reveal" style={{ transitionDelay: "90ms" }}>
             <span className="tag">Raio Publicador</span>
-            <h3>Plano por créditos</h3>
+            <h3>Assinatura por créditos</h3>
             <p className="price-line">A partir de R$ 1.000/mês, releases ilimitados</p>
             <ul>
               <li><Check size={19} /> Um plano cobre diversas publicações</li>
