@@ -126,7 +126,7 @@ function Nav({ onContact }: { onContact: () => void }) {
           <a href="#como">Como funciona</a>
           <a href="#planos">Planos</a>
           <a href="#depoimentos">Depoimentos</a>
-          <a href="#faq">FAQ</a>
+          <a href="#faq">Perguntas Frequentes</a>
           <button className="link-btn" onClick={onContact}>Fale com nosso time</button>
         </div>
         <div className="nav-cta">
@@ -466,7 +466,7 @@ function Footer({ onContact }: { onContact: () => void }) {
             <h4>Produto</h4>
             <a href="#como">Como funciona</a>
             <a href="#planos">Planos</a>
-            <a href="#faq">FAQ</a>
+            <a href="#faq">Perguntas Frequentes</a>
             <Link href="/login">Entrar</Link>
           </div>
           <div className="col">
