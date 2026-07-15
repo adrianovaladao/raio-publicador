@@ -79,7 +79,7 @@ function DayModal({ date, evs, onClose }: { date: string; evs: CalEvent[]; onClo
         {/* Lista com rolagem */}
         <div style={{ overflowY: "auto", padding: "8px 12px 12px", maxHeight: "calc(80vh - 140px)" }}>
           {evs.length === 0 ? (
-            <p style={{ textAlign: "center", color: "var(--stone)", fontSize: 14, padding: "32px 0" }}>Nenhum release neste dia.</p>
+            <p style={{ textAlign: "center", color: "var(--stone)", fontSize: 14, padding: "32px 0" }}>Nenhum matéria neste dia.</p>
           ) : (
             evs.map(ev => (
               <div key={ev.id}
@@ -155,7 +155,7 @@ export default function CalendarioPage() {
       fetch("/api/releases").then(r => r.json()),
       fetch("/api/team").then(r => r.json()),
     ])
-      .then(([releases, team]: [
+      .then(([matérias, team]: [
         (CalEvent & { scheduledAt?: string | null; publishedAt?: string | null; createdAt: string })[],
         { id: string; name: string }[]
       ]) => {
@@ -224,7 +224,7 @@ export default function CalendarioPage() {
             <p className="sub">
               {loading
                 ? "Carregando…"
-                : `${scheduledCount} release${scheduledCount !== 1 ? "s" : ""} agendado${scheduledCount !== 1 ? "s" : ""} em ${MESES[m].toLowerCase()}.`}
+                : `${scheduledCount} matéria${scheduledCount !== 1 ? "s" : ""} agendado${scheduledCount !== 1 ? "s" : ""} em ${MESES[m].toLowerCase()}.`}
             </p>
           </div>
           <div className="actions">
@@ -235,7 +235,7 @@ export default function CalendarioPage() {
             </div>
             {isPlanMonth
               ? <Link href="/releases/novo" className="btn btn-primary btn-sm"><Plus size={15} /> Agendar release</Link>
-              : <button className="btn btn-primary btn-sm" disabled style={{ opacity: 0.4, cursor: "not-allowed" }}><Plus size={15} /> Agendar release</button>
+              : <button className="btn btn-primary btn-sm" disabled style={{ opacity: 0.4, cursor: "not-allowed" }}><Plus size={15} /> Agendar matéria</button>
             }
           </div>
         </div>

@@ -477,7 +477,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    fetchReleaseCount();
+    fetchMatériaCount();
     fetchSub();
     fetchUnread();
     const openPlans = () => setShowPlans(true);
@@ -492,11 +492,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       window.removeEventListener("releases-changed", fetchReleaseCount);
       window.removeEventListener("notifications-changed", refreshNotifs);
     };
-  }, [fetchReleaseCount, fetchSub, fetchUnread]);
+  }, [fetchMatériaCount, fetchSub, fetchUnread]);
 
   useEffect(() => {
-    fetchReleaseCount();
-  }, [pathname, fetchReleaseCount]);
+    fetchMatériaCount();
+  }, [pathname, fetchMatériaCount]);
 
   const firstName = user?.firstName ?? "";
   const lastName  = user?.lastName  ?? "";
@@ -522,7 +522,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="sb-mid scroll">
           <div style={{ padding: "16px 12px 2px" }}>
             {isCancelled ? (
-              <button className="btn btn-primary btn-block btn-lg" disabled title="Assine um plano para criar releases">
+              <button className="btn btn-primary btn-block btn-lg" disabled title="Assine um plano para criar matérias">
                 <FileText size={17} /> Criar release
               </button>
             ) : (
@@ -645,7 +645,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
           <div className="search">
             <Search size={16} />
-            <input placeholder="Buscar releases, veículos…" />
+            <input placeholder="Buscar matérias, veículos…" />
           </div>
           <button
             className="icon-btn"

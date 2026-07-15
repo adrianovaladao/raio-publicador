@@ -81,7 +81,7 @@ export async function sendWelcomeEmail(
   return getResend().emails.send({ from: FROM, to, subject: `${firstName}, você está no Raio ⚡ — Assinatura confirmada`, html });
 }
 
-// ─── 2. Release agendado ───────────────────────────────────────────────────────
+// ─── 2. Matéria agendado ───────────────────────────────────────────────────────
 export async function sendReleaseScheduledEmail(
   to: string,
   firstName: string,
@@ -94,7 +94,7 @@ export async function sendReleaseScheduledEmail(
 
   const html = base(`
     ${h1(`Marcado na agenda, ${firstName}! ✓`)}
-    ${p("O release está agendado e vai chegar nas redações certas na data e hora definidas.")}
+    ${p("O matéria está agendado e vai chegar nas redações certas na data e hora definidas.")}
     <table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0">
       <tr><td style="padding:8px 0;color:#888;width:130px;vertical-align:top">Release</td><td style="padding:8px 0;color:#1a1a1a;font-weight:600">${releaseTitle}</td></tr>
       <tr><td style="padding:8px 0;color:#888;vertical-align:top">Agendado para</td><td style="padding:8px 0;color:#1a1a1a">${date} (Brasília)</td></tr>
@@ -106,7 +106,7 @@ export async function sendReleaseScheduledEmail(
   return getResend().emails.send({ from: FROM, to, subject: `Release agendado: ${releaseTitle}`, html });
 }
 
-// ─── 3. Release publicado ──────────────────────────────────────────────────────
+// ─── 3. Matéria publicado ──────────────────────────────────────────────────────
 export async function sendReleasePublishedEmail(
   to: string,
   firstName: string,
@@ -116,7 +116,7 @@ export async function sendReleasePublishedEmail(
 ) {
   const html = base(`
     ${h1(`Missão cumprida, ${firstName}! ⚡`)}
-    ${p("O release saiu daqui como um raio e já está nas caixas de entrada das redações selecionadas.")}
+    ${p("O matéria saiu daqui como um raio e já está nas caixas de entrada das redações selecionadas.")}
     <table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0">
       <tr><td style="padding:8px 0;color:#888;width:130px">Release</td><td style="padding:8px 0;color:#1a1a1a;font-weight:600">${releaseTitle}</td></tr>
       <tr><td style="padding:8px 0;color:#888">Veículos</td><td style="padding:8px 0;color:#1a1a1a">${vehicleCount} veículo${vehicleCount !== 1 ? "s" : ""}</td></tr>
@@ -144,7 +144,7 @@ export async function sendLowCreditsEmail(to: string, firstName: string, remaini
 export async function sendZeroCreditsEmail(to: string, firstName: string) {
   const html = base(`
     ${h1(`${firstName}, hora de recarregar as energias 😬`)}
-    ${p("Os créditos acabaram e o Raio ficou sem combustível. Nenhum release pode ser agendado até recarregar.")}
+    ${p("Os créditos acabaram e o Raio ficou sem combustível. Nenhum matéria pode ser agendado até recarregar.")}
     ${p("Adquira créditos avulsos para voltar agora mesmo, ou faça upgrade para um plano com mais fôlego.")}
     ${btn("Recarregar créditos", `${APP_URL}/configuracoes`)}
   `);
@@ -218,7 +218,7 @@ export async function sendPaymentFailedEmail(to: string, firstName: string, plan
   return getResend().emails.send({ from: FROM, to, subject: "Ação necessária: problema com o pagamento — Raio", html });
 }
 
-// ─── 9. Release enviado para publicação ───────────────────────────────────────
+// ─── 9. Matéria enviado para publicação ───────────────────────────────────────
 export async function sendReleaseSubmittedEmail(
   to: string,
   firstName: string,
@@ -227,7 +227,7 @@ export async function sendReleaseSubmittedEmail(
 ) {
   const html = base(`
     ${h1(`Enviado, ${firstName}! Agora é com a gente. ✓`)}
-    ${p("O release entrou na fila e nossa equipe vai cuidar da distribuição a partir daqui.")}
+    ${p("O matéria entrou na fila e nossa equipe vai cuidar da distribuição a partir daqui.")}
     <table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0">
       <tr><td style="padding:8px 0;color:#888;width:130px">Release</td><td style="padding:8px 0;color:#1a1a1a;font-weight:600">${releaseTitle}</td></tr>
     </table>
@@ -238,7 +238,7 @@ export async function sendReleaseSubmittedEmail(
   return getResend().emails.send({ from: FROM, to, subject: `Release enviado: ${releaseTitle}`, html });
 }
 
-// ─── 10. Release adicionado à fila ────────────────────────────────────────────
+// ─── 10. Matéria adicionado à fila ────────────────────────────────────────────
 export async function sendReleaseQueuedEmail(
   to: string,
   firstName: string,
@@ -248,7 +248,7 @@ export async function sendReleaseQueuedEmail(
 ) {
   const html = base(`
     ${h1(`Na fila e quase lá, ${firstName}! ✓`)}
-    ${p("O release entrou na fila de distribuição e já está a caminho das redações.")}
+    ${p("O matéria entrou na fila de distribuição e já está a caminho das redações.")}
     <table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0">
       <tr><td style="padding:8px 0;color:#888;width:130px">Release</td><td style="padding:8px 0;color:#1a1a1a;font-weight:600">${releaseTitle}</td></tr>
       <tr><td style="padding:8px 0;color:#888">Posição na fila</td><td style="padding:8px 0;color:#1a1a1a">${position}º</td></tr>
@@ -260,7 +260,7 @@ export async function sendReleaseQueuedEmail(
   return getResend().emails.send({ from: FROM, to, subject: `Release na fila: ${releaseTitle}`, html });
 }
 
-// ─── 11. Release publicado no veículo ─────────────────────────────────────────
+// ─── 11. Matéria publicado no veículo ─────────────────────────────────────────
 export async function sendReleasePublishedInVehicleEmail(
   to: string,
   firstName: string,
@@ -271,7 +271,7 @@ export async function sendReleasePublishedInVehicleEmail(
 ) {
   const html = base(`
     ${h1(`Mais uma redação conquistada, ${firstName}! ⚡`)}
-    ${p("O release acaba de ser publicado em mais um veículo. A notícia está se espalhando.")}
+    ${p("O matéria acaba de ser publicado em mais um veículo. A notícia está se espalhando.")}
     <table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0">
       <tr><td style="padding:8px 0;color:#888;width:130px">Release</td><td style="padding:8px 0;color:#1a1a1a;font-weight:600">${releaseTitle}</td></tr>
       <tr><td style="padding:8px 0;color:#888">Veículo</td><td style="padding:8px 0;color:#1a1a1a;font-weight:600">${vehicleName}</td></tr>
@@ -283,7 +283,7 @@ export async function sendReleasePublishedInVehicleEmail(
   return getResend().emails.send({ from: FROM, to, subject: `Publicado em ${vehicleName}: ${releaseTitle}`, html });
 }
 
-// ─── 12. Release precisa de revisão ───────────────────────────────────────────
+// ─── 12. Matéria precisa de revisão ───────────────────────────────────────────
 export async function sendReleaseNeedsReviewEmail(
   to: string,
   firstName: string,
@@ -293,19 +293,19 @@ export async function sendReleaseNeedsReviewEmail(
 ) {
   const html = base(`
     ${h1(`${firstName}, quase lá — só falta um ajuste 🔧`)}
-    ${p("O release foi analisado e precisa de pequenos ajustes antes de ir às redações.")}
+    ${p("O matéria foi analisado e precisa de pequenos ajustes antes de ir às redações.")}
     <table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0">
       <tr><td style="padding:8px 0;color:#888;width:130px">Release</td><td style="padding:8px 0;color:#1a1a1a;font-weight:600">${releaseTitle}</td></tr>
       <tr><td style="padding:8px 0;color:#888;vertical-align:top">Motivo</td><td style="padding:8px 0;color:#1a1a1a">${reason}</td></tr>
     </table>
-    ${p("Acesse o release, faça os ajustes necessários e reenvie para publicação.")}
+    ${p("Acesse o matéria, faça os ajustes necessários e reenvie para publicação.")}
     ${btn("Revisar release", `${APP_URL}/releases/${releaseId}`)}
   `);
 
   return getResend().emails.send({ from: FROM, to, subject: `Revisão necessária: ${releaseTitle}`, html });
 }
 
-// ─── 13. Release reprovado ─────────────────────────────────────────────────────
+// ─── 13. Matéria reprovado ─────────────────────────────────────────────────────
 export async function sendReleaseRejectedEmail(
   to: string,
   firstName: string,
@@ -314,8 +314,8 @@ export async function sendReleaseRejectedEmail(
   releaseId: string,
 ) {
   const html = base(`
-    ${h1(`${firstName}, esse release não passou desta vez`)}
-    ${p("O release foi analisado mas não atendeu aos critérios para distribuição. Veja o motivo abaixo e reenvie quando estiver pronto.")}
+    ${h1(`${firstName}, esse matéria não passou desta vez`)}
+    ${p("O matéria foi analisado mas não atendeu aos critérios para distribuição. Veja o motivo abaixo e reenvie quando estiver pronto.")}
     <table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0">
       <tr><td style="padding:8px 0;color:#888;width:130px">Release</td><td style="padding:8px 0;color:#1a1a1a;font-weight:600">${releaseTitle}</td></tr>
       ${reason ? `<tr><td style="padding:8px 0;color:#888;vertical-align:top">Motivo</td><td style="padding:8px 0;color:#1a1a1a">${reason}</td></tr>` : ""}
@@ -327,7 +327,7 @@ export async function sendReleaseRejectedEmail(
   return getResend().emails.send({ from: FROM, to, subject: `Release não aprovado: ${releaseTitle}`, html });
 }
 
-// ─── 14. Release em publicação (bloqueado para edição) ─────────────────────────
+// ─── 14. Matéria em publicação (bloqueado para edição) ─────────────────────────
 export async function sendReleaseInPublicationEmail(
   to: string,
   firstName: string,
@@ -336,7 +336,7 @@ export async function sendReleaseInPublicationEmail(
 ) {
   const html = base(`
     ${h1(`Aprovado e voando, ${firstName}! ⚡`)}
-    ${p("O release passou pela análise e está sendo distribuído para as redações agora. Fique de olho nos links que chegam em breve.")}
+    ${p("O matéria passou pela análise e está sendo distribuído para as redações agora. Fique de olho nos links que chegam em breve.")}
     <table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0">
       <tr><td style="padding:8px 0;color:#888;width:130px">Release</td><td style="padding:8px 0;color:#1a1a1a;font-weight:600">${releaseTitle}</td></tr>
     </table>
@@ -347,7 +347,7 @@ export async function sendReleaseInPublicationEmail(
   return getResend().emails.send({ from: FROM, to, subject: `Em publicação: ${releaseTitle}`, html });
 }
 
-// ─── 15. Release publicado com links por veículo ───────────────────────────────
+// ─── 15. Matéria publicado com links por veículo ───────────────────────────────
 export async function sendReleasePublishedWithLinksEmail(
   to: string,
   firstName: string,
@@ -362,7 +362,7 @@ export async function sendReleasePublishedWithLinksEmail(
 
   const html = base(`
     ${h1(`${firstName}, o raio caiu em ${vehicleCount} lugar${vehicleCount !== 1 ? "es" : ""}! ⚡`)}
-    ${p("O release foi publicado com sucesso. Veja abaixo onde a notícia apareceu.")}
+    ${p("O matéria foi publicado com sucesso. Veja abaixo onde a notícia apareceu.")}
     <table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0">
       <tr><td style="padding:8px 0;color:#888;width:130px">Release</td><td style="padding:8px 0;color:#1a1a1a;font-weight:600">${releaseTitle}</td></tr>
     </table>
@@ -376,7 +376,7 @@ export async function sendReleasePublishedWithLinksEmail(
   return getResend().emails.send({ from: FROM, to, subject: `Publicado com sucesso: ${releaseTitle}`, html });
 }
 
-// ─── 16. Notificação admin — novo release agendado ─────────────────────────────
+// ─── 16. Notificação admin — novo matéria agendado ─────────────────────────────
 export async function sendAdminNewReleaseEmail(
   releaseTitle: string,
   userName: string,
@@ -390,8 +390,8 @@ export async function sendAdminNewReleaseEmail(
     : "Não definida";
 
   const html = base(`
-    ${h1("Novo release para análise")}
-    ${p("Um novo release foi agendado e está aguardando análise no painel admin.")}
+    ${h1("Novo matéria para análise")}
+    ${p("Um novo matéria foi agendado e está aguardando análise no painel admin.")}
     <table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0">
       <tr><td style="padding:8px 0;color:#888;width:130px">Release</td><td style="padding:8px 0;color:#1a1a1a;font-weight:600">${releaseTitle}</td></tr>
       <tr><td style="padding:8px 0;color:#888">Pessoa</td><td style="padding:8px 0;color:#1a1a1a">${userName} (${userEmail})</td></tr>
@@ -461,7 +461,7 @@ export async function sendCancellationEmail(
       ${h1("Assinatura cancelada e reembolso processado")}
       ${p(`Olá, ${firstName}.`)}
       ${p(`Sua assinatura do plano <strong>${planLabel}</strong> foi cancelada com sucesso dentro do prazo de 7 dias (Art. 49 do CDC).`)}
-      ${p("O reembolso integral foi processado e será creditado em seu cartão em até 10 dias úteis. Seus dados (marcas e releases) foram removidos da plataforma.")}
+      ${p("O reembolso integral foi processado e será creditado em seu cartão em até 10 dias úteis. Seus dados (marcas e matérias) foram removidos da plataforma.")}
       ${p("Se mudar de ideia, você pode assinar novamente a qualquer momento.")}
       ${btn("Voltar ao Raio", APP_URL)}
     `);

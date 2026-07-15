@@ -15,7 +15,7 @@ import { SelectBox } from "@/components/SelectBox";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-interface RecentRelease {
+interface RecentMatéria {
   id: string;
   title: string;
   status: string;
@@ -32,10 +32,10 @@ interface Brand {
   contact: string | null;
   description: string | null;
   logoUrl: string | null;
-  releases: number;
+  matérias: number;
   creditsUsed: number;
   publishedCount: number;
-  recentReleases: RecentRelease[];
+  recentMatérias: RecentMatéria[];
 }
 
 interface DashboardData {
@@ -436,7 +436,7 @@ function EmptyState() {
     <div className="card empty" style={{ marginTop: 32 }}>
       <Building2 size={34} />
       <div className="t">Nenhuma marca cadastrada ainda</div>
-      <div className="h">Cadastre sua primeira marca para começar a distribuir releases.</div>
+      <div className="h">Cadastre sua primeira marca para começar a distribuir matérias.</div>
       <Link href="/configuracoes?tab=marcas" className="btn btn-primary btn-sm" style={{ marginTop: 16 }}>
         Cadastrar marca
       </Link>
@@ -507,7 +507,7 @@ export default function DashboardPage() {
   const hasReleases = (stats?.total ?? 0) > 0;
 
   const KPIS = [
-    { id: "k1", icon: Send,      label: "Releases publicados", val: String(activeBrand?.publishedCount ?? stats?.published ?? 0), accent: true },
+    { id: "k1", icon: Send,      label: "Matérias publicados", val: String(activeBrand?.publishedCount ?? stats?.published ?? 0), accent: true },
     { id: "k2", icon: Eye,       label: "Alcance estimado",    val: "—" },
     { id: "k3", icon: Newspaper, label: "Veículos ativos",     val: "—" },
     { id: "k4", icon: Zap,       label: "Créditos utilizados por essa marca", val: activeBrand ? (activeBrand.creditsUsed).toLocaleString("pt-BR") : "—" },
@@ -541,7 +541,7 @@ export default function DashboardPage() {
               {KPIS.map(k => <KpiCard key={k.id} {...k} />)}
             </div>
 
-            {hasReleases && (
+            {hasMatérias && (
               <div className="dash-2col">
                 <PerformanceDonut brandId={activeBrand?.id} />
                 <TopVehicles />
@@ -550,25 +550,25 @@ export default function DashboardPage() {
 
             <div className="card" style={{ marginBottom: 32 }}>
               <div className="card-head">
-                <h3>Releases <em>mais recentes</em></h3>
+                <h3>Matérias <em>mais recentes</em></h3>
                 <Link href="/releases" className="link">Ver todos</Link>
               </div>
-              {!activeBrand || activeBrand.recentReleases.length === 0 ? (
+              {!activeBrand || activeBrand.recentMatérias.length === 0 ? (
                 <div style={{ padding: "32px 22px", textAlign: "center", color: "var(--stone)", fontSize: 14 }}>
-                  Nenhum release criado para essa marca ainda.
+                  Nenhum matéria criado para essa marca ainda.
                 </div>
               ) : (
                 <table className="tbl">
                   <thead>
                     <tr>
-                      <th style={{ width: "55%" }}>Release</th>
+                      <th style={{ width: "55%" }}>Matéria</th>
                       <th>Status</th>
                       <th style={{ textAlign: "right" }}>Data</th>
                       <th style={{ textAlign: "right" }}>Créditos</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {activeBrand.recentReleases.map(r => (
+                    {activeBrand.recentMatérias.map(r => (
                       <tr key={r.id} style={{ cursor: "pointer" }} className="tbl-row-hover"
                         onClick={() => router.push(`/releases/${r.id}`)}>
                         <td className="title-cell">{r.title.length > 60 ? r.title.slice(0, 60) + "…" : r.title}</td>
@@ -627,12 +627,12 @@ function PerformanceDonut({ brandId }: { brandId?: string }) {
     const url = brandId ? `/api/vehicles-stats?brandId=${brandId}` : "/api/vehicles-stats";
     fetch(url)
       .then(r => r.json())
-      .then((res: { ranked: { id: string; count: number; name: string; domain: string; tier: string; reach: number }[]; totalReleases: number }) => {
+      .then((res: { ranked: { id: string; count: number; name: string; domain: string; tier: string; reach: number }[]; totalMatérias: number }) => {
         const top5 = res.ranked.slice(0, 5).map(r => ({
           id: r.id, name: r.name, domain: r.domain, tier: r.tier, reach: r.reach, count: r.count,
         }));
         setData(top5);
-        setTotal(res.totalReleases);
+        setTotal(res.totalMatérias);
       })
       .finally(() => setLoading(false));
   }, [brandId]);
@@ -651,7 +651,7 @@ function PerformanceDonut({ brandId }: { brandId?: string }) {
   return (
     <div className="card">
       <div className="card-head">
-        <h3>Distribuição de releases por <em>veículo</em></h3>
+        <h3>Distribuição de matérias por <em>veículo</em></h3>
         <span className="eyebrow">Top 5 · mais selecionados</span>
       </div>
       {loading ? (
