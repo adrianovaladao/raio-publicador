@@ -477,7 +477,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    fetchMatériaCount();
+    fetchReleaseCount();
     fetchSub();
     fetchUnread();
     const openPlans = () => setShowPlans(true);
@@ -492,11 +492,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       window.removeEventListener("releases-changed", fetchReleaseCount);
       window.removeEventListener("notifications-changed", refreshNotifs);
     };
-  }, [fetchMatériaCount, fetchSub, fetchUnread]);
+  }, [fetchReleaseCount, fetchSub, fetchUnread]);
 
   useEffect(() => {
-    fetchMatériaCount();
-  }, [pathname, fetchMatériaCount]);
+    fetchReleaseCount();
+  }, [pathname, fetchReleaseCount]);
 
   const firstName = user?.firstName ?? "";
   const lastName  = user?.lastName  ?? "";

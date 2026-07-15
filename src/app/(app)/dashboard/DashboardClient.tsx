@@ -504,7 +504,7 @@ export default function DashboardPage() {
   const brands     = data?.brands ?? [];
   const activeBrand = brands[activeIdx] ?? brands[0] ?? null;
   const hasBrands   = brands.length > 0;
-  const hasReleases = (stats?.total ?? 0) > 0;
+  const hasMatérias = (stats?.total ?? 0) > 0;
 
   const KPIS = [
     { id: "k1", icon: Send,      label: "Matérias publicados", val: String(activeBrand?.publishedCount ?? stats?.published ?? 0), accent: true },

@@ -66,7 +66,7 @@ const STATUS_ORDER: Record<string, number> = {
   needs_revision: 4, rejected: 5, draft: 6, cancelled: 7,
 };
 
-function sortReleases(arr: ReleaseRow[], col: SortCol, dir: SortDir) {
+function sortMatérias(arr: ReleaseRow[], col: SortCol, dir: SortDir) {
   return [...arr].sort((a, b) => {
     if (col === "date") {
       const diff = new Date(a.date).getTime() - new Date(b.date).getTime();
