@@ -315,11 +315,11 @@ function ReleaseActions({ release, onSaved, onDeleted }: {
   return (
     <div style={{ borderTop: "1px solid #f0f0f0", padding: "20px 20px", background: "#fafafa" }}>
 
-      {/* Conteúdo da matéria */}
+      {/* Conteúdo da release */}
       <div style={{ marginBottom: 20 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
           <label style={{ fontSize: 12, fontWeight: 600, color: "#888", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-            Conteúdo da matéria
+            Conteúdo da release
           </label>
           <div style={{ display: "flex", gap: 8 }}>
             <button
@@ -468,7 +468,7 @@ function ReleaseActions({ release, onSaved, onDeleted }: {
 
         {!confirmDelete ? (
           <button onClick={() => setConfirmDelete(true)} className="btn btn-ghost btn-sm" style={{ color: "#D94F4F", marginLeft: "auto" }}>
-            <Trash2 size={14} /> Excluir matéria
+            <Trash2 size={14} /> Excluir release
           </button>
         ) : (
           <div style={{ marginLeft: "auto", display: "flex", gap: 8, alignItems: "center" }}>
@@ -646,8 +646,8 @@ export default function AdminReleasesPage() {
         <div className="page-head">
           <div>
             <p className="eyebrow">Admin · Raio Publicador</p>
-            <h2>Gerenciar <em>matérias</em></h2>
-            <p className="sub">Analise, aprove, publique e gerencie todas as matérias da plataforma.</p>
+            <h2>Gerenciar <em>releases</em></h2>
+            <p className="sub">Analise, aprove, publique e gerencie todas as releases da plataforma.</p>
           </div>
           {needsAction > 0 && (
             <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#FFFBEB", padding: "10px 16px", borderRadius: 10, border: "1.5px solid #FDE68A" }}>
@@ -724,11 +724,11 @@ export default function AdminReleasesPage() {
         </div>
 
         {loading ? (
-          <div className="card empty"><div className="muted">Carregando matérias…</div></div>
+          <div className="card empty"><div className="muted">Carregando releases…</div></div>
         ) : activeGroups.length === 0 ? (
           <div className="card empty">
             <FileText size={34} />
-            <div className="t">{tab === "queue" ? "Nenhuma matéria na fila" : "Nenhuma matéria publicada"}</div>
+            <div className="t">{tab === "queue" ? "Nenhuma release na fila" : "Nenhuma release publicado"}</div>
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 40, paddingBottom: 64 }}>
@@ -736,7 +736,7 @@ export default function AdminReleasesPage() {
               <div key={group.key}>
                 <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
                   <span style={{ fontSize: 14, fontWeight: 700, color: "#1a1a1a", whiteSpace: "nowrap" }}>{group.label}</span>
-                  <span style={{ fontSize: 12, color: "#bbb", whiteSpace: "nowrap" }}>{group.items.length} matéria{group.items.length !== 1 ? "s" : ""}</span>
+                  <span style={{ fontSize: 12, color: "#bbb", whiteSpace: "nowrap" }}>{group.items.length} release{group.items.length !== 1 ? "s" : ""}</span>
                   <div style={{ flex: 1, height: 1, background: "#e8e8e8" }} />
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>

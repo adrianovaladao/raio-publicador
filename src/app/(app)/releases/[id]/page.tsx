@@ -353,7 +353,7 @@ function StepVehicles({ selected, setSelected, vehicles, sub, onUpgrade, onBuyCr
   const toggle = (id: string) => {
     if (selected.includes(id)) { setSelected(selected.filter(x => x !== id)); return; }
     const v = vehicles.find(x => x.id === id);
-    if (v?.tier === "A" && hasSelectedTierA) return; // só um tier A por matéria
+    if (v?.tier === "A" && hasSelectedTierA) return; // só um tier A por release
     setSelected([...selected, id]);
   };
   const remove = (id: string) => setSelected(selected.filter(x => x !== id));
@@ -598,7 +598,7 @@ function StepSchedule({
       {/* Pré-visualização */}
       <div className="card">
         <div className="card-head">
-          <h3>Pré-visualização do <em>matéria</em></h3>
+          <h3>Pré-visualização do <em>release</em></h3>
         </div>
         <div className="card-pad">
           {brand && (
@@ -617,14 +617,14 @@ function StepSchedule({
           )}
           <p className="eyebrow" style={{ marginBottom: 14 }}>{cat}</p>
           <h2 style={{ fontFamily: "var(--sans)", fontWeight: 700, fontSize: 26, letterSpacing: "-0.025em", lineHeight: 1.12, margin: "0 0 10px" }}>
-            {title || "Título do matéria"}
+            {title || "Título do release"}
           </h2>
           <p className="serif-it" style={{ fontSize: 18, color: "var(--ink-soft)", margin: "0 0 18px" }}>
             {subtitle || "Subtítulo do release."}
           </p>
           {body
             ? <div className="tiptap-preview" style={{ color: "var(--ink-soft)", fontSize: 15, lineHeight: 1.7 }} dangerouslySetInnerHTML={{ __html: body }} />
-            : <p style={{ color: "var(--ink-soft)", fontSize: 15, lineHeight: 1.7 }}>O corpo do matéria aparece aqui.</p>
+            : <p style={{ color: "var(--ink-soft)", fontSize: 15, lineHeight: 1.7 }}>O corpo do release aparece aqui.</p>
           }
         </div>
       </div>
@@ -700,7 +700,7 @@ function DeleteModal({ title, onConfirm, onClose, deleting }: {
     <div className="overlay" onClick={onClose}>
       <div className="modal" style={{ maxWidth: 400 }} onClick={e => e.stopPropagation()}>
         <div className="m-head">
-          <h3>Excluir matéria</h3>
+          <h3>Excluir release</h3>
           <button className="icon-btn" onClick={onClose}><X size={17} /></button>
         </div>
         <div className="m-body">
@@ -819,7 +819,7 @@ export default function EditReleasePage() {
       });
       if (!res.ok) { setErr("Erro ao salvar. Tente novamente."); return; }
       window.dispatchEvent(new Event("credits-changed"));
-      showToast("Matéria agendada com sucesso!");
+      showToast("Release agendado com sucesso!");
       setTimeout(() => router.push("/releases"), 1500);
     } catch { setErr("Falha de conexão."); }
     finally { setSaving(false); }
@@ -993,7 +993,7 @@ export default function EditReleasePage() {
         </div>
         {status === "idle" && (
           <div className="card-pad muted" style={{ fontSize: 13 }}>
-            Clique em &ldquo;Verificar conteúdo&rdquo; para confirmar que o texto do matéria está presente em cada URL cadastrada.
+            Clique em &ldquo;Verificar conteúdo&rdquo; para confirmar que o texto do release está presente em cada URL cadastrada.
           </div>
         )}
         {status === "error" && (
@@ -1038,7 +1038,7 @@ export default function EditReleasePage() {
     );
   }
 
-  // ── Read-only view for published matérias ─────────────────────────────────
+  // ── Read-only view for published releases ─────────────────────────────────
   if (release?.status === "PUBLISHED") {
     const pubUrls = release.publishedVehicleUrls ?? {} as Record<string, string>;
     const toAbsUrl = (u: string) => /^https?:\/\//i.test(u) ? u : `https://${u}`;
@@ -1071,7 +1071,7 @@ export default function EditReleasePage() {
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20, padding: "10px 16px", background: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: 10 }}>
             <Check size={15} style={{ color: "#16A34A", flexShrink: 0 }} />
             <span style={{ fontSize: 13, color: "#15803D", fontWeight: 600 }}>
-              Matéria publicada — conteúdo bloqueado para edição.
+              Release publicado — conteúdo bloqueado para edição.
             </span>
           </div>
 
@@ -1173,7 +1173,7 @@ export default function EditReleasePage() {
                       body: JSON.stringify({ title, subtitle, body, excludeId: id }),
                     });
                     const data = await res.json() as { duplicate: boolean; matchTitle?: string };
-                    if (data.duplicate) { setDupWarning({ matchTitle: data.matchTitle ?? "outro matéria" }); return; }
+                    if (data.duplicate) { setDupWarning({ matchTitle: data.matchTitle ?? "outro release" }); return; }
                   } finally { setDupChecking(false); }
                 }
                 setStep(s => s + 1);
@@ -1223,11 +1223,11 @@ export default function EditReleasePage() {
               </h3>
             </div>
             <div className="m-body" style={{ fontSize: 14, lineHeight: 1.6 }}>
-              <p>O título, subtítulo e corpo deste matéria são <strong>idênticos</strong> ao matéria:</p>
+              <p>O título, subtítulo e corpo deste release são <strong>idênticos</strong> ao release:</p>
               <div style={{ margin: "12px 0", padding: "10px 14px", background: "var(--cream)", borderRadius: 8, fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>
                 &ldquo;{dupWarning.matchTitle}&rdquo;
               </div>
-              <p>Veículos de grande alcance rejeitam conteúdo duplicado. Para prosseguir, você precisa alterar o <strong>título</strong>, o <strong>subtítulo</strong> <em>e</em> o <strong>corpo do matéria</strong> — todos os três devem ser diferentes do original.</p>
+              <p>Veículos de grande alcance rejeitam conteúdo duplicado. Para prosseguir, você precisa alterar o <strong>título</strong>, o <strong>subtítulo</strong> <em>e</em> o <strong>corpo do release</strong> — todos os três devem ser diferentes do original.</p>
               <p style={{ marginTop: 10, padding: "10px 14px", background: "#FFF7ED", borderRadius: 8, fontSize: 13, color: "#92400E" }}>💡 Use a <strong>IA</strong> para reescrever o conteúdo com um novo ângulo.</p>
             </div>
             <div className="m-foot" style={{ justifyContent: "flex-end" }}>

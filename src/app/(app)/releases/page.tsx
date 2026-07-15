@@ -175,7 +175,7 @@ export default function ReleasesPage() {
   }, []);
 
   const counts = Object.fromEntries(
-    STATUS_FILTERS.map(f => [f.id, f.id === "all" ? matérias.length : matérias.filter(r => r.status === f.id).length])
+    STATUS_FILTERS.map(f => [f.id, f.id === "all" ? releases.length : releases.filter(r => r.status === f.id).length])
   );
 
   function handleSort(col: SortCol) {
@@ -203,12 +203,12 @@ export default function ReleasesPage() {
         <div className="page-head">
           <div>
             <p className="eyebrow">Conteúdo</p>
-            <h2>Seus <em>matérias</em></h2>
+            <h2>Seus <em>releases</em></h2>
             <p className="sub">Rascunhos, agendados e publicados — todo o histórico de distribuição em um só lugar.</p>
           </div>
           <div className="actions">
             <Link href="/releases/novo" className="btn btn-primary btn-sm">
-              <Plus size={15} /> Novo matéria
+              <Plus size={15} /> Novo release
             </Link>
           </div>
         </div>
@@ -224,7 +224,7 @@ export default function ReleasesPage() {
           <div className="spacer" />
           <input
             className="input"
-            placeholder="Buscar matérias…"
+            placeholder="Buscar releases…"
             value={q}
             onChange={e => setQ(e.target.value)}
             style={{ width: 220, padding: "8px 14px", fontSize: 13 }}
@@ -242,7 +242,7 @@ export default function ReleasesPage() {
         ) : list.length === 0 ? (
           <div className="card empty">
             <Inbox size={34} />
-            <div className="t">Nenhum matéria encontrado</div>
+            <div className="t">Nenhum release encontrado</div>
             <div className="h">Ajuste os filtros ou crie um novo release.</div>
           </div>
         ) : mode === "list" ? (
@@ -250,7 +250,7 @@ export default function ReleasesPage() {
             <table className="tbl">
               <thead>
                 <tr>
-                  <th style={{ ...thStyle("title"), width: "42%" }} onClick={() => handleSort("title")}>{thInner("Matéria", "title")}</th>
+                  <th style={{ ...thStyle("title"), width: "42%" }} onClick={() => handleSort("title")}>{thInner("Release", "title")}</th>
                   <th style={thStyle("status")} onClick={() => handleSort("status")}>{thInner("Status", "status")}</th>
                   <th style={thStyle("date")} onClick={() => handleSort("date")}>{thInner("Data", "date")}</th>
                   <th style={thStyle("author")} onClick={() => handleSort("author")}>{thInner("Autor", "author")}</th>
@@ -289,7 +289,7 @@ export default function ReleasesPage() {
                       <button
                         onClick={() => setConfirmId(r.id)}
                         style={{ background: "none", border: "none", cursor: "pointer", padding: "4px 6px", color: "var(--stone)", borderRadius: 6, display: "inline-flex", alignItems: "center" }}
-                        title="Excluir matéria"
+                        title="Excluir release"
                       >
                         <Trash2 size={15} />
                       </button>
@@ -306,7 +306,7 @@ export default function ReleasesPage() {
                 <button
                   onClick={e => { e.stopPropagation(); setConfirmId(r.id); }}
                   style={{ position: "absolute", top: 10, right: 10, zIndex: 2, background: "rgba(0,0,0,0.45)", border: "none", borderRadius: 8, padding: "5px 7px", cursor: "pointer", color: "#fff", display: "flex", alignItems: "center" }}
-                  title="Excluir matéria"
+                  title="Excluir release"
                 >
                   <Trash2 size={14} />
                 </button>
@@ -341,8 +341,8 @@ export default function ReleasesPage() {
       </div>
       {confirmId && (
         <ConfirmModal
-          title="Excluir matéria"
-          desc="Tem certeza que deseja excluir este matéria? Esta ação não pode ser desfeita."
+          title="Excluir release"
+          desc="Tem certeza que deseja excluir este release? Esta ação não pode ser desfeita."
           onConfirm={() => deleteRelease(confirmId)}
           onCancel={() => setConfirmId(null)}
         />

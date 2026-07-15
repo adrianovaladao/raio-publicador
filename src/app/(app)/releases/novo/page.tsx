@@ -227,7 +227,7 @@ function StepBrand({ selected, onSelect, brands, brandsLimit, onAddBrand, onLimi
     <div className="brand-pick">
       <div className="bp-head">
         <p className="eyebrow">Passo 1 · Marca</p>
-        <h3>Para qual <em>marca</em> é este matéria?</h3>
+        <h3>Para qual <em>marca</em> é este release?</h3>
         <p className="muted" style={{ fontSize: 14, maxWidth: "56ch" }}>
           O conteúdo, o tom de voz e os relatórios ficam vinculados à marca escolhida.
         </p>
@@ -252,7 +252,7 @@ function StepBrand({ selected, onSelect, brands, brandsLimit, onAddBrand, onLimi
         </div>
       </div>
 
-      {/* Grade — igual ao lib-grid dos matérias */}
+      {/* Grade — igual ao lib-grid dos releases */}
       {mode === "grid" && (
         <div className="lib-grid">
           {filtered.map(b => (
@@ -296,7 +296,7 @@ function StepBrand({ selected, onSelect, brands, brandsLimit, onAddBrand, onLimi
         </div>
       )}
 
-      {/* Lista — igual ao tbl dos matérias */}
+      {/* Lista — igual ao tbl dos releases */}
       {mode === "list" && (
         <div className="card">
           <table className="tbl">
@@ -304,7 +304,7 @@ function StepBrand({ selected, onSelect, brands, brandsLimit, onAddBrand, onLimi
               <tr>
                 <th>Marca</th>
                 <th>Segmento</th>
-                <th>Matérias</th>
+                <th>Releases</th>
                 <th>Tom de voz</th>
               </tr>
             </thead>
@@ -736,13 +736,13 @@ function StepVehicles({ selected, setSelected, vehicles, sub, onUpgrade, onBuyCr
             </div>
             <div style={{ fontWeight: 800, fontSize: 18, color: "var(--ink)", letterSpacing: "-0.3px", marginBottom: 6 }}>Exclusividade Categoria A</div>
             <div style={{ fontSize: 13, color: "var(--stone)", lineHeight: 1.6, marginBottom: 20 }}>
-              Cada matéria pode conter apenas <strong>um veículo Categoria A</strong>. Esses veículos têm política de exclusividade — o mesmo conteúdo não pode ser enviado para dois grandes ao mesmo tempo.
+              Cada release pode conter apenas <strong>um veículo Categoria A</strong>. Esses veículos têm política de exclusividade — o mesmo conteúdo não pode ser enviado para dois grandes ao mesmo tempo.
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 24 }}>
               <div style={{ display: "flex", gap: 10, alignItems: "flex-start", padding: "12px 14px", background: "var(--cream)", borderRadius: 10 }}>
                 <Sparkles size={16} style={{ color: "var(--coral-ink)", flexShrink: 0, marginTop: 1 }} />
                 <div style={{ fontSize: 13, color: "var(--ink)", lineHeight: 1.5 }}>
-                  <strong>Sugestão:</strong> crie um novo matéria e use a IA para reescrever o conteúdo com um enfoque diferente — cada veículo Categoria A merece uma abordagem personalizada.
+                  <strong>Sugestão:</strong> crie um novo release e use a IA para reescrever o conteúdo com um enfoque diferente — cada veículo Categoria A merece uma abordagem personalizada.
                 </div>
               </div>
             </div>
@@ -968,7 +968,7 @@ function PolicyModal({ onAccept, onClose }: { onAccept: () => void; onClose: () 
         "Referências a outros veículos como fonte (Folha, Veja, Estadão etc.)",
         "Menção a rankings ou premiações sem identificar a fonte",
         "Mensagens puramente promocionais sem dados que as sustentem",
-        "Mais de 2 links externos por matéria",
+        "Mais de 2 links externos por release",
       ],
     },
     {
@@ -1000,7 +1000,7 @@ function PolicyModal({ onAccept, onClose }: { onAccept: () => void; onClose: () 
               </h3>
             </div>
             <p style={{ margin: 0, fontSize: 13, color: "var(--stone)" }}>
-              As matérias precisam seguir as diretrizes editoriais dos veículos parceiros. Leia com atenção antes de continuar.
+              As releases precisam seguir as diretrizes editoriais dos veículos parceiros. Leia com atenção antes de continuar.
             </p>
           </div>
           <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--stone)", display: "flex", padding: 4, flexShrink: 0 }}><X size={17} /></button>
@@ -1034,7 +1034,7 @@ function PolicyModal({ onAccept, onClose }: { onAccept: () => void; onClose: () 
           </div>
 
           <div style={{ background: "var(--bg)", borderRadius: "var(--r)", padding: "12px 16px", marginTop: 14, fontSize: 12.5, color: "var(--stone)", lineHeight: 1.6 }}>
-            O anunciante é integralmente responsável pela veracidade, legalidade e autorização de uso de todas as informações, imagens e referências presentes no conteúdo. Matérias em desacordo com esta política poderão ser recusados ou devolvidos para ajuste.
+            O anunciante é integralmente responsável pela veracidade, legalidade e autorização de uso de todas as informações, imagens e referências presentes no conteúdo. Releases em desacordo com esta política poderão ser recusados ou devolvidos para ajuste.
           </div>
         </div>
 
@@ -1100,7 +1100,7 @@ async function downloadDocx(content: Content, selVehicles: VehicleItem[], brand:
         new Paragraph({
           heading: HeadingLevel.HEADING_1,
           spacing: { after: 160 },
-          children: [new TextRun({ text: content.title || "Título do matéria", bold: true, size: 52, font: "Calibri" })],
+          children: [new TextRun({ text: content.title || "Título do release", bold: true, size: 52, font: "Calibri" })],
         }),
 
         // Subtítulo
@@ -1215,7 +1215,7 @@ function StepReview({ content, selected, when, setWhen, brand, onSaveDraft, vehi
     <div className="composer-grid">
       <div className="card">
         <div className="card-head">
-          <h3>Pré-visualização do <em>matéria</em></h3>
+          <h3>Pré-visualização do <em>release</em></h3>
           <div className="row" style={{ gap: 10 }}>
             <button
               className="btn btn-ghost btn-sm"
@@ -1240,14 +1240,14 @@ function StepReview({ content, selected, when, setWhen, brand, onSaveDraft, vehi
           )}
           <p className="eyebrow" style={{ marginBottom: 14 }}>{content.cat} · {content.author}</p>
           <h2 style={{ fontFamily: "var(--sans)", fontWeight: 700, fontSize: 26, letterSpacing: "-0.025em", lineHeight: 1.12, margin: "0 0 10px" }}>
-            {content.title || "Título do matéria"}
+            {content.title || "Título do release"}
           </h2>
           <p className="serif-it" style={{ fontSize: 18, color: "var(--ink-soft)", margin: "0 0 18px" }}>
             {content.subtitle || "Subtítulo / linha de apoio do release."}
           </p>
           {content.body
             ? <div className="tiptap-preview" style={{ color: "var(--ink-soft)", fontSize: 15, lineHeight: 1.7 }} dangerouslySetInnerHTML={{ __html: content.body }} />
-            : <p style={{ color: "var(--ink-soft)", fontSize: 15, lineHeight: 1.7 }}>O corpo do matéria aparece aqui exatamente como será distribuído aos veículos selecionados.</p>
+            : <p style={{ color: "var(--ink-soft)", fontSize: 15, lineHeight: 1.7 }}>O corpo do release aparece aqui exatamente como será distribuído aos veículos selecionados.</p>
           }
         </div>
       </div>
@@ -1547,12 +1547,12 @@ export default function NovoReleasePage() {
 
             {/* Título */}
             <h2 style={{ fontFamily: "var(--sans)", fontWeight: 800, fontSize: 32, letterSpacing: "-0.03em", margin: "0 0 12px" }}>
-              {scheduled ? "Matéria agendada!" : "Matéria publicada!"}
+              {scheduled ? "Release agendado!" : "Release publicado!"}
             </h2>
             <p className="muted" style={{ fontSize: 16, lineHeight: 1.6, margin: "0 0 32px" }}>
               {scheduled
-                ? <>O matéria <strong style={{ color: "var(--ink)" }}>&ldquo;{content.title}&rdquo;</strong> será enviado em {when.date.split("-").reverse().join("/")} para <strong style={{ color: "var(--ink)" }}>{selVehicles.length} veículos</strong>.</>
-                : <>O matéria <strong style={{ color: "var(--ink)" }}>&ldquo;{content.title}&rdquo;</strong> está sendo distribuído agora para <strong style={{ color: "var(--ink)" }}>{selVehicles.length} veículos</strong>, com alcance estimado de <strong style={{ color: "var(--ink)" }}>{fmtReach(selReach)}</strong>.</>}
+                ? <>O release <strong style={{ color: "var(--ink)" }}>&ldquo;{content.title}&rdquo;</strong> será enviado em {when.date.split("-").reverse().join("/")} para <strong style={{ color: "var(--ink)" }}>{selVehicles.length} veículos</strong>.</>
+                : <>O release <strong style={{ color: "var(--ink)" }}>&ldquo;{content.title}&rdquo;</strong> está sendo distribuído agora para <strong style={{ color: "var(--ink)" }}>{selVehicles.length} veículos</strong>, com alcance estimado de <strong style={{ color: "var(--ink)" }}>{fmtReach(selReach)}</strong>.</>}
             </p>
 
             {/* Stats */}
@@ -1643,7 +1643,7 @@ export default function NovoReleasePage() {
                       body: JSON.stringify({ title: content.title, subtitle: content.subtitle, body: content.body, excludeId: draftIdRef.current ?? undefined }),
                     });
                     const data = await res.json() as { duplicate: boolean; matchTitle?: string };
-                    if (data.duplicate) { setDupWarning({ matchTitle: data.matchTitle ?? "outro matéria" }); return; }
+                    if (data.duplicate) { setDupWarning({ matchTitle: data.matchTitle ?? "outro release" }); return; }
                   } finally { setDupChecking(false); }
                   setShowPolicyModal(true);
                   return;
@@ -1695,7 +1695,7 @@ export default function NovoReleasePage() {
                   setSubmitting(false);
                 }
               }}>
-                {submitting ? "Salvando…" : <><Calendar size={16} /> Agendar matéria</>}
+                {submitting ? "Salvando…" : <><Calendar size={16} /> Agendar release</>}
               </button>
             )}
           </div>
@@ -1723,11 +1723,11 @@ export default function NovoReleasePage() {
             </h3>
           </div>
           <div className="m-body" style={{ fontSize: 14, lineHeight: 1.6 }}>
-            <p>O título, subtítulo e corpo deste matéria são <strong>idênticos</strong> ao matéria:</p>
+            <p>O título, subtítulo e corpo deste release são <strong>idênticos</strong> ao release:</p>
             <div style={{ margin: "12px 0", padding: "10px 14px", background: "var(--cream)", borderRadius: 8, fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>
               &ldquo;{dupWarning.matchTitle}&rdquo;
             </div>
-            <p>Veículos de grande alcance rejeitam conteúdo duplicado. Para prosseguir, você precisa alterar o <strong>título</strong>, o <strong>subtítulo</strong> <em>e</em> o <strong>corpo do matéria</strong> — todos os três devem ser diferentes do original.</p>
+            <p>Veículos de grande alcance rejeitam conteúdo duplicado. Para prosseguir, você precisa alterar o <strong>título</strong>, o <strong>subtítulo</strong> <em>e</em> o <strong>corpo do release</strong> — todos os três devem ser diferentes do original.</p>
               <p style={{ marginTop: 10, padding: "10px 14px", background: "#FFF7ED", borderRadius: 8, fontSize: 13, color: "#92400E" }}>💡 Use a <strong>IA</strong> para reescrever o conteúdo com um novo ângulo.</p>
           </div>
           <div className="m-foot" style={{ justifyContent: "flex-end" }}>

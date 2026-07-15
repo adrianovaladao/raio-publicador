@@ -24,7 +24,7 @@ interface OnbData {
 function MockEditor() {
   return (
     <div className="mock">
-      <div className="mbar"><i /><i /><i /><span className="mt">novo matéria</span></div>
+      <div className="mbar"><i /><i /><i /><span className="mt">novo release</span></div>
       <div className="mpad">
         <div className="line t" />
         <div style={{ height: 8 }} />
@@ -94,10 +94,10 @@ function MockResults() {
 }
 
 const TOUR = [
-  { n: "01", mock: <MockEditor />,   t: <>Escreva seu <em>matéria</em></>,            d: "Um editor limpo com título, linha-fina e corpo. Cole seu texto pronto ou gere um rascunho com IA em segundos." },
+  { n: "01", mock: <MockEditor />,   t: <>Escreva seu <em>release</em></>,            d: "Um editor limpo com título, linha-fina e corpo. Cole seu texto pronto ou gere um rascunho com IA em segundos." },
   { n: "02", mock: <MockVehicles />, t: <>Escolha entre <em>centenas de veículos</em></>, d: "Filtre por categoria, estado e audiência. O custo em créditos aparece em tempo real — e tudo cabe no seu plano." },
   { n: "03", mock: <MockCalendar />, t: <>Agende no <em>calendário</em></>,            d: "Publique na hora ou programe. Visualize todo o mês de distribuição organizado por status." },
-  { n: "04", mock: <MockResults />,  t: <>Acompanhe os <em>resultados</em></>,         d: "Alcance, veículos ativos e desempenho por matéria num painel único e em tempo real." },
+  { n: "04", mock: <MockResults />,  t: <>Acompanhe os <em>resultados</em></>,         d: "Alcance, veículos ativos e desempenho por release num painel único e em tempo real." },
 ];
 
 const STAGES: { id: Stage; nm: string }[] = [
@@ -117,8 +117,8 @@ function Welcome({ go, firstName }: { go: (s: Stage) => void; firstName: string 
           <path d="M49.9117 42.2747L28.0623 69.2283C27.3525 70.3975 26.1865 71.0889 24.7671 71.0889C24.2982 71.0889 23.8292 71.0889 23.3603 70.8501C21.4846 70.146 20.5341 68.2854 21.003 66.4123L24.7417 54.6955H15.5533C14.3747 54.6955 12.9679 54.2303 12.2581 53.0612C11.5484 52.1309 11.3203 50.7228 11.5484 49.5663L21.0917 18.9417C21.5606 17.0811 23.2082 15.9119 25.0966 15.9119H36.9465C38.3533 15.9119 39.532 16.6159 40.2417 17.5462C40.9514 18.4765 41.1795 20.1109 40.7106 21.28L35.0455 36.4289L46.3884 36.19C47.7952 36.19 49.2147 36.894 49.9117 38.2895C50.6215 39.4586 50.6215 40.8541 49.9117 42.2621V42.2747Z" fill="#FAB500"/>
         </svg>
       </div>
-      <h1>Boas energias para os seus <em>matérias</em>{firstName ? `, ${firstName}` : ""}!</h1>
-      <p className="sub">Sua conta está pronta. Agora você já pode configurar sua primeira marca, definir um tom de voz, criar seu matéria e publicar nos veículos que quiser.</p>
+      <h1>Boas energias para os seus <em>releases</em>{firstName ? `, ${firstName}` : ""}!</h1>
+      <p className="sub">Sua conta está pronta. Agora você já pode configurar sua primeira marca, definir um tom de voz, criar seu release e publicar nos veículos que quiser.</p>
       <div className="choice">
         <div className="choice-card primary" onClick={() => go("tour")}>
           <div className="ic"><Sparkles size={22} /></div>
@@ -237,7 +237,7 @@ function Brand({ go, data, setData }: { go: (s: Stage) => void; data: OnbData; s
       <div className="onb-head">
         <span className="eyebrow">Passo 1 de 2 · Configuração</span>
         <h1>Cadastre sua primeira <em>marca</em></h1>
-        <p className="sub">É a marca ou cliente para quem você vai distribuir matérias. Você pode adicionar outras depois.</p>
+        <p className="sub">É a marca ou cliente para quem você vai distribuir releases. Você pode adicionar outras depois.</p>
       </div>
       <div className="onb-form">
         <div className="fgrid">
@@ -289,7 +289,7 @@ function Brand({ go, data, setData }: { go: (s: Stage) => void; data: OnbData; s
         </div>
         <div className="fld" style={{ marginTop: 16 }}>
           <label>Descrição curta</label>
-          <textarea className="in" placeholder="Em uma ou duas frases, o que é a marca e o que ela faz. Isso ajuda a IA a contextualizar seus matérias." value={data.desc} onChange={e => up("desc", e.target.value)} />
+          <textarea className="in" placeholder="Em uma ou duas frases, o que é a marca e o que ela faz. Isso ajuda a IA a contextualizar seus releases." value={data.desc} onChange={e => up("desc", e.target.value)} />
         </div>
       </div>
       {err && <p style={{ color: "var(--red, #c0392b)", fontSize: 13, margin: "12px 0 0", fontWeight: 500 }}>{err}</p>}
@@ -317,7 +317,7 @@ function Done({ data }: { data: OnbData }) {
     <div className="onb-card narrow onb-done">
       <div className="burst"><CheckCircle size={46} /></div>
       <h1>Tudo <em>pronto!</em></h1>
-      <p className="sub">{data.name || "Sua marca"} está configurada. Agora é só criar seu primeiro matéria e publicar como um raio.</p>
+      <p className="sub">{data.name || "Sua marca"} está configurada. Agora é só criar seu primeiro release e publicar como um raio.</p>
       <div className="onb-summary">
         <div className="s"><span className="ic"><Tag size={18} /></span><div><div className="t">{data.name || "Marca cadastrada"}</div><div className="d">{data.segment}</div></div></div>
         <div className="s"><span className="ic"><Megaphone size={18} /></span><div><div className="t">Marca configurada</div><div className="d">Pronta para uso</div></div></div>

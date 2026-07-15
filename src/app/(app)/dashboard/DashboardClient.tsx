@@ -436,7 +436,7 @@ function EmptyState() {
     <div className="card empty" style={{ marginTop: 32 }}>
       <Building2 size={34} />
       <div className="t">Nenhuma marca cadastrada ainda</div>
-      <div className="h">Cadastre sua primeira marca para começar a distribuir matérias.</div>
+      <div className="h">Cadastre sua primeira marca para começar a distribuir releases.</div>
       <Link href="/configuracoes?tab=marcas" className="btn btn-primary btn-sm" style={{ marginTop: 16 }}>
         Cadastrar marca
       </Link>
@@ -507,7 +507,7 @@ export default function DashboardPage() {
   const hasReleases = (stats?.total ?? 0) > 0;
 
   const KPIS = [
-    { id: "k1", icon: Send,      label: "Matérias publicados", val: String(activeBrand?.publishedCount ?? stats?.published ?? 0), accent: true },
+    { id: "k1", icon: Send,      label: "Releases publicados", val: String(activeBrand?.publishedCount ?? stats?.published ?? 0), accent: true },
     { id: "k2", icon: Eye,       label: "Alcance estimado",    val: "—" },
     { id: "k3", icon: Newspaper, label: "Veículos ativos",     val: "—" },
     { id: "k4", icon: Zap,       label: "Créditos utilizados por essa marca", val: activeBrand ? (activeBrand.creditsUsed).toLocaleString("pt-BR") : "—" },
@@ -550,18 +550,18 @@ export default function DashboardPage() {
 
             <div className="card" style={{ marginBottom: 32 }}>
               <div className="card-head">
-                <h3>Matérias <em>mais recentes</em></h3>
+                <h3>Releases <em>mais recentes</em></h3>
                 <Link href="/releases" className="link">Ver todos</Link>
               </div>
               {!activeBrand || activeBrand.recentReleases.length === 0 ? (
                 <div style={{ padding: "32px 22px", textAlign: "center", color: "var(--stone)", fontSize: 14 }}>
-                  Nenhuma matéria criada para essa marca ainda.
+                  Nenhuma release criada para essa marca ainda.
                 </div>
               ) : (
                 <table className="tbl">
                   <thead>
                     <tr>
-                      <th style={{ width: "55%" }}>Matéria</th>
+                      <th style={{ width: "55%" }}>Release</th>
                       <th>Status</th>
                       <th style={{ textAlign: "right" }}>Data</th>
                       <th style={{ textAlign: "right" }}>Créditos</th>
@@ -651,7 +651,7 @@ function PerformanceDonut({ brandId }: { brandId?: string }) {
   return (
     <div className="card">
       <div className="card-head">
-        <h3>Distribuição de matérias por <em>veículo</em></h3>
+        <h3>Distribuição de releases por <em>veículo</em></h3>
         <span className="eyebrow">Top 5 · mais selecionados</span>
       </div>
       {loading ? (

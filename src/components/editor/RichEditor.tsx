@@ -138,7 +138,7 @@ export function RichEditor({
         orderedList: { keepMarks: true },
       }),
       Underline,
-      Placeholder.configure({ placeholder: "Escreva o corpo do matéria… Comece com o lide: o quê, quem, quando, onde e por quê." }),
+      Placeholder.configure({ placeholder: "Escreva o corpo do release… Comece com o lide: o quê, quem, quando, onde e por quê." }),
       Link.configure({ openOnClick: false, HTMLAttributes: { class: "editor-link" } }),
       FigureExtension,
     ],
@@ -321,7 +321,7 @@ export function RichEditor({
       <div className="body-pad">
         <AutoTextarea
           className="title-input"
-          placeholder="Título do matéria"
+          placeholder="Título do release"
           value={title}
           onChange={onTitleChange}
         />
