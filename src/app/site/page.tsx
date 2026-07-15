@@ -213,7 +213,7 @@ function OQueE() {
           <span className="eyebrow">O que é um release</span>
           <h2>O atalho entre sua novidade <em>e a imprensa</em></h2>
           <p className="sub" style={{ maxWidth: 620, margin: "0 auto" }}>
-            Um release é um texto curto que apresenta uma novidade — um lançamento, uma conquista, uma posição — de forma clara e objetiva para jornalistas e editores. Quando chega no veículo certo, no momento certo, ele vira notícia. Sem anúncio, sem intermediário.
+            Um release é um texto de uma a duas páginas enviado diretamente a jornalistas e editores de portais de notícias. Ele apresenta uma novidade de forma objetiva e está pronto para ser publicado como matéria. Quando chega no veículo certo, no momento certo, ele vira notícia. Sem anúncio, sem intermediário.
           </p>
         </div>
         <div className="steps-grid reveal" style={{ marginTop: 48, gridTemplateColumns: "repeat(3, 1fr)" }}>
