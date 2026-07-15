@@ -226,7 +226,7 @@ function Como() {
         <div className="sec-head reveal">
           <span className="eyebrow">Como funciona</span>
           <h2>Do rascunho à publicação garantida em <em>quatro passos</em></h2>
-          <p className="sub">Um fluxo feito para marcas, agências e profissionais que precisam de resultados reais — sem burocracia e com controle absoluto.</p>
+          <p className="sub">Um fluxo feito para marcas, agências e profissionais que precisam de resultados reais, sem burocracia e com controle absoluto.</p>
         </div>
         <div className="steps-grid">
           {STEPS.map(({ icon: Icon, n, t, d }, i) => (
@@ -527,7 +527,7 @@ function ContactModal({ onClose }: { onClose: () => void }) {
             <div className="sm-head">
               <span className="eyebrow">Time comercial</span>
               <h3>Vamos montar o <em>plano ideal</em></h3>
-              <p>Conte um pouco sobre o seu volume de distribuição e retornamos com uma proposta sob medida — inclusive planos anuais.</p>
+              <p>Conte um pouco sobre o seu volume de distribuição e retornamos com uma proposta sob medida, inclusive planos anuais.</p>
             </div>
             <div className="sm-body">
               <div className="sm-grid2">
