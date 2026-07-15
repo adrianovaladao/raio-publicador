@@ -15,7 +15,7 @@ import { RaioLockup } from "@/components/logo/RaioLockup";
 const PARTNERS = ["f1","f2","f3","f4","f5","f6","f7"];
 
 const STEPS = [
-  { icon: Feather,    n: "01", t: "Escreva o release",    d: "Editor limpo com título, linha-fina e corpo. Cole seu texto ou gere um rascunho com IA." },
+  { icon: Feather,    n: "01", t: "Escreva o release",    d: "Use nosso editor inteligente para colar seu texto pronto ou use nossa inteligência artificial para estruturar um branded content impecável em segundos." },
   { icon: Newspaper,  n: "02", t: "Escolha os veículos",  d: "Filtre mais de 50 portais de notícia por nicho, região e volume de acessos. Você vê exatamente quantos créditos cada publicação consome na hora." },
   { icon: Send,       n: "03", t: "Publique ou agende",   d: "Programe no calendário ou publique imediatamente. Esqueça as tentativas de envio: no Raio, o seu artigo vai ao ar de forma 100% garantida nos canais escolhidos." },
   { icon: BarChart2,  n: "04", t: "Acompanhe resultados", d: "Seu conteúdo vai ao ar nos maiores portais do país tão rápido quanto um raio. Acompanhe a audiência das suas matérias e veja os links ativos num painel único." },
@@ -25,15 +25,15 @@ const PLANS = [
   {
     id: "BASIC",
     name: "Básico",
-    desc: "Para quem está começando a distribuir releases.",
+    desc: "Ideal para marcas e projetos em crescimento.",
     amt: "1.000", credits: "200 créditos/mês", cl: "R$ 5,00 por crédito",
     feats: [
-      ["Até 2 marcas por plano", true],
-      ["Até 2 veículos AAA por release", true],
-      ["Acesso aos 600 veículos parceiros", true],
-      ["Calendário de publicação", true],
-      ["Biblioteca de releases", true],
-      ["1 editor + 1 revisor", true],
+      ["Até 2 marcas cadastradas por plano", true],
+      ["Publique em até 2 portais categoria A", true],
+      ["Acesso completo aos 50 portais parceiros", true],
+      ["Calendário e agendamento de publicações", true],
+      ["Biblioteca de releases divulgados", true],
+      ["1 usuário administrador", true],
       ["Relatórios avançados", false],
     ],
     cta: "Assinar Básico", featured: false,
@@ -271,7 +271,7 @@ function Compare() {
           </div>
           <div className="comp-card us reveal" style={{ transitionDelay: "90ms" }}>
             <span className="tag">Raio Publicador</span>
-            <h3>Assinatura por créditos</h3>
+            <h3>Plano por créditos</h3>
             <p className="price-line">A partir de R$ 1.000/mês, releases ilimitados</p>
             <ul>
               <li><Check size={19} /> Um plano cobre diversas publicações</li>
@@ -291,10 +291,10 @@ function Compare() {
 
 function Metrics() {
   const items = [
-    { n: <><em>600</em>+</>, l: "Veículos parceiros" },
+    { n: <><em>50</em>+</>, l: "Portais parceiros" },
     { n: <>64<em>mi</em></>, l: "Alcance mensal" },
     { n: <><em>1</em></>, l: "Plano · sem custo por nota" },
-    { n: <>5<em>min</em></>, l: "Para publicar o 1º release" },
+    { n: <>5<em>min</em></>, l: "Para publicar a 1a. matéria" },
   ];
   return (
     <section className="section panel">
