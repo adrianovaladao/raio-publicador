@@ -30,8 +30,8 @@ function PwMeter({ pw }: { pw: string }) {
 
 const STEPS_MINI = [
   { icon: Feather,   t: "Escreva seu release" },
-  { icon: Newspaper, t: "Escolha entre centenas de veículos" },
-  { icon: Send,      t: "Publique com um clique" },
+  { icon: Newspaper, t: "Escolha entre dezenas de veículos" },
+  { icon: Send,      t: "Publique seu release em minutos" },
 ];
 
 const VALID_PLANS = ["BASIC", "ADVANCED", "PROFESSIONAL"];
@@ -263,7 +263,7 @@ function CadastroInner() {
           {step === "signup" && (
             <>
               <h1>Crie sua <em>conta</em>.</h1>
-              <p className="lead">Comece a distribuir releases para centenas de veículos.</p>
+              <p className="lead">Comece a distribuir releases para dezenas de veículos.</p>
 
               <form onSubmit={handleSignUp}>
                 <div className="fld">
