@@ -40,7 +40,7 @@ function MockEditor() {
   );
 }
 function MockVehicles() {
-  const rows: [string, string, number][] = [["Capital Econômica","#1A1A1A",320],["Jornal Metrópole","#0E1A2B",240],["Portal Mercado Hoje","#2A6FDB",280]];
+  const rows: [string, string, number][] = [["Capital Econômica","#1A1A1A",100],["Jornal Metrópole","#0E1A2B",50],["Portal Mercado Hoje","#2A6FDB",25]];
   return (
     <div className="mock">
       <div className="mbar"><i /><i /><i /><span className="mt">selecionar veículos</span></div>
@@ -95,8 +95,8 @@ function MockResults() {
 
 const TOUR = [
   { n: "01", mock: <MockEditor />,   t: <>Escreva seu <em>release</em></>,            d: "Você pode colar seu artigo pronto ou usar nossa IA para estruturar um conteúdo impecável e otimizado em segundos." },
-  { n: "02", mock: <MockVehicles />, t: <>Escolha entre <em>centenas de veículos</em></>, d: "Filtre por categoria, estado e audiência. O custo em créditos aparece em tempo real — e tudo cabe no seu plano." },
-  { n: "03", mock: <MockCalendar />, t: <>Agende no <em>calendário</em></>,            d: "Publique na hora ou programe. Visualize todo o mês de distribuição organizado por status." },
+  { n: "02", mock: <MockVehicles />, t: <>Escolha entre <em>dezenas de veículos</em></>, d: "Filtre por categoria, estado e audiência. O custo em créditos aparece em tempo real — e tudo cabe no seu plano." },
+  { n: "03", mock: <MockCalendar />, t: <>Agende no <em>calendário</em></>,            d: "Publique imediatamente ou programe o dia e horário. Visualize todo o cronograma do mês e acompanhe o status de cada publicação em uma única tela" },
   { n: "04", mock: <MockResults />,  t: <>Acompanhe os <em>resultados</em></>,         d: "Alcance, veículos ativos e desempenho por release num painel único e em tempo real." },
 ];
 
