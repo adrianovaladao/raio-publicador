@@ -968,18 +968,18 @@ function PolicyModal({ onAccept, onClose }: { onAccept: () => void; onClose: () 
         "Referências a outros veículos como fonte (Folha, Veja, Estadão etc.)",
         "Menção a rankings ou premiações sem identificar a fonte",
         "Mensagens puramente promocionais sem dados que as sustentem",
-        "Mais de 2 links externos por release",
+        "No máximo 2 links externos por texto",
       ],
     },
     {
       accent: "var(--red)", dot: "var(--red-soft)", Icon: X,
       label: "Proibido",
       items: [
-        "Dados estatísticos sem fonte identificada",
-        "Citação de concorrentes ou comparações com outras empresas",
-        "Menção a clientes, parceiros ou pessoas físicas sem autorização prévia",
-        "Imagens sem crédito, com marca d'água ou sem licença de uso",
-        "Informações falsas, não verificáveis ou enganosas",
+        "Dados estatísticos ou alegações sem fonte identificada",
+        "Citação de concorrentes, marcas ou empresas em tom difamatório ou comparativo",
+        "Menção a pessoas físicas, marcas ou parceiros sem autorização prévia por escrito",
+        "Imagens sem direito de uso comercial ou com marca d'água de terceiros",
+        "Informações falsas (Fake News), difamatórias, ofensivas, de caráter ilícito ou preconceituoso",
       ],
     },
   ];
@@ -1000,7 +1000,7 @@ function PolicyModal({ onAccept, onClose }: { onAccept: () => void; onClose: () 
               </h3>
             </div>
             <p style={{ margin: 0, fontSize: 13, color: "var(--stone)" }}>
-              As releases precisam seguir as diretrizes editoriais dos veículos parceiros. Leia com atenção antes de continuar.
+              As matérias publicadas precisam seguir as diretrizes editoriais dos portais parceiros e a legislação vigente. Leia com atenção antes de prosseguir
             </p>
           </div>
           <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--stone)", display: "flex", padding: 4, flexShrink: 0 }}><X size={17} /></button>
@@ -1034,7 +1034,7 @@ function PolicyModal({ onAccept, onClose }: { onAccept: () => void; onClose: () 
           </div>
 
           <div style={{ background: "var(--bg)", borderRadius: "var(--r)", padding: "12px 16px", marginTop: 14, fontSize: 12.5, color: "var(--stone)", lineHeight: 1.6 }}>
-            O anunciante é integralmente responsável pela veracidade, legalidade e autorização de uso de todas as informações, imagens e referências presentes no conteúdo. Releases em desacordo com esta política poderão ser recusados ou devolvidos para ajuste.
+            O anunciante declara e garante ser o único e exclusivo responsável civil, administrativo e criminal pela veracidade, autoria, legalidade e autorização de uso de todas as informações, imagens, marcas e links contidos no artigo enviado. O Raio Publicador exime-se de qualquer responsabilidade sobre o teor publicado. Conteúdos que violem a lei ou esta política editorial serão sumariamente recusados e cancelados sem direito a reembolso de créditos
           </div>
         </div>
 
@@ -1048,7 +1048,7 @@ function PolicyModal({ onAccept, onClose }: { onAccept: () => void; onClose: () 
               style={{ marginTop: 3, accentColor: "var(--coral)", flexShrink: 0, width: 15, height: 15, cursor: "pointer" }}
             />
             <span style={{ fontSize: 13, color: "var(--ink-soft)", lineHeight: 1.55 }}>
-              Li e aceito a política editorial do Raio Publicador e confirmo que o conteúdo respeita as diretrizes de publicação dos veículos parceiros.
+              Li, compreendo e aceito a Política Editorial do Raio Publicador. Declaro que o conteúdo enviado é de minha inteira responsabilidade e está em conformidade com as diretrizes e leis vigentes
             </span>
           </label>
           <button
