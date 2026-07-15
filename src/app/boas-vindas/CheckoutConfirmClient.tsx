@@ -193,8 +193,8 @@ export default function CheckoutConfirmClient({ initialPlanId, allPlans }: Props
                           <div style={{ display: "flex", flexWrap: "wrap", gap: "6px 16px" }}>
                             {[
                               `${p.credits.toLocaleString("pt-BR")} créditos`,
-                              `${p.brandsLimit} marca${p.brandsLimit > 1 ? "s" : ""}`,
-                              `${p.tierAIncluded} Categoria A/mês`,
+                              `Até ${p.brandsLimit} marca${p.brandsLimit > 1 ? "s" : ""}`,
+                              `Até ${p.tierAIncluded} portais categoria A`,
                               `${p.editorsLimit} editor${p.editorsLimit > 1 ? "es" : ""}`,
                             ].map((t, i) => (
                               <span key={i} style={{ fontSize: 15.5, color: "var(--tx-3)", display: "flex", alignItems: "center", gap: 4 }}>

@@ -507,7 +507,7 @@ function CancelFlow({ plan, email, periodEnd, periodStart, isCancelled, onDone, 
               <div style={{ width: 40, height: 40, borderRadius: 10, background: "var(--cream)", display: "grid", placeItems: "center", marginBottom: 14 }}>
                 <ClipboardList size={20} color="var(--stone)" />
               </div>
-              <div style={{ fontWeight: 800, fontSize: 18, color: "var(--ink)", letterSpacing: "-0.3px", marginBottom: 4 }}>Política de cancelamento</div>
+              <div style={{ fontWeight: 800, fontSize: 18, color: "var(--ink)", letterSpacing: "-0.3px", marginBottom: 4 }}>Garantia de Satisfação (Art. 49, CDC)</div>
               <div style={{ fontSize: 13, color: "var(--stone)" }}>Leia com atenção antes de prosseguir.</div>
             </div>
             <div style={{ padding: "20px 32px" }}>
