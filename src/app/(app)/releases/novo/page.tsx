@@ -1000,7 +1000,7 @@ function PolicyModal({ onAccept, onClose }: { onAccept: () => void; onClose: () 
               </h3>
             </div>
             <p style={{ margin: 0, fontSize: 13, color: "var(--stone)" }}>
-              Os matérias precisam seguir as diretrizes editoriais dos veículos parceiros. Leia com atenção antes de continuar.
+              As matérias precisam seguir as diretrizes editoriais dos veículos parceiros. Leia com atenção antes de continuar.
             </p>
           </div>
           <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--stone)", display: "flex", padding: 4, flexShrink: 0 }}><X size={17} /></button>
@@ -1547,7 +1547,7 @@ export default function NovoReleasePage() {
 
             {/* Título */}
             <h2 style={{ fontFamily: "var(--sans)", fontWeight: 800, fontSize: 32, letterSpacing: "-0.03em", margin: "0 0 12px" }}>
-              {scheduled ? "Matéria agendado!" : "Matéria publicado!"}
+              {scheduled ? "Matéria agendada!" : "Matéria publicada!"}
             </h2>
             <p className="muted" style={{ fontSize: 16, lineHeight: 1.6, margin: "0 0 32px" }}>
               {scheduled

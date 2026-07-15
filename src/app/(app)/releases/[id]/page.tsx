@@ -587,7 +587,7 @@ function StepSchedule({
   schedDate: string; setSchedDate: (v: string) => void;
   title: string; body: string; subtitle: string; cat: string;
   selectedVeh: string[]; brand: Brand | null;
-  matériaStatus: string; onSaveDraft: () => Promise<void>; saving: boolean; vehicles: VehicleItem[];
+  releaseStatus: string; onSaveDraft: () => Promise<void>; saving: boolean; vehicles: VehicleItem[];
 }) {
   const selVehicles = selectedVeh.map(id => vehicles.find(v => v.id === id)).filter(Boolean) as VehicleItem[];
   const selTokens   = selVehicles.reduce((s, v) => s + (TIER_TOKENS_MAP[v.tier] ?? 0), 0);
@@ -670,7 +670,7 @@ function StepSchedule({
           </div>
         </div>
 
-        {matériaStatus === "SCHEDULED" && (
+        {releaseStatus === "SCHEDULED" && (
           <button
             className="btn btn-ghost btn-sm"
             style={{ width: "100%", justifyContent: "center", marginTop: 16 }}
@@ -819,7 +819,7 @@ export default function EditReleasePage() {
       });
       if (!res.ok) { setErr("Erro ao salvar. Tente novamente."); return; }
       window.dispatchEvent(new Event("credits-changed"));
-      showToast("Matéria agendado com sucesso!");
+      showToast("Matéria agendada com sucesso!");
       setTimeout(() => router.push("/releases"), 1500);
     } catch { setErr("Falha de conexão."); }
     finally { setSaving(false); }
@@ -843,7 +843,7 @@ export default function EditReleasePage() {
         }),
       });
       if (!res.ok) { setErr("Erro ao salvar. Tente novamente."); return; }
-      if (matéria?.status === "SCHEDULED") window.dispatchEvent(new Event("credits-changed"));
+      if (release?.status === "SCHEDULED") window.dispatchEvent(new Event("credits-changed"));
       showToast("Rascunho salvo!");
       setTimeout(() => router.push("/releases"), 1500);
     } catch { setErr("Falha de conexão."); }
@@ -854,7 +854,7 @@ export default function EditReleasePage() {
     setDeleting(true);
     try {
       await fetch(`/api/releases/${id}`, { method: "DELETE" });
-      if (matéria?.status === "SCHEDULED") window.dispatchEvent(new Event("credits-changed"));
+      if (release?.status === "SCHEDULED") window.dispatchEvent(new Event("credits-changed"));
       router.replace("/releases");
     } catch { setDeleting(false); }
   }
@@ -869,7 +869,7 @@ export default function EditReleasePage() {
     );
   }
 
-  if (err && !matéria) {
+  if (err && !release) {
     return (
       <div className="content scroll">
         <div className="content-inner">
@@ -1039,7 +1039,7 @@ export default function EditReleasePage() {
   }
 
   // ── Read-only view for published matérias ─────────────────────────────────
-  if (matéria?.status === "PUBLISHED") {
+  if (release?.status === "PUBLISHED") {
     const pubUrls = release.publishedVehicleUrls ?? {} as Record<string, string>;
     const toAbsUrl = (u: string) => /^https?:\/\//i.test(u) ? u : `https://${u}`;
     const fmtFull = (iso: string) => new Date(iso).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
@@ -1071,7 +1071,7 @@ export default function EditReleasePage() {
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20, padding: "10px 16px", background: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: 10 }}>
             <Check size={15} style={{ color: "#16A34A", flexShrink: 0 }} />
             <span style={{ fontSize: 13, color: "#15803D", fontWeight: 600 }}>
-              Matéria publicado — conteúdo bloqueado para edição.
+              Matéria publicada — conteúdo bloqueado para edição.
             </span>
           </div>
 
@@ -1206,7 +1206,7 @@ export default function EditReleasePage() {
             schedDate={schedDate} setSchedDate={setSchedDate}
             title={title} body={body} subtitle={subtitle} cat={cat}
             selectedVeh={selectedVeh} brand={brand}
-            matériaStatus={matéria?.status ?? "DRAFT"}
+            releaseStatus={release?.status ?? "DRAFT"}
             onSaveDraft={saveDraft}
             saving={saving}
           vehicles={vehicles}

@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { List, LayoutGrid, Plus, Inbox, Trash2, Copy, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 
-interface Matéria {
+interface ReleaseRow {
   id: string;
   title: string;
   status: string;
@@ -66,7 +66,7 @@ const STATUS_ORDER: Record<string, number> = {
   needs_revision: 4, rejected: 5, draft: 6, cancelled: 7,
 };
 
-function sortMatérias(arr: ReleaseRow[], col: SortCol, dir: SortDir) {
+function sortReleases(arr: ReleaseRow[], col: SortCol, dir: SortDir) {
   return [...arr].sort((a, b) => {
     if (col === "date") {
       const diff = new Date(a.date).getTime() - new Date(b.date).getTime();
@@ -125,7 +125,7 @@ export default function ReleasesPage() {
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [duplicating, setDuplicating] = useState<string | null>(null);
 
-  async function duplicateMatéria(id: string) {
+  async function duplicateRelease(id: string) {
     setDuplicating(id);
     try {
       const res = await fetch(`/api/releases/${id}/duplicate`, { method: "POST" });
@@ -157,7 +157,7 @@ export default function ReleasesPage() {
   useEffect(() => {
     fetch("/api/releases")
       .then(r => r.json())
-      .then((data: Matéria[]) => {
+      .then((data: ReleaseRow[]) => {
         const rows: ReleaseRow[] = data.map(r => ({
           id: r.id,
           title: r.title,
@@ -195,7 +195,7 @@ export default function ReleasesPage() {
 
   let list = releases.filter(r => filter === "all" || r.status === filter);
   if (q.trim()) list = list.filter(r => (r.title + r.cat + r.author).toLowerCase().includes(q.toLowerCase()));
-  list = sortMatérias(list, sortCol, sortDir);
+  list = sortReleases(list, sortCol, sortDir);
 
   return (
     <div className="content scroll">
@@ -278,7 +278,7 @@ export default function ReleasesPage() {
                     <td onClick={e => e.stopPropagation()} style={{ whiteSpace: "nowrap" }}>
                       {r.status === "scheduled" && (
                         <button
-                          onClick={() => duplicateMatéria(r.id)}
+                          onClick={() => duplicateRelease(r.id)}
                           disabled={duplicating === r.id}
                           style={{ background: "none", border: "none", cursor: "pointer", padding: "4px 6px", color: "var(--stone)", borderRadius: 6, display: "inline-flex", alignItems: "center" }}
                           title="Duplicar como rascunho"

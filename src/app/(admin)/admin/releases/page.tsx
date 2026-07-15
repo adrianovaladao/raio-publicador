@@ -183,7 +183,7 @@ function extractImages(html: string): string[] {
 }
 
 // ── Painel de ações ───────────────────────────────────────────────────────────
-function MatériaActions({ matéria, onSaved, onDeleted }: {
+function ReleaseActions({ release, onSaved, onDeleted }: {
   release: ReleaseRow;
   onSaved: () => void;
   onDeleted: () => void;
@@ -241,7 +241,7 @@ function MatériaActions({ matéria, onSaved, onDeleted }: {
     }
   }
 
-  function buildMatériaHtml(forExport = false) {
+  function buildReleaseHtml(forExport = false) {
     const subtitle = release.summary
       ? `<p style="font-style:italic;font-size:16px;color:#444;margin:0 0 24px;line-height:1.5">${release.summary}</p>`
       : "";
@@ -315,11 +315,11 @@ function MatériaActions({ matéria, onSaved, onDeleted }: {
   return (
     <div style={{ borderTop: "1px solid #f0f0f0", padding: "20px 20px", background: "#fafafa" }}>
 
-      {/* Conteúdo do matéria */}
+      {/* Conteúdo da matéria */}
       <div style={{ marginBottom: 20 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
           <label style={{ fontSize: 12, fontWeight: 600, color: "#888", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-            Conteúdo do matéria
+            Conteúdo da matéria
           </label>
           <div style={{ display: "flex", gap: 8 }}>
             <button
@@ -632,7 +632,7 @@ export default function AdminReleasesPage() {
           <ChevronDown size={16} style={{ color: "#bbb", flexShrink: 0, transform: isExpanded ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
         </div>
         {isExpanded && (
-          <MatériaActions matéria={r} onSaved={() => load()} onDeleted={() => { setExpanded(null); load(); }} />
+          <ReleaseActions release={r} onSaved={() => load()} onDeleted={() => { setExpanded(null); load(); }} />
         )}
       </div>
     );

@@ -15,7 +15,7 @@ import { SelectBox } from "@/components/SelectBox";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-interface RecentMatéria {
+interface RecentRelease {
   id: string;
   title: string;
   status: string;
@@ -32,10 +32,10 @@ interface Brand {
   contact: string | null;
   description: string | null;
   logoUrl: string | null;
-  matérias: number;
+  releases: number;
   creditsUsed: number;
   publishedCount: number;
-  recentMatérias: RecentMatéria[];
+  recentReleases: RecentMatéria[];
 }
 
 interface DashboardData {
@@ -504,7 +504,7 @@ export default function DashboardPage() {
   const brands     = data?.brands ?? [];
   const activeBrand = brands[activeIdx] ?? brands[0] ?? null;
   const hasBrands   = brands.length > 0;
-  const hasMatérias = (stats?.total ?? 0) > 0;
+  const hasReleases = (stats?.total ?? 0) > 0;
 
   const KPIS = [
     { id: "k1", icon: Send,      label: "Matérias publicados", val: String(activeBrand?.publishedCount ?? stats?.published ?? 0), accent: true },
@@ -541,7 +541,7 @@ export default function DashboardPage() {
               {KPIS.map(k => <KpiCard key={k.id} {...k} />)}
             </div>
 
-            {hasMatérias && (
+            {hasReleases && (
               <div className="dash-2col">
                 <PerformanceDonut brandId={activeBrand?.id} />
                 <TopVehicles />
@@ -553,9 +553,9 @@ export default function DashboardPage() {
                 <h3>Matérias <em>mais recentes</em></h3>
                 <Link href="/releases" className="link">Ver todos</Link>
               </div>
-              {!activeBrand || activeBrand.recentMatérias.length === 0 ? (
+              {!activeBrand || activeBrand.recentReleases.length === 0 ? (
                 <div style={{ padding: "32px 22px", textAlign: "center", color: "var(--stone)", fontSize: 14 }}>
-                  Nenhum matéria criado para essa marca ainda.
+                  Nenhuma matéria criada para essa marca ainda.
                 </div>
               ) : (
                 <table className="tbl">
@@ -568,7 +568,7 @@ export default function DashboardPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {activeBrand.recentMatérias.map(r => (
+                    {activeBrand.recentReleases.map(r => (
                       <tr key={r.id} style={{ cursor: "pointer" }} className="tbl-row-hover"
                         onClick={() => router.push(`/releases/${r.id}`)}>
                         <td className="title-cell">{r.title.length > 60 ? r.title.slice(0, 60) + "…" : r.title}</td>
@@ -627,12 +627,12 @@ function PerformanceDonut({ brandId }: { brandId?: string }) {
     const url = brandId ? `/api/vehicles-stats?brandId=${brandId}` : "/api/vehicles-stats";
     fetch(url)
       .then(r => r.json())
-      .then((res: { ranked: { id: string; count: number; name: string; domain: string; tier: string; reach: number }[]; totalMatérias: number }) => {
+      .then((res: { ranked: { id: string; count: number; name: string; domain: string; tier: string; reach: number }[]; totalReleases: number }) => {
         const top5 = res.ranked.slice(0, 5).map(r => ({
           id: r.id, name: r.name, domain: r.domain, tier: r.tier, reach: r.reach, count: r.count,
         }));
         setData(top5);
-        setTotal(res.totalMatérias);
+        setTotal(res.totalReleases);
       })
       .finally(() => setLoading(false));
   }, [brandId]);

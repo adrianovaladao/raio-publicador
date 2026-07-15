@@ -19,9 +19,9 @@ interface Stats {
   newUsersThisMonth: number;
   newUsersLastMonth: number;
   newUsersLast30: number;
-  totalMatérias: number;
-  matériasByStatus: Record<string, number>;
-  matériasThisMonth: number;
+  totalReleases: number;
+  releasesByStatus: Record<string, number>;
+  releasesThisMonth: number;
   totalCreditsConsumed: number;
 }
 
