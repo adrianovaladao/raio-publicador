@@ -16,7 +16,7 @@ const PARTNERS = ["f1","f2","f3","f4","f5","f6","f7"];
 
 const STEPS = [
   { icon: Feather,    n: "01", t: "Escreva o release",    d: "Editor limpo com título, linha-fina e corpo. Cole seu texto ou gere um rascunho com IA." },
-  { icon: Newspaper,  n: "02", t: "Escolha os veículos",  d: "Filtre 600 portais por categoria, estado e audiência. O custo em créditos aparece na hora." },
+  { icon: Newspaper,  n: "02", t: "Escolha os veículos",  d: "Filtre mais de 50 portais de notícia por nicho, região e volume de acessos. Você vê exatamente quantos créditos cada publicação consome na hora." },
   { icon: Send,       n: "03", t: "Publique ou agende",   d: "Dispare na hora ou programe no calendário. Um clique distribui para todos os veículos." },
   { icon: BarChart2,  n: "04", t: "Acompanhe resultados", d: "Alcance, veículos ativos e desempenho por release num painel único e em tempo real." },
 ];
@@ -168,8 +168,7 @@ function Hero() {
             como um <em>raio</em>.
           </h1>
           <p className="sub">
-            Distribua seus releases para mais de 600 portais de notícias num único plano.
-            Sem custo por nota — você usa créditos em quantas publicações quiser.
+            Sua marca nos maiores portais do Brasil. Sem intermediários, sem rejeição. Publique seus conteúdos de forma garantida em mais de 50 portais.
           </p>
           <div className="cta-row">
             <a className="btn btn-primary btn-lg" href="#planos">
@@ -178,7 +177,7 @@ function Hero() {
             <Link className="btn btn-ghost btn-lg" href="/login">Já tenho conta</Link>
           </div>
           <div className="micro">
-            <CheckCircle size={15} /> Sem fidelidade · cancele quando quiser
+            <CheckCircle size={15} /> Use seus créditos para publicar quando quiser, com controle total e sem contratos de fidelidade.
           </div>
         </div>
       </div>
@@ -228,8 +227,8 @@ function Como() {
       <div className="wrap">
         <div className="sec-head reveal">
           <span className="eyebrow">Como funciona</span>
-          <h2>Do rascunho à imprensa em <em>quatro passos</em></h2>
-          <p className="sub">Um fluxo pensado para assessores que publicam muito — sem planilhas, sem e-mails soltos, sem custo por nota.</p>
+          <h2>Do rascunho à publicação garantida em <em>cinco passos</em></h2>
+          <p className="sub">Um fluxo feito para marcas, agências e profissionais que precisam de resultados reais — sem burocracia e com controle absoluto.</p>
         </div>
         <div className="steps-grid">
           {STEPS.map(({ icon: Icon, n, t, d }, i) => (
