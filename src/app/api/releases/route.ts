@@ -82,16 +82,22 @@ export async function POST(req: Request) {
         body.scheduledAt ? new Date(body.scheduledAt) : new Date(),
         body.vehicles?.length ?? 0,
         release.id,
-      ).catch(console.error);
+      ).then(res => {
+        console.log("[email] release agendado enviado para", email, res);
+      }).catch(err => {
+        console.error("[email] erro ao enviar release agendado para", email, err);
+      });
 
       // Créditos baixos ou zerados após débito
       const remaining = (sub.creditsTotal - sub.creditsUsed) - creditsToDebit;
       const threshold = Math.floor(sub.creditsTotal * 0.2);
       if (remaining <= 0) {
-        await sendZeroCreditsEmail(email, firstName).catch(console.error);
+        await sendZeroCreditsEmail(email, firstName).catch(err => console.error("[email] erro créditos zerados", err));
       } else if (remaining <= threshold) {
-        await sendLowCreditsEmail(email, firstName, remaining).catch(console.error);
+        await sendLowCreditsEmail(email, firstName, remaining).catch(err => console.error("[email] erro créditos baixos", err));
       }
+    } else {
+      console.warn("[email] usuário sem email no Clerk:", userId);
     }
   }
 

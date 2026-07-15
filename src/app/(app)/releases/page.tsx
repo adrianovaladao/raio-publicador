@@ -4,7 +4,14 @@ import { useState, useEffect } from "react";
 import { useEscapeKey } from "@/hooks/useEscapeKey";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { List, LayoutGrid, Plus, Inbox, Trash2, Copy, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { List, LayoutGrid, Plus, Inbox, Trash2, Copy, ArrowUpDown, ArrowUp, ArrowDown, ChevronDown, Check } from "lucide-react";
+
+interface Brand {
+  id: string;
+  name: string;
+  color: string | null;
+  logoUrl?: string | null;
+}
 
 interface ReleaseRow {
   id: string;
@@ -16,6 +23,7 @@ interface ReleaseRow {
   creditsUsed: number;
   imageUrl?: string | null;
   brandColor?: string | null;
+  brandId?: string | null;
 }
 
 interface ReleaseApiRow {
@@ -113,6 +121,60 @@ function ConfirmModal({ title, desc, onConfirm, onCancel }: { title: string; des
   );
 }
 
+function BrandAvatar({ name, color, logoUrl, size = 24 }: { name: string; color: string | null; logoUrl?: string | null; size?: number }) {
+  const bg = color ?? "#888";
+  const initials = name.split(" ").filter(Boolean).slice(0, 2).map(w => w[0]).join("").toUpperCase();
+  return (
+    <div style={{ width: size, height: size, borderRadius: size / 4, background: bg, flexShrink: 0, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      {logoUrl
+        // eslint-disable-next-line @next/next/no-img-element
+        ? <img src={logoUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        : <span style={{ fontFamily: "var(--mono)", fontWeight: 700, fontSize: size * 0.38, color: "#fff" }}>{initials}</span>
+      }
+    </div>
+  );
+}
+
+function BrandSelector({ brands, activeBrandId, onChange }: { brands: Brand[]; activeBrandId: string | null; onChange: (id: string | null) => void }) {
+  const [open, setOpen] = useState(false);
+  const active = brands.find(b => b.id === activeBrandId) ?? null;
+  if (brands.length < 2) return null;
+  return (
+    <div style={{ position: "relative" }}>
+      <button
+        className="btn btn-ghost btn-sm"
+        style={{ display: "flex", alignItems: "center", gap: 8, paddingLeft: 10, paddingRight: 10 }}
+        onClick={() => setOpen(o => !o)}
+      >
+        {active
+          ? <><BrandAvatar name={active.name} color={active.color} logoUrl={active.logoUrl} size={20} />{active.name}</>
+          : "Todas as marcas"
+        }
+        <ChevronDown size={13} style={{ opacity: 0.5 }} />
+      </button>
+      {open && (
+        <div style={{ position: "absolute", top: "calc(100% + 6px)", right: 0, background: "var(--paper)", border: "1px solid var(--line)", borderRadius: 10, boxShadow: "0 8px 24px rgba(0,0,0,0.12)", zIndex: 200, minWidth: 200, padding: "6px 0" }}
+          onMouseLeave={() => setOpen(false)}>
+          <button className="tbb-opt" style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "8px 14px", background: "none", border: "none", cursor: "pointer", fontSize: 13 }}
+            onClick={() => { onChange(null); setOpen(false); }}>
+            <span style={{ width: 20, height: 20, borderRadius: 5, background: "var(--line)", flexShrink: 0 }} />
+            Todas as marcas
+            {activeBrandId === null && <Check size={14} style={{ marginLeft: "auto", color: "var(--coral-ink)" }} />}
+          </button>
+          {brands.map(b => (
+            <button key={b.id} className="tbb-opt" style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "8px 14px", background: "none", border: "none", cursor: "pointer", fontSize: 13 }}
+              onClick={() => { onChange(b.id); setOpen(false); }}>
+              <BrandAvatar name={b.name} color={b.color} logoUrl={b.logoUrl} size={20} />
+              {b.name}
+              {activeBrandId === b.id && <Check size={14} style={{ marginLeft: "auto", color: "var(--coral-ink)" }} />}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function ReleasesPage() {
   const router = useRouter();
   const [mode, setMode]     = useState<"list" | "grid">("list");
@@ -121,6 +183,8 @@ export default function ReleasesPage() {
   const [sortCol, setSortCol] = useState<SortCol>("date");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [releases, setReleases] = useState<ReleaseRow[]>([]);
+  const [brands, setBrands]     = useState<Brand[]>([]);
+  const [activeBrandId, setActiveBrandId] = useState<string | null>(null);
   const [loading, setLoading]   = useState(true);
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [duplicating, setDuplicating] = useState<string | null>(null);
@@ -155,23 +219,25 @@ export default function ReleasesPage() {
   }
 
   useEffect(() => {
-    fetch("/api/releases")
-      .then(r => r.json())
-      .then((data: ReleaseApiRow[]) => {
-        const rows: ReleaseRow[] = data.map(r => ({
-          id: r.id,
-          title: r.title,
-          cat: r.brand?.name ?? "—",
-          author: "Você",
-          status: r.status.toLowerCase(),
-          date: r.scheduledAt ?? r.publishedAt ?? r.createdAt,
-          creditsUsed: r.creditsUsed ?? 0,
-          imageUrl: r.imageUrl,
-          brandColor: r.brand?.color,
-        }));
-        setReleases(rows);
-      })
-      .finally(() => setLoading(false));
+    Promise.all([
+      fetch("/api/releases").then(r => r.json()),
+      fetch("/api/brands").then(r => r.json()),
+    ]).then(([data, brandsData]: [ReleaseApiRow[], Brand[]]) => {
+      const rows: ReleaseRow[] = data.map(r => ({
+        id: r.id,
+        title: r.title,
+        cat: r.brand?.name ?? "—",
+        author: "Você",
+        status: r.status.toLowerCase(),
+        date: r.scheduledAt ?? r.publishedAt ?? r.createdAt,
+        creditsUsed: r.creditsUsed ?? 0,
+        imageUrl: r.imageUrl,
+        brandColor: r.brand?.color,
+        brandId: (r as ReleaseApiRow & { brandId: string }).brandId ?? null,
+      }));
+      setReleases(rows);
+      setBrands(Array.isArray(brandsData) ? brandsData : []);
+    }).finally(() => setLoading(false));
   }, []);
 
   const counts = Object.fromEntries(
@@ -194,6 +260,7 @@ export default function ReleasesPage() {
   );
 
   let list = releases.filter(r => filter === "all" || r.status === filter);
+  if (activeBrandId) list = list.filter(r => r.brandId === activeBrandId);
   if (q.trim()) list = list.filter(r => (r.title + r.cat + r.author).toLowerCase().includes(q.toLowerCase()));
   list = sortReleases(list, sortCol, sortDir);
 
@@ -222,6 +289,7 @@ export default function ReleasesPage() {
             ))}
           </div>
           <div className="spacer" />
+          <BrandSelector brands={brands} activeBrandId={activeBrandId} onChange={setActiveBrandId} />
           <input
             className="input"
             placeholder="Buscar releases…"
