@@ -26,8 +26,8 @@ interface Props {
 function PlanFeatures({ plan }: { plan: PlanData }) {
   const features = [
     { icon: Coins,     text: `${plan.credits.toLocaleString("pt-BR")} créditos mensais` },
-    { icon: Building2, text: `${plan.brandsLimit} marca${plan.brandsLimit > 1 ? "s" : ""}` },
-    { icon: Newspaper, text: `${plan.tierAIncluded} publicações/mês em veículos Categoria A` },
+    { icon: Building2, text: `Até ${plan.brandsLimit === 1 ? "uma" : plan.brandsLimit === 2 ? "duas" : plan.brandsLimit} marca${plan.brandsLimit > 1 ? "s" : ""}` },
+    { icon: Newspaper, text: `Até ${plan.tierAIncluded} publicações em portais categoria A` },
     { icon: Users,     text: `${plan.editorsLimit} editor${plan.editorsLimit > 1 ? "es" : ""} · ${plan.reviewersLimit} revisor${plan.reviewersLimit > 1 ? "es" : ""}` },
   ];
   return (
@@ -163,8 +163,8 @@ export default function CheckoutConfirmClient({ initialPlanId, allPlans }: Props
                   </button>
 
                   <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: 16, fontSize: 12, color: "var(--tx-3)", lineHeight: 1.6, textAlign: "left" }}>
-                    <b style={{ color: "var(--tx-2)" }}>Política de cancelamento (Art. 49, CDC):</b>{" "}
-                    Se cancelar em até 7 dias sem utilizar créditos, você recebe reembolso integral e seus dados são removidos. Após 7 dias ou com créditos utilizados, o acesso permanece até o fim do ciclo sem reembolso.
+                    <b style={{ color: "var(--tx-2)" }}>Garantia de Satisfação (Art. 49, CDC):</b>{" "}
+                    Queremos que você ame o Raio. Se você cancelar em até 7 dias sem ter utilizado nenhum crédito, devolvemos 100% do seu dinheiro de forma integral. Após o uso de créditos ou o prazo de 7 dias, o seu acesso continua ativo até o final do período contratado, sem renovação automática caso decida cancelar.
                   </div>
                 </div>
 

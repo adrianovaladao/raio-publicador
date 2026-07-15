@@ -263,7 +263,7 @@ function CadastroInner() {
           {step === "signup" && (
             <>
               <h1>Crie sua <em>conta</em>.</h1>
-              <p className="lead">Comece a distribuir releases para dezenas de veículos.</p>
+              <p className="lead">Garanta espaço para sua marca nos maiores portais de notícias do país.</p>
 
               <form onSubmit={handleSignUp}>
                 <div className="fld">
@@ -296,6 +296,9 @@ function CadastroInner() {
                 <button className="btn btn-primary btn-block btn-lg" type="submit" disabled={loading}>
                   {loading ? "Criando conta…" : <><span>Criar conta</span><ArrowRight size={17} /></>}
                 </button>
+                <p style={{ textAlign: "center", fontSize: 12.5, color: "var(--tx-3)", marginTop: 12 }}>
+                  🔒 <b>Seus dados estão protegidos.</b> Cadastro rápido e 100% seguro.
+                </p>
               </form>
 
               <p className="auth-foot">
