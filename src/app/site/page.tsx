@@ -407,7 +407,7 @@ function Faq() {
     <section className="section" id="faq">
       <div className="wrap">
         <div className="sec-head reveal">
-          <span className="eyebrow">Perguntas frequentes</span>
+          <span className="eyebrow">Perguntas Frequentes</span>
           <h2>Tudo sobre o <em>modelo de créditos</em></h2>
         </div>
         <div className="faq reveal">
