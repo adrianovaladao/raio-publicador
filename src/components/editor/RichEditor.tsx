@@ -138,7 +138,7 @@ export function RichEditor({
         orderedList: { keepMarks: true },
       }),
       Underline,
-      Placeholder.configure({ placeholder: "Escreva o corpo do release… Comece com o lide: o quê, quem, quando, onde e por quê." }),
+      Placeholder.configure({ placeholder: "Escreva o corpo do release. Dica: introduza o assunto principal logo no primeiro parágrafo de forma atrativa e use intertítulos para organizar o texto." }),
       Link.configure({ openOnClick: false, HTMLAttributes: { class: "editor-link" } }),
       FigureExtension,
     ],

@@ -734,15 +734,15 @@ function StepVehicles({ selected, setSelected, vehicles, sub, onUpgrade, onBuyCr
             <div style={{ width: 40, height: 40, borderRadius: 10, background: "#FEE2E2", display: "grid", placeItems: "center", marginBottom: 14 }}>
               <ShieldCheck size={20} color="#C0392B" />
             </div>
-            <div style={{ fontWeight: 800, fontSize: 18, color: "var(--ink)", letterSpacing: "-0.3px", marginBottom: 6 }}>Exclusividade Categoria A</div>
+            <div style={{ fontWeight: 800, fontSize: 18, color: "var(--ink)", letterSpacing: "-0.3px", marginBottom: 6 }}>Exclusividade em portais Categoria A</div>
             <div style={{ fontSize: 13, color: "var(--stone)", lineHeight: 1.6, marginBottom: 20 }}>
-              Cada release pode conter apenas <strong>um veículo Categoria A</strong>. Esses veículos têm política de exclusividade — o mesmo conteúdo não pode ser enviado para dois grandes ao mesmo tempo.
+              Cada matéria pode ser publicada em apenas <strong>um Portal A por vez</strong>. Esses canais exigem exclusividade de texto para evitar penalidades, protegendo o SEO do seu site.
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 24 }}>
               <div style={{ display: "flex", gap: 10, alignItems: "flex-start", padding: "12px 14px", background: "var(--cream)", borderRadius: 10 }}>
                 <Sparkles size={16} style={{ color: "var(--coral-ink)", flexShrink: 0, marginTop: 1 }} />
                 <div style={{ fontSize: 13, color: "var(--ink)", lineHeight: 1.5 }}>
-                  <strong>Sugestão:</strong> crie um novo release e use a IA para reescrever o conteúdo com um enfoque diferente — cada veículo Categoria A merece uma abordagem personalizada.
+                  <strong>Dica de ouro:</strong> Duplique este texto e use nossa IA para reescrevê-lo com um ângulo diferente em segundos. Assim, você garante presença em múltiplos portais A com conteúdos únicos e sem esforço manual.
                 </div>
               </div>
             </div>
