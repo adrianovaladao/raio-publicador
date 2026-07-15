@@ -70,7 +70,7 @@ const PLANS = [
 ];
 
 const TESTIMONIALS = [
-  { q: <>Centralizamos toda a nossa operação de branded content em uma só plataforma. O sistema de créditos nos deu uma <em>previsibilidade financeira incrível</em> e hoje publicamos 3x mais matérias nacionais com o mesmo orçamento.</>, nm: "Thais Caetano", rl: "Representante comercial", av: "TC" },
+  { q: <>Centralizamos toda a nossa operação de branded content em uma só plataforma. O sistema de créditos nos deu uma <em>previsibilidade financeira incrível</em> e hoje publicamos 3x mais matérias nacionais com o mesmo orçamento.</>, nm: "Thais Caetano", rl: "Representante comercial", av: "TC", photo: "/assets/testimonials/thais-caetano.jpg" },
   { q: <>Negociar publicações individualmente consumia dias de trabalho. Com o Raio, basta escolher os portais, subir o artigo e <em>acompanhar os links publicados de forma garantida</em>.</>, nm: "Leticia da Costa", rl: "Diretora de marketing", av: "LC" },
   { q: <>O custo por publicação garantida foi o grande diferencial. <em>Economizamos mais de 60% em relação ao modelo antigo</em> de assessoria de imprensa e mantivemos nossa marca em destaque nos maiores veículos do país.</>, nm: "Renato Nose", rl: "Diretor de expansão", av: "RN" },
 ];
@@ -384,7 +384,13 @@ function Testimonials() {
               </div>
               <p className="q">&ldquo;{t.q}&rdquo;</p>
               <div className="by">
-                <div className="av">{t.av}</div>
+                {"photo" in t && t.photo ? (
+                  <div className="av" style={{ padding: 0, overflow: "hidden" }}>
+                    <img src={t.photo as string} alt={t.nm} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  </div>
+                ) : (
+                  <div className="av">{t.av}</div>
+                )}
                 <div>
                   <div className="nm">{t.nm}</div>
                   <div className="rl">{t.rl}</div>
