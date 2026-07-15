@@ -211,16 +211,16 @@ function OQueE() {
       <div className="wrap" style={{ maxWidth: 760, textAlign: "center" }}>
         <div className="sec-head reveal">
           <span className="eyebrow">O que é um release</span>
-          <h2>A ferramenta mais poderosa da <em>assessoria de imprensa</em></h2>
+          <h2>O atalho entre sua novidade <em>e a imprensa</em></h2>
           <p className="sub" style={{ maxWidth: 620, margin: "0 auto" }}>
-            Um release é um texto jornalístico produzido por uma marca ou assessoria e enviado a redações para gerar cobertura espontânea na imprensa. Quando bem escrito e distribuído para os veículos certos, ele transforma novidades em notícia — sem pagar por anúncio.
+            Um release é um texto curto que apresenta uma novidade — um lançamento, uma conquista, uma posição — de forma clara e objetiva para jornalistas e editores. Quando chega no veículo certo, no momento certo, ele vira notícia. Sem anúncio, sem intermediário.
           </p>
         </div>
         <div className="steps-grid reveal" style={{ marginTop: 48, gridTemplateColumns: "repeat(3, 1fr)" }}>
           {[
-            { n: "01", t: "Cobertura orgânica", d: "O release gera menções editoriais — muito mais credíveis do que anúncios pagos para o leitor." },
+            { n: "01", t: "Cobertura orgânica", d: "O release gera menções editoriais, muito mais credíveis do que anúncios pagos para o leitor." },
             { n: "02", t: "Alcance multiplicado", d: "Um único texto pode ser publicado em dezenas de portais simultaneamente, ampliando o alcance da mensagem." },
-            { n: "03", t: "Autoridade de marca", d: "Aparecer na imprensa constrói reputação e posiciona a marca como referência no seu setor." },
+            { n: "03", t: "Autoridade de marca", d: "Aparecer na imprensa constrói reputação e posiciona você como referência no seu setor." },
           ].map(({ n, t, d }) => (
             <div className="step-card reveal" key={n}>
               <div className="n">{n}</div>
