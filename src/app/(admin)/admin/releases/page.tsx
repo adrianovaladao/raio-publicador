@@ -647,7 +647,7 @@ export default function AdminReleasesPage() {
           <div>
             <p className="eyebrow">Admin · Raio Publicador</p>
             <h2>Gerenciar <em>matérias</em></h2>
-            <p className="sub">Analise, aprove, publique e gerencie todos os matérias da plataforma.</p>
+            <p className="sub">Analise, aprove, publique e gerencie todas as matérias da plataforma.</p>
           </div>
           {needsAction > 0 && (
             <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#FFFBEB", padding: "10px 16px", borderRadius: 10, border: "1.5px solid #FDE68A" }}>
@@ -728,7 +728,7 @@ export default function AdminReleasesPage() {
         ) : activeGroups.length === 0 ? (
           <div className="card empty">
             <FileText size={34} />
-            <div className="t">{tab === "queue" ? "Nenhum matéria na fila" : "Nenhum matéria publicado"}</div>
+            <div className="t">{tab === "queue" ? "Nenhuma matéria na fila" : "Nenhuma matéria publicada"}</div>
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 40, paddingBottom: 64 }}>
@@ -740,7 +740,7 @@ export default function AdminReleasesPage() {
                   <div style={{ flex: 1, height: 1, background: "#e8e8e8" }} />
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                  {group.items.map(r => <MatériaCard key={r.id} r={r} />)}
+                  {group.items.map(r => <ReleaseCard key={r.id} r={r} />)}
                 </div>
               </div>
             ))}
