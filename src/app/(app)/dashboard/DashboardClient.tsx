@@ -728,7 +728,7 @@ function TopVehicles() {
   return (
     <div className="card">
       <div className="card-head">
-        <h3>Veículos com maior entrega <em>por tier</em></h3>
+        <h3>Veículos com maior entrega <em>por categoria</em></h3>
         <Link href="/veiculos" className="link">Ver todos</Link>
       </div>
       {loading ? (

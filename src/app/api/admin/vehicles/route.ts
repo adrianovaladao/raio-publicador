@@ -54,7 +54,7 @@ export async function POST(req: Request) {
     await Promise.allSettled(subs.map(s =>
       createNotification(s.ownerId, "vehicle_added",
         "Novo veículo disponível",
-        `${name} (${category} · Tier ${tier}) foi adicionado à plataforma.`,
+        `${name} (${category} · Categoria ${tier}) foi adicionado à plataforma.`,
         "/veiculos",
       )
     ));

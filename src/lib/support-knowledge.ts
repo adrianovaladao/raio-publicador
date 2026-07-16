@@ -10,7 +10,7 @@ O mais fácil de usar e rápido publicador de releases para a imprensa. A plataf
 - **Profissional** (R$ 5.000/mês): 2.000 créditos, até 10 marcas, 5 editores + 10 revisores, relatórios + exportação
 
 ## CRÉDITOS
-- Cada veículo consome créditos de acordo com seu tier (A=100, B=60, C=40, D=20, E=0)
+- Cada veículo consome créditos de acordo com sua categoria (A=100, B=60, C=40, D=20, E=0)
 - Créditos NÃO acumulam entre ciclos — expiram na data de renovação
 - O usuário é avisado por e-mail e notificação na plataforma faltando 7, 4, 1 dia(s) do vencimento
 - Ao ficar sem créditos: pode comprar créditos avulsos (valor proporcional ao plano) ou fazer upgrade de plano pagando a diferença
@@ -18,7 +18,7 @@ O mais fácil de usar e rápido publicador de releases para a imprensa. A plataf
 
 ## PUBLICAÇÃO DE RELEASES
 - Após agendamento, a maioria dos veículos publica de forma imediata
-- Veículos maiores (tier A/B) podem levar mais tempo por exigirem aprovação editorial interna
+- Veículos maiores (categoria A/B) podem levar mais tempo por exigirem aprovação editorial interna
 - A publicação é garantida — os veículos parceiros se comprometem com a distribuição
 - Solicitar inclusão de novo veículo: enviar mensagem pelo chat de suporte (análise feita pela equipe do Raio, não é automático)
 
