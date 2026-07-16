@@ -77,10 +77,13 @@ export async function POST(req: Request) {
 
     if (email) {
       // Release agendado
+      const vehicleNames = body.vehicles?.length
+        ? (await prisma.vehicle.findMany({ where: { id: { in: body.vehicles } }, select: { name: true } })).map(v => v.name)
+        : [];
       await sendReleaseScheduledEmail(
         email, firstName, body.title,
         body.scheduledAt ? new Date(body.scheduledAt) : new Date(),
-        body.vehicles?.length ?? 0,
+        vehicleNames,
         release.id,
       ).then(res => {
         console.log("[email] release agendado enviado para", email, res);

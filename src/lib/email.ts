@@ -87,10 +87,13 @@ export async function sendReleaseScheduledEmail(
   firstName: string,
   releaseTitle: string,
   scheduledAt: Date,
-  vehicleCount: number,
+  vehicleNames: string[],
   releaseId: string,
 ) {
   const date = scheduledAt.toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" });
+  const vehicleList = vehicleNames.length > 0
+    ? vehicleNames.map(n => `<li style="padding:2px 0;color:#1a1a1a">${n}</li>`).join("")
+    : `<li style="color:#888">—</li>`;
 
   const html = base(`
     ${h1(`Tudo certo, ${firstName}! ✓`)}
@@ -98,7 +101,7 @@ export async function sendReleaseScheduledEmail(
     <table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0">
       <tr><td style="padding:8px 0;color:#888;width:130px;vertical-align:top">Release</td><td style="padding:8px 0;color:#1a1a1a;font-weight:600">${releaseTitle}</td></tr>
       <tr><td style="padding:8px 0;color:#888;vertical-align:top">Agendado para</td><td style="padding:8px 0;color:#1a1a1a">${date} (Brasília)</td></tr>
-      <tr><td style="padding:8px 0;color:#888;vertical-align:top">Veículos</td><td style="padding:8px 0;color:#1a1a1a">${vehicleCount} veículo${vehicleCount !== 1 ? "s" : ""} selecionado${vehicleCount !== 1 ? "s" : ""}</td></tr>
+      <tr><td style="padding:8px 0;color:#888;vertical-align:top">Veículos</td><td style="padding:8px 0"><ul style="margin:0;padding:0 0 0 16px">${vehicleList}</ul></td></tr>
     </table>
     ${btn("Ver release", `${APP_URL}/releases/${releaseId}`)}
   `);
