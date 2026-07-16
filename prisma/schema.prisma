@@ -184,6 +184,32 @@ model NotificationPreference {
   updatedAt DateTime @updatedAt
 }
 
+// ─── Vouchers de crédito ─────────────────────────────────────────────────────
+
+model Voucher {
+  id          String    @id @default(cuid())
+  code        String    @unique
+  credits     Int
+  maxUses     Int       @default(1)
+  usedCount   Int       @default(0)
+  description String?
+  expiresAt   DateTime?
+  createdAt   DateTime  @default(now())
+
+  redemptions VoucherRedemption[]
+}
+
+model VoucherRedemption {
+  id         String   @id @default(cuid())
+  voucherId  String
+  userId     String
+  redeemedAt DateTime @default(now())
+
+  voucher    Voucher  @relation(fields: [voucherId], references: [id], onDelete: Cascade)
+
+  @@unique([voucherId, userId])
+}
+
 // ─── Suporte ──────────────────────────────────────────────────────────────────
 
 model SupportConversation {

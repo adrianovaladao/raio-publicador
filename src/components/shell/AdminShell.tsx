@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useUser, useClerk } from "@clerk/nextjs";
-import { LayoutDashboard, Users, Rss, FileText, LogOut, ShieldCheck, Shield, ExternalLink, UserCog } from "lucide-react";
+import { LayoutDashboard, Users, Rss, FileText, LogOut, ShieldCheck, Shield, ExternalLink, UserCog, Tag } from "lucide-react";
 import { RaioLockup } from "@/components/logo/RaioLockup";
 import { getAdminRole, isMaster, ROLE_LABEL } from "@/lib/admin";
 
@@ -13,6 +13,7 @@ const NAV_ALL = [
   { href: "/admin/usuarios",          icon: Users,           label: "Usuários",                      masterOnly: true  },
   { href: "/admin/veiculos",          icon: Rss,             label: "Veículos",                      masterOnly: false },
   { href: "/admin/administradores",   icon: UserCog,         label: "Administradores",               masterOnly: true  },
+  { href: "/admin/vouchers",          icon: Tag,             label: "Vouchers",                      masterOnly: true  },
 ];
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
