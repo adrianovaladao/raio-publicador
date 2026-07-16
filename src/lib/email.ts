@@ -202,7 +202,7 @@ export async function sendRenewalReminderEmail(to: string, firstName: string, pl
       <tr><td style="padding:8px 0;color:#888">Valor</td><td style="padding:8px 0;color:#1a1a1a">R$ ${amountBRL}/mês</td></tr>
     </table>
     ${btn("Gerenciar assinatura", `${APP_URL}/configuracoes`)}
-    ${p('<span style="font-size:12px;color:#999">Garantia de arrependimento: cancelamentos solicitados em até 7 dias após o pagamento têm direito a reembolso integral, conforme o Art. 49 do Código de Defesa do Consumidor, desde que nenhum crédito do período tenha sido utilizado.</span>')}
+    <p style="margin:24px 0 0;font-size:12px;color:#999;line-height:1.6">Garantia de arrependimento: cancelamentos solicitados em até 7 dias após o pagamento têm direito a reembolso integral, conforme o Art. 49 do Código de Defesa do Consumidor, desde que nenhum crédito do período tenha sido utilizado.</p>
   `);
 
   return getResend().emails.send({ from: FROM, to, subject: `Lembrete: plano ${planLabel} renova em 7 dias — Raio`, html });
