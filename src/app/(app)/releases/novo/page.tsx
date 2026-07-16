@@ -1508,6 +1508,17 @@ export default function NovoReleasePage() {
     return () => clearInterval(id);
   }, []);
 
+  // Salva imediatamente (com debounce de 1,5s) assim que o título for digitado,
+  // e continua salvando a cada mudança no conteúdo após o rascunho existir.
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (!content.title.trim() && !draftIdRef.current) return;
+    if (!brand) return;
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => { autosave(); }, 1500);
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, [content.title, content.subtitle, content.body, brand]);
+
   useEffect(() => {
     fetch("/api/brands")
       .then(r => r.json())
