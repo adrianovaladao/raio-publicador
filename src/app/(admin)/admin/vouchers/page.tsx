@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Plus, Trash2, RefreshCw, Tag } from "lucide-react";
+import { Plus, Trash2, RefreshCw, Tag, Copy, Check } from "lucide-react";
 
 interface Voucher {
   id: string;
@@ -18,6 +18,13 @@ export default function VouchersAdminPage() {
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
   const [loading, setLoading]   = useState(true);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [copied, setCopied]     = useState<string | null>(null);
+
+  function copyCode(code: string) {
+    navigator.clipboard.writeText(code);
+    setCopied(code);
+    setTimeout(() => setCopied(null), 1500);
+  }
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState({ code: "", credits: "100", maxUses: "1", description: "", expiresAt: "" });
   const [formError, setFormError] = useState("");
@@ -173,7 +180,18 @@ export default function VouchersAdminPage() {
               <tbody>
                 {vouchers.map(v => (
                   <tr key={v.id}>
-                    <td className="title-cell" style={{ fontFamily: "monospace", letterSpacing: 0.5 }}>{v.code}</td>
+                    <td className="title-cell">
+                      <button
+                        onClick={() => copyCode(v.code)}
+                        title="Copiar código"
+                        style={{ display: "inline-flex", alignItems: "center", gap: 7, fontFamily: "monospace", letterSpacing: 0.5, fontWeight: 700, fontSize: 13, background: "none", border: "none", cursor: "pointer", color: "inherit", padding: 0 }}
+                      >
+                        {v.code}
+                        {copied === v.code
+                          ? <Check size={13} style={{ color: "var(--green)" }} />
+                          : <Copy size={13} style={{ color: "var(--stone)", opacity: 0.5 }} />}
+                      </button>
+                    </td>
                     <td>{v.credits.toLocaleString("pt-BR")}</td>
                     <td>
                       <span style={{ color: v.usedCount >= v.maxUses ? "var(--red)" : "inherit" }}>
