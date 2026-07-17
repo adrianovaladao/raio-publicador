@@ -378,9 +378,6 @@ function CadastroInner() {
                 <button className="btn btn-primary btn-block btn-lg" type="submit" disabled={loading || (isVoucherFlow && voucherState !== "valid")}>
                   {loading ? "Criando conta…" : <><span>Criar conta</span><ArrowRight size={17} /></>}
                 </button>
-                <p style={{ textAlign: "center", fontSize: 12.5, color: "var(--tx-3)", marginTop: 12 }}>
-                  🔒 <b>Seus dados estão protegidos.</b> Cadastro rápido e 100% seguro.
-                </p>
               </form>
 
               <p className="auth-foot">
@@ -442,6 +439,7 @@ function CadastroInner() {
             </div>
           )}
         </div>
+        <p className="auth-secure">🔒 <b>Seus dados estão protegidos.</b> Cadastro rápido e 100% seguro.</p>
       </div>
     </div>
   );
