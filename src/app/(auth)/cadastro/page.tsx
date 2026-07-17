@@ -362,17 +362,14 @@ function CadastroInner() {
                   </div>
                 )}
 
-                <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", marginTop: 16 }}>
-                  <input
-                    type="checkbox"
-                    checked={marketingOptIn}
-                    onChange={e => setMarketingOptIn(e.target.checked)}
-                    style={{ marginTop: 2, accentColor: "var(--coral)", flexShrink: 0, width: 15, height: 15 }}
-                  />
-                  <span style={{ fontSize: 12.5, color: "rgba(255,255,255,0.55)", lineHeight: 1.5 }}>
-                    Quero receber novidades, dicas e atualizações do Raio Publicador por e-mail.
+                <div style={{ display: "flex", alignItems: "flex-start", gap: 10, marginTop: 16 }}>
+                  <span style={{ marginTop: 2, flexShrink: 0, width: 15, height: 15, borderRadius: 3, background: "var(--coral)", display: "grid", placeItems: "center" }}>
+                    <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4l3 3 5-6" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
                   </span>
-                </label>
+                  <span style={{ fontSize: 12.5, color: "rgba(255,255,255,0.55)", lineHeight: 1.5 }}>
+                    Autorizo o Raio Publicador a enviar novidades, dicas e atualizações por e-mail. Esta autorização é necessária para uso da plataforma.
+                  </span>
+                </div>
 
                 <div style={{ marginTop: 12 }} />
                 <div id="clerk-captcha" />
