@@ -352,7 +352,7 @@ function StepBrand({ selected, onSelect, brands, brandsLimit, onAddBrand, onLimi
           onLimitReached={onLimitReached}
         />
       )}
-      {navSlot && <div style={{ marginTop: 24, display: "flex", justifyContent: "flex-end" }}>{navSlot}</div>}
+      {navSlot && <div style={{ marginTop: 24, display: "flex", gap: 12, justifyContent: "space-between" }}>{navSlot}</div>}
     </div>
   );
 }
