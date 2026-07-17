@@ -353,7 +353,7 @@ export default function ReleasesPage() {
                           <Copy size={15} />
                         </button>
                       )}
-                      {r.status === "draft" && (
+                      {r.status === "draft" || r.status === "scheduled" && (
                         <button
                           onClick={() => setConfirmId(r.id)}
                           style={{ background: "none", border: "none", cursor: "pointer", padding: "4px 6px", color: "var(--stone)", borderRadius: 6, display: "inline-flex", alignItems: "center" }}
@@ -372,7 +372,7 @@ export default function ReleasesPage() {
           <div className="lib-grid">
             {list.map(r => (
               <div className="card lib-card" key={r.id} style={{ cursor: "pointer", position: "relative" }} onClick={() => router.push(`/releases/${r.id}`)}>
-                {r.status === "draft" && (
+                {r.status === "draft" || r.status === "scheduled" && (
                   <button
                     onClick={e => { e.stopPropagation(); setConfirmId(r.id); }}
                     style={{ position: "absolute", top: 10, right: 10, zIndex: 2, background: "rgba(0,0,0,0.45)", border: "none", borderRadius: 8, padding: "5px 7px", cursor: "pointer", color: "#fff", display: "flex", alignItems: "center" }}
