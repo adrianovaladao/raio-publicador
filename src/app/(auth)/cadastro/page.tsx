@@ -331,7 +331,7 @@ function CadastroInner() {
                 {isVoucherFlow && (
                   <div className="fld">
                     <label>Código do voucher</label>
-                    <div style={{ display: "flex", gap: 8 }}>
+                    <div style={{ display: "flex", gap: 14 }}>
                       <input
                         className="in"
                         placeholder="Ex: RAIO-WELCOME"
