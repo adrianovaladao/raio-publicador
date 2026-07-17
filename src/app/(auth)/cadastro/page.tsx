@@ -49,7 +49,6 @@ function CadastroInner() {
   const [voucherState,   setVoucherState]   = useState<"idle" | "checking" | "valid" | "invalid">("idle");
   const [voucherError,   setVoucherError]   = useState("");
   const [voucherCredits, setVoucherCredits] = useState(0);
-  const [marketingOptIn, setMarketingOptIn] = useState(true);
 
   async function checkVoucher() {
     if (!voucherCode.trim()) return;
