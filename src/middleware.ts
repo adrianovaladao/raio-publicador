@@ -10,6 +10,7 @@ const isPublicRoute = createRouteMatcher([
   "/verificar(.*)",
   "/convite(.*)",
   "/api/stripe/webhook",
+  "/api/vouchers/validate",
 ]);
 
 const BETA_PASSWORD = process.env.BETA_PASSWORD;
