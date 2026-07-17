@@ -1524,8 +1524,8 @@ function CobrancaPanel({ onToast, isCancelled }: { onToast: (m: string) => void;
             </span>
             <div className="row" style={{ gap: 8, flexShrink: 0 }}>
               <input
-                className="set-input"
-                style={{ width: 200 }}
+                className="input"
+                style={{ width: 200, padding: "8px 14px", fontSize: 13 }}
                 placeholder="Ex: RAIO-WELCOME"
                 value={voucherCode}
                 onChange={e => setVoucherCode(e.target.value.toUpperCase())}
