@@ -1605,7 +1605,7 @@ export default function NovoReleasePage() {
       <div className="content-inner">
         {/* Stepper + ações */}
         <div className="page-head" style={{ marginBottom: 28, position: "sticky", top: 0, zIndex: 10, background: "var(--bg)", paddingBottom: 16, marginTop: -4 }}>
-          <div className="steps">
+          <div className="steps" style={{ flex: 1 }}>
             {STEPS.map((s, i) => (
               <span key={s} style={{ display: "contents" }}>
                 {i > 0 && <span className={`bar${i <= step ? " done" : ""}`} />}
@@ -1619,17 +1619,16 @@ export default function NovoReleasePage() {
                 </div>
               </span>
             ))}
+            {step > 0 && (
+              <button
+                className="btn btn-ghost btn-sm"
+                style={{ marginLeft: "auto", whiteSpace: "nowrap" }}
+                onClick={async () => { await autosave(); router.push("/releases"); }}
+              >
+                Salvar rascunho e fechar
+              </button>
+            )}
           </div>
-          {/* Botão fixo alinhado à borda direita da coluna do editor (320px col + 18px gap) */}
-          {step > 0 && (
-            <button
-              className="btn btn-ghost btn-sm"
-              style={{ position: "absolute", right: "calc(320px + 18px)", top: "50%", transform: "translateY(-50%)", whiteSpace: "nowrap" }}
-              onClick={async () => { await autosave(); router.push("/releases"); }}
-            >
-              Salvar rascunho e fechar
-            </button>
-          )}
           <div className="actions" style={{ alignItems: "center" }}>
             {step > 0 && content.title.trim() && content.subtitle.trim() && (
               <span className="badge-status review">Rascunho</span>
