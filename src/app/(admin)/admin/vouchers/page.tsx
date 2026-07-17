@@ -17,8 +17,9 @@ interface Voucher {
 export default function VouchersAdminPage() {
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
   const [loading, setLoading]   = useState(true);
-  const [deleting, setDeleting] = useState<string | null>(null);
-  const [copied, setCopied]     = useState<string | null>(null);
+  const [deleting, setDeleting]   = useState<string | null>(null);
+  const [copied, setCopied]       = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<{ id: string; code: string } | null>(null);
 
   function copyCode(code: string) {
     navigator.clipboard.writeText(code);
@@ -65,8 +66,8 @@ export default function VouchersAdminPage() {
     } finally { setCreating(false); }
   }
 
-  async function handleDelete(id: string, code: string) {
-    if (!confirm(`Excluir voucher ${code}?`)) return;
+  async function handleDelete(id: string) {
+    setConfirmDelete(null);
     setDeleting(id);
     try {
       await fetch(`/api/admin/vouchers/${id}`, { method: "DELETE" });
@@ -84,6 +85,27 @@ export default function VouchersAdminPage() {
   }
 
   return (
+    <>
+    {confirmDelete && (
+      <div className="overlay" onClick={() => setConfirmDelete(null)}>
+        <div className="modal" style={{ maxWidth: 420 }} onClick={e => e.stopPropagation()}>
+          <div className="m-head">
+            <h3>Excluir <em>voucher</em></h3>
+          </div>
+          <div className="m-body" style={{ paddingBottom: 24 }}>
+            <p style={{ fontSize: 14, color: "var(--stone)", marginBottom: 24 }}>
+              Tem certeza que deseja excluir o voucher <b style={{ fontFamily: "monospace", color: "var(--ink)" }}>{confirmDelete.code}</b>? Esta ação não pode ser desfeita.
+            </p>
+            <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+              <button className="btn btn-ghost btn-sm" onClick={() => setConfirmDelete(null)}>Cancelar</button>
+              <button className="btn btn-sm" style={{ background: "var(--red)", color: "#fff", border: "none" }} onClick={() => handleDelete(confirmDelete.id)}>
+                Excluir voucher
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
     <div className="content scroll">
       <div className="content-inner">
         <div className="page-head">
@@ -207,7 +229,7 @@ export default function VouchersAdminPage() {
                       <button
                         className="btn btn-ghost btn-sm"
                         style={{ padding: "5px 8px", color: "var(--red)" }}
-                        onClick={() => handleDelete(v.id, v.code)}
+                        onClick={() => setConfirmDelete({ id: v.id, code: v.code })}
                         disabled={deleting === v.id}
                         title="Excluir"
                       >
@@ -222,5 +244,6 @@ export default function VouchersAdminPage() {
         </div>
       </div>
     </div>
+    </>
   );
 }
