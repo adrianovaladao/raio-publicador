@@ -568,7 +568,7 @@ function StepVehicles({ selected, setSelected, vehicles, sub, onUpgrade, onBuyCr
               Nome <VehSortIcon col="name" active={sortCol} dir={sortDir} />
             </button>
             <button style={sortBtnStyle("tier")} onClick={() => handleSort("tier")}>
-              Tier <VehSortIcon col="tier" active={sortCol} dir={sortDir} />
+              Categoria <VehSortIcon col="tier" active={sortCol} dir={sortDir} />
             </button>
             <button style={sortBtnStyle("reach")} onClick={() => handleSort("reach")}>
               Alcance <VehSortIcon col="reach" active={sortCol} dir={sortDir} />
