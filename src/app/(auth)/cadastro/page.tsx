@@ -49,6 +49,7 @@ function CadastroInner() {
   const [voucherState,   setVoucherState]   = useState<"idle" | "checking" | "valid" | "invalid">("idle");
   const [voucherError,   setVoucherError]   = useState("");
   const [voucherCredits, setVoucherCredits] = useState(0);
+  const [marketingOptIn, setMarketingOptIn] = useState(true);
 
   async function checkVoucher() {
     if (!voucherCode.trim()) return;
@@ -360,6 +361,18 @@ function CadastroInner() {
                     )}
                   </div>
                 )}
+
+                <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", marginTop: 16 }}>
+                  <input
+                    type="checkbox"
+                    checked={marketingOptIn}
+                    onChange={e => setMarketingOptIn(e.target.checked)}
+                    style={{ marginTop: 2, accentColor: "var(--coral)", flexShrink: 0, width: 15, height: 15 }}
+                  />
+                  <span style={{ fontSize: 12.5, color: "rgba(255,255,255,0.55)", lineHeight: 1.5 }}>
+                    Quero receber novidades, dicas e atualizações do Raio Publicador por e-mail.
+                  </span>
+                </label>
 
                 <div style={{ marginTop: 12 }} />
                 <div id="clerk-captcha" />
