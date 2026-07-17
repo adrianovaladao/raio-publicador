@@ -337,7 +337,7 @@ function CadastroInner() {
                         placeholder="Ex: RAIO-WELCOME"
                         value={voucherCode}
                         onChange={e => { setVoucherCode(e.target.value.toUpperCase()); setVoucherState("idle"); setVoucherError(""); }}
-                        style={{ flex: 1, fontFamily: "monospace", letterSpacing: "0.05em" }}
+                        style={{ flex: 1, fontFamily: "monospace", letterSpacing: "0.05em", marginRight: 8 }}
                       />
                       <button
                         type="button"
