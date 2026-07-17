@@ -138,6 +138,7 @@ enum PlanTier {
   BASIC
   ADVANCED
   PROFESSIONAL
+  VOUCHER
 }
 
 enum SubscriptionStatus {

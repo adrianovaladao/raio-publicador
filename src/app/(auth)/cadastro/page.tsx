@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState, useRef, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { ArrowRight, Eye, EyeOff, CheckCircle, Feather, Newspaper, Send, Mail } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, CheckCircle, Feather, Newspaper, Send, Mail, Check, X, Loader } from "lucide-react";
 import { RaioLockup } from "@/components/logo/RaioLockup";
 import { translateClerkError } from "@/lib/clerkErrors";
 
@@ -42,10 +42,47 @@ function CadastroInner() {
   const { isSignedIn } = useAuth();
   const searchParams = useSearchParams();
   const planParam = searchParams.get("plan");
+  const isVoucherFlow = searchParams.get("voucher") === "1";
   const plan = planParam && VALID_PLANS.includes(planParam) ? planParam : null;
+
+  const [voucherCode,    setVoucherCode]    = useState("");
+  const [voucherState,   setVoucherState]   = useState<"idle" | "checking" | "valid" | "invalid">("idle");
+  const [voucherError,   setVoucherError]   = useState("");
+  const [voucherCredits, setVoucherCredits] = useState(0);
+
+  async function checkVoucher() {
+    if (!voucherCode.trim()) return;
+    setVoucherState("checking");
+    setVoucherError("");
+    try {
+      const res = await fetch(`/api/vouchers/validate?code=${encodeURIComponent(voucherCode.trim())}`);
+      const data = await res.json() as { valid: boolean; credits?: number; error?: string };
+      if (data.valid) {
+        setVoucherState("valid");
+        setVoucherCredits(data.credits ?? 100);
+      } else {
+        setVoucherState("invalid");
+        setVoucherError(data.error ?? "Código inválido.");
+      }
+    } catch {
+      setVoucherState("invalid");
+      setVoucherError("Erro ao validar código. Tente novamente.");
+    }
+  }
 
   function goToCheckout() {
     window.location.href = plan ? `/boas-vindas?plan=${plan}` : "/boas-vindas";
+  }
+
+  async function redeemAndProceed() {
+    try {
+      await fetch("/api/vouchers/redeem", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: voucherCode.trim() }),
+      });
+    } catch { /* ignore — user can redeem later in configurações */ }
+    window.location.href = "/boas-vindas?checkout=voucher";
   }
 
   useEffect(() => {
@@ -150,18 +187,19 @@ function CadastroInner() {
         } catch { /* ignore update errors, fall through */ }
       }
 
+      const proceed = isVoucherFlow && voucherState === "valid" ? redeemAndProceed : goToCheckout;
       if (result.status === "complete") {
         await sa({ session: result.createdSessionId });
-        await goToCheckout();
+        await proceed();
       } else if (result.createdSessionId) {
         await sa({ session: result.createdSessionId });
-        await goToCheckout();
+        await proceed();
       } else {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const sessionId = (window as any).Clerk?.client?.activeSessions?.[0]?.id;
         if (sessionId) {
           await sa({ session: sessionId });
-          await goToCheckout();
+          await proceed();
         } else {
           setError(`Verificação incompleta (status: ${result.status}). Tente novamente.`);
         }
@@ -290,10 +328,43 @@ function CadastroInner() {
                   <PwMeter pw={password} />
                 </div>
 
+                {isVoucherFlow && (
+                  <div className="fld">
+                    <label>Código do voucher</label>
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <input
+                        className="in"
+                        placeholder="Ex: RAIO-WELCOME"
+                        value={voucherCode}
+                        onChange={e => { setVoucherCode(e.target.value.toUpperCase()); setVoucherState("idle"); setVoucherError(""); }}
+                        style={{ flex: 1, fontFamily: "monospace", letterSpacing: "0.05em" }}
+                      />
+                      <button
+                        type="button"
+                        onClick={checkVoucher}
+                        disabled={!voucherCode.trim() || voucherState === "checking"}
+                        style={{ flexShrink: 0, padding: "0 14px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.15)", background: voucherState === "valid" ? "rgba(52,199,89,0.15)" : "rgba(255,255,255,0.07)", color: voucherState === "valid" ? "#34C759" : "var(--tx)", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontSize: 13 }}
+                      >
+                        {voucherState === "checking" ? <Loader size={15} style={{ animation: "spin 1s linear infinite" }} /> : voucherState === "valid" ? <><Check size={15} /> Válido</> : "Validar"}
+                      </button>
+                    </div>
+                    {voucherState === "valid" && (
+                      <p style={{ color: "#34C759", fontSize: 12, marginTop: 6, display: "flex", alignItems: "center", gap: 5 }}>
+                        <Check size={12} /> {voucherCredits} créditos serão adicionados à sua conta após o cadastro.
+                      </p>
+                    )}
+                    {voucherState === "invalid" && (
+                      <p style={{ color: "var(--red)", fontSize: 12, marginTop: 6, display: "flex", alignItems: "center", gap: 5 }}>
+                        <X size={12} /> {voucherError}
+                      </p>
+                    )}
+                  </div>
+                )}
+
                 <div id="clerk-captcha" />
                 {error && <p style={{ color: "var(--red)", fontSize: 13, marginBottom: 14 }}>{error}</p>}
 
-                <button className="btn btn-primary btn-block btn-lg" type="submit" disabled={loading}>
+                <button className="btn btn-primary btn-block btn-lg" type="submit" disabled={loading || (isVoucherFlow && voucherState !== "valid")}>
                   {loading ? "Criando conta…" : <><span>Criar conta</span><ArrowRight size={17} /></>}
                 </button>
                 <p style={{ textAlign: "center", fontSize: 12.5, color: "var(--tx-3)", marginTop: 12 }}>

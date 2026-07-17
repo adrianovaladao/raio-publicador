@@ -173,6 +173,11 @@ function Hero() {
             </a>
             <Link className="btn btn-ghost btn-lg" href="/login">Já tenho conta</Link>
           </div>
+          <div style={{ marginTop: 12 }}>
+            <Link href="/cadastro?voucher=1" style={{ fontSize: 13, color: "var(--stone)", textDecoration: "underline", textUnderlineOffset: 3 }}>
+              Tenho um voucher
+            </Link>
+          </div>
           <div className="micro">
             <CheckCircle size={15} /> Use seus créditos para publicar quando quiser, com controle total e sem contratos de fidelidade.
           </div>

@@ -3,6 +3,8 @@ import { auth } from "@clerk/nextjs/server";
 import { getPrisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
+const VOUCHER_CREDIT_CAP = 100;
+
 export async function POST(req: Request) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -24,21 +26,32 @@ export async function POST(req: Request) {
   });
   if (alreadyUsed) return NextResponse.json({ error: "Você já resgatou este código." }, { status: 400 });
 
+  const existingSub = await prisma.subscription.findUnique({ where: { ownerId: userId } });
+  const isNewUser = !existingSub;
+
+  // New users get the VOUCHER plan (capped at 100 credits); existing subscribers just get credits added
+  const creditsToAdd = isNewUser
+    ? Math.min(voucher.credits, VOUCHER_CREDIT_CAP)
+    : voucher.credits;
+
   await prisma.$transaction([
     prisma.voucherRedemption.create({ data: { voucherId: voucher.id, userId } }),
     prisma.voucher.update({ where: { id: voucher.id }, data: { usedCount: { increment: 1 } } }),
-    prisma.subscription.upsert({
-      where: { ownerId: userId },
-      update: { creditsTotal: { increment: voucher.credits } },
-      create: {
-        ownerId:      userId,
-        plan:         "BASIC",
-        status:       "INACTIVE",
-        creditsTotal: voucher.credits,
-        creditsUsed:  0,
-      },
-    }),
+    isNewUser
+      ? prisma.subscription.create({
+          data: {
+            ownerId:      userId,
+            plan:         "VOUCHER",
+            status:       "ACTIVE",
+            creditsTotal: creditsToAdd,
+            creditsUsed:  0,
+          },
+        })
+      : prisma.subscription.update({
+          where: { ownerId: userId },
+          data: { creditsTotal: { increment: creditsToAdd } },
+        }),
   ]);
 
-  return NextResponse.json({ credits: voucher.credits });
+  return NextResponse.json({ credits: creditsToAdd });
 }
