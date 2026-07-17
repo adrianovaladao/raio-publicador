@@ -1269,12 +1269,10 @@ function StepReview({ content, selected, when, setWhen, brand, onSaveDraft, vehi
           </div>
         </div>
 
-        <div className="card side-card" style={{ border: "2px solid var(--coral)", boxShadow: "0 0 0 4px color-mix(in srgb, var(--coral) 12%, transparent)" }}>
-          <div className="card-head" style={{ background: "color-mix(in srgb, var(--coral) 8%, transparent)", borderBottom: "1px solid color-mix(in srgb, var(--coral) 20%, transparent)" }}>
-            <h3 style={{ display: "flex", alignItems: "center", gap: 7 }}>
-              <span style={{ fontSize: 16 }}>📅</span> Quando publicar
-            </h3>
-            <span style={{ fontSize: 11, fontWeight: 600, color: "var(--coral)", letterSpacing: "0.05em", textTransform: "uppercase" }}>Obrigatório</span>
+        <div className={`card side-card${dateFlash ? " date-card-flash" : ""}`} onAnimationEnd={() => setDateFlash(false)}>
+          <div className="card-head">
+            <h3>Quando publicar</h3>
+            {!datePicked && <span style={{ fontSize: 11, fontWeight: 600, color: "var(--coral)", letterSpacing: "0.05em", textTransform: "uppercase" }}>Obrigatório</span>}
           </div>
           <div className="sc-body">
             {when.mode === "schedule" && (() => {
@@ -1282,21 +1280,11 @@ function StepReview({ content, selected, when, setWhen, brand, onSaveDraft, vehi
               const minDate = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
               const lastDay = new Date(today.getFullYear(), today.getMonth()+1, 0).getDate();
               const maxDate = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(lastDay).padStart(2,"0")}`;
-              const selectedLabel = when.date.split("-").reverse().join("/");
-              const isDefault = when.date === `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()+1).padStart(2,"0")}`;
               return (
-                <>
-                  <div style={{ background: "color-mix(in srgb, var(--coral) 8%, transparent)", border: "1px solid color-mix(in srgb, var(--coral) 25%, transparent)", borderRadius: 8, padding: "10px 14px", marginBottom: 12, fontSize: 13, color: "var(--ink)" }}>
-                    {isDefault
-                      ? <><strong>⚠️ Confirme a data!</strong> A data padrão é amanhã ({selectedLabel}). Escolha a data desejada antes de agendar.</>
-                      : <><strong>✓ Data selecionada:</strong> {selectedLabel}</>
-                    }
-                  </div>
-                  <div className="field-row" style={{ marginBottom: 0 }}>
-                    <label>Escolha a data</label>
-                    <DatePicker value={when.date} onChange={d => setWhen({ ...when, date: d })} minDate={minDate} maxDate={maxDate} />
-                  </div>
-                </>
+                <div className="field-row" style={{ marginBottom: 0 }}>
+                  <label>Escolha a data</label>
+                  <DatePicker value={when.date} onChange={d => { setWhen({ ...when, date: d }); setDatePicked(true); }} minDate={minDate} maxDate={maxDate} />
+                </div>
               );
             })()}
           </div>
@@ -1467,6 +1455,8 @@ export default function NovoReleasePage() {
   })();
   const defaultDate = nextBusinessDay;
   const [when, setWhen] = useState<When>({ mode: "schedule", date: defaultDate });
+  const [datePicked, setDatePicked] = useState(false);
+  const [dateFlash, setDateFlash] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [showPolicyModal, setShowPolicyModal] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
@@ -1685,7 +1675,8 @@ export default function NovoReleasePage() {
                 Continuar <ArrowRight size={16} />
               </button>
             ) : (
-              <button className="btn btn-primary" disabled={submitting} onClick={async () => {
+              <button className="btn btn-primary" disabled={submitting || !datePicked} title={!datePicked ? "Escolha a data de publicação antes de agendar" : undefined} onClick={async () => {
+                if (!datePicked) { setDateFlash(true); return; }
                 if (!brand) { setStep(0); return; }
                 setSubmitting(true);
                 try {
