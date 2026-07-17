@@ -1186,9 +1186,9 @@ async function downloadDocx(content: Content, selVehicles: VehicleItem[], brand:
 
 interface PolicyIssue { rule: string; severity: "error" | "warning"; description: string; suggestion: string }
 
-function StepReview({ content, selected, when, setWhen, brand, onSaveDraft, vehicles, datePicked, setDatePicked, dateFlash, setDateFlash, navSlot }: {
+function StepReview({ content, selected, when, setWhen, brand, vehicles, datePicked, setDatePicked, dateFlash, setDateFlash, navSlot }: {
   content: Content; selected: string[]; when: When; setWhen: (w: When) => void; brand: Brand | null;
-  onSaveDraft: () => Promise<void>; vehicles: VehicleItem[];
+  vehicles: VehicleItem[];
   datePicked: boolean; setDatePicked: (v: boolean) => void;
   dateFlash: boolean; setDateFlash: (v: boolean) => void;
   navSlot?: React.ReactNode;
@@ -1700,7 +1700,7 @@ export default function NovoReleasePage() {
           if (step === 0) return <StepBrand selected={brand} onSelect={setBrand} brands={brands} brandsLimit={sub.brandsLimit} onAddBrand={b => setBrands(prev => [...prev, b])} onLimitReached={() => { setUpgradeContext("brands"); setShowUpgradeModal(true); }} isCancelled={sub.status === "CANCELLED"} navSlot={navSlot} />;
           if (step === 1) return <StepContent content={content} setContent={setContent} brand={brand} ownerName={ownerName} onAIUsed={handleAIUsed} navSlot={navSlot} />;
           if (step === 2) return <StepVehicles selected={selected} setSelected={setSelected} vehicles={vehicles} sub={sub} onBuyCredits={() => { try { sessionStorage.setItem("raio_draft_vehicles", JSON.stringify(selected)); sessionStorage.setItem("raio_draft_brand", JSON.stringify(brand)); } catch { /* ignore */ } setShowBuyCreditsModal(true); }} onUpgrade={() => { try { sessionStorage.setItem("raio_draft_vehicles", JSON.stringify(selected)); sessionStorage.setItem("raio_draft_brand", JSON.stringify(brand)); } catch { /* ignore */ } setUpgradeContext("credits"); setShowUpgradeModal(true); }} navSlot={navSlot} />;
-          if (step === 3) return <StepReview content={content} selected={selected} when={when} setWhen={setWhen} brand={brand} onSaveDraft={autosave} vehicles={vehicles} datePicked={datePicked} setDatePicked={setDatePicked} dateFlash={dateFlash} setDateFlash={setDateFlash} navSlot={navSlot} />;
+          if (step === 3) return <StepReview content={content} selected={selected} when={when} setWhen={setWhen} brand={brand} vehicles={vehicles} datePicked={datePicked} setDatePicked={setDatePicked} dateFlash={dateFlash} setDateFlash={setDateFlash} navSlot={navSlot} />;
         })()}
       </div>
     </div>
