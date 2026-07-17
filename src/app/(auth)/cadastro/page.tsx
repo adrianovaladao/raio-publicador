@@ -366,7 +366,7 @@ function CadastroInner() {
                     <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4l3 3 5-6" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
                   </span>
                   <span style={{ fontSize: 12.5, color: "rgba(255,255,255,0.55)", lineHeight: 1.5 }}>
-                    Autorizo o Raio Publicador a enviar novidades, dicas e atualizações por e-mail. Esta autorização é necessária para uso da plataforma.
+                    Autorizo o Raio Publicador a enviar novidades, dicas e atualizações por e-mail. Esta autorização é necessária para uso da plataforma. Você poderá alterar essas opções após acessar sua conta.
                   </span>
                 </div>
 
