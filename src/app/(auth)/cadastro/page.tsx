@@ -343,7 +343,7 @@ function CadastroInner() {
                         type="button"
                         onClick={checkVoucher}
                         disabled={!voucherCode.trim() || voucherState === "checking"}
-                        style={{ flexShrink: 0, padding: "0 14px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.15)", background: voucherState === "valid" ? "rgba(52,199,89,0.15)" : "rgba(255,255,255,0.07)", color: voucherState === "valid" ? "#34C759" : "var(--tx)", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontSize: 13 }}
+                        style={{ flexShrink: 0, marginLeft: 12, padding: "0 20px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.15)", background: voucherState === "valid" ? "rgba(52,199,89,0.15)" : "rgba(255,255,255,0.07)", color: voucherState === "valid" ? "#34C759" : "var(--tx)", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontSize: 13 }}
                       >
                         {voucherState === "checking" ? <Loader size={15} style={{ animation: "spin 1s linear infinite" }} /> : voucherState === "valid" ? <><Check size={15} /> Válido</> : "Validar"}
                       </button>
