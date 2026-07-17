@@ -10,6 +10,7 @@ const CREDIT_PRICE_CENTS: Record<string, number> = {
   BASIC:        500,  // R$5,00/cr
   ADVANCED:     300,  // R$3,00/cr
   PROFESSIONAL: 250,  // R$2,50/cr
+  VOUCHER:      500,  // R$5,00/cr (mesmo que BASIC)
 };
 
 export async function POST(req: NextRequest) {

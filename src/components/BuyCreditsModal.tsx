@@ -42,7 +42,7 @@ function fmtBRL(cents: number) {
 
 export function BuyCreditsModal({ currentPlan, onClose, returnUrl }: { currentPlan: string; onClose: () => void; returnUrl?: string }) {
   useEscapeKey(onClose);
-  const config = PACKAGES[currentPlan];
+  const config = PACKAGES[currentPlan] ?? PACKAGES["BASIC"];
   const [selected, setSelected] = useState<number | null>(null);
   const [custom, setCustom] = useState("");
   const [loading, setLoading] = useState(false);
