@@ -14,9 +14,9 @@ const UPGRADE_OPTIONS: Record<string, Array<{ id: string; label: string; brandsL
   ],
 };
 
-export function UpgradeModal({ currentPlan, onClose, returnUrl, onSuccess }: { currentPlan: string; onClose: () => void; returnUrl?: string; onSuccess?: () => void }) {
+export function UpgradeModal({ currentPlan, onClose, returnUrl, onSuccess, context }: { currentPlan: string; onClose: () => void; returnUrl?: string; onSuccess?: () => void; context?: "brands" | "credits" }) {
   useEscapeKey(onClose);
-  const options = UPGRADE_OPTIONS[currentPlan] ?? [];
+  const options = UPGRADE_OPTIONS[currentPlan] ?? UPGRADE_OPTIONS["BASIC"] ?? [];
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -51,14 +51,16 @@ export function UpgradeModal({ currentPlan, onClose, returnUrl, onSuccess }: { c
     <div className="overlay" onClick={onClose}>
       <div className="modal" style={{ maxWidth: options.length > 1 ? 560 : 420, textAlign: "center" }} onClick={e => e.stopPropagation()}>
         <div className="m-head" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <h3>Limite de <em>marcas</em> atingido</h3>
+          <h3>{context === "credits" ? <>Fazer <em>upgrade</em> de plano</> : <>Limite de <em>marcas</em> atingido</>}</h3>
           <button className="icon-btn" onClick={onClose}><X size={17} /></button>
         </div>
         <div className="m-body" style={{ paddingTop: 8, paddingBottom: 24 }}>
           {options.length > 0 ? (
             <>
               <p style={{ fontSize: 14, color: "var(--stone)", marginBottom: 20 }}>
-                Seu plano atual não permite mais marcas. Escolha um plano para continuar.
+                {context === "credits"
+                  ? "Faça um upgrade para ter mais créditos e publicar em mais veículos."
+                  : "Seu plano atual não permite mais marcas. Escolha um plano para continuar."}
               </p>
               <div style={{ display: "grid", gridTemplateColumns: `repeat(${options.length}, 1fr)`, gap: 12, marginBottom: 16 }}>
                 {options.map(opt => (
