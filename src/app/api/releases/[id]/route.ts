@@ -54,8 +54,14 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     ...(body.status      !== undefined && { status:      body.status as ReleaseStatus }),
   };
 
-  const creditsToDebit  = becomingScheduled ? (body.creditsUsed ?? 0) : 0;
-  const creditsToReturn = leavingScheduled  ? (prev?.creditsUsed ?? 0) : 0;
+  // When staying SCHEDULED but vehicle selection changes, adjust the credit delta
+  const stayingScheduled = prev?.status === "SCHEDULED" && (body.status === "SCHEDULED" || body.status === undefined);
+  const creditDelta = stayingScheduled && body.creditsUsed !== undefined
+    ? (body.creditsUsed ?? 0) - (prev?.creditsUsed ?? 0)
+    : 0;
+
+  const creditsToDebit  = becomingScheduled ? (body.creditsUsed ?? 0) : (creditDelta > 0 ? creditDelta : 0);
+  const creditsToReturn = leavingScheduled  ? (prev?.creditsUsed ?? 0) : (creditDelta < 0 ? -creditDelta : 0);
 
   // Fetch current creditsUsed to avoid going negative across plan/cycle boundaries
   const currentSub = creditsToReturn > 0
