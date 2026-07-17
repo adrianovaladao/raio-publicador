@@ -95,7 +95,7 @@ export function UpgradeModal({ currentPlan, onClose, returnUrl, onSuccess }: { c
           ) : (
             <>
               <p style={{ fontSize: 14, color: "var(--stone)", marginBottom: 24 }}>
-                Você já está no plano máximo. Entre em contato com nossa equipe para soluções personalizadas.
+                Seu plano atingiu o máximo de marcas possíveis. Faça um upgrade de plano.
               </p>
               <button className="btn btn-primary btn-block" onClick={onClose}>Entendido</button>
             </>
