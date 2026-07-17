@@ -331,19 +331,19 @@ function CadastroInner() {
                 {isVoucherFlow && (
                   <div className="fld">
                     <label>Código do voucher</label>
-                    <div style={{ display: "flex", gap: 14 }}>
+                    <div style={{ display: "flex", gap: 8 }}>
                       <input
                         className="in"
                         placeholder="Ex: RAIO-WELCOME"
                         value={voucherCode}
                         onChange={e => { setVoucherCode(e.target.value.toUpperCase()); setVoucherState("idle"); setVoucherError(""); }}
-                        style={{ flex: 1, fontFamily: "monospace", letterSpacing: "0.05em", marginRight: 8 }}
+                        style={{ flex: 1, fontFamily: "monospace", letterSpacing: "0.05em" }}
                       />
                       <button
                         type="button"
                         onClick={checkVoucher}
                         disabled={!voucherCode.trim() || voucherState === "checking"}
-                        style={{ flexShrink: 0, marginLeft: 12, padding: "0 20px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.15)", background: voucherState === "valid" ? "rgba(52,199,89,0.15)" : "rgba(255,255,255,0.07)", color: voucherState === "valid" ? "#34C759" : "var(--tx)", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontSize: 13 }}
+                        style={{ flexShrink: 0, padding: "0 20px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.15)", background: voucherState === "valid" ? "rgba(52,199,89,0.15)" : "rgba(255,255,255,0.07)", color: voucherState === "valid" ? "#34C759" : "var(--tx)", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontSize: 13 }}
                       >
                         {voucherState === "checking" ? <Loader size={15} style={{ animation: "spin 1s linear infinite" }} /> : voucherState === "valid" ? <><Check size={15} /> Válido</> : "Validar"}
                       </button>
@@ -361,6 +361,7 @@ function CadastroInner() {
                   </div>
                 )}
 
+                <div style={{ marginTop: 12 }} />
                 <div id="clerk-captcha" />
                 {error && <p style={{ color: "var(--red)", fontSize: 13, marginBottom: 14 }}>{error}</p>}
 
