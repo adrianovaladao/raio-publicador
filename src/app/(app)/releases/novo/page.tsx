@@ -198,7 +198,7 @@ function NewBrandModal({ onClose, onCreate, onLimitReached }: { onClose: () => v
   );
 }
 
-function StepBrand({ selected, onSelect, brands, brandsLimit, onAddBrand, onLimitReached, isCancelled }: {
+function StepBrand({ selected, onSelect, brands, brandsLimit, onAddBrand, onLimitReached, isCancelled, navSlot }: {
   selected: Brand | null;
   onSelect: (b: Brand) => void;
   brands: Brand[];
@@ -206,6 +206,7 @@ function StepBrand({ selected, onSelect, brands, brandsLimit, onAddBrand, onLimi
   onAddBrand: (b: Brand) => void;
   onLimitReached?: () => void;
   isCancelled?: boolean;
+  navSlot?: React.ReactNode;
 }) {
   const [mode, setMode] = useState<"grid" | "list">("grid");
   const [q, setQ] = useState("");
@@ -351,6 +352,7 @@ function StepBrand({ selected, onSelect, brands, brandsLimit, onAddBrand, onLimi
           onLimitReached={onLimitReached}
         />
       )}
+      {navSlot && <div style={{ marginTop: 24, display: "flex", justifyContent: "flex-end" }}>{navSlot}</div>}
     </div>
   );
 }
@@ -360,7 +362,7 @@ function StepBrand({ selected, onSelect, brands, brandsLimit, onAddBrand, onLimi
 interface Content { title: string; subtitle: string; body: string; cat: string; author: string; imageUrls: string[] }
 
 
-function StepContent({ content, setContent, brand, ownerName, onAIUsed }: { content: Content; setContent: React.Dispatch<React.SetStateAction<Content>>; brand: Brand | null; ownerName: string; onAIUsed?: () => void }) {
+function StepContent({ content, setContent, brand, ownerName, onAIUsed, navSlot }: { content: Content; setContent: React.Dispatch<React.SetStateAction<Content>>; brand: Brand | null; ownerName: string; onAIUsed?: () => void; navSlot?: React.ReactNode }) {
   const brandAuthors = brand?.authors ?? [];
   const authors = brandAuthors.length > 0 ? brandAuthors : [ownerName].filter(Boolean);
   const up = (k: keyof Content, v: string | string[]) => setContent(prev => ({ ...prev, [k]: v }));
@@ -399,6 +401,7 @@ function StepContent({ content, setContent, brand, ownerName, onAIUsed }: { cont
             </div>
           </div>
         </div>
+        {navSlot && <div style={{ marginTop: 16, display: "flex", gap: 10, justifyContent: "flex-end" }}>{navSlot}</div>}
       </div>
     </div>
   );
@@ -475,7 +478,7 @@ function sortVeh(arr: VehicleItem[], col: VehSortCol, dir: VehSortDir) {
   });
 }
 
-function StepVehicles({ selected, setSelected, vehicles, sub, onUpgrade, onBuyCredits }: { selected: string[]; setSelected: (s: string[]) => void; vehicles: VehicleItem[]; sub: SubInfo; onUpgrade?: () => void; onBuyCredits?: () => void }) {
+function StepVehicles({ selected, setSelected, vehicles, sub, onUpgrade, onBuyCredits, navSlot }: { selected: string[]; setSelected: (s: string[]) => void; vehicles: VehicleItem[]; sub: SubInfo; onUpgrade?: () => void; onBuyCredits?: () => void; navSlot?: React.ReactNode }) {
   const [filterCats,  setFilterCats]  = useState<string[]>([]);
   const [filterTiers, setFilterTiers] = useState<string[]>([]);
   const [q,           setQ]           = useState("");
@@ -713,6 +716,7 @@ function StepVehicles({ selected, setSelected, vehicles, sub, onUpgrade, onBuyCr
           </div>
         </div>
       )}
+      {navSlot && <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 4 }}>{navSlot}</div>}
       </div>
     </div>
 
@@ -1182,11 +1186,12 @@ async function downloadDocx(content: Content, selVehicles: VehicleItem[], brand:
 
 interface PolicyIssue { rule: string; severity: "error" | "warning"; description: string; suggestion: string }
 
-function StepReview({ content, selected, when, setWhen, brand, onSaveDraft, vehicles, datePicked, setDatePicked, dateFlash, setDateFlash }: {
+function StepReview({ content, selected, when, setWhen, brand, onSaveDraft, vehicles, datePicked, setDatePicked, dateFlash, setDateFlash, navSlot }: {
   content: Content; selected: string[]; when: When; setWhen: (w: When) => void; brand: Brand | null;
   onSaveDraft: () => Promise<void>; vehicles: VehicleItem[];
   datePicked: boolean; setDatePicked: (v: boolean) => void;
   dateFlash: boolean; setDateFlash: (v: boolean) => void;
+  navSlot?: React.ReactNode;
 }) {
   const [validating,    setValidating]    = useState(false);
   const [policyIssues,  setPolicyIssues]  = useState<PolicyIssue[] | null>(null);
@@ -1349,37 +1354,9 @@ function StepReview({ content, selected, when, setWhen, brand, onSaveDraft, vehi
           </div>
         </div>
 
-        <SaveDraftButton onSave={onSaveDraft} />
+        {navSlot && <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 16 }}>{navSlot}</div>}
       </div>
     </div>
-  );
-}
-
-function SaveDraftButton({ onSave }: { onSave: () => Promise<void> }) {
-  const router = useRouter();
-  const [saving, setSaving] = useState(false);
-  const [toast, setToast] = useState(false);
-  return (
-    <>
-      <button
-        className="btn btn-ghost btn-sm"
-        style={{ width: "100%", justifyContent: "center", marginTop: 8 }}
-        disabled={saving}
-        onClick={async () => {
-          setSaving(true);
-          await onSave();
-          setToast(true);
-          setTimeout(() => router.push("/releases"), 1500);
-        }}
-      >
-        {saving ? "Salvando…" : "Salvar rascunho e fechar"}
-      </button>
-      {toast && (
-        <div className="toast-wrap">
-          <div className="toast"><span className="ic"><Check size={14} /></span>Rascunho salvo!</div>
-        </div>
-      )}
-    </>
   );
 }
 
@@ -1640,11 +1617,16 @@ export default function NovoReleasePage() {
             ))}
           </div>
           <div className="actions" style={{ alignItems: "center" }}>
+            <button
+              className="btn btn-ghost btn-sm"
+              onClick={async () => { await autosave(); router.push("/releases"); }}
+            >
+              Salvar rascunho e fechar
+            </button>
             {content.title.trim() && content.subtitle.trim() && (
               <span className="badge-status review">Rascunho</span>
             )}
             <button className="btn btn-quiet btn-sm" onClick={() => router.back()}>Cancelar</button>
-            {/* Indicador de autosave */}
             {saveStatus !== "idle" && (
               <span style={{ fontSize: 12, color: saveStatus === "error" ? "var(--coral)" : "var(--stone)", display: "flex", alignItems: "center", gap: 5 }}>
                 {saveStatus === "saving" && <><Cloud size={13} style={{ opacity: 0.6 }} /> Salvando…</>}
@@ -1652,85 +1634,74 @@ export default function NovoReleasePage() {
                 {saveStatus === "error"  && <><CloudOff size={13} /> Erro ao salvar</>}
               </span>
             )}
-            {step > 0 && (
-              <button className="btn btn-ghost" onClick={() => setStep(s => s - 1)}>
-                <ArrowLeft size={16} /> Voltar
-              </button>
-            )}
-            {step < last ? (
-              <button className="btn btn-dark" disabled={!canNext || dupChecking} onClick={async () => {
-                if (step === 0) {
-                  setDupChecking(true);
-                  try {
-                    const res = await fetch("/api/releases/check-duplicate", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ title: content.title, subtitle: content.subtitle, body: content.body, excludeId: draftIdRef.current ?? undefined }),
-                    });
-                    const data = await res.json() as { duplicate: boolean; matchTitle?: string };
-                    if (data.duplicate) { setDupWarning({ matchTitle: data.matchTitle ?? "outro release" }); return; }
-                  } finally { setDupChecking(false); }
-                  setShowPolicyModal(true);
-                  return;
-                }
-                setStep(s => s + 1);
-              }}>
-                Continuar <ArrowRight size={16} />
-              </button>
-            ) : (
-              <button className="btn btn-primary" disabled={submitting || !datePicked} title={!datePicked ? "Escolha a data de publicação antes de agendar" : undefined} onClick={async () => {
-                if (!datePicked) { setDateFlash(true); return; }
-                if (!brand) { setStep(0); return; }
-                setSubmitting(true);
-                try {
-                  const scheduledAt = when.date
-                    ? new Date(`${when.date}T09:00:00`).toISOString()
-                    : null;
-                  const status = "SCHEDULED";
-                  const payload = {
-                    title: content.title,
-                    body: content.body,
-                    summary: content.subtitle,
-                    status,
-                    scheduledAt,
-                    brandId: brand.id,
-                    creditsUsed: selTokens,
-                    imageUrl: content.imageUrls[0] ?? extractFirstImageUrl(content.body) ?? null,
-                    vehicles: selected,
-                  };
-                  let res: Response;
-                  if (draftIdRef.current) {
-                    res = await fetch(`/api/releases/${draftIdRef.current}`, {
-                      method: "PUT",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify(payload),
-                    });
-                  } else {
-                    res = await fetch("/api/releases", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify(payload),
-                    });
-                  }
-                  if (!res.ok) throw new Error("Falha ao salvar");
-                  window.dispatchEvent(new Event("credits-changed"));
-                  setDone(true);
-                } catch {
-                  alert("Erro ao salvar release. Tente novamente.");
-                } finally {
-                  setSubmitting(false);
-                }
-              }}>
-                {submitting ? "Salvando…" : <><Calendar size={16} /> Agendar release</>}
-              </button>
-            )}
           </div>
         </div>
 
-        {step === 0 && <StepBrand selected={brand} onSelect={setBrand} brands={brands} brandsLimit={sub.brandsLimit} onAddBrand={b => setBrands(prev => [...prev, b])} onLimitReached={() => { setUpgradeContext("brands"); setShowUpgradeModal(true); }} isCancelled={sub.status === "CANCELLED"} />}
-        {step === 1 && <StepContent content={content} setContent={setContent} brand={brand} ownerName={ownerName} onAIUsed={handleAIUsed} />}
-        {step === 2 && <StepVehicles selected={selected} setSelected={setSelected} vehicles={vehicles} sub={sub} onBuyCredits={() => { try { sessionStorage.setItem("raio_draft_vehicles", JSON.stringify(selected)); sessionStorage.setItem("raio_draft_brand", JSON.stringify(brand)); } catch { /* ignore */ } setShowBuyCreditsModal(true); }} onUpgrade={() => { try { sessionStorage.setItem("raio_draft_vehicles", JSON.stringify(selected)); sessionStorage.setItem("raio_draft_brand", JSON.stringify(brand)); } catch { /* ignore */ } setUpgradeContext("credits"); setShowUpgradeModal(true); }} />}
-        {step === 3 && <StepReview content={content} selected={selected} when={when} setWhen={setWhen} brand={brand} onSaveDraft={autosave} vehicles={vehicles} datePicked={datePicked} setDatePicked={setDatePicked} dateFlash={dateFlash} setDateFlash={setDateFlash} />}
+        {(() => {
+          const backBtn = step > 0 ? (
+            <button className="btn btn-ghost" onClick={() => setStep(s => s - 1)}>
+              <ArrowLeft size={16} /> Voltar
+            </button>
+          ) : null;
+
+          const nextBtn = step < last ? (
+            <button className="btn btn-dark" disabled={!canNext || dupChecking} onClick={async () => {
+              if (step === 0) {
+                setDupChecking(true);
+                try {
+                  const res = await fetch("/api/releases/check-duplicate", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ title: content.title, subtitle: content.subtitle, body: content.body, excludeId: draftIdRef.current ?? undefined }),
+                  });
+                  const data = await res.json() as { duplicate: boolean; matchTitle?: string };
+                  if (data.duplicate) { setDupWarning({ matchTitle: data.matchTitle ?? "outro release" }); return; }
+                } finally { setDupChecking(false); }
+                setShowPolicyModal(true);
+                return;
+              }
+              setStep(s => s + 1);
+            }}>
+              Continuar <ArrowRight size={16} />
+            </button>
+          ) : (
+            <button className="btn btn-primary" disabled={submitting || !datePicked} title={!datePicked ? "Escolha a data de publicação antes de agendar" : undefined} onClick={async () => {
+              if (!datePicked) { setDateFlash(true); return; }
+              if (!brand) { setStep(0); return; }
+              setSubmitting(true);
+              try {
+                const scheduledAt = when.date ? new Date(`${when.date}T09:00:00`).toISOString() : null;
+                const payload = {
+                  title: content.title, body: content.body, summary: content.subtitle,
+                  status: "SCHEDULED", scheduledAt, brandId: brand.id,
+                  creditsUsed: selTokens,
+                  imageUrl: content.imageUrls[0] ?? extractFirstImageUrl(content.body) ?? null,
+                  vehicles: selected,
+                };
+                let res: Response;
+                if (draftIdRef.current) {
+                  res = await fetch(`/api/releases/${draftIdRef.current}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+                } else {
+                  res = await fetch("/api/releases", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+                }
+                if (!res.ok) throw new Error("Falha ao salvar");
+                window.dispatchEvent(new Event("credits-changed"));
+                setDone(true);
+              } catch {
+                alert("Erro ao salvar release. Tente novamente.");
+              } finally { setSubmitting(false); }
+            }}>
+              {submitting ? "Salvando…" : <><Calendar size={16} /> Agendar release</>}
+            </button>
+          );
+
+          const navSlot = <>{backBtn}{nextBtn}</>;
+
+          if (step === 0) return <StepBrand selected={brand} onSelect={setBrand} brands={brands} brandsLimit={sub.brandsLimit} onAddBrand={b => setBrands(prev => [...prev, b])} onLimitReached={() => { setUpgradeContext("brands"); setShowUpgradeModal(true); }} isCancelled={sub.status === "CANCELLED"} navSlot={navSlot} />;
+          if (step === 1) return <StepContent content={content} setContent={setContent} brand={brand} ownerName={ownerName} onAIUsed={handleAIUsed} navSlot={navSlot} />;
+          if (step === 2) return <StepVehicles selected={selected} setSelected={setSelected} vehicles={vehicles} sub={sub} onBuyCredits={() => { try { sessionStorage.setItem("raio_draft_vehicles", JSON.stringify(selected)); sessionStorage.setItem("raio_draft_brand", JSON.stringify(brand)); } catch { /* ignore */ } setShowBuyCreditsModal(true); }} onUpgrade={() => { try { sessionStorage.setItem("raio_draft_vehicles", JSON.stringify(selected)); sessionStorage.setItem("raio_draft_brand", JSON.stringify(brand)); } catch { /* ignore */ } setUpgradeContext("credits"); setShowUpgradeModal(true); }} navSlot={navSlot} />;
+          if (step === 3) return <StepReview content={content} selected={selected} when={when} setWhen={setWhen} brand={brand} onSaveDraft={autosave} vehicles={vehicles} datePicked={datePicked} setDatePicked={setDatePicked} dateFlash={dateFlash} setDateFlash={setDateFlash} navSlot={navSlot} />;
+        })()}
       </div>
     </div>
 
