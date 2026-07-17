@@ -1513,49 +1513,54 @@ function CobrancaPanel({ onToast, isCancelled }: { onToast: (m: string) => void;
         </div>
       </div>
 
-      <div className="card" style={{ padding: "20px 24px" }}>
-        <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 6 }}>Resgatar voucher de créditos</div>
-        <div style={{ fontSize: 13, color: "var(--fg-muted)", marginBottom: 12 }}>
-          Tem um código de voucher? Insira abaixo para adicionar créditos à sua conta.
+      <div className="card" style={{ marginTop: 16 }}>
+        <div className="card-head">
+          <h3>Resgatar voucher de créditos</h3>
         </div>
-        <div className="row" style={{ gap: 8 }}>
-          <input
-            className="set-input"
-            style={{ maxWidth: 260 }}
-            placeholder="Ex: RAIO-WELCOME"
-            value={voucherCode}
-            onChange={e => setVoucherCode(e.target.value.toUpperCase())}
-            disabled={voucherLoading}
-          />
-          <button
-            className="btn btn-primary btn-sm"
-            disabled={voucherLoading || !voucherCode.trim()}
-            onClick={async () => {
-              setVoucherLoading(true);
-              try {
-                const res = await fetch("/api/vouchers/redeem", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ code: voucherCode.trim() }),
-                });
-                const data = await res.json() as { credits?: number; error?: string };
-                if (!res.ok) throw new Error(data.error ?? "Erro ao resgatar voucher.");
-                onToast(`+${data.credits} créditos adicionados com sucesso!`);
-                setVoucherCode("");
-                // refresh credit display
-                fetch("/api/stripe/subscription").then(r => r.json()).then((s: { credits?: number; creditsUsed?: number }) => {
-                  if (s.credits  != null) setCredits(s.credits);
-                  if (s.creditsUsed != null) setCreditsUsed(s.creditsUsed);
-                }).catch(() => {});
-              } catch (e) {
-                onToast(e instanceof Error ? e.message : "Erro ao resgatar voucher.");
-              } finally {
-                setVoucherLoading(false);
-              }
-            }}
-          >
-            {voucherLoading ? "Resgatando…" : "Resgatar"}
-          </button>
+        <div className="card-pad" style={{ paddingTop: 16 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+            <span style={{ fontSize: 13, color: "var(--fg-muted)" }}>
+              Tem um código de voucher? Insira ao lado para adicionar créditos à sua conta.
+            </span>
+            <div className="row" style={{ gap: 8, flexShrink: 0 }}>
+              <input
+                className="set-input"
+                style={{ width: 200 }}
+                placeholder="Ex: RAIO-WELCOME"
+                value={voucherCode}
+                onChange={e => setVoucherCode(e.target.value.toUpperCase())}
+                disabled={voucherLoading}
+              />
+              <button
+                className="btn btn-primary btn-sm"
+                disabled={voucherLoading || !voucherCode.trim()}
+                onClick={async () => {
+                  setVoucherLoading(true);
+                  try {
+                    const res = await fetch("/api/vouchers/redeem", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ code: voucherCode.trim() }),
+                    });
+                    const data = await res.json() as { credits?: number; error?: string };
+                    if (!res.ok) throw new Error(data.error ?? "Erro ao resgatar voucher.");
+                    onToast(`+${data.credits} créditos adicionados com sucesso!`);
+                    setVoucherCode("");
+                    fetch("/api/stripe/subscription").then(r => r.json()).then((s: { credits?: number; creditsUsed?: number }) => {
+                      if (s.credits  != null) setCredits(s.credits);
+                      if (s.creditsUsed != null) setCreditsUsed(s.creditsUsed);
+                    }).catch(() => {});
+                  } catch (e) {
+                    onToast(e instanceof Error ? e.message : "Erro ao resgatar voucher.");
+                  } finally {
+                    setVoucherLoading(false);
+                  }
+                }}
+              >
+                {voucherLoading ? "Resgatando…" : "Resgatar"}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
