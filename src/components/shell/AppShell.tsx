@@ -602,36 +602,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           )}
         </button>
 
-        {/* Usuário — clicável → Configurações */}
-        <div className="sb-user">
-          <button className="sb-user-main" onClick={() => router.push("/configuracoes")} title="Perfil e configurações">
-            {user?.hasImage
-              // eslint-disable-next-line @next/next/no-img-element
-              ? <img src={user.imageUrl} alt={fullName} className="av" style={{ objectFit: "cover" }} />
-              : (
-                <div className="av av-default">
-                  <svg viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", height: "100%", display: "block" }}>
-                    <defs>
-                      <linearGradient id="av-grad" x1="17" y1="4" x2="17" y2="34" gradientUnits="userSpaceOnUse">
-                        <stop offset="0%" stopColor="#5A5A5A" />
-                        <stop offset="100%" stopColor="#1A1A1A" />
-                      </linearGradient>
-                    </defs>
-                    <circle cx="17" cy="13" r="6" fill="url(#av-grad)" />
-                    <path d="M4 34c0-7.18 5.82-13 13-13s13 5.82 13 13" fill="url(#av-grad)" />
-                  </svg>
-                </div>
-              )
-            }
-            <div className="who">
-              <div className="nm">{fullName}</div>
-              <div className="rl">Administração</div>
-            </div>
-          </button>
-          <button className="out" title="Sair" onClick={handleLogout}>
-            <LogOut size={17} />
-          </button>
-        </div>
       </aside>
 
       {/* ── ÁREA PRINCIPAL ── */}
@@ -665,6 +635,35 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           {showNotifs && (
             <NotificationPanel onClose={() => { setShowNotifs(false); fetchUnread(); }} />
           )}
+
+          {/* Usuário na topbar */}
+          <button className="topbar-user" onClick={() => router.push("/configuracoes")} title="Perfil e configurações">
+            {user?.hasImage
+              // eslint-disable-next-line @next/next/no-img-element
+              ? <img src={user.imageUrl} alt={fullName} className="topbar-av" style={{ objectFit: "cover" }} />
+              : (
+                <div className="topbar-av topbar-av-default">
+                  <svg viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", height: "100%", display: "block" }}>
+                    <defs>
+                      <linearGradient id="av-grad-tb" x1="17" y1="4" x2="17" y2="34" gradientUnits="userSpaceOnUse">
+                        <stop offset="0%" stopColor="#5A5A5A" />
+                        <stop offset="100%" stopColor="#1A1A1A" />
+                      </linearGradient>
+                    </defs>
+                    <circle cx="17" cy="13" r="6" fill="url(#av-grad-tb)" />
+                    <path d="M4 34c0-7.18 5.82-13 13-13s13 5.82 13 13" fill="url(#av-grad-tb)" />
+                  </svg>
+                </div>
+              )
+            }
+            <div className="topbar-who">
+              <div className="topbar-nm">{fullName}</div>
+              <div className="topbar-rl">Administração</div>
+            </div>
+          </button>
+          <button className="icon-btn" title="Sair" onClick={handleLogout}>
+            <LogOut size={18} />
+          </button>
         </header>
 
         {children}

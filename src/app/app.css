@@ -271,6 +271,13 @@ textarea.input { resize: vertical; line-height: 1.55; }
 .topbar .crumb .sep { color: var(--stone-soft); }
 .topbar .crumb .sub { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--stone); }
 .topbar .spacer { flex: 1; }
+.topbar-user { display: flex; align-items: center; gap: 10px; background: none; border: none; padding: 4px 8px; border-radius: var(--r-sm); cursor: pointer; transition: background .14s; }
+.topbar-user:hover { background: var(--cream); }
+.topbar-av { width: 34px; height: 34px; border-radius: 99px; flex: none; overflow: hidden; background: var(--coral); }
+.topbar-av-default { background: #F5B800; padding: 0; display: grid; place-items: center; }
+.topbar-who { line-height: 1.2; text-align: left; }
+.topbar-nm { font-size: 13px; font-weight: 600; color: var(--ink); white-space: nowrap; }
+.topbar-rl { font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--stone); white-space: nowrap; }
 
 .search {
   display: flex; align-items: center; gap: 9px;
