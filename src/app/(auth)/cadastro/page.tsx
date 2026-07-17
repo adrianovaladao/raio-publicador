@@ -329,7 +329,7 @@ function CadastroInner() {
                 </div>
 
                 {isVoucherFlow && (
-                  <div className="fld">
+                  <div className="fld" style={{ marginBottom: 24 }}>
                     <label>Código do voucher</label>
                     <div style={{ display: "flex", gap: 8 }}>
                       <input
