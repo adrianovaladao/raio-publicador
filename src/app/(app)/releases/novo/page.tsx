@@ -1255,26 +1255,10 @@ function StepReview({ content, selected, when, setWhen, brand, onSaveDraft, vehi
       </div>
 
       <div>
-        <div className="card side-card">
-          <div className="card-head"><h3>Distribuição</h3></div>
-          <div className="sc-body">
-            <div className="row" style={{ justifyContent: "space-between", marginBottom: 12 }}>
-              <span className="muted" style={{ fontSize: 13 }}>Veículos</span><span style={{ fontWeight: 700 }}>{selVehicles.length}</span>
-            </div>
-            <div className="row" style={{ justifyContent: "space-between", marginBottom: 12 }}>
-              <span className="muted" style={{ fontSize: 13 }}>Alcance estimado</span><span style={{ fontWeight: 700 }}>{fmtReach(selReach)}</span>
-            </div>
-            <div className="row" style={{ justifyContent: "space-between" }}>
-              <span className="muted" style={{ fontSize: 13 }}>Créditos</span>
-              <span style={{ fontWeight: 700, display: "inline-flex", alignItems: "center", gap: 5 }}>{selTokens} <span style={{ color: "var(--coral)", fontSize: 14 }}>⚡</span></span>
-            </div>
-          </div>
-        </div>
-
         <div className={`card side-card${dateFlash ? " date-card-flash" : ""}`} onAnimationEnd={() => setDateFlash(false)}>
           <div className="card-head">
             <h3>Quando publicar</h3>
-            {!datePicked && <span style={{ fontSize: 11, fontWeight: 600, color: "var(--coral)", letterSpacing: "0.05em", textTransform: "uppercase" }}>Obrigatório</span>}
+            {!datePicked && <span style={{ fontSize: 11, fontWeight: 600, color: "var(--red)", letterSpacing: "0.05em", textTransform: "uppercase" }}>Obrigatório</span>}
           </div>
           <div className="sc-body">
             {when.mode === "schedule" && (() => {
@@ -1289,6 +1273,22 @@ function StepReview({ content, selected, when, setWhen, brand, onSaveDraft, vehi
                 </div>
               );
             })()}
+          </div>
+        </div>
+
+        <div className="card side-card" style={{ marginTop: 12 }}>
+          <div className="card-head"><h3>Distribuição</h3></div>
+          <div className="sc-body">
+            <div className="row" style={{ justifyContent: "space-between", marginBottom: 12 }}>
+              <span className="muted" style={{ fontSize: 13 }}>Veículos</span><span style={{ fontWeight: 700 }}>{selVehicles.length}</span>
+            </div>
+            <div className="row" style={{ justifyContent: "space-between", marginBottom: 12 }}>
+              <span className="muted" style={{ fontSize: 13 }}>Alcance estimado</span><span style={{ fontWeight: 700 }}>{fmtReach(selReach)}</span>
+            </div>
+            <div className="row" style={{ justifyContent: "space-between" }}>
+              <span className="muted" style={{ fontSize: 13 }}>Créditos</span>
+              <span style={{ fontWeight: 700, display: "inline-flex", alignItems: "center", gap: 5 }}>{selTokens} <span style={{ color: "var(--coral)", fontSize: 14 }}>⚡</span></span>
+            </div>
           </div>
         </div>
 
