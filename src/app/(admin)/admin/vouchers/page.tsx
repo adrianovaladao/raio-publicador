@@ -12,27 +12,25 @@ interface Voucher {
   description: string | null;
   expiresAt: string | null;
   createdAt: string;
-  _count: { redemptions: number };
 }
 
 export default function VouchersAdminPage() {
-  const [vouchers, setVouchers]     = useState<Voucher[]>([]);
-  const [loading, setLoading]       = useState(true);
-  const [showForm, setShowForm]     = useState(false);
-  const [deleting, setDeleting]     = useState<string | null>(null);
-  const [creating, setCreating]     = useState(false);
-  const [form, setForm]             = useState({
-    code: "", credits: "100", maxUses: "1", description: "", expiresAt: "",
-  });
+  const [vouchers, setVouchers] = useState<Voucher[]>([]);
+  const [loading, setLoading]   = useState(true);
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [form, setForm] = useState({ code: "", credits: "100", maxUses: "1", description: "", expiresAt: "" });
+  const [formError, setFormError] = useState("");
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch("/api/admin/vouchers");
-      const data = await res.json() as Voucher[];
-      setVouchers(data);
-    } catch { /* ignore */ }
-    finally { setLoading(false); }
+      const data = await res.json();
+      setVouchers(Array.isArray(data) ? data : []);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => { load(); }, [load]);
@@ -40,6 +38,7 @@ export default function VouchersAdminPage() {
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
     setCreating(true);
+    setFormError("");
     try {
       const res = await fetch("/api/admin/vouchers", {
         method: "POST",
@@ -52,13 +51,9 @@ export default function VouchersAdminPage() {
           expiresAt:   form.expiresAt || undefined,
         }),
       });
-      if (!res.ok) {
-        const d = await res.json() as { error?: string };
-        alert(d.error ?? "Erro ao criar voucher.");
-        return;
-      }
+      const data = await res.json();
+      if (!res.ok) { setFormError(data.error ?? "Erro ao criar voucher."); return; }
       setForm({ code: "", credits: "100", maxUses: "1", description: "", expiresAt: "" });
-      setShowForm(false);
       await load();
     } finally { setCreating(false); }
   }
@@ -77,111 +72,137 @@ export default function VouchersAdminPage() {
     return new Date(iso).toLocaleDateString("pt-BR");
   }
 
-  return (
-    <div style={{ padding: "32px 40px", maxWidth: 900 }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
-        <div>
-          <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0 }}>Vouchers de créditos</h1>
-          <p style={{ fontSize: 13, color: "var(--fg-muted)", marginTop: 4 }}>
-            Crie e gerencie códigos promocionais para presentear prospects e clientes.
-          </p>
-        </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          <button className="btn btn-ghost btn-sm" onClick={load} disabled={loading}>
-            <RefreshCw size={14} />
-          </button>
-          <button className="btn btn-primary btn-sm" onClick={() => setShowForm(v => !v)}>
-            <Plus size={14} /> Novo voucher
-          </button>
-        </div>
-      </div>
+  function isExpired(iso: string | null) {
+    return !!iso && new Date(iso) < new Date();
+  }
 
-      {showForm && (
-        <form onSubmit={handleCreate} style={{ background: "var(--card-bg)", border: "1px solid var(--border)", borderRadius: 12, padding: "20px 24px", marginBottom: 24, display: "flex", flexDirection: "column", gap: 14 }}>
-          <div style={{ fontWeight: 600, fontSize: 14 }}>Criar voucher</div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
-            <label style={{ fontSize: 12, fontWeight: 500, display: "flex", flexDirection: "column", gap: 4 }}>
-              Código *
-              <input className="set-input" required value={form.code} onChange={e => setForm(f => ({ ...f, code: e.target.value.toUpperCase() }))} placeholder="EX: RAIO-WELCOME" />
-            </label>
-            <label style={{ fontSize: 12, fontWeight: 500, display: "flex", flexDirection: "column", gap: 4 }}>
-              Créditos *
-              <input className="set-input" type="number" min={1} required value={form.credits} onChange={e => setForm(f => ({ ...f, credits: e.target.value }))} />
-            </label>
-            <label style={{ fontSize: 12, fontWeight: 500, display: "flex", flexDirection: "column", gap: 4 }}>
-              Usos máximos
-              <input className="set-input" type="number" min={1} value={form.maxUses} onChange={e => setForm(f => ({ ...f, maxUses: e.target.value }))} />
-            </label>
+  return (
+    <div className="content scroll">
+      <div className="content-inner">
+        <div className="page-head">
+          <div>
+            <p className="eyebrow">Master Admin · Raio Publicador</p>
+            <h2><em>Vouchers</em></h2>
+            <p className="sub">Crie e gerencie códigos promocionais para presentear prospects e clientes.</p>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 12 }}>
-            <label style={{ fontSize: 12, fontWeight: 500, display: "flex", flexDirection: "column", gap: 4 }}>
-              Descrição (interna)
-              <input className="set-input" value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Ex: Prospect Folhapress" />
-            </label>
-            <label style={{ fontSize: 12, fontWeight: 500, display: "flex", flexDirection: "column", gap: 4 }}>
-              Validade
-              <input className="set-input" type="date" value={form.expiresAt} onChange={e => setForm(f => ({ ...f, expiresAt: e.target.value }))} />
-            </label>
-          </div>
-          <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-            <button type="button" className="btn btn-ghost btn-sm" onClick={() => setShowForm(false)}>Cancelar</button>
-            <button type="submit" className="btn btn-primary btn-sm" disabled={creating}>
-              {creating ? "Criando…" : "Criar voucher"}
+          <div className="actions">
+            <button onClick={load} className="btn btn-ghost btn-sm" disabled={loading} style={{ gap: 6 }}>
+              <RefreshCw size={14} /> Atualizar
             </button>
           </div>
-        </form>
-      )}
-
-      {loading ? (
-        <div style={{ textAlign: "center", padding: 48, color: "var(--fg-muted)", fontSize: 13 }}>Carregando…</div>
-      ) : vouchers.length === 0 ? (
-        <div style={{ textAlign: "center", padding: 64, color: "var(--fg-muted)" }}>
-          <Tag size={32} style={{ marginBottom: 12, opacity: 0.3 }} />
-          <div style={{ fontSize: 14 }}>Nenhum voucher criado ainda.</div>
         </div>
-      ) : (
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-          <thead>
-            <tr style={{ borderBottom: "1px solid var(--border)", color: "var(--fg-muted)", textAlign: "left" }}>
-              <th style={{ padding: "8px 12px" }}>Código</th>
-              <th style={{ padding: "8px 12px" }}>Créditos</th>
-              <th style={{ padding: "8px 12px" }}>Usos</th>
-              <th style={{ padding: "8px 12px" }}>Descrição</th>
-              <th style={{ padding: "8px 12px" }}>Validade</th>
-              <th style={{ padding: "8px 12px" }}>Criado em</th>
-              <th style={{ padding: "8px 12px" }}></th>
-            </tr>
-          </thead>
-          <tbody>
-            {vouchers.map(v => (
-              <tr key={v.id} style={{ borderBottom: "1px solid var(--border)" }}>
-                <td style={{ padding: "10px 12px", fontWeight: 600, fontFamily: "monospace", letterSpacing: 0.5 }}>{v.code}</td>
-                <td style={{ padding: "10px 12px" }}>{v.credits.toLocaleString("pt-BR")}</td>
-                <td style={{ padding: "10px 12px" }}>
-                  <span style={{ color: v.usedCount >= v.maxUses ? "var(--error)" : "inherit" }}>
-                    {v.usedCount}/{v.maxUses}
-                  </span>
-                </td>
-                <td style={{ padding: "10px 12px", color: "var(--fg-muted)" }}>{v.description ?? "—"}</td>
-                <td style={{ padding: "10px 12px", color: v.expiresAt && new Date(v.expiresAt) < new Date() ? "var(--error)" : "inherit" }}>
-                  {formatDate(v.expiresAt)}
-                </td>
-                <td style={{ padding: "10px 12px", color: "var(--fg-muted)" }}>{formatDate(v.createdAt)}</td>
-                <td style={{ padding: "10px 12px" }}>
-                  <button
-                    className="btn btn-ghost btn-sm"
-                    style={{ padding: "4px 8px", color: "var(--error)" }}
-                    onClick={() => handleDelete(v.id, v.code)}
-                    disabled={deleting === v.id}
-                  >
-                    <Trash2 size={13} />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+
+        {/* Create form */}
+        <div className="card" style={{ marginBottom: 24, padding: "20px 24px" }}>
+          <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 14 }}>
+            Criar voucher
+          </p>
+          <form onSubmit={handleCreate}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 100px 100px 1fr auto", gap: 12, alignItems: "flex-end", flexWrap: "wrap" }}>
+              <div className="field" style={{ marginBottom: 0 }}>
+                <label>Código *</label>
+                <input
+                  className="input"
+                  required
+                  placeholder="EX: RAIO-WELCOME"
+                  value={form.code}
+                  onChange={e => setForm(f => ({ ...f, code: e.target.value.toUpperCase() }))}
+                  style={{ fontFamily: "monospace", letterSpacing: "0.05em" }}
+                />
+              </div>
+              <div className="field" style={{ marginBottom: 0 }}>
+                <label>Créditos *</label>
+                <input
+                  className="input"
+                  type="number"
+                  min={1}
+                  required
+                  value={form.credits}
+                  onChange={e => setForm(f => ({ ...f, credits: e.target.value }))}
+                />
+              </div>
+              <div className="field" style={{ marginBottom: 0 }}>
+                <label>Usos máx.</label>
+                <input
+                  className="input"
+                  type="number"
+                  min={1}
+                  value={form.maxUses}
+                  onChange={e => setForm(f => ({ ...f, maxUses: e.target.value }))}
+                />
+              </div>
+              <div className="field" style={{ marginBottom: 0 }}>
+                <label>Descrição interna</label>
+                <input
+                  className="input"
+                  placeholder="Ex: Prospect Folhapress"
+                  value={form.description}
+                  onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+                />
+              </div>
+              <button type="submit" disabled={creating} className="btn btn-dark btn-sm" style={{ gap: 5, whiteSpace: "nowrap" }}>
+                <Plus size={14} /> {creating ? "Criando…" : "Criar"}
+              </button>
+            </div>
+            {formError && <p style={{ fontSize: 13, color: "var(--red)", marginTop: 10 }}>{formError}</p>}
+          </form>
+        </div>
+
+        {/* List */}
+        <div className="card">
+          {loading ? (
+            <div className="card empty"><div className="muted">Carregando…</div></div>
+          ) : vouchers.length === 0 ? (
+            <div className="card empty" style={{ flexDirection: "column", gap: 10 }}>
+              <Tag size={28} style={{ opacity: 0.25 }} />
+              <div className="muted">Nenhum voucher criado ainda.</div>
+            </div>
+          ) : (
+            <table className="tbl">
+              <thead>
+                <tr>
+                  <th>Código</th>
+                  <th>Créditos</th>
+                  <th>Usos</th>
+                  <th>Descrição</th>
+                  <th>Validade</th>
+                  <th>Criado em</th>
+                  <th style={{ textAlign: "center" }}>Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {vouchers.map(v => (
+                  <tr key={v.id}>
+                    <td className="title-cell" style={{ fontFamily: "monospace", letterSpacing: 0.5 }}>{v.code}</td>
+                    <td>{v.credits.toLocaleString("pt-BR")}</td>
+                    <td>
+                      <span style={{ color: v.usedCount >= v.maxUses ? "var(--red)" : "inherit" }}>
+                        {v.usedCount}/{v.maxUses}
+                      </span>
+                    </td>
+                    <td className="muted" style={{ fontSize: 13 }}>{v.description ?? "—"}</td>
+                    <td style={{ color: isExpired(v.expiresAt) ? "var(--red)" : "inherit" }}>
+                      {formatDate(v.expiresAt)}
+                    </td>
+                    <td className="muted" style={{ fontSize: 13 }}>{formatDate(v.createdAt)}</td>
+                    <td style={{ textAlign: "center" }}>
+                      <button
+                        className="btn btn-ghost btn-sm"
+                        style={{ padding: "5px 8px", color: "var(--red)" }}
+                        onClick={() => handleDelete(v.id, v.code)}
+                        disabled={deleting === v.id}
+                        title="Excluir"
+                      >
+                        {deleting === v.id ? <RefreshCw size={13} /> : <Trash2 size={13} />}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
