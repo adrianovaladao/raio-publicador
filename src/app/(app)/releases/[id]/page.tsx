@@ -186,7 +186,7 @@ interface ReleaseData {
 
 function StepContent({
   title, setTitle, subtitle, setSubtitle, body, setBody,
-  cat, setCat, author, setAuthor, brand,
+  cat, setCat, author, setAuthor, brand, navSlot,
 }: {
   title: string; setTitle: (v: string) => void;
   subtitle: string; setSubtitle: (v: string) => void;
@@ -194,6 +194,7 @@ function StepContent({
   cat: string; setCat: (v: string) => void;
   author: string; setAuthor: (v: string) => void;
   brand: Brand | null;
+  navSlot?: React.ReactNode;
 }) {
   const [teamMembers, setTeamMembers] = useState<{ id: string; name: string }[]>([]);
   useEffect(() => {
@@ -206,6 +207,7 @@ function StepContent({
   }, []);
   const authors = teamMembers.length > 0 ? teamMembers : (brand?.authors ?? []).map(a => ({ id: a, name: a }));
   return (
+    <>
     <div className="composer-grid">
       {/* Editor */}
       <RichEditor
@@ -255,6 +257,8 @@ function StepContent({
 
       </div>
     </div>
+    {navSlot && <div style={{ marginTop: 16, display: "flex", gap: 10, justifyContent: "flex-end" }}>{navSlot}</div>}
+    </>
   );
 }
 
@@ -329,7 +333,7 @@ function sortVeh(arr: VehicleItem[], col: VehSortCol, dir: VehSortDir) {
   });
 }
 
-function StepVehicles({ selected, setSelected, vehicles, sub, onUpgrade, onBuyCredits }: { selected: string[]; setSelected: (s: string[]) => void; vehicles: VehicleItem[]; sub: { credits: number; creditsUsed: number; plan?: string | null }; onUpgrade?: () => void; onBuyCredits?: () => void }) {
+function StepVehicles({ selected, setSelected, vehicles, sub, onUpgrade, onBuyCredits, navSlot }: { selected: string[]; setSelected: (s: string[]) => void; vehicles: VehicleItem[]; sub: { credits: number; creditsUsed: number; plan?: string | null }; onUpgrade?: () => void; onBuyCredits?: () => void; navSlot?: React.ReactNode }) {
   const [filterCats,  setFilterCats]  = useState<string[]>([]);
   const [filterTiers, setFilterTiers] = useState<string[]>([]);
   const [q,           setQ]           = useState("");
@@ -575,6 +579,7 @@ function StepVehicles({ selected, setSelected, vehicles, sub, onUpgrade, onBuyCr
         onClose={() => setShowFilter(false)}
       />
     )}
+    {navSlot && <div style={{ marginTop: 4, display: "flex", gap: 10, justifyContent: "flex-end" }}>{navSlot}</div>}
     </>
   );
 }
@@ -582,18 +587,20 @@ function StepVehicles({ selected, setSelected, vehicles, sub, onUpgrade, onBuyCr
 function StepSchedule({
   schedDate, setSchedDate,
   title, body, subtitle, cat, selectedVeh, brand,
-  releaseStatus, onSaveDraft, saving, vehicles,
+  releaseStatus, onSaveDraft, saving, vehicles, navSlot,
 }: {
   schedDate: string; setSchedDate: (v: string) => void;
   title: string; body: string; subtitle: string; cat: string;
   selectedVeh: string[]; brand: Brand | null;
   releaseStatus: string; onSaveDraft: () => Promise<void>; saving: boolean; vehicles: VehicleItem[];
+  navSlot?: React.ReactNode;
 }) {
   const selVehicles = selectedVeh.map(id => vehicles.find(v => v.id === id)).filter(Boolean) as VehicleItem[];
   const selTokens   = selVehicles.reduce((s, v) => s + (TIER_TOKENS_MAP[v.tier] ?? 0), 0);
   const selReach    = selVehicles.reduce((s, v) => s + v.reach, 0);
 
   return (
+    <>
     <div className="composer-grid">
       {/* Pré-visualização */}
       <div className="card">
@@ -682,6 +689,8 @@ function StepSchedule({
         )}
       </div>
     </div>
+    {navSlot && <div style={{ marginTop: 16, display: "flex", gap: 10, justifyContent: "flex-end" }}>{navSlot}</div>}
+    </>
   );
 }
 
@@ -1138,7 +1147,7 @@ export default function EditReleasePage() {
       <div className="content-inner">
 
         {/* Stepper + ações */}
-        <div className="page-head" style={{ marginBottom: 28 }}>
+        <div className="page-head" style={{ marginBottom: 28, position: "sticky", top: 0, zIndex: 10, background: "var(--bg)", paddingBottom: 16, marginTop: -4 }}>
           <div className="steps">
             {STEPS.map((s, i) => (
               <span key={s} style={{ display: "contents" }}>
@@ -1154,64 +1163,63 @@ export default function EditReleasePage() {
               </span>
             ))}
           </div>
-
-          <div className="actions">
-            <button className="btn btn-quiet btn-sm" onClick={() => router.back()}>Cancelar</button>
-            {step > 0 && (
-              <button className="btn btn-ghost btn-sm" onClick={() => setStep(s => s - 1)}>
-                <ArrowLeft size={16} /> Voltar
-              </button>
-            )}
-            {step < last ? (
-              <button className="btn btn-dark btn-sm" disabled={!canNext || dupChecking} onClick={async () => {
-                if (step === 0) {
-                  setDupChecking(true);
-                  try {
-                    const res = await fetch("/api/releases/check-duplicate", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ title, subtitle, body, excludeId: id }),
-                    });
-                    const data = await res.json() as { duplicate: boolean; matchTitle?: string };
-                    if (data.duplicate) { setDupWarning({ matchTitle: data.matchTitle ?? "outro release" }); return; }
-                  } finally { setDupChecking(false); }
-                }
-                setStep(s => s + 1);
-              }}>
-                {dupChecking ? "Verificando…" : <>Continuar <ArrowRight size={16} /></>}
-              </button>
-            ) : (
-              <button className="btn btn-primary btn-sm" disabled={!title.trim() || saving} onClick={save}>
-                {saving ? "Salvando…" : <><Check size={15} /> Salvar alterações</>}
-              </button>
-            )}
-          </div>
         </div>
 
         {err && <p style={{ color: "var(--red,#c0392b)", fontSize: 13, marginBottom: 16, fontWeight: 500 }}>{err}</p>}
 
-        {step === 0 && (
-          <StepContent
-            title={title} setTitle={setTitle}
-            subtitle={subtitle} setSubtitle={setSubtitle}
-            body={body} setBody={setBody}
-            cat={cat} setCat={setCat}
-            author={author} setAuthor={setAuthor}
-            brand={brand}
-          />
-        )}
-        {step === 1 && <StepVehicles selected={selectedVeh} setSelected={setSelectedVeh} vehicles={vehicles} sub={sub} onBuyCredits={() => setShowBuyCreditsModal(true)} onUpgrade={() => setShowUpgradeModal(true)} />}
-        {step === 2 && (
-          <StepSchedule
-            schedDate={schedDate} setSchedDate={setSchedDate}
-            title={title} body={body} subtitle={subtitle} cat={cat}
-            selectedVeh={selectedVeh} brand={brand}
-            releaseStatus={release?.status ?? "DRAFT"}
-            onSaveDraft={saveDraft}
-            saving={saving}
-          vehicles={vehicles}
-          />
-        )}
+        {(() => {
+          const cancelBtn = <button className="btn btn-quiet btn-sm" onClick={() => router.back()}>Cancelar</button>;
+          const backBtn = step > 0 ? <button className="btn btn-ghost btn-sm" onClick={() => setStep(s => s - 1)}><ArrowLeft size={16} /> Voltar</button> : null;
+          const nextBtn = step < last ? (
+            <button className="btn btn-dark btn-sm" disabled={!canNext || dupChecking} onClick={async () => {
+              if (step === 0) {
+                setDupChecking(true);
+                try {
+                  const res = await fetch("/api/releases/check-duplicate", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ title, subtitle, body, excludeId: id }),
+                  });
+                  const data = await res.json() as { duplicate: boolean; matchTitle?: string };
+                  if (data.duplicate) { setDupWarning({ matchTitle: data.matchTitle ?? "outro release" }); return; }
+                } finally { setDupChecking(false); }
+              }
+              setStep(s => s + 1);
+            }}>
+              {dupChecking ? "Verificando…" : <>Continuar <ArrowRight size={16} /></>}
+            </button>
+          ) : (
+            <button className="btn btn-primary btn-sm" disabled={!title.trim() || saving} onClick={save}>
+              {saving ? "Salvando…" : <><Check size={15} /> Salvar alterações</>}
+            </button>
+          );
+          const navSlot = <>{cancelBtn}{backBtn}{nextBtn}</>;
+
+          if (step === 0) return (
+            <StepContent
+              title={title} setTitle={setTitle}
+              subtitle={subtitle} setSubtitle={setSubtitle}
+              body={body} setBody={setBody}
+              cat={cat} setCat={setCat}
+              author={author} setAuthor={setAuthor}
+              brand={brand}
+              navSlot={navSlot}
+            />
+          );
+          if (step === 1) return <StepVehicles selected={selectedVeh} setSelected={setSelectedVeh} vehicles={vehicles} sub={sub} onBuyCredits={() => setShowBuyCreditsModal(true)} onUpgrade={() => setShowUpgradeModal(true)} navSlot={navSlot} />;
+          if (step === 2) return (
+            <StepSchedule
+              schedDate={schedDate} setSchedDate={setSchedDate}
+              title={title} body={body} subtitle={subtitle} cat={cat}
+              selectedVeh={selectedVeh} brand={brand}
+              releaseStatus={release?.status ?? "DRAFT"}
+              onSaveDraft={saveDraft}
+              saving={saving}
+              vehicles={vehicles}
+              navSlot={navSlot}
+            />
+          );
+        })()}
       </div>
 
       {dupWarning && (
