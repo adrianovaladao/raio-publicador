@@ -34,17 +34,22 @@ export async function POST(req: Request) {
     ? Math.min(voucher.credits, VOUCHER_CREDIT_CAP)
     : voucher.credits;
 
+  const now = new Date();
+  const expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+
   await prisma.$transaction([
     prisma.voucherRedemption.create({ data: { voucherId: voucher.id, userId } }),
     prisma.voucher.update({ where: { id: voucher.id }, data: { usedCount: { increment: 1 } } }),
     isNewUser
       ? prisma.subscription.create({
           data: {
-            ownerId:      userId,
-            plan:         "VOUCHER",
-            status:       "ACTIVE",
-            creditsTotal: creditsToAdd,
-            creditsUsed:  0,
+            ownerId:            userId,
+            plan:               "VOUCHER",
+            status:             "ACTIVE",
+            creditsTotal:       creditsToAdd,
+            creditsUsed:        0,
+            currentPeriodStart: now,
+            currentPeriodEnd:   expiresAt,
           },
         })
       : prisma.subscription.update({
