@@ -1459,7 +1459,13 @@ export default function NovoReleasePage() {
       .catch(() => {});
   }, []);
   const now = new Date();
-  const defaultDate = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()+1).padStart(2,"0")}`;
+  const nextBusinessDay = (() => {
+    const d = new Date(now);
+    d.setDate(d.getDate() + 1);
+    while (d.getDay() === 0 || d.getDay() === 6) d.setDate(d.getDate() + 1);
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  })();
+  const defaultDate = nextBusinessDay;
   const [when, setWhen] = useState<When>({ mode: "schedule", date: defaultDate });
   const [submitting, setSubmitting] = useState(false);
   const [showPolicyModal, setShowPolicyModal] = useState(false);
