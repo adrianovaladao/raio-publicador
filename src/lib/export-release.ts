@@ -29,7 +29,6 @@ function stripAboutSection(html: string): string {
 }
 
 export async function exportDocx(release: ReleaseExport) {
-  const slug = release.title.slice(0, 40).replace(/\s+/g, "-").toLowerCase() || "release";
   const brandName = release.brandName ?? "";
   const bodyLines = htmlToPlainLines(stripAboutSection(release.body));
 
