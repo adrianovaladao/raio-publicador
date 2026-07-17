@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useUser, useClerk } from "@clerk/nextjs";
 import {
   LayoutDashboard, FileText, CalendarDays, Rss, Settings, ShieldCheck,
-  Bell, Search, LogOut, Zap, Check, X,
+  Bell, LogOut, Zap, Check, X,
   Megaphone, CreditCard, Users, Radio,
 } from "lucide-react";
 import { RaioLockup } from "@/components/logo/RaioLockup";
@@ -612,30 +612,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
           <div className="spacer" />
 
-
-          <div className="search">
-            <Search size={16} />
-            <input placeholder="Buscar releases, veículos…" />
-          </div>
-          <button
-            className="icon-btn"
-            title="Notificações"
-            style={{ position: "relative" }}
-            onClick={() => { setShowNotifs(o => !o); }}
-          >
-            <Bell size={18} />
-            {unreadCount > 0 && (
-              <span style={{
-                position: "absolute", top: 5, right: 5,
-                width: 8, height: 8, borderRadius: "50%",
-                background: "var(--coral)", border: "2px solid var(--paper)",
-              }} />
-            )}
-          </button>
-          {showNotifs && (
-            <NotificationPanel onClose={() => { setShowNotifs(false); fetchUnread(); }} />
-          )}
-
           {/* Usuário na topbar */}
           <button className="topbar-user" onClick={() => router.push("/configuracoes")} title="Perfil e configurações">
             {user?.hasImage
@@ -661,6 +637,24 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <div className="topbar-rl">Administração</div>
             </div>
           </button>
+          <button
+            className="icon-btn"
+            title="Notificações"
+            style={{ position: "relative" }}
+            onClick={() => { setShowNotifs(o => !o); }}
+          >
+            <Bell size={18} />
+            {unreadCount > 0 && (
+              <span style={{
+                position: "absolute", top: 5, right: 5,
+                width: 8, height: 8, borderRadius: "50%",
+                background: "var(--coral)", border: "2px solid var(--paper)",
+              }} />
+            )}
+          </button>
+          {showNotifs && (
+            <NotificationPanel onClose={() => { setShowNotifs(false); fetchUnread(); }} />
+          )}
           <button className="icon-btn" title="Sair" onClick={handleLogout}>
             <LogOut size={18} />
           </button>
