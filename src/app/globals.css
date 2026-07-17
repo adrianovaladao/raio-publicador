@@ -750,10 +750,13 @@ select.sm-in option { background: var(--ink-2); color: var(--tx); }
 .brand-lockup.on-dark .wm .pub { color: var(--d-text); }
 
 @keyframes date-flash {
-  0%   { border-color: var(--border); }
-  25%  { border-color: var(--coral); box-shadow: 0 0 0 3px color-mix(in srgb, var(--coral) 20%, transparent); }
-  75%  { border-color: var(--coral); box-shadow: 0 0 0 3px color-mix(in srgb, var(--coral) 20%, transparent); }
-  100% { border-color: var(--border); }
+  0%   { border-color: var(--border); box-shadow: none; }
+  15%  { border-color: var(--coral); box-shadow: 0 0 0 3px color-mix(in srgb, var(--coral) 25%, transparent); }
+  30%  { border-color: var(--border); box-shadow: none; }
+  45%  { border-color: var(--coral); box-shadow: 0 0 0 3px color-mix(in srgb, var(--coral) 25%, transparent); }
+  60%  { border-color: var(--border); box-shadow: none; }
+  75%  { border-color: var(--coral); box-shadow: 0 0 0 3px color-mix(in srgb, var(--coral) 25%, transparent); }
+  100% { border-color: var(--border); box-shadow: none; }
 }
-.date-card-flash { animation: date-flash 0.6s ease; }
+.date-card-flash { animation: date-flash 1.2s ease; }
 @keyframes spin { to { transform: rotate(360deg); } }

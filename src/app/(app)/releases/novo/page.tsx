@@ -375,17 +375,19 @@ function StepContent({ content, setContent, brand, ownerName, onAIUsed, navSlot 
 
   return (
     <div className="composer-grid">
-      <RichEditor
-        title={content.title}
-        onTitleChange={v => up("title", v)}
-        subtitle={content.subtitle}
-        onSubtitleChange={v => up("subtitle", v)}
-        content={content.body}
-        onContentChange={v => up("body", v)}
-        brandName={brand?.name}
-        onAIUsed={onAIUsed}
-        onImageInserted={url => up("imageUrls", [url, ...content.imageUrls.filter(u => u !== url)])}
-      />
+      <div>
+        <RichEditor
+          title={content.title}
+          onTitleChange={v => up("title", v)}
+          subtitle={content.subtitle}
+          onSubtitleChange={v => up("subtitle", v)}
+          content={content.body}
+          onContentChange={v => up("body", v)}
+          brandName={brand?.name}
+          onAIUsed={onAIUsed}
+          onImageInserted={url => up("imageUrls", [url, ...content.imageUrls.filter(u => u !== url)])}
+        />
+      </div>
 
       <div>
         <div className="card side-card">
@@ -1220,7 +1222,8 @@ function StepReview({ content, selected, when, setWhen, brand, vehicles, datePic
 
   return (
     <div className="composer-grid">
-      <div className="card">
+      <div>
+        <div className="card">
         <div className="card-head">
           <h3>Pré-visualização do <em>release</em></h3>
           <div className="row" style={{ gap: 10 }}>
@@ -1233,7 +1236,7 @@ function StepReview({ content, selected, when, setWhen, brand, vehicles, datePic
             </button>
           </div>
         </div>
-        <div className="card-pad">
+        <div className="card-pad" style={{ paddingBottom: 20 }}>
           {brand && (
             <div className="review-brand">
               <span className="bc-av" style={{ background: brand.color ?? "#1A1A1A", overflow: "hidden", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
@@ -1256,6 +1259,7 @@ function StepReview({ content, selected, when, setWhen, brand, vehicles, datePic
             ? <div className="tiptap-preview" style={{ color: "var(--ink-soft)", fontSize: 15, lineHeight: 1.7 }} dangerouslySetInnerHTML={{ __html: content.body }} />
             : <p style={{ color: "var(--ink-soft)", fontSize: 15, lineHeight: 1.7 }}>O corpo do release aparece aqui exatamente como será distribuído aos veículos selecionados.</p>
           }
+        </div>
         </div>
       </div>
 
@@ -1600,7 +1604,7 @@ export default function NovoReleasePage() {
     <div className="content scroll">
       <div className="content-inner">
         {/* Stepper + ações */}
-        <div className="page-head" style={{ marginBottom: 28 }}>
+        <div className="page-head" style={{ marginBottom: 28, position: "sticky", top: 0, zIndex: 10, background: "var(--paper)", paddingBottom: 16, marginTop: -4 }}>
           <div className="steps">
             {STEPS.map((s, i) => (
               <span key={s} style={{ display: "contents" }}>
@@ -1616,17 +1620,23 @@ export default function NovoReleasePage() {
               </span>
             ))}
           </div>
-          <div className="actions" style={{ alignItems: "center" }}>
+          {/* Botão fixo alinhado à borda direita da coluna do editor (320px col + 18px gap) */}
+          {step > 0 && (
             <button
               className="btn btn-ghost btn-sm"
+              style={{ position: "absolute", right: "calc(320px + 18px)", top: "50%", transform: "translateY(-50%)", whiteSpace: "nowrap" }}
               onClick={async () => { await autosave(); router.push("/releases"); }}
             >
               Salvar rascunho e fechar
             </button>
-            {content.title.trim() && content.subtitle.trim() && (
+          )}
+          <div className="actions" style={{ alignItems: "center" }}>
+            {step > 0 && content.title.trim() && content.subtitle.trim() && (
               <span className="badge-status review">Rascunho</span>
             )}
-            <button className="btn btn-quiet btn-sm" onClick={() => router.back()}>Cancelar</button>
+            {step > 0 && (
+              <button className="btn btn-quiet btn-sm" onClick={() => router.back()}>Cancelar</button>
+            )}
             {saveStatus !== "idle" && (
               <span style={{ fontSize: 12, color: saveStatus === "error" ? "var(--coral)" : "var(--stone)", display: "flex", alignItems: "center", gap: 5 }}>
                 {saveStatus === "saving" && <><Cloud size={13} style={{ opacity: 0.6 }} /> Salvando…</>}
@@ -1695,7 +1705,13 @@ export default function NovoReleasePage() {
             </button>
           );
 
-          const navSlot = <>{backBtn}{nextBtn}</>;
+          const cancelBtn = (
+            <button className="btn btn-ghost" onClick={() => router.back()}>Cancelar</button>
+          );
+
+          const navSlot = step === 0
+            ? <>{cancelBtn}{nextBtn}</>
+            : <>{backBtn}{nextBtn}</>;
 
           if (step === 0) return <StepBrand selected={brand} onSelect={setBrand} brands={brands} brandsLimit={sub.brandsLimit} onAddBrand={b => setBrands(prev => [...prev, b])} onLimitReached={() => { setUpgradeContext("brands"); setShowUpgradeModal(true); }} isCancelled={sub.status === "CANCELLED"} navSlot={navSlot} />;
           if (step === 1) return <StepContent content={content} setContent={setContent} brand={brand} ownerName={ownerName} onAIUsed={handleAIUsed} navSlot={navSlot} />;

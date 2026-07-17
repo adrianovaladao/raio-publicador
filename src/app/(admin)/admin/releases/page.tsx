@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useUser } from "@clerk/nextjs";
 import { Crown, FileText, Trash2, ChevronDown, AlertTriangle, Clock, ExternalLink, Send, Copy, Download, Check, Calendar, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { exportDocx, exportPdf } from "@/lib/export-release";
 import { isAnyAdmin } from "@/lib/admin";
 
 // ── DatePicker do admin (sem restrições de feriado) ───────────────────────────
@@ -240,48 +241,19 @@ function ReleaseActions({ release, onSaved, onDeleted }: {
     }
   }
 
-  function buildReleaseHtml(forExport = false) {
+  function buildReleaseHtmlForCopy() {
     const subtitle = release.summary
       ? `<p style="font-style:italic;font-size:16px;color:#444;margin:0 0 24px;line-height:1.5">${release.summary}</p>`
       : "";
-
-    // Strip "Sobre a <Marca>" footer block from body for copy/paste
     const bodyHtml = release.body.replace(/<h[23][^>]*>\s*Sobre[^<]*<\/h[23]>[\s\S]*$/i, "").trimEnd();
-
-    const body = `
+    return `
       <h1 style="font-size:32px;font-weight:700;margin:0 0 12px;line-height:1.2;color:#1a1a1a">${release.title}</h1>
       ${subtitle}
       <div style="font-size:16px;color:#1a1a1a;line-height:1.7;margin-top:24px">${bodyHtml}</div>`;
-
-    if (!forExport) return body;
-
-    const vehicleList = release.vehicleNames.map(v => `<li>${v.name}</li>`).join("");
-    const urlList = Object.entries(release.publishedVehicleUrls ?? {})
-      .map(([k, u]) => `<li>${k}: <a href="${u}">${u}</a></li>`).join("");
-
-    return `<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <title>${release.title}</title>
-  <style>
-    body { font-family: Georgia, serif; max-width: 800px; margin: 40px auto; padding: 0 24px; color: #1a1a1a; line-height: 1.7; }
-    img { max-width: 100%; height: auto; }
-    .section { margin-top: 40px; border-top: 1px solid #eee; padding-top: 20px; }
-    .section h3 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: #888; margin-bottom: 10px; }
-    ul { padding-left: 20px; }
-  </style>
-</head>
-<body>
-  ${body}
-  ${vehicleList ? `<div class="section"><h3>Veículos</h3><ul>${vehicleList}</ul></div>` : ""}
-  ${urlList ? `<div class="section"><h3>Links de publicação</h3><ul>${urlList}</ul></div>` : ""}
-</body>
-</html>`;
   }
 
   async function handleCopyContent() {
-    const richHtml = buildReleaseHtml(false);
+    const richHtml = buildReleaseHtmlForCopy();
     const plainText = `${release.title}\n\n${release.summary ? release.summary + "\n\n" : ""}${htmlToText(release.body)}`;
     try {
       await navigator.clipboard.write([
@@ -297,15 +269,28 @@ function ReleaseActions({ release, onSaved, onDeleted }: {
     setTimeout(() => setCopied(false), 2000);
   }
 
-  function handleExport() {
-    const html = buildReleaseHtml(true);
-    const blob = new Blob([html], { type: "text/html" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `release-${release.shortId}.html`;
-    a.click();
-    URL.revokeObjectURL(url);
+  function handleExportDocx() {
+    exportDocx({
+      title: release.title,
+      summary: release.summary,
+      body: release.body,
+      shortId: release.shortId,
+      brandName: release.brand?.name,
+      vehicleNames: release.vehicleNames,
+      publishedVehicleUrls: release.publishedVehicleUrls,
+    });
+  }
+
+  function handleExportPdf() {
+    exportPdf({
+      title: release.title,
+      summary: release.summary,
+      body: release.body,
+      shortId: release.shortId,
+      brandName: release.brand?.name,
+      vehicleNames: release.vehicleNames,
+      publishedVehicleUrls: release.publishedVehicleUrls,
+    });
   }
 
   const needsNotes = newStatus === "NEEDS_REVISION" || newStatus === "REJECTED";
@@ -330,11 +315,18 @@ function ReleaseActions({ release, onSaved, onDeleted }: {
               {copied ? "Copiado!" : "Copiar conteúdo"}
             </button>
             <button
-              onClick={handleExport}
+              onClick={handleExportDocx}
               className="btn btn-ghost btn-sm"
               style={{ fontSize: 12, display: "flex", alignItems: "center", gap: 5, color: "#555" }}
             >
-              <Download size={13} /> Exportar HTML
+              <Download size={13} /> Exportar .docx
+            </button>
+            <button
+              onClick={handleExportPdf}
+              className="btn btn-ghost btn-sm"
+              style={{ fontSize: 12, display: "flex", alignItems: "center", gap: 5, color: "#555" }}
+            >
+              <Download size={13} /> Exportar PDF
             </button>
           </div>
         </div>

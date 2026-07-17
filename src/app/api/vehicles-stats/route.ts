@@ -37,10 +37,13 @@ export async function GET(req: Request) {
 
   const vMap = Object.fromEntries(vehicles.map(v => [v.id, v]));
 
-  const ranked = sorted.map(([id, count]) => {
-    const v = vMap[id] ?? { name: id, domain: "", tier: "E", reach: 0 };
-    return { id, count, name: v.name, domain: v.domain, tier: v.tier, reach: v.reach };
-  });
+  const ranked = sorted
+    .map(([id, count]) => {
+      const v = vMap[id];
+      if (!v) return null; // vehicle deleted — skip orphan
+      return { id, count, name: v.name, domain: v.domain, tier: v.tier, reach: v.reach };
+    })
+    .filter(Boolean) as { id: string; count: number; name: string; domain: string; tier: string; reach: number }[];
 
   // Top 1 por tier (A, B, C) por alcance + total de veículos + última atualização
   const [topByTierRaw, vehicleCount, lastUpdated] = await Promise.all([
