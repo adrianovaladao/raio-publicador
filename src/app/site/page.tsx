@@ -88,6 +88,13 @@ const FAQS = [
 
 function useReveal() {
   useEffect(() => {
+    if ((window as Window & { __isBackNav?: boolean }).__isBackNav) {
+      document.querySelectorAll<HTMLElement>(".reveal").forEach(el => {
+        el.style.transition = "none";
+        el.classList.add("in");
+      });
+      return;
+    }
     const els = document.querySelectorAll(".reveal");
     const io = new IntersectionObserver(
       (entries) => entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }),

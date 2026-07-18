@@ -1,15 +1,13 @@
 "use client";
 import { useEffect } from "react";
 
+declare global { interface Window { __isBackNav?: boolean } }
+
 export default function BlurOnBack() {
   useEffect(() => {
     const handleBack = () => {
-      // Immediately reveal all animated elements — skip animation on back navigation
-      document.querySelectorAll<HTMLElement>(".reveal").forEach(el => {
-        el.style.transition = "none";
-        el.classList.add("in");
-      });
-      // Blur any focused element
+      window.__isBackNav = true;
+      setTimeout(() => { window.__isBackNav = false; }, 1000);
       (document.activeElement as HTMLElement | null)?.blur();
     };
     window.addEventListener("pageshow", handleBack);
