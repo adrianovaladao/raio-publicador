@@ -1,4 +1,5 @@
 import "./site.css";
+import BlurOnBack from "./BlurOnBack";
 
 function WhatsAppFab() {
   return (
@@ -21,6 +22,7 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
     <div data-theme="dark" style={{ minHeight: "100vh", background: "#1A1A1A", color: "rgba(255,255,255,0.94)", zoom: 1.15 }}>
       {children}
       <WhatsAppFab />
+      <BlurOnBack />
     </div>
   );
 }
