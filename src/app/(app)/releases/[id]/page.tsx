@@ -1189,7 +1189,7 @@ export default function EditReleasePage() {
               {dupChecking ? "Verificando…" : <>Continuar <ArrowRight size={16} /></>}
             </button>
           ) : (
-            <button className="btn btn-primary btn-sm" disabled={!title.trim() || saving} onClick={save}>
+            <button className="btn btn-primary btn-sm" disabled={!title.trim() || !schedDate || saving} onClick={save}>
               {saving ? "Salvando…" : <><Check size={15} /> Salvar alterações</>}
             </button>
           );
