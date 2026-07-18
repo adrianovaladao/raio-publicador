@@ -8,7 +8,7 @@
    ============================================================ */
 
 * , *::before, *::after { box-sizing: border-box; }
-*:focus, *:focus-visible { outline: none; }
+*:focus, *:focus-visible { outline: none !important; box-shadow: none !important; }
 html { scroll-behavior: smooth; scroll-padding-top: 90px; }
 a { color: inherit; text-decoration: none; }
 button { font-family: inherit; cursor: pointer; }
