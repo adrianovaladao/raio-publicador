@@ -570,6 +570,7 @@ function StepVehicles({ selected, setSelected, vehicles, sub, onUpgrade, onBuyCr
         </div>
       )}
       </div>
+      {navSlot && <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>{navSlot}</div>}
     </div>
 
     {showFilter && (
@@ -579,7 +580,6 @@ function StepVehicles({ selected, setSelected, vehicles, sub, onUpgrade, onBuyCr
         onClose={() => setShowFilter(false)}
       />
     )}
-    {navSlot && <div style={{ marginTop: 4, display: "flex", gap: 10, justifyContent: "flex-end" }}>{navSlot}</div>}
     </>
   );
 }
@@ -1147,7 +1147,7 @@ export default function EditReleasePage() {
       <div className="content-inner">
 
         {/* Stepper + ações */}
-        <div className="page-head" style={{ marginBottom: 28, position: "sticky", top: 0, zIndex: 10, background: "var(--bg)", paddingBottom: 16, marginTop: -4 }}>
+        <div className="page-head" style={{ marginBottom: 28 }}>
           <div className="steps">
             {STEPS.map((s, i) => (
               <span key={s} style={{ display: "contents" }}>
