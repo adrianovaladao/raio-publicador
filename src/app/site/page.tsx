@@ -469,7 +469,7 @@ function Footer({ onContact }: { onContact: () => void }) {
         <div className="top">
           <div className="brand-col">
             <a href="#top"><RaioLockup height={27} variant="dark" /></a>
-            <p>A primeira plataforma de publicação garantida e branded content por créditos do Brasil.</p>
+            <p>A mais inovadora plataforma brasileira de publicação garantida e branded content em créditos que você distribui como preferir.</p>
           </div>
           <div className="col">
             <h4>Produto</h4>
