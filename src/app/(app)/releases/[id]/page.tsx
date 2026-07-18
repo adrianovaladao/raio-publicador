@@ -569,8 +569,8 @@ function StepVehicles({ selected, setSelected, vehicles, sub, onUpgrade, onBuyCr
           </div>
         </div>
       )}
-      </div>
       {navSlot && <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>{navSlot}</div>}
+      </div>
     </div>
 
     {showFilter && (
