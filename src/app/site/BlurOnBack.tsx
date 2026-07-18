@@ -4,11 +4,15 @@ import { useEffect } from "react";
 export default function BlurOnBack() {
   useEffect(() => {
     const blurActive = () => {
-      // Delay to fire after Next.js / browser focus restoration
-      setTimeout(() => {
-        (document.activeElement as HTMLElement | null)?.blur();
-        document.body.focus();
-      }, 100);
+      // Run at 0, 100, and 300ms to catch both bfcache and Next.js router focus restore
+      [0, 100, 300].forEach(delay =>
+        setTimeout(() => {
+          (document.activeElement as HTMLElement | null)?.blur();
+          document.body.setAttribute("tabindex", "-1");
+          document.body.focus();
+          document.body.removeAttribute("tabindex");
+        }, delay)
+      );
     };
     window.addEventListener("pageshow", blurActive);
     window.addEventListener("popstate", blurActive);
