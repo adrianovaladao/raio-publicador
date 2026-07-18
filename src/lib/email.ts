@@ -29,7 +29,7 @@ function base(content: string) {
         <tr>
           <td style="padding:24px 32px;background:#EEEEEE">
             <p style="margin:0;font-size:12px;color:#1a1a1a">
-              Você está recebendo este e-mail porque possui uma conta no Raio Publicador, a mais inovadora plataforma brasileira de publicação garantida e branded content em créditos que você distribui como preferir.<br>
+              Você está recebendo este e-mail porque possui uma conta no Raio Publicador, a mais inovadora plataforma brasileira de publicação garantida e branded content em créditos que você distribui como preferir.<br><br>
               <a href="${APP_URL}/configuracoes" style="color:#000000">Gerenciar notificações</a>
             </p>
           </td>
