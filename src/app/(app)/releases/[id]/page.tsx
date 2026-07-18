@@ -638,6 +638,17 @@ function StepSchedule({
 
       {/* Sidebar */}
       <div>
+        {releaseStatus === "SCHEDULED" && (
+          <button
+            className="btn btn-ghost btn-sm"
+            style={{ width: "100%", justifyContent: "center", marginBottom: 12 }}
+            disabled={saving}
+            onClick={onSaveDraft}
+          >
+            {saving ? "Salvando…" : "Cancelar agendamento e salvar rascunho"}
+          </button>
+        )}
+
         {/* Distribuição */}
         <div className="card side-card" style={{ marginBottom: 16 }}>
           <div className="card-head"><h3>Distribuição</h3></div>
@@ -677,16 +688,6 @@ function StepSchedule({
           </div>
         </div>
 
-        {releaseStatus === "SCHEDULED" && (
-          <button
-            className="btn btn-ghost btn-sm"
-            style={{ width: "100%", justifyContent: "center", marginTop: 16 }}
-            disabled={saving}
-            onClick={onSaveDraft}
-          >
-            {saving ? "Salvando…" : "Cancelar agendamento e salvar rascunho"}
-          </button>
-        )}
       </div>
     </div>
     {navSlot && <div style={{ marginTop: 16, display: "flex", gap: 10, justifyContent: "flex-end" }}>{navSlot}</div>}
