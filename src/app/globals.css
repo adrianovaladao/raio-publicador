@@ -7,6 +7,7 @@
 
 /* ── App (tema claro) ── */
 :root {
+  color-scheme: light;
   /* Neutros */
   --ink: #212121;
   --ink-2: #2B2B2B;
