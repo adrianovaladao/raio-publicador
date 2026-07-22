@@ -147,7 +147,7 @@ export default function LoginPage() {
         <span className="grid-bg" />
 
         <div className="top">
-          <Link href="/"><RaioLockup height={46} variant="dark" /></Link>
+          <Link href="/"><RaioLockup height={39} variant="dark" /></Link>
         </div>
 
         <div className="mid">
