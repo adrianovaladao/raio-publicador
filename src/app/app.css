@@ -254,7 +254,7 @@ textarea.input { resize: vertical; line-height: 1.55; }
 .sb-user .out svg { width: 17px; height: 17px; }
 
 /* área principal */
-.main { display: flex; flex-direction: column; min-width: 0; height: 100%; overflow: hidden; }
+.main { display: flex; flex-direction: column; min-width: 0; height: 100%; overflow: hidden; background: var(--bg); }
 .topbar {
   height: var(--topbar-h); flex: none;
   position: relative; z-index: 30;
