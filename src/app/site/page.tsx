@@ -147,7 +147,7 @@ function Nav({ onContact }: { onContact: () => void }) {
       <div className={`nav-mobile${menuOpen ? " open" : ""}`}>
         <a href="#como" onClick={close}>Como funciona</a>
         <a href="#planos" onClick={close}>Planos</a>
-        <a href="#faq" onClick={close}>FAQ</a>
+        <a href="#faq" onClick={close}>Perguntas Frequentes</a>
         <button className="link-btn" onClick={() => { close(); onContact(); }}>Fale com nosso time</button>
         <div className="nav-mobile-cta">
           <Link className="btn btn-ghost btn-block" href="/login" onClick={close}>Entrar</Link>
