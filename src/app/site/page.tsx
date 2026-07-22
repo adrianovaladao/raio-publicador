@@ -219,22 +219,6 @@ function Hero() {
   );
 }
 
-// ─── Logos ────────────────────────────────────────────────────────────────────
-
-function Logos() {
-  return (
-    <section className="logos">
-      <div className="wrap">
-        <div className="ll">Distribua em veículos como</div>
-        <div className="row">
-          {PARTNERS.map((p) => (
-            <Image key={p} src={`/assets/partners/${p}.svg`} alt="" width={80} height={34} style={{ height: p === "f5" ? 29 : 34, width: "auto", opacity: 0.8 }} />
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
 
 // ─── O que é um release ───────────────────────────────────────────────────────
 
