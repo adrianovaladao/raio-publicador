@@ -516,7 +516,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {/* ── SIDEBAR ── */}
       <aside className="sidebar">
         <div className="sb-brand">
-          <Link href="/dashboard"><RaioLockup height={36} variant="dark" /></Link>
+          <Link href="/dashboard"><RaioLockup height={32} variant="dark" /></Link>
         </div>
 
         <div className="sb-mid scroll">
