@@ -145,7 +145,7 @@ img { max-width: 100%; }
 .hero .micro svg { width: 15px; height: 15px; color: var(--coral); }
 
 /* faixa de logos — dentro do hero para cobrir com o vídeo */
-.hero-logos { position: relative; z-index: 3; padding: 72px 0 60px; border-top: 1px solid rgba(255,255,255,0.07); margin-top: 90px; }
+.hero-logos { position: relative; z-index: 3; padding: 72px 0 60px; margin-top: 90px; }
 .hero-logos .ll { text-align: center; font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--tx-4); margin-bottom: 28px; }
 .hero-logos .row { display: flex; align-items: center; justify-content: center; gap: 44px; flex-wrap: wrap; }
 .hero-logos .row img { height: 34px; width: auto; opacity: 0.8; transition: opacity .2s; }
