@@ -2,11 +2,11 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ArrowRight, CheckCircle, Feather, Newspaper, Send, BarChart2,
   Zap, Check, X, Star, Plus, Headphones, Monitor, ChevronDown,
-  Menu,
+  Menu, Tag,
 } from "lucide-react";
 import { RaioLockup } from "@/components/logo/RaioLockup";
 
@@ -128,7 +128,7 @@ function Nav({ onContact }: { onContact: () => void }) {
   return (
     <nav className={`nav${scrolled ? " scrolled" : ""}`}>
       <div className="nav-in">
-        <a className="lock" href="#top" onClick={close}><RaioLockup height={31} variant="dark" /></a>
+        <a className="lock" href="#top" onClick={close}><RaioLockup height={37} variant="dark" /></a>
         <div className="links">
           <a href="#como">Como funciona</a>
           <a href="#planos">Planos</a>
@@ -162,8 +162,21 @@ function Nav({ onContact }: { onContact: () => void }) {
 // ─── Hero ─────────────────────────────────────────────────────────────────────
 
 function Hero() {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    v.muted = true;
+    v.play().catch(() => {});
+  }, []);
+
   return (
     <header className="hero" id="top">
+      <div className="hero-video">
+        <video ref={videoRef} autoPlay muted loop playsInline>
+          <source src="/hero-nuvens-raio.mp4" type="video/mp4" />
+        </video>
+      </div>
       <span className="glow" />
       <div className="wrap">
         <div className="hero-in">
@@ -178,11 +191,13 @@ function Hero() {
             <a className="btn btn-primary btn-lg" href="#planos">
               Comece a publicar <ArrowRight size={17} />
             </a>
-            <Link className="btn btn-ghost btn-lg" href="/login">Já tenho conta</Link>
+            <Link className="btn btn-ghost btn-lg" href="/cadastro?voucher=1">
+              <Tag size={15} className="voucher-icon" /> Tenho um voucher
+            </Link>
           </div>
           <div style={{ marginTop: 12 }}>
-            <Link href="/cadastro?voucher=1" style={{ fontSize: 13, color: "var(--stone)", textDecoration: "underline", textUnderlineOffset: 3 }}>
-              Tenho um voucher
+            <Link href="/login" style={{ fontSize: 13, color: "var(--stone)", textDecoration: "underline", textUnderlineOffset: 3 }}>
+              Já tenho conta
             </Link>
           </div>
           <div className="micro">
@@ -357,7 +372,7 @@ function Plans({ onContact }: { onContact: () => void }) {
                   </li>
                 ))}
               </ul>
-              <Link className={`btn btn-block ${p.featured ? "btn-primary" : "btn-ghost"}`} href={`/cadastro?plan=${p.id}`}>
+              <Link className={`btn btn-block ${p.featured ? "btn-primary" : "btn-dark"}`} href={`/cadastro?plan=${p.id}`}>
                 {p.cta}
               </Link>
             </div>
@@ -459,7 +474,14 @@ function CtaBand() {
             <a className="btn btn-primary btn-lg" href="#planos">
               Ver planos <ArrowRight size={17} />
             </a>
-            <Link className="btn btn-ghost btn-lg" href="/login">Já tenho conta</Link>
+            <Link className="btn btn-ghost btn-lg" href="/cadastro?voucher=1">
+              <Tag size={15} className="voucher-icon" /> Tenho um voucher
+            </Link>
+          </div>
+          <div style={{ marginTop: 12 }}>
+            <Link href="/login" style={{ fontSize: 13, color: "var(--stone)", textDecoration: "underline", textUnderlineOffset: 3 }}>
+              Já tenho conta
+            </Link>
           </div>
         </div>
       </div>
@@ -475,7 +497,7 @@ function Footer({ onContact }: { onContact: () => void }) {
       <div className="wrap">
         <div className="top">
           <div className="brand-col">
-            <a href="#top"><RaioLockup height={27} variant="dark" /></a>
+            <a href="#top"><RaioLockup height={32} variant="dark" /></a>
             <p>A mais inovadora plataforma brasileira de publicação garantida e branded content em créditos que você distribui como preferir.</p>
           </div>
           <div className="col">
