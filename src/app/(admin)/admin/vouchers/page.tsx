@@ -127,7 +127,7 @@ export default function VouchersAdminPage() {
             Criar voucher
           </p>
           <form onSubmit={handleCreate}>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 100px 100px 1fr auto", gap: 12, alignItems: "flex-end", flexWrap: "wrap" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 100px 100px 1fr 1fr auto", gap: 12, alignItems: "flex-end", flexWrap: "wrap" }}>
               <div className="field" style={{ marginBottom: 0 }}>
                 <label>Código *</label>
                 <input
@@ -168,6 +168,36 @@ export default function VouchersAdminPage() {
                   value={form.description}
                   onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
                 />
+              </div>
+              <div className="field" style={{ marginBottom: 0 }}>
+                <label>Validade</label>
+                <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+                  {[
+                    { label: "7d",  days: 7  },
+                    { label: "15d", days: 15 },
+                    { label: "30d", days: 30 },
+                    { label: "60d", days: 60 },
+                    { label: "∞",   days: 0  },
+                  ].map(({ label, days }) => {
+                    const val = days === 0 ? "" : (() => { const d = new Date(); d.setDate(d.getDate() + days); return d.toISOString().split("T")[0]; })();
+                    const active = days === 0 ? form.expiresAt === "" : form.expiresAt === val;
+                    return (
+                      <button
+                        key={label}
+                        type="button"
+                        onClick={() => setForm(f => ({ ...f, expiresAt: val }))}
+                        style={{
+                          padding: "5px 10px", borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: "pointer",
+                          border: active ? "1.5px solid var(--ink)" : "1.5px solid var(--line-3)",
+                          background: active ? "var(--ink)" : "transparent",
+                          color: active ? "var(--paper)" : "var(--stone)",
+                        }}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
               <button type="submit" disabled={creating} className="btn btn-dark btn-sm" style={{ gap: 5, whiteSpace: "nowrap" }}>
                 <Plus size={14} /> {creating ? "Criando…" : "Criar"}
