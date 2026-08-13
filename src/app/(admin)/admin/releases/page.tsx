@@ -377,7 +377,7 @@ function ReleaseActions({ release, onSaved, onDeleted }: {
         </div>
 
         {/* Links de publicação por veículo */}
-        {release.vehicleNames.length > 0 && (
+        {release.vehicleNames.length > 0 && newStatus === "PUBLISHED" && (
           <div style={{ gridColumn: "1 / -1" }}>
             <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#888", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.08em" }}>
               Links de publicação por veículo
