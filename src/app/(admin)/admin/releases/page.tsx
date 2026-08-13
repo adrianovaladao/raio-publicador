@@ -480,6 +480,13 @@ function ReleaseActions({ release, onSaved, onDeleted }: {
                 <Send size={13} /> Enviar notificação ao usuário
               </button>
             )}
+            <button
+              onClick={() => { setNewStatus(release.status); setNotes(release.adminNotes ?? ""); }}
+              className="btn btn-ghost btn-sm"
+              disabled={saving}
+            >
+              Cancelar
+            </button>
           </>
         )}
 
