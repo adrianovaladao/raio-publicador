@@ -444,7 +444,7 @@ function ReleaseActions({ release, onSaved, onDeleted }: {
                 opacity: saving ? 0.6 : 1,
               }}
             >
-              <Send size={13} /> {saving ? "Salvando…" : "Salvar alterações e notificar usuário"}
+              <Send size={13} /> {saving ? "Salvando…" : "Solicitar revisão ao usuário"}
             </button>
             <button
               onClick={() => { setNewStatus(release.status); setNotes(release.adminNotes ?? ""); }}
@@ -477,7 +477,7 @@ function ReleaseActions({ release, onSaved, onDeleted }: {
                   cursor: allUrlsFilled ? "pointer" : "not-allowed",
                 }}
               >
-                <Send size={13} /> Enviar notificação ao usuário
+                <Send size={13} /> Publicar e notificar o usuário
               </button>
             )}
             <button
