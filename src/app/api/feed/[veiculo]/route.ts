@@ -57,6 +57,8 @@ export async function GET(
     take: 50,
   });
 
+  const supportsImages = veiculo.toLowerCase() !== "folhapress";
+
   if (format === "json") {
     const items = releases.map(r => ({
       id:          r.id,
@@ -64,7 +66,7 @@ export async function GET(
       body:        r.body,
       summary:     r.summary ?? "",
       author:      r.brand.name,
-      imageUrl:    r.imageUrl ?? null,
+      ...(supportsImages ? { imageUrl: r.imageUrl ?? null } : {}),
       publishedAt: r.publishedAt?.toISOString() ?? r.createdAt.toISOString(),
     }));
     return NextResponse.json({ veiculo: vehicle.name, total: items.length, items });
@@ -81,7 +83,7 @@ export async function GET(
       <pubDate>${(r.publishedAt ?? r.createdAt).toUTCString()}</pubDate>
       <guid>${baseUrl}/releases/${r.id}</guid>
       <link>${baseUrl}/releases/${r.id}</link>
-      ${r.imageUrl ? `<enclosure url="${xmlEscape(r.imageUrl)}" type="image/jpeg" />` : ""}
+      ${supportsImages && r.imageUrl ? `<enclosure url="${xmlEscape(r.imageUrl)}" type="image/jpeg" />` : ""}
     </item>`).join("\n");
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>

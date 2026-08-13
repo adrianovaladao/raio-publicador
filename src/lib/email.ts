@@ -18,7 +18,7 @@ function base(content: string) {
       <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;max-width:560px;width:100%">
         <tr>
           <td style="background:#212121;padding:24px 32px">
-            <img src="${LOGO_URL}" alt="Raio Publicador" height="48" style="display:block;height:48px;width:auto;border:0">
+            <img src="${LOGO_URL}" alt="Raio Publicador" height="41" style="display:block;height:41px;width:auto;border:0">
           </td>
         </tr>
         <tr>
@@ -47,6 +47,10 @@ function btn(label: string, url: string) {
 
 function h1(text: string) {
   return `<h1 style="margin:0 0 12px;font-size:22px;font-weight:700;color:#1a1a1a;line-height:1.3">${text}</h1>`;
+}
+
+function h2(text: string) {
+  return `<h2 style="margin:32px 0 16px;font-size:16px;font-weight:700;color:#1a1a1a;line-height:1.3">${text}</h2>`;
 }
 
 function p(text: string) {
@@ -126,6 +130,43 @@ export async function sendReleasePublishedEmail(
     </table>
     ${p("Continue publicando conosco para acelerar ainda mais o crescimento da sua marca.")}
     ${btn("Ir para o painel", `${APP_URL}/releases/${releaseId}`)}
+
+    <hr style="border:none;border-top:1px solid #eee;margin:32px 0">
+
+    ${h2("E agora? 6 dicas para tirar o máximo de proveito da sua publicação.")}
+
+    <table width="100%" cellpadding="0" cellspacing="16" style="margin:0 0 8px">
+      <tr>
+        <td width="50%" valign="top" align="center" style="padding:0 8px 24px">
+          <img src="${APP_URL}/assets/email/compartilhe@3x.png" alt="Compartilhe nas redes" width="120" style="display:block;width:120px;height:auto;border:0;margin:0 auto 10px">
+          <p style="margin:0;font-size:13px;color:#444;line-height:1.5;text-align:center"><strong>Compartilhe o link nas suas redes sociais.</strong> A matéria já tem a credibilidade do veículo — use isso a seu favor para amplificar o alcance.</p>
+        </td>
+        <td width="50%" valign="top" align="center" style="padding:0 8px 24px">
+          <img src="${APP_URL}/assets/email/adicione-link@3x.png" alt="Adicione ao media kit" width="120" style="display:block;width:120px;height:auto;border:0;margin:0 auto 10px">
+          <p style="margin:0;font-size:13px;color:#444;line-height:1.5;text-align:center"><strong>Adicione o link ao seu media kit.</strong> Releases em grandes portais são prova social poderosa em apresentações e propostas.</p>
+        </td>
+      </tr>
+      <tr>
+        <td width="50%" valign="top" align="center" style="padding:0 8px 24px">
+          <img src="${APP_URL}/assets/email/envie-link@3x.png" alt="Envie para clientes" width="120" style="display:block;width:120px;height:auto;border:0;margin:0 auto 10px">
+          <p style="margin:0;font-size:13px;color:#444;line-height:1.5;text-align:center"><strong>Envie o link para clientes e parceiros.</strong> Uma matéria em veículo de credibilidade reforça a autoridade da sua marca.</p>
+        </td>
+        <td width="50%" valign="top" align="center" style="padding:0 8px 24px">
+          <img src="${APP_URL}/assets/email/campanhas-google@3x.png" alt="Use em campanhas" width="120" style="display:block;width:120px;height:auto;border:0;margin:0 auto 10px">
+          <p style="margin:0;font-size:13px;color:#444;line-height:1.5;text-align:center"><strong>Use em campanhas de mídia paga.</strong> O "como visto em" com o logo do veículo aumenta a conversão em Google e Meta.</p>
+        </td>
+      </tr>
+      <tr>
+        <td width="50%" valign="top" align="center" style="padding:0 8px 24px">
+          <img src="${APP_URL}/assets/email/monitore@3x.png" alt="Monitore menções" width="120" style="display:block;width:120px;height:auto;border:0;margin:0 auto 10px">
+          <p style="margin:0;font-size:13px;color:#444;line-height:1.5;text-align:center"><strong>Monitore menções nos próximos 7 dias.</strong> A matéria pode gerar repercussão em outras publicações. Fique atento e interaja.</p>
+        </td>
+        <td width="50%" valign="top" align="center" style="padding:0 8px 24px">
+          <img src="${APP_URL}/assets/email/salve-print@3x.png" alt="Salve o print" width="120" style="display:block;width:120px;height:auto;border:0;margin:0 auto 10px">
+          <p style="margin:0;font-size:13px;color:#444;line-height:1.5;text-align:center"><strong>Salve o print e use em reuniões.</strong> Uma publicação em veículo de credibilidade vale mais do que qualquer argumento de vendas.</p>
+        </td>
+      </tr>
+    </table>
   `);
 
   return getResend().emails.send({ from: FROM, to, subject: `Release enviado: ${releaseTitle}`, html });
@@ -342,8 +383,61 @@ export async function sendReleasePublishedWithLinksEmail(
   vehicleUrls: Record<string, string>,
   releaseId: string,
 ) {
-  void to; void firstName; void releaseTitle; void vehicleUrls; void releaseId;
-  return Promise.resolve();
+  const vehicleCount = Object.keys(vehicleUrls).length;
+  const urlRows = Object.entries(vehicleUrls)
+    .map(([name, url]) => `<tr><td style="padding:6px 0;color:#888;font-size:14px;width:130px;vertical-align:top">${name}</td><td style="padding:6px 0;font-size:14px"><a href="${url}" style="color:#1a1a1a;word-break:break-all">${url}</a></td></tr>`)
+    .join("");
+
+  const html = base(`
+    ${h1(`Missão cumprida, ${firstName}! ⚡`)}
+    ${p("Seu release saiu daqui como um raio e já está publicado.")}
+    <table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0">
+      <tr><td style="padding:8px 0;color:#888;width:130px">Release</td><td style="padding:8px 0;color:#1a1a1a;font-weight:600">${releaseTitle}</td></tr>
+      <tr><td style="padding:8px 0;color:#888;vertical-align:top">Veículos</td><td style="padding:8px 0;color:#1a1a1a">${vehicleCount} veículo${vehicleCount !== 1 ? "s" : ""}</td></tr>
+      ${urlRows}
+    </table>
+    ${p("Continue publicando conosco para acelerar ainda mais o crescimento da sua marca.")}
+    ${btn("Ir para o painel", `${APP_URL}/releases/${releaseId}`)}
+
+    <hr style="border:none;border-top:1px solid #eee;margin:32px 0">
+
+    ${h2("E agora? 6 dicas para tirar o máximo de proveito da sua publicação.")}
+
+    <table width="100%" cellpadding="0" cellspacing="16" style="margin:0 0 8px">
+      <tr>
+        <td width="50%" valign="top" align="center" style="padding:0 8px 24px">
+          <img src="${APP_URL}/assets/email/compartilhe@3x.png" alt="Compartilhe nas redes" width="120" style="display:block;width:120px;height:auto;border:0;margin:0 auto 10px">
+          <p style="margin:0;font-size:13px;color:#444;line-height:1.5;text-align:center"><strong>Compartilhe o link nas suas redes sociais.</strong> A matéria já tem a credibilidade do veículo — use isso a seu favor para amplificar o alcance.</p>
+        </td>
+        <td width="50%" valign="top" align="center" style="padding:0 8px 24px">
+          <img src="${APP_URL}/assets/email/adicione-link@3x.png" alt="Adicione ao media kit" width="120" style="display:block;width:120px;height:auto;border:0;margin:0 auto 10px">
+          <p style="margin:0;font-size:13px;color:#444;line-height:1.5;text-align:center"><strong>Adicione o link ao seu media kit.</strong> Releases em grandes portais são prova social poderosa em apresentações e propostas.</p>
+        </td>
+      </tr>
+      <tr>
+        <td width="50%" valign="top" align="center" style="padding:0 8px 24px">
+          <img src="${APP_URL}/assets/email/envie-link@3x.png" alt="Envie para clientes" width="120" style="display:block;width:120px;height:auto;border:0;margin:0 auto 10px">
+          <p style="margin:0;font-size:13px;color:#444;line-height:1.5;text-align:center"><strong>Envie o link para clientes e parceiros.</strong> Uma matéria em veículo de credibilidade reforça a autoridade da sua marca.</p>
+        </td>
+        <td width="50%" valign="top" align="center" style="padding:0 8px 24px">
+          <img src="${APP_URL}/assets/email/campanhas-google@3x.png" alt="Use em campanhas" width="120" style="display:block;width:120px;height:auto;border:0;margin:0 auto 10px">
+          <p style="margin:0;font-size:13px;color:#444;line-height:1.5;text-align:center"><strong>Use em campanhas de mídia paga.</strong> O "como visto em" com o logo do veículo aumenta a conversão em Google e Meta.</p>
+        </td>
+      </tr>
+      <tr>
+        <td width="50%" valign="top" align="center" style="padding:0 8px 24px">
+          <img src="${APP_URL}/assets/email/monitore@3x.png" alt="Monitore menções" width="120" style="display:block;width:120px;height:auto;border:0;margin:0 auto 10px">
+          <p style="margin:0;font-size:13px;color:#444;line-height:1.5;text-align:center"><strong>Monitore menções nos próximos 7 dias.</strong> A matéria pode gerar repercussão em outras publicações. Fique atento e interaja.</p>
+        </td>
+        <td width="50%" valign="top" align="center" style="padding:0 8px 24px">
+          <img src="${APP_URL}/assets/email/salve-print@3x.png" alt="Salve o print" width="120" style="display:block;width:120px;height:auto;border:0;margin:0 auto 10px">
+          <p style="margin:0;font-size:13px;color:#444;line-height:1.5;text-align:center"><strong>Salve o print e use em reuniões.</strong> Uma publicação em veículo de credibilidade vale mais do que qualquer argumento de vendas.</p>
+        </td>
+      </tr>
+    </table>
+  `);
+
+  return getResend().emails.send({ from: FROM, to, subject: `Release publicado: ${releaseTitle}`, html });
 }
 
 // ─── 17. Notificação admin (REMOVIDO — redundante) ────────────────────────────

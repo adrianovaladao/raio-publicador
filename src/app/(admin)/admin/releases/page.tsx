@@ -136,9 +136,7 @@ const ALL_STATUSES = [
   { value: "DRAFT",          label: "Rascunho" },
   { value: "SCHEDULED",      label: "Agendado" },
   { value: "NEEDS_REVISION", label: "Precisa revisão" },
-  { value: "REJECTED",       label: "Reprovado" },
   { value: "PUBLISHED",      label: "Publicado" },
-  { value: "CANCELLED",      label: "Cancelado" },
 ];
 
 const STATUS_COLOR: Record<string, string> = {
@@ -293,7 +291,8 @@ function ReleaseActions({ release, onSaved, onDeleted }: {
     });
   }
 
-  const needsNotes = newStatus === "NEEDS_REVISION" || newStatus === "REJECTED";
+  const isNeedsRevision = newStatus === "NEEDS_REVISION";
+  const needsNotes = isNeedsRevision;
   const images = extractImages(release.body);
 
   return (
@@ -432,29 +431,57 @@ function ReleaseActions({ release, onSaved, onDeleted }: {
 
       {/* Botões */}
       <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-        <button
-          onClick={() => save(false)}
-          disabled={saving || !hasChanges || (needsNotes && !notes.trim())}
-          className="btn btn-sm"
-          style={{ background: "#1a1a1a", color: "#fff", border: "none", opacity: (!hasChanges || (needsNotes && !notes.trim())) ? 0.4 : 1 }}
-        >
-          {saving ? "Salvando…" : "Salvar alterações"}
-        </button>
-        {release.vehicleNames.length > 0 && (
-          <button
-            onClick={() => save(true)}
-            disabled={saving || !allUrlsFilled}
-            className="btn btn-sm"
-            style={{
-              background: allUrlsFilled ? "#059669" : "#e0e0e0",
-              color: allUrlsFilled ? "#fff" : "#999",
-              border: "none",
-              display: "flex", alignItems: "center", gap: 6,
-              cursor: allUrlsFilled ? "pointer" : "not-allowed",
-            }}
-          >
-            <Send size={13} /> Enviar notificação ao usuário
-          </button>
+        {isNeedsRevision ? (
+          <>
+            <button
+              onClick={() => save(true)}
+              disabled={saving || !notes.trim()}
+              className="btn btn-sm"
+              style={{
+                background: notes.trim() ? "#D97706" : "#e0e0e0",
+                color: notes.trim() ? "#fff" : "#999",
+                border: "none", display: "flex", alignItems: "center", gap: 6,
+                cursor: notes.trim() ? "pointer" : "not-allowed",
+                opacity: saving ? 0.6 : 1,
+              }}
+            >
+              <Send size={13} /> {saving ? "Salvando…" : "Salvar alterações e notificar usuário"}
+            </button>
+            <button
+              onClick={() => { setNewStatus(release.status); setNotes(release.adminNotes ?? ""); }}
+              className="btn btn-ghost btn-sm"
+              disabled={saving}
+            >
+              Cancelar
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              onClick={() => save(false)}
+              disabled={saving || !hasChanges || (needsNotes && !notes.trim())}
+              className="btn btn-sm"
+              style={{ background: "#1a1a1a", color: "#fff", border: "none", opacity: (!hasChanges || (needsNotes && !notes.trim())) ? 0.4 : 1 }}
+            >
+              {saving ? "Salvando…" : "Salvar alterações"}
+            </button>
+            {release.vehicleNames.length > 0 && (
+              <button
+                onClick={() => save(true)}
+                disabled={saving || !allUrlsFilled}
+                className="btn btn-sm"
+                style={{
+                  background: allUrlsFilled ? "#059669" : "#e0e0e0",
+                  color: allUrlsFilled ? "#fff" : "#999",
+                  border: "none",
+                  display: "flex", alignItems: "center", gap: 6,
+                  cursor: allUrlsFilled ? "pointer" : "not-allowed",
+                }}
+              >
+                <Send size={13} /> Enviar notificação ao usuário
+              </button>
+            )}
+          </>
         )}
 
         {!confirmDelete ? (

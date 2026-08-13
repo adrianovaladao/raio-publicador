@@ -221,7 +221,7 @@ export function SupportWidget({ plan }: SupportWidgetProps) {
                 <button className="link" style={{ fontSize: 12 }} onClick={() => setView("chat")}>← Voltar</button>
                 <span style={{ fontWeight: 700, fontSize: 14 }}>Suporte humano</span>
               </div>
-              <div style={{ padding: "20px 20px 0" }}>
+              <div style={{ padding: "20px 20px 24px" }}>
                 {businessHours ? (
                   <>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "12px 14px", background: "#E3F2E9", borderRadius: 10, marginBottom: 16 }}>
@@ -229,9 +229,18 @@ export function SupportWidget({ plan }: SupportWidgetProps) {
                       <span style={{ fontSize: 13, color: "#2F8A5B", fontWeight: 600 }}>Equipe online agora</span>
                     </div>
                     <p style={{ fontSize: 13, color: "var(--ink-soft)", lineHeight: 1.6, margin: "0 0 16px" }}>
-                      Para falar com nossa equipe, abra um ticket descrevendo sua dúvida e entraremos em contato pelo e-mail cadastrado o mais breve possível.
+                      Fale com nossa equipe agora pelo WhatsApp ou abra um ticket e respondemos por e-mail.
                     </p>
-                    <button className="btn btn-primary btn-sm" style={{ width: "100%", justifyContent: "center" }} onClick={() => setView("ticket")}>
+                    <a
+                      className="btn btn-primary btn-sm"
+                      style={{ width: "100%", justifyContent: "center", marginBottom: 10 }}
+                      href="https://wa.me/16193414276?text=Olá%2C%20preciso%20de%20suporte%20no%20Raio%20Publicador."
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Phone size={14} /> Falar no WhatsApp agora
+                    </a>
+                    <button className="btn btn-ghost btn-sm" style={{ width: "100%", justifyContent: "center" }} onClick={() => setView("ticket")}>
                       <Ticket size={14} /> Abrir ticket de atendimento
                     </button>
                   </>

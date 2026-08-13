@@ -520,13 +520,14 @@ function StepVehicles({ selected, setSelected, vehicles, sub, onUpgrade, onBuyCr
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const list       = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-  const selVehicles = selected.map(id => vehicles.find(v => v.id === id)).filter(Boolean) as VehicleItem[];
-  const selTokens   = selVehicles.reduce((s, v) => s + (TIER_TOKENS_MAP[v.tier] ?? 0), 0);
-  const selReach    = selVehicles.reduce((s, v) => s + v.reach, 0);
-  const left        = sub.credits - sub.creditsUsed;
-  const over        = selTokens > left;
-  const usedPct     = sub.credits > 0 ? (sub.creditsUsed / sub.credits) * 100 : 0;
-  const nowPct      = sub.credits > 0 ? Math.min((selTokens / sub.credits) * 100, 100 - usedPct) : 0;
+  const selVehicles   = selected.map(id => vehicles.find(v => v.id === id)).filter(Boolean) as VehicleItem[];
+  const hasFolhapress = selVehicles.some(v => v.domain.toLowerCase().includes("folhapress") || v.name.toLowerCase().includes("folhapress"));
+  const selTokens     = selVehicles.reduce((s, v) => s + (TIER_TOKENS_MAP[v.tier] ?? 0), 0);
+  const selReach      = selVehicles.reduce((s, v) => s + v.reach, 0);
+  const left          = sub.credits - sub.creditsUsed;
+  const over          = selTokens > left;
+  const usedPct       = sub.credits > 0 ? (sub.creditsUsed / sub.credits) * 100 : 0;
+  const nowPct        = sub.credits > 0 ? Math.min((selTokens / sub.credits) * 100, 100 - usedPct) : 0;
 
   const sortBtnStyle = (col: VehSortCol): React.CSSProperties => ({
     display: "inline-flex", alignItems: "center", background: "none", border: "none",
@@ -692,6 +693,12 @@ function StepVehicles({ selected, setSelected, vehicles, sub, onUpgrade, onBuyCr
           </div>
         </div>
       </div>
+
+      {hasFolhapress && (
+        <div style={{ background: "var(--yellow-soft, #FFF8E1)", color: "var(--yellow-ink, #7A5C00)", borderRadius: 12, padding: "14px 16px", fontSize: 13, lineHeight: 1.5, border: "1px solid var(--yellow-border, #F0D060)" }}>
+          <b>⚠️ Folhapress não suporta imagens.</b> Os releases enviados para a Folhapress serão distribuídos apenas em texto. Imagens anexadas serão ignoradas.
+        </div>
+      )}
 
       {over && (
         <div style={{ background: "var(--red-soft)", color: "var(--red)", borderRadius: 12, padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10, position: "relative", zIndex: 2 }}>
