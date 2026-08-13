@@ -20,9 +20,9 @@ import { useSearchParams } from "next/navigation";
 interface SubInfo { plan: string | null; status: string | null; label: string; priceCents: number | null; credits: number; creditsUsed: number; }
 
 const APP_PLANS = [
-  { id: "BASIC",        name: "Básico",       amt: "1.000", credits: "200 créditos",   feats: ["Até 2 marcas", "1 editor + 1 revisor",  "Centenas de veículos"] },
-  { id: "ADVANCED",     name: "Avançado",     amt: "3.000", credits: "1.000 créditos", feats: ["Até 5 marcas", "3 editores + 5 revisores", "Relatórios de desempenho"], featured: true },
-  { id: "PROFESSIONAL", name: "Profissional", amt: "5.000", credits: "2.000 créditos", feats: ["Até 10 marcas", "5 editores + 10 revisores", "Relatórios + exportação"] },
+  { id: "BASIC",        name: "Básico",       amt: "1.000", credits: "200 créditos",   feats: ["Até 2 marcas", "1 editor + 1 revisor",  "Centenas de veículos", "Até 2 publicações categoria A"] },
+  { id: "ADVANCED",     name: "Avançado",     amt: "3.000", credits: "1.000 créditos", feats: ["Até 5 marcas", "3 editores + 5 revisores", "Relatórios de desempenho", "Até 10 publicações categoria A"], featured: true },
+  { id: "PROFESSIONAL", name: "Profissional", amt: "5.000", credits: "2.000 créditos", feats: ["Até 10 marcas", "5 editores + 10 revisores", "Relatórios + exportação", "Até 20 publicações categoria A"] },
 ];
 
 const BRAND_COLORS = ["#C25E00","#2A6FDB","#2F8A5B","#6D3BD9","#0E7C86","#B0322E","#8A6500","#1A1A1A"];
