@@ -133,7 +133,6 @@ interface ReleaseRow {
 }
 
 const ALL_STATUSES = [
-  { value: "DRAFT",          label: "Rascunho" },
   { value: "SCHEDULED",      label: "Agendado" },
   { value: "NEEDS_REVISION", label: "Precisa revisão" },
   { value: "PUBLISHED",      label: "Publicado" },
