@@ -1611,7 +1611,7 @@ export default function NovoReleasePage() {
     <div className="content scroll">
       <div className="content-inner">
         {/* Stepper + ações */}
-        <div className="page-head" style={{ marginBottom: 28, position: "sticky", top: 0, zIndex: 10, background: "var(--bg)", paddingBottom: 16, marginTop: -4, display: "grid", gridTemplateColumns: "1fr auto auto", alignItems: "center", gap: 0 }}>
+        <div className="page-head" style={{ marginBottom: 28, position: "sticky", top: -28, zIndex: 10, background: "var(--bg)", paddingTop: 28, paddingBottom: 16, marginTop: -28, display: "grid", gridTemplateColumns: "1fr auto auto", alignItems: "center", gap: 0 }}>
           <div className="steps" style={{ display: "flex", alignItems: "center" }}>
             {STEPS.map((s, i) => (
               <span key={s} style={{ display: "contents" }}>
