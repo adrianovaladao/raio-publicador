@@ -17,8 +17,18 @@ function base(content: string) {
     <tr><td align="center">
       <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;max-width:560px;width:100%">
         <tr>
-          <td align="left" style="background:#000000;padding:28px 32px">
-            <img src="${LOGO_URL}" alt="Raio Publicador" height="72" style="display:inline-block;height:72px;width:auto;border:0;margin:0;float:left">
+          <td align="left" style="background:#000000;padding:24px 32px">
+            <table cellpadding="0" cellspacing="0" style="border:0">
+              <tr>
+                <td style="padding:0;vertical-align:middle">
+                  <img src="${APP_URL}/assets/logo/markable-icon-color.svg" alt="" width="36" height="36" style="display:block;width:36px;height:36px;border:0">
+                </td>
+                <td style="padding:0 0 0 10px;vertical-align:middle">
+                  <span style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:26px;font-weight:700;color:#ffffff;letter-spacing:-0.5px;line-height:1">Raio</span>
+                  <span style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:11px;font-weight:400;color:#888888;letter-spacing:0.15em;text-transform:uppercase;padding-left:8px;line-height:1">Publicador</span>
+                </td>
+              </tr>
+            </table>
           </td>
         </tr>
         <tr>
