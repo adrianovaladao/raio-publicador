@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/prisma";
+const prisma = getPrisma();
 
 // Tokens por veículo — adicione novos veículos parceiros aqui
 const VEHICLE_TOKENS: Record<string, string> = {
