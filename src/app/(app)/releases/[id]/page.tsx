@@ -563,7 +563,7 @@ function StepVehicles({ selected, setSelected, vehicles, sub, onUpgrade, onBuyCr
                 style={{ background: "transparent", color: "var(--red)", border: "1.5px solid var(--red)", fontSize: 12, width: "100%", justifyContent: "center" }}
                 onClick={onUpgrade}
               >
-                Fazer upgrade de plano
+                Selecionar plano
               </button>
             )}
           </div>
@@ -1207,7 +1207,7 @@ export default function EditReleasePage() {
               navSlot={navSlot}
             />
           );
-          if (step === 1) return <StepVehicles selected={selectedVeh} setSelected={setSelectedVeh} vehicles={vehicles} sub={sub} onBuyCredits={() => setShowBuyCreditsModal(true)} onUpgrade={() => setShowUpgradeModal(true)} navSlot={navSlot} />;
+          if (step === 1) return <StepVehicles selected={selectedVeh} setSelected={setSelectedVeh} vehicles={vehicles} sub={sub} onBuyCredits={() => setShowBuyCreditsModal(true)} onUpgrade={() => window.dispatchEvent(new CustomEvent("open-plans"))} navSlot={navSlot} />;
           if (step === 2) return (
             <StepSchedule
               schedDate={schedDate} setSchedDate={setSchedDate}

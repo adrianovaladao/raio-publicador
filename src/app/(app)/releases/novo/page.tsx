@@ -719,7 +719,7 @@ function StepVehicles({ selected, setSelected, vehicles, sub, onUpgrade, onBuyCr
                 style={{ background: "transparent", color: "var(--red)", border: "1.5px solid var(--red)", fontSize: 12, width: "100%", justifyContent: "center" }}
                 onClick={onUpgrade}
               >
-                Fazer upgrade de plano
+                Selecionar plano
               </button>
             )}
           </div>
@@ -1721,7 +1721,7 @@ export default function NovoReleasePage() {
 
           if (step === 0) return <StepBrand selected={brand} onSelect={setBrand} brands={brands} brandsLimit={sub.brandsLimit} onAddBrand={b => setBrands(prev => [...prev, b])} onLimitReached={() => { setUpgradeContext("brands"); setShowUpgradeModal(true); }} isCancelled={sub.status === "CANCELLED"} navSlot={navSlot} />;
           if (step === 1) return <StepContent content={content} setContent={setContent} brand={brand} ownerName={ownerName} onAIUsed={handleAIUsed} navSlot={navSlot} />;
-          if (step === 2) return <StepVehicles selected={selected} setSelected={setSelected} vehicles={vehicles} sub={sub} onBuyCredits={() => { try { sessionStorage.setItem("raio_draft_vehicles", JSON.stringify(selected)); sessionStorage.setItem("raio_draft_brand", JSON.stringify(brand)); } catch { /* ignore */ } setShowBuyCreditsModal(true); }} onUpgrade={() => { try { sessionStorage.setItem("raio_draft_vehicles", JSON.stringify(selected)); sessionStorage.setItem("raio_draft_brand", JSON.stringify(brand)); } catch { /* ignore */ } setUpgradeContext("credits"); setShowUpgradeModal(true); }} navSlot={navSlot} />;
+          if (step === 2) return <StepVehicles selected={selected} setSelected={setSelected} vehicles={vehicles} sub={sub} onBuyCredits={() => { try { sessionStorage.setItem("raio_draft_vehicles", JSON.stringify(selected)); sessionStorage.setItem("raio_draft_brand", JSON.stringify(brand)); } catch { /* ignore */ } setShowBuyCreditsModal(true); }} onUpgrade={() => { try { sessionStorage.setItem("raio_draft_vehicles", JSON.stringify(selected)); sessionStorage.setItem("raio_draft_brand", JSON.stringify(brand)); } catch { /* ignore */ } window.dispatchEvent(new CustomEvent("open-plans")); }} navSlot={navSlot} />;
           if (step === 3) return <StepReview content={content} selected={selected} when={when} setWhen={setWhen} brand={brand} vehicles={vehicles} datePicked={datePicked} setDatePicked={setDatePicked} dateFlash={dateFlash} setDateFlash={setDateFlash} navSlot={navSlot} />;
         })()}
       </div>
