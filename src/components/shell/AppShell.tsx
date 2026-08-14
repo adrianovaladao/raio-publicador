@@ -263,7 +263,7 @@ function PlansModal({ onClose, sub, onSuccess, onBuyCredits }: { onClose: () => 
                     disabled={isCurrent || upgrading === p.id}
                     onClick={() => { if (!isCurrent) handleUpgrade(p.id); }}
                   >
-                    {upgrading === p.id ? "Redirecionando…" : isCurrent ? "Plano atual" : `Mudar para ${p.name}`}
+                    {upgrading === p.id ? "Redirecionando…" : isCurrent ? "Plano atual" : `Selecionar ${p.name}`}
                   </button>
                 </div>
               );
