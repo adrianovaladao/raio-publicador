@@ -13,11 +13,11 @@ import { RaioLockup } from "@/components/logo/RaioLockup";
 // ─── dados ────────────────────────────────────────────────────────────────────
 
 const PARTNERS: { file: string; h: number }[] = [
-  { file: "estadao",    h: 45 },
-  { file: "folhapress", h: 39 },
-  { file: "oglobo",     h: 45 },
-  { file: "ig",         h: 45 },
-  { file: "50portais",  h: 33 },
+  { file: "estadao",    h: 50 },
+  { file: "folhapress", h: 43 },
+  { file: "oglobo",     h: 50 },
+  { file: "ig",         h: 50 },
+  { file: "50portais",  h: 36 },
 ];
 
 const STEPS = [
