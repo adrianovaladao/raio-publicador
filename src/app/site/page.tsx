@@ -22,7 +22,7 @@ const PARTNERS: { file: string; h: number }[] = [
 
 const STEPS = [
   { icon: Feather,    n: "01", t: "Escreva o release",    d: "Use nosso editor inteligente para colar seu texto pronto ou deixe nossa inteligência artificial estruturar um branded content impecável para que sua novidade chegue à imprensa com frescor e relevância." },
-  { icon: Newspaper,  n: "02", t: "Escolha os veículos",  d: "Filtre mais de 50 portais de notícia por nicho, região e volume de acessos. Você vê exatamente quantos créditos cada publicação consome na hora." },
+  { icon: Newspaper,  n: "02", t: "Escolha os veículos",  d: "Escolha entre grandes portais e agências de notícias e os mais de 50 parceiros por nicho, região e volume de acessos. Você vê exatamente quantos créditos cada publicação consome na hora." },
   { icon: Send,       n: "03", t: "Publique ou agende",   d: "Programe no calendário ou publique imediatamente. Esqueça as tentativas de envio: no Raio, o seu artigo vai ao ar de forma 100% garantida nos canais escolhidos." },
   { icon: BarChart2,  n: "04", t: "Acompanhe resultados", d: "Seu conteúdo entra em circulação em alguns dos maiores portais e agências de notícias do país, tornando sua novidade mais fácil de ser encontrada e aumentando sua autoridade." },
 ];
@@ -193,9 +193,6 @@ function Hero() {
           <p className="sub">
             Sua marca na imprensa, com conteúdo sempre atual e relevante. Publicação garantida em alguns dos maiores portais e agências de notícias do Brasil e em mais de 50 portais regionais, sem intermediários e sem rejeição.*
           </p>
-          <p style={{ fontSize: 11, color: "var(--stone)", marginTop: 8, lineHeight: 1.5 }}>
-            *Todas as notas precisam seguir tanto as diretrizes editoriais dos portais parceiros quanto a legislação vigente antes de serem publicadas.
-          </p>
           <div className="cta-row">
             <a className="btn btn-primary btn-lg" href="#planos">
               Comece a publicar <ArrowRight size={17} />
@@ -238,10 +235,10 @@ function OQueE() {
         <div className="sec-head reveal">
           <h2>O que é um <em>release?</em></h2>
           <p className="sub">
-            Um release é o texto enviado diretamente a jornalistas e editores de portais de notícias. É o atalho entre a sua novidade e a imprensa e, no Raio, seu release estará pronto para ser publicado e virar notícia no momento certo, sem intermediários.
+            Um release é o texto enviado diretamente a jornalistas e editores de portais de notícias. É o atalho entre a sua novidade e a imprensa e, no Raio, seu release estará pronto para ser publicado e virar notícia rápido e sem intermediários.
           </p>
           <p className="sub" style={{ marginTop: 20 }}>
-            E tem mais: ferramentas como ChatGPT, Google AI Overviews e Perplexity formam suas respostas consultando portais jornalísticos de autoridade. Publicar nesses veículos aumenta a chance de a sua marca ser citada quando alguém perguntar sobre o seu mercado para uma IA.
+            E tem mais: ferramentas como ChatGPT, Google AI Overviews e Claude formam suas respostas consultando portais jornalísticos de autoridade. Publicar nesses veículos aumenta a chance de a sua marca ser citada quando alguém perguntar sobre o seu mercado para uma IA.
           </p>
         </div>
       </div>
@@ -529,6 +526,7 @@ function Footer({ onContact }: { onContact: () => void }) {
           </div>
         </div>
         <div className="bottom">
+          <span className="cp" style={{ display: "block", fontSize: 11, color: "var(--stone)", marginBottom: 6, fontStyle: "italic" }}>*Todas as notas precisam seguir tanto as diretrizes editoriais dos portais parceiros quanto a legislação vigente antes de serem publicadas.</span>
           <span className="cp">© 2026 Raio Publicador. Todos os direitos reservados.</span>
           <span className="powered">
             Energizado pela{" "}
