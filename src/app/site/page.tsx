@@ -12,7 +12,13 @@ import { RaioLockup } from "@/components/logo/RaioLockup";
 
 // ─── dados ────────────────────────────────────────────────────────────────────
 
-const PARTNERS = ["f1","f2","f3","f4","f5","f6","f7"];
+const PARTNERS: { file: string; h: number }[] = [
+  { file: "estadao",   h: 30 },
+  { file: "folhapress", h: 26 },
+  { file: "oglobo",    h: 30 },
+  { file: "ig",        h: 30 },
+  { file: "50portais", h: 22 },
+];
 
 const STEPS = [
   { icon: Feather,    n: "01", t: "Escreva o release",    d: "Use nosso editor inteligente para colar seu texto pronto ou use nossa inteligência artificial para estruturar um branded content impecável em segundos." },
@@ -210,7 +216,7 @@ function Hero() {
           <div className="ll">Distribua em veículos como</div>
           <div className="row">
             {PARTNERS.map((p) => (
-              <Image key={p} src={`/assets/partners/${p}.svg`} alt="" width={80} height={34} style={{ height: p === "f5" ? 29 : 34, width: "auto", opacity: 0.8 }} />
+              <Image key={p.file} src={`/assets/partners/${p.file}.svg`} alt={p.file} width={120} height={p.h} style={{ height: p.h, width: "auto", opacity: 0.8 }} />
             ))}
           </div>
         </div>
