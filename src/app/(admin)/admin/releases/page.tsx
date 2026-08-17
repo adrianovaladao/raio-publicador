@@ -328,6 +328,12 @@ function ReleaseActions({ release, onSaved, onDeleted }: {
             </button>
           </div>
         </div>
+        {release.summary && (
+          <div style={{ background: "#f8f8f8", border: "1.5px solid #e8e8e8", borderRadius: 8, padding: "10px 16px", fontSize: 13, lineHeight: 1.6, color: "#555", fontStyle: "italic", marginBottom: 8 }}>
+            <span style={{ fontWeight: 600, fontStyle: "normal", color: "#999", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.05em", display: "block", marginBottom: 4 }}>Subtítulo</span>
+            {release.summary}
+          </div>
+        )}
         <div
           style={{
             background: "#fff", border: "1.5px solid #e8e8e8", borderRadius: 8,
