@@ -191,7 +191,7 @@ function Hero() {
             sempre <em>atual</em>. Do texto à publicação <em>em minutos</em>.
           </h1>
           <p className="sub">
-            Sua marca na imprensa, com conteúdo sempre atual e relevante. Publicação garantida em alguns dos maiores portais e agências de notícias do Brasil e em mais de 50 portais regionais, sem intermediários e sem rejeição.*
+            Publicação garantida em alguns dos maiores portais e agências de notícias do Brasil e em mais de 50 portais regionais, sem intermediários e sem rejeição.*
           </p>
           <div className="cta-row">
             <a className="btn btn-primary btn-lg" href="#planos">
