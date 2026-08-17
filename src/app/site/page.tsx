@@ -21,10 +21,10 @@ const PARTNERS: { file: string; h: number }[] = [
 ];
 
 const STEPS = [
-  { icon: Feather,    n: "01", t: "Escreva o release",    d: "Use nosso editor inteligente para colar seu texto pronto ou use nossa inteligência artificial para estruturar um branded content impecável em segundos." },
+  { icon: Feather,    n: "01", t: "Escreva o release",    d: "Use nosso editor inteligente para colar seu texto pronto ou deixe nossa inteligência artificial estruturar um branded content impecável para que sua novidade chegue à imprensa com frescor e relevância." },
   { icon: Newspaper,  n: "02", t: "Escolha os veículos",  d: "Filtre mais de 50 portais de notícia por nicho, região e volume de acessos. Você vê exatamente quantos créditos cada publicação consome na hora." },
   { icon: Send,       n: "03", t: "Publique ou agende",   d: "Programe no calendário ou publique imediatamente. Esqueça as tentativas de envio: no Raio, o seu artigo vai ao ar de forma 100% garantida nos canais escolhidos." },
-  { icon: BarChart2,  n: "04", t: "Acompanhe resultados", d: "Seu conteúdo vai ao ar nos maiores portais do país tão rápido quanto um raio. Acompanhe a audiência das suas matérias e veja os links ativos num painel único." },
+  { icon: BarChart2,  n: "04", t: "Acompanhe resultados", d: "Seu conteúdo entra em circulação em alguns dos maiores portais e agências de notícias do país, tornando sua novidade mais fácil de ser encontrada e aumentando sua autoridade." },
 ];
 
 const PLANS = [
@@ -187,11 +187,14 @@ function Hero() {
       <div className="wrap">
         <div className="hero-in">
           <h1>
-            Publique rápido<br />
-            como um <em>raio</em>.
+            Sua marca na imprensa,<br />
+            sempre <em>atual</em>. Do texto à publicação em minutos.
           </h1>
           <p className="sub">
-            Sua marca nos maiores portais do Brasil. Sem intermediários, sem rejeição. Publique seus conteúdos de forma garantida em mais de 50 portais.
+            Sua marca na imprensa, com conteúdo sempre atual e relevante. Publicação garantida em alguns dos maiores portais e agências de notícias do Brasil e em mais de 50 portais regionais, sem intermediários e sem rejeição.*
+          </p>
+          <p style={{ fontSize: 11, color: "var(--stone)", marginTop: 8, lineHeight: 1.5 }}>
+            *Todas as notas precisam seguir tanto as diretrizes editoriais dos portais parceiros quanto a legislação vigente antes de serem publicadas.
           </p>
           <div className="cta-row">
             <a className="btn btn-primary btn-lg" href="#planos">
@@ -235,7 +238,7 @@ function OQueE() {
         <div className="sec-head reveal">
           <h2>O que é um <em>release?</em></h2>
           <p className="sub">
-            Um release é o texto enviado diretamente a jornalistas e editores de portais de notícias. É o atalho entre a sua novidade e a imprensa e, no Raio, seu release estará pronto para ser publicado como matéria e virar notícia. Rápido e sem intermediários.
+            Um release é o texto enviado diretamente a jornalistas e editores de portais de notícias. É o atalho entre a sua novidade e a imprensa e, no Raio, seu release estará pronto para ser publicado e virar notícia no momento certo, sem intermediários.
           </p>
           <p className="sub" style={{ marginTop: 20 }}>
             E tem mais: ferramentas como ChatGPT, Google AI Overviews e Perplexity formam suas respostas consultando portais jornalísticos de autoridade. Publicar nesses veículos aumenta a chance de a sua marca ser citada quando alguém perguntar sobre o seu mercado para uma IA.
@@ -471,7 +474,7 @@ function CtaBand() {
       <div className="wrap">
         <div className="cta-inner reveal">
           <span className="glow" />
-          <h2>Pronto para publicar como um Raio e colocar sua marca em <em>destaque nacional?</em></h2>
+          <h2>Pronto para colocar sua novidade na imprensa e fazer sua marca ganhar <em>mais relevância e autoridade?</em></h2>
           <p className="sub">Escolha o seu plano de créditos, envie o seu conteúdo e garanta sua primeira grande matéria ainda hoje.</p>
           <div className="cta-row">
             <a className="btn btn-primary btn-lg" href="#planos">
