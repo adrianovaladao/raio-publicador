@@ -65,7 +65,6 @@ export async function GET(
           title:   r.title,
           summary: r.summary ?? "",
           body:    r.body,
-          author:  r.brand.name,
         }
       : {
           id:          r.id,
@@ -88,7 +87,8 @@ export async function GET(
       <title>${xmlEscape(r.title)}</title>
       <subtitle>${xmlEscape(r.summary ?? "")}</subtitle>
       <description>${xmlEscape(r.body)}</description>
-      <author>${xmlEscape(r.brand.name)}</author>
+      <guid>${baseUrl}/releases/${r.id}</guid>
+      <link>${baseUrl}/releases/${r.id}</link>
     </item>`
     : `
     <item>
