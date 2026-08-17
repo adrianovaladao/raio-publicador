@@ -206,9 +206,6 @@ function Hero() {
               Já tenho conta
             </Link>
           </div>
-          <div className="micro">
-            <CheckCircle size={15} /> Use seus créditos para publicar quando quiser, com controle total e sem contratos de fidelidade.
-          </div>
         </div>
       </div>
       <div className="hero-logos">
@@ -266,6 +263,9 @@ function Como() {
               <p>{d}</p>
             </div>
           ))}
+        </div>
+        <div className="micro" style={{ justifyContent: "center", marginTop: 32 }}>
+          <CheckCircle size={15} /> Use seus créditos para publicar quando quiser, com controle total e sem contratos de fidelidade.
         </div>
       </div>
     </section>
