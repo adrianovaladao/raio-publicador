@@ -57,24 +57,40 @@ export async function GET(
     take: 50,
   });
 
-  const supportsImages = veiculo.toLowerCase() !== "folhapress";
+  const isFolhapress = veiculo.toLowerCase() === "folhapress";
 
   if (format === "json") {
-    const items = releases.map(r => ({
-      id:          r.id,
-      title:       r.title,
-      body:        r.body,
-      summary:     r.summary ?? "",
-      author:      r.brand.name,
-      ...(supportsImages ? { imageUrl: r.imageUrl ?? null } : {}),
-      publishedAt: r.publishedAt?.toISOString() ?? r.createdAt.toISOString(),
-    }));
+    const items = releases.map(r => isFolhapress
+      ? {
+          title:   r.title,
+          summary: r.summary ?? "",
+          body:    r.body,
+          author:  r.brand.name,
+        }
+      : {
+          id:          r.id,
+          title:       r.title,
+          body:        r.body,
+          summary:     r.summary ?? "",
+          author:      r.brand.name,
+          imageUrl:    r.imageUrl ?? null,
+          publishedAt: r.publishedAt?.toISOString() ?? r.createdAt.toISOString(),
+        }
+    );
     return NextResponse.json({ veiculo: vehicle.name, total: items.length, items });
   }
 
   // RSS (XML)
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://raiopublicador.com.br";
-  const items = releases.map(r => `
+  const items = releases.map(r => isFolhapress
+    ? `
+    <item>
+      <title>${xmlEscape(r.title)}</title>
+      <subtitle>${xmlEscape(r.summary ?? "")}</subtitle>
+      <description>${xmlEscape(r.body)}</description>
+      <author>${xmlEscape(r.brand.name)}</author>
+    </item>`
+    : `
     <item>
       <title>${xmlEscape(r.title)}</title>
       <description>${xmlEscape(r.body)}</description>
@@ -83,8 +99,9 @@ export async function GET(
       <pubDate>${(r.publishedAt ?? r.createdAt).toUTCString()}</pubDate>
       <guid>${baseUrl}/releases/${r.id}</guid>
       <link>${baseUrl}/releases/${r.id}</link>
-      ${supportsImages && r.imageUrl ? `<enclosure url="${xmlEscape(r.imageUrl)}" type="image/jpeg" />` : ""}
-    </item>`).join("\n");
+      ${r.imageUrl ? `<enclosure url="${xmlEscape(r.imageUrl)}" type="image/jpeg" />` : ""}
+    </item>`
+  ).join("\n");
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0">
