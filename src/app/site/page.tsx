@@ -264,8 +264,8 @@ function Como() {
             </div>
           ))}
         </div>
-        <div className="micro" style={{ justifyContent: "center", marginTop: 32 }}>
-          <CheckCircle size={15} /> Use seus créditos para publicar quando quiser, com controle total e sem contratos de fidelidade.
+        <div className="micro" style={{ justifyContent: "center", textAlign: "center", marginTop: 32 }}>
+          <CheckCircle size={15} color="var(--gold)" /> Use seus créditos para publicar quando quiser, com controle total e sem contratos de fidelidade.
         </div>
       </div>
     </section>
