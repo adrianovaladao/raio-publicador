@@ -231,6 +231,9 @@ function OQueE() {
           <p className="sub">
             Um release é o texto enviado diretamente a jornalistas e editores de portais de notícias. É o atalho entre a sua novidade e a imprensa e, no Raio, seu release estará pronto para ser publicado como matéria e virar notícia. Rápido e sem intermediários.
           </p>
+          <p className="sub" style={{ marginTop: 20 }}>
+            E tem mais: ferramentas como ChatGPT, Google AI Overviews e Perplexity formam suas respostas consultando portais jornalísticos de autoridade. Publicar nesses veículos aumenta a chance de a sua marca ser citada quando alguém perguntar sobre o seu mercado para uma IA.
+          </p>
         </div>
       </div>
     </section>
@@ -290,7 +293,7 @@ function Compare() {
           <div className="comp-card us reveal" style={{ transitionDelay: "90ms" }}>
             <span className="tag">Raio Publicador</span>
             <h3>Plano por créditos</h3>
-            <p className="price-line">A partir de R$ 1.000/mês, releases ilimitados</p>
+            <p className="price-line">A partir de R$ 1.000/mês, sem cobrança por nota</p>
             <ul>
               <li><Check size={19} /> Um plano cobre diversas publicações</li>
               <li><Check size={19} /> Custo fixo e previsível</li>
@@ -338,8 +341,8 @@ function Plans({ onContact }: { onContact: () => void }) {
       <div className="wrap">
         <div className="sec-head reveal">
           <span className="eyebrow">Planos e preços</span>
-          <h2>Escolha o plano e <em>publique sem limites</em></h2>
-          <p className="sub">Todos os planos dão acesso aos 600 veículos. A diferença está no saldo de créditos e nos veículos de grande audiência por release.</p>
+          <h2>Escolha o plano e <em>comece a publicar</em></h2>
+          <p className="sub">Todos os planos dão acesso à rede de 50+ portais parceiros. A diferença está no saldo de créditos e no limite de portais categoria A por release.</p>
         </div>
         <div className="plans">
           {PLANS.map((p, i) => (
