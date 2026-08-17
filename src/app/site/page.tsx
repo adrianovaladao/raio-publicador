@@ -35,7 +35,7 @@ const PLANS = [
     amt: "1.000", credits: "200 créditos/mês", cl: "R$ 5,00 por crédito",
     feats: [
       ["Até 2 marcas cadastradas por plano", true],
-      ["Publique em até 2 portais categoria A", true],
+      ["Até 2 publicações em portais categoria A", true],
       ["Acesso completo aos 50 portais parceiros", true],
       ["Calendário e agendamento de publicações", true],
       ["Biblioteca de releases divulgados", true],
@@ -50,7 +50,7 @@ const PLANS = [
     amt: "3.000", credits: "1.000 créditos/mês", cl: "R$ 3,00 por crédito",
     feats: [
       ["Até 5 marcas cadastradas por plano", true],
-      ["Publique em até 10 portais categoria A", true],
+      ["Até 10 publicações em portais categoria A", true],
       ["Acesso completo aos 50 portais parceiros", true],
       ["Calendário e agendamento inteligente", true],
       ["Até 3 editores + 5 revisores incluídos", true],
@@ -65,7 +65,7 @@ const PLANS = [
     amt: "5.000", credits: "2.000 créditos/mês", cl: "R$ 2,50 por crédito",
     feats: [
       ["Até 10 marcas cadastradas por plano", true],
-      ["Publique em até 20 portais categoria A", true],
+      ["Até 20 publicações em portais categoria A", true],
       ["Acesso completo aos 50 portais parceiros", true],
       ["Calendário e agendamento inteligente", true],
       ["Até 5 editores + 10 revisores incluídos", true],
