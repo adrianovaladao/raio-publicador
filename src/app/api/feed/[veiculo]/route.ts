@@ -16,6 +16,22 @@ function xmlEscape(str: string) {
     .replace(/'/g, "&apos;");
 }
 
+function htmlToPlainText(html: string) {
+  return html
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>/gi, "\n\n")
+    .replace(/<\/h[1-6]>/gi, "\n\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&nbsp;/g, " ")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ veiculo: string }> }
@@ -64,7 +80,7 @@ export async function GET(
       ? {
           title:   r.title,
           summary: r.summary ?? "",
-          body:    r.body,
+          body:    htmlToPlainText(r.body),
         }
       : {
           id:          r.id,
@@ -86,7 +102,7 @@ export async function GET(
     <item>
       <title>${xmlEscape(r.title)}</title>
       <subtitle>${xmlEscape(r.summary ?? "")}</subtitle>
-      <description>${xmlEscape(r.body)}</description>
+      <description>${xmlEscape(htmlToPlainText(r.body))}</description>
       <guid>${baseUrl}/releases/${r.id}</guid>
       <link>${baseUrl}/releases/${r.id}</link>
     </item>`
