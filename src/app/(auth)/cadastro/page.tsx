@@ -76,17 +76,27 @@ function CadastroInner() {
 
   async function redeemAndProceed() {
     try {
-      await fetch("/api/vouchers/redeem", {
+      const res = await fetch("/api/vouchers/redeem", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code: voucherCode.trim() }),
       });
+      if (!res.ok) {
+        // Retry once after a short delay (session cookie may not be set yet)
+        await new Promise(r => setTimeout(r, 800));
+        await fetch("/api/vouchers/redeem", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code: voucherCode.trim() }),
+        });
+      }
     } catch { /* ignore — user can redeem later in configurações */ }
     window.location.href = "/boas-vindas?checkout=voucher";
   }
 
   useEffect(() => {
-    if (isSignedIn) goToCheckout();
+    // In voucher flow, skip auto-redirect — redeemAndProceed handles navigation
+    if (isSignedIn && !isVoucherFlow) goToCheckout();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSignedIn]);
 
