@@ -168,7 +168,7 @@ img { max-width: 100%; }
 @media (max-width: 940px) { .steps-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 520px) { .steps-grid { grid-template-columns: 1fr; } }
 .step-card {
-  border-radius: var(--r-lg); padding: 26px 24px;
+  border: none; border-radius: var(--r-lg); padding: 26px 24px;
   background: transparent;
   position: relative; overflow: hidden; outline: none; user-select: none;
 }
