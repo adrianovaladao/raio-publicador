@@ -352,10 +352,14 @@ function Plans({ onContact }: { onContact: () => void }) {
         </div>
         <div className="plans">
           {PLANS.map((p, i) => (
-            <div className={`plan reveal${p.featured ? " featured" : ""}`} key={p.name} style={{ transitionDelay: `${i * 80}ms`, position: "relative", overflow: "hidden" }}>
+            <div className={`plan reveal${p.featured ? " featured" : ""}`} key={p.name} style={{ transitionDelay: `${i * 80}ms` }}>
               {p.featured && <span className="ribbon">Mais vendido</span>}
-              <span style={{ position: "absolute", top: 14, right: -28, background: "#FBBF24", color: "#000", fontSize: 10, fontWeight: 700, letterSpacing: "0.04em", padding: "4px 36px", transform: "rotate(45deg)", transformOrigin: "center", whiteSpace: "nowrap", textTransform: "uppercase", boxShadow: "0 1px 4px rgba(0,0,0,0.25)" }}>Lançamento</span>
-              <div className="pname">{p.name}</div>
+              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, marginBottom: 4 }}>
+                <div className="pname" style={{ margin: 0 }}>{p.name}</div>
+                <span style={{ flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 4, padding: "3px 9px", borderRadius: 999, background: "rgba(251,191,36,0.15)", border: "1px solid rgba(251,191,36,0.4)", color: "#FBBF24", fontSize: 10.5, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", whiteSpace: "nowrap", marginTop: 2 }}>
+                  🏷️ Lançamento
+                </span>
+              </div>
               <div className="pdesc">{p.desc}</div>
               <div className="price">
                 <span className="cur">R$</span>
