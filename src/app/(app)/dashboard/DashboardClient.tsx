@@ -454,18 +454,15 @@ export default function DashboardPage() {
   const [loading, setLoading]     = useState(true);
   const [editBrand, setEditBrand] = useState<Brand | null>(null);
   const [showNew, setShowNew]     = useState(false);
-  const [showUpgrade, setShowUpgrade] = useState(false);
   const [brandsLimit, setBrandsLimit] = useState<number | null>(null);
-  const [currentPlan, setCurrentPlan] = useState<string | null>(null);
   const [subStatus, setSubStatus] = useState<string | null>(null);
   const [activeIdx, setActiveIdx] = useState(0);
 
   useEffect(() => {
     fetch("/api/stripe/subscription")
       .then(r => r.json())
-      .then((d: { brandsLimit?: number | null; plan?: string | null; status?: string | null }) => {
+      .then((d: { brandsLimit?: number | null; status?: string | null }) => {
         setBrandsLimit(d.brandsLimit ?? null);
-        setCurrentPlan(d.plan ?? null);
         setSubStatus(d.status ?? null);
       })
       .catch(() => {});
