@@ -275,10 +275,12 @@ function PlansModal({ onClose, sub, onSuccess, onBuyCredits }: { onClose: () => 
               {upgradeErr}
             </div>
           )}
-          <div className="plans-note" style={{ cursor: "pointer" }} onClick={() => { onClose(); onBuyCredits(); }}>
-            <Zap size={16} />
-            <span>Precisa de mais créditos? <b>Comprar créditos avulsos →</b></span>
-          </div>
+          {sub.plan !== "VOUCHER" && (
+            <div className="plans-note" style={{ cursor: "pointer" }} onClick={() => { onClose(); onBuyCredits(); }}>
+              <Zap size={16} />
+              <span>Precisa de mais créditos? <b>Comprar créditos avulsos →</b></span>
+            </div>
+          )}
         </div>
       </div>
     </div>

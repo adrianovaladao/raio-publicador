@@ -1205,7 +1205,7 @@ export default function EditReleasePage() {
               navSlot={navSlot}
             />
           );
-          if (step === 1) return <StepVehicles selected={selectedVeh} setSelected={setSelectedVeh} vehicles={vehicles} sub={sub} onBuyCredits={() => setShowBuyCreditsModal(true)} onUpgrade={() => window.dispatchEvent(new CustomEvent("open-plans"))} navSlot={navSlot} />;
+          if (step === 1) return <StepVehicles selected={selectedVeh} setSelected={setSelectedVeh} vehicles={vehicles} sub={sub} onBuyCredits={sub.plan === "VOUCHER" ? undefined : () => setShowBuyCreditsModal(true)} onUpgrade={() => window.dispatchEvent(new CustomEvent("open-plans"))} navSlot={navSlot} />;
           if (step === 2) return (
             <StepSchedule
               schedDate={schedDate} setSchedDate={setSchedDate}

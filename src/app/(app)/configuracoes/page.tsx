@@ -1602,7 +1602,9 @@ function CobrancaPanel({ onToast, isCancelled }: { onToast: (m: string) => void;
             ) : (
               <>
                 <button className="btn btn-primary btn-sm" onClick={() => window.dispatchEvent(new Event("open-plans"))}>Mudar de plano</button>
-                <button className="btn btn-ghost btn-sm" onClick={() => setShowBuyCredits(true)}><Zap size={15} /> Comprar créditos</button>
+                {plan !== "VOUCHER" && (
+                  <button className="btn btn-ghost btn-sm" onClick={() => setShowBuyCredits(true)}><Zap size={15} /> Comprar créditos</button>
+                )}
               </>
             )}
           </div>

@@ -17,6 +17,13 @@ export async function POST(req: NextRequest) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  // Voucher users cannot purchase credits
+  const prismaCheck = getPrisma();
+  const subCheck = await prismaCheck.subscription.findUnique({ where: { ownerId: userId }, select: { plan: true } });
+  if (subCheck?.plan === "VOUCHER") {
+    return NextResponse.json({ error: "Usuários do plano voucher não podem comprar créditos avulsos." }, { status: 403 });
+  }
+
   try {
     const { quantity, returnUrl } = (await req.json()) as { quantity: number; returnUrl?: string };
     if (!quantity || quantity < 1) return NextResponse.json({ error: "Quantidade inválida" }, { status: 400 });
