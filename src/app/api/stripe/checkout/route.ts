@@ -43,6 +43,7 @@ export async function POST(req: NextRequest) {
     mode: "subscription",
     customer: customerId,
     currency: "brl",
+    payment_method_types: ["card", "boleto"],
     line_items: [{ price: plan.stripePriceId, quantity: 1 }],
     success_url: `${origin}/boas-vindas?checkout=success`,
     cancel_url: `${origin}/site#planos`,
