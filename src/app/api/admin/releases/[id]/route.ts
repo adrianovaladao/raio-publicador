@@ -72,10 +72,24 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
         } else if (body.status === "IN_PUBLICATION") {
           await sendReleaseInPublicationEmail(email, firstName, prev.title, id);
         } else if (body.status === "PUBLISHED") {
-          const urls = body.publishedVehicleUrls ?? {};
-          await sendReleasePublishedWithLinksEmail(email, firstName, prev.title, urls, id);
-          const vehicleCount = Object.keys(urls).length || prev.vehicles.length;
-          const urlValues = Object.values(urls as Record<string, string>).map(u => u.trim()).filter(Boolean);
+          const rawUrls = body.publishedVehicleUrls ?? {};
+          // Resolve vehicle IDs to names for the email
+          const vehicleIds = Object.keys(rawUrls);
+          let urlsByName: Record<string, string> = rawUrls;
+          if (vehicleIds.length > 0) {
+            const vehicles = await prisma.vehicle.findMany({
+              where: { id: { in: vehicleIds } },
+              select: { id: true, name: true },
+            });
+            const idToName: Record<string, string> = {};
+            for (const v of vehicles) idToName[v.id] = v.name;
+            urlsByName = Object.fromEntries(
+              Object.entries(rawUrls).map(([vid, url]) => [idToName[vid] ?? vid, url])
+            );
+          }
+          await sendReleasePublishedWithLinksEmail(email, firstName, prev.title, urlsByName, id);
+          const vehicleCount = Object.keys(rawUrls).length || prev.vehicles.length;
+          const urlValues = Object.values(rawUrls).map(u => u.trim()).filter(Boolean);
           const notifBody = urlValues.length > 0
             ? `"${prev.title}" foi publicado em ${vehicleCount} veículo${vehicleCount !== 1 ? "s" : ""}.\n${urlValues.join("\n")}`
             : `"${prev.title}" foi publicado em ${vehicleCount} veículo${vehicleCount !== 1 ? "s" : ""}.`;
