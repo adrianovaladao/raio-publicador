@@ -144,3 +144,15 @@ select.in option { background: var(--ink-2); color: var(--tx); }
 .demo-switch button { border: none; background: none; color: var(--tx-2); font-size: 12.5px; font-weight: 500; padding: 7px 13px; border-radius: 99px; transition: all .14s; white-space: nowrap; }
 .demo-switch button:hover { color: var(--tx); background: rgba(255,255,255,0.06); }
 .demo-switch button.on { background: var(--coral); color: var(--ink); font-weight: 600; }
+
+/* WhatsApp FAB — copiado de site.css para evitar import duplicado */
+.whatsapp-fab {
+  position: fixed; bottom: 28px; right: 28px; z-index: 200;
+  width: 56px; height: 56px; border-radius: 50%;
+  background: #FAB500; color: #111;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+  transition: transform .2s, box-shadow .2s;
+}
+.whatsapp-fab:hover { transform: scale(1.08); box-shadow: 0 6px 24px rgba(0,0,0,0.35); }
+@media (max-width: 760px) { .whatsapp-fab { bottom: 80px; right: 16px; } }

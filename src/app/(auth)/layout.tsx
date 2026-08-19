@@ -1,4 +1,3 @@
-import "../site/site.css";
 import "./auth.css";
 
 function WhatsAppFab() {
