@@ -227,7 +227,7 @@ function Hero() {
 
 function OQueE() {
   return (
-    <section className="section" style={{ background: "#242424" }}>
+    <section className="section">
       <div className="wrap" style={{ maxWidth: 760, textAlign: "center" }}>
         <div className="sec-head reveal">
           <h2>O que é um <em>release?</em></h2>
@@ -247,7 +247,7 @@ function OQueE() {
 
 function Como() {
   return (
-    <section className="section alt" id="como">
+    <section className="section" id="como">
       <div className="wrap">
         <div className="sec-head reveal">
           <span className="eyebrow">Como funciona</span>
