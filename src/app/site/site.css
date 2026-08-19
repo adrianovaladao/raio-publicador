@@ -140,7 +140,7 @@ img { max-width: 100%; }
 }
 .hero .tagpill .tg { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; background: var(--coral); color: var(--ink); padding: 3px 9px; border-radius: 99px; font-weight: 600; }
 .hero h1 {
-  font-family: var(--sans); font-weight: 700; font-size: clamp(40px, 6.4vw, 76px);
+  font-family: var(--sans); font-weight: 600; font-size: clamp(40px, 6.4vw, 76px);
   letter-spacing: -0.035em; line-height: 1.02; margin: 0;
 }
 .hero h1 em { font-family: var(--serif); font-style: italic; font-weight: 400; color: var(--coral); letter-spacing: -0.01em; }
