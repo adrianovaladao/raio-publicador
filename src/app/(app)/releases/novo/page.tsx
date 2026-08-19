@@ -11,7 +11,6 @@ import {
   Sparkles, Loader, AlertTriangle, AlertCircle, ShieldCheck, Info,
 } from "lucide-react";
 import { extractDominantColor } from "@/lib/color";
-import { UpgradeModal } from "@/components/UpgradeModal";
 import { BuyCreditsModal } from "@/components/BuyCreditsModal";
 import { SelectBox } from "@/components/SelectBox";
 import { RichEditor } from "@/components/editor/RichEditor";
@@ -1449,8 +1448,6 @@ export default function NovoReleasePage() {
   const [dateFlash, setDateFlash] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [showPolicyModal, setShowPolicyModal] = useState(false);
-  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-  const [upgradeContext, setUpgradeContext] = useState<"brands" | "credits">("brands");
   const [showBuyCreditsModal, setShowBuyCreditsModal] = useState(false);
 
   // ── Autosave ─────────────────────────────────────────────────────────────

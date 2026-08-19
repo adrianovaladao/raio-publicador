@@ -8,7 +8,6 @@ import {
   ArrowUpDown, ArrowUp, ArrowDown, SlidersHorizontal,
 } from "lucide-react";
 import { RichEditor } from "@/components/editor/RichEditor";
-import { UpgradeModal } from "@/components/UpgradeModal";
 import { BuyCreditsModal } from "@/components/BuyCreditsModal";
 import { SelectBox } from "@/components/SelectBox";
 
@@ -740,7 +739,6 @@ export default function EditReleasePage() {
   const [saving,     setSaving]     = useState(false);
   const [deleting,   setDeleting]   = useState(false);
   const [showDelete, setShowDelete] = useState(false);
-  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [showBuyCreditsModal, setShowBuyCreditsModal] = useState(false);
   const [dupWarning,  setDupWarning]  = useState<{ matchTitle: string } | null>(null);
   const [dupChecking, setDupChecking] = useState(false);

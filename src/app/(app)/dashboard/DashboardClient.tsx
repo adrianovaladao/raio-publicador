@@ -10,7 +10,6 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { extractDominantColor, extractDominantColorFromUrl } from "@/lib/color";
-import { UpgradeModal } from "@/components/UpgradeModal";
 import { SelectBox } from "@/components/SelectBox";
 
 // ── Types ────────────────────────────────────────────────────────────────────

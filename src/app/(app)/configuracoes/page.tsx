@@ -12,7 +12,6 @@ import {
   Rss, Pencil, SlidersHorizontal, ArrowUpDown, ArrowUp, ArrowDown,
   MessageCircle, Ticket, AlertTriangle, Clock, FileText, CheckCircle2, ClipboardList,
 } from "lucide-react";
-import { UpgradeModal } from "@/components/UpgradeModal";
 import { BuyCreditsModal } from "@/components/BuyCreditsModal";
 import { SelectBox } from "@/components/SelectBox";
 
