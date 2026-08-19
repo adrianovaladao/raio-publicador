@@ -1344,7 +1344,7 @@ function MarcasPanel({ onToast, isCancelled }: { onToast: (m: string) => void; i
 
   function handleNewClick() {
     if (brandsLimit !== null && brands.length >= brandsLimit) {
-      setShowUpgrade(true);
+      window.dispatchEvent(new CustomEvent("open-plans"));
     } else {
       setShowNew(true);
     }
@@ -1425,7 +1425,6 @@ function MarcasPanel({ onToast, isCancelled }: { onToast: (m: string) => void; i
 
       {editing     && <BrandFormModal brand={editing} onClose={() => setEditing(null)} onSaved={b => { handleSaved(b); setEditing(null); }} />}
       {showNew     && <BrandFormModal onClose={() => setShowNew(false)} onSaved={b => { handleSaved(b); setShowNew(false); }} />}
-      {showUpgrade && <UpgradeModal currentPlan={currentPlan ?? ""} onClose={() => setShowUpgrade(false)} />}
     </div>
   );
 }

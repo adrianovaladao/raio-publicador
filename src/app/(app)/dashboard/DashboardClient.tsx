@@ -527,7 +527,7 @@ export default function DashboardPage() {
             </p>
           </div>
           <div className="actions">
-            {hasBrands && <DashBrandSwitcher brands={brands} brandsLimit={brandsLimit} activeIdx={activeIdx} setActiveIdx={setActiveIdx} isCancelled={subStatus === "CANCELLED"} onNewBrand={() => setShowNew(true)} onUpgrade={() => setShowUpgrade(true)} />}
+            {hasBrands && <DashBrandSwitcher brands={brands} brandsLimit={brandsLimit} activeIdx={activeIdx} setActiveIdx={setActiveIdx} isCancelled={subStatus === "CANCELLED"} onNewBrand={() => setShowNew(true)} onUpgrade={() => window.dispatchEvent(new CustomEvent("open-plans"))} />}
           </div>
         </div>
 
@@ -601,9 +601,6 @@ export default function DashboardPage() {
           onClose={() => setShowNew(false)}
           onSave={load}
         />
-      )}
-      {showUpgrade && currentPlan && (
-        <UpgradeModal currentPlan={currentPlan} onClose={() => setShowUpgrade(false)} />
       )}
     </div>
   );

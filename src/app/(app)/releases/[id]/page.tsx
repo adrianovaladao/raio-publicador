@@ -1263,12 +1263,6 @@ export default function EditReleasePage() {
         </div>
       )}
 
-      {showUpgradeModal && (
-        <UpgradeModal
-          currentPlan={sub.plan ?? "BASIC"}
-          onClose={() => setShowUpgradeModal(false)}
-        />
-      )}
       {showBuyCreditsModal && (
         <BuyCreditsModal
           currentPlan={sub.plan ?? "BASIC"}
