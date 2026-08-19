@@ -98,8 +98,8 @@ export async function GET(
 
   // RSS (XML)
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://raiopublicador.com.br";
-  const pubDate = (r: { publishedAt: Date | null; createdAt: Date }) =>
-    (r.publishedAt ?? r.createdAt).toUTCString();
+  const pubDate = (r: { publishedAt: Date | null; updatedAt: Date; createdAt: Date }) =>
+    (r.publishedAt ?? r.updatedAt ?? r.createdAt).toUTCString();
 
   const items = releases.map(r => isFolhapress
     ? `
