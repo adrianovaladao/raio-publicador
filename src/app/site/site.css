@@ -295,7 +295,7 @@ img { max-width: 100%; }
 /* ============================================================
    FAQ
    ============================================================ */
-.faq { max-width: 760px; margin: 0 auto; }
+.faq { max-width: 760px; margin: 0 auto; background: transparent !important; box-shadow: none !important; border-radius: 0 !important; }
 .faq-item { border-bottom: 1px solid var(--line); }
 .faq-q {
   width: 100%; background: none; border: none; text-align: left;
