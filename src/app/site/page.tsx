@@ -549,9 +549,21 @@ function Footer({ onContact }: { onContact: () => void }) {
 
 function ContactModal({ onClose }: { onClose: () => void }) {
   const [sent, setSent] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", company: "", phone: "", volume: "Até 10 releases/mês", msg: "" });
   const up = (k: string, v: string) => setForm((f) => ({ ...f, [k]: v }));
   const valid = form.name.trim() && /\S+@\S+\.\S+/.test(form.email) && form.company.trim();
+
+  async function handleSubmit() {
+    if (!valid || loading) return;
+    setLoading(true);
+    try {
+      await fetch("/api/contact", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
+      setSent(true);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
@@ -605,8 +617,8 @@ function ContactModal({ onClose }: { onClose: () => void }) {
             </div>
             <div className="sm-foot">
               <button className="btn btn-ghost btn-lg" onClick={onClose}>Cancelar</button>
-              <button className="btn btn-primary btn-lg" disabled={!valid} onClick={() => setSent(true)}>
-                Enviar mensagem <ArrowRight size={17} />
+              <button className="btn btn-primary btn-lg" disabled={!valid || loading} onClick={handleSubmit}>
+                {loading ? "Enviando…" : <><span>Enviar mensagem</span> <ArrowRight size={17} /></>}
               </button>
             </div>
           </>
