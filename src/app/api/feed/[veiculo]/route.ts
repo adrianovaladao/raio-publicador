@@ -98,41 +98,39 @@ export async function GET(
 
   // RSS (XML)
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://raiopublicador.com.br";
+  const pubDate = (r: { publishedAt: Date | null; createdAt: Date }) =>
+    (r.publishedAt ?? r.createdAt).toUTCString();
+
   const items = releases.map(r => isFolhapress
     ? `
     <item>
       <title>${xmlEscape(r.title)}</title>
-      <subtitle>${xmlEscape(r.summary ?? "")}</subtitle>
-      <description>${xmlEscape(htmlToPlainText(r.body))}</description>
+      <subtitle><![CDATA[${r.summary ?? ""}]]></subtitle>
+      <description><![CDATA[${htmlToPlainText(r.body)}]]></description>
+      <pubDate>${pubDate(r)}</pubDate>
       <guid isPermaLink="false">${r.id}</guid>
       <link>${baseUrl}/releases/${r.id}</link>
     </item>`
     : `
     <item>
       <title>${xmlEscape(r.title)}</title>
-      <description>${xmlEscape(r.body)}</description>
-      <summary>${xmlEscape(r.summary ?? "")}</summary>
+      <description><![CDATA[${r.body}]]></description>
+      <summary><![CDATA[${r.summary ?? ""}]]></summary>
       <author>${xmlEscape(r.brand.name)}</author>
-      <pubDate>${(r.publishedAt ?? r.createdAt).toUTCString()}</pubDate>
-      <guid>${baseUrl}/releases/${r.id}</guid>
+      <pubDate>${pubDate(r)}</pubDate>
+      <guid isPermaLink="false">${r.id}</guid>
       <link>${baseUrl}/releases/${r.id}</link>
       ${r.imageUrl ? `<enclosure url="${xmlEscape(r.imageUrl)}" type="image/jpeg" />` : ""}
     </item>`
   ).join("\n");
 
-  const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0">
-  <channel>
-    <title>Raio Publicador — ${xmlEscape(vehicle.name)}</title>
-    <link>${baseUrl}</link>
-    <description>Releases publicados no Raio Publicador para ${xmlEscape(vehicle.name)}</description>
-    <language>pt-BR</language>
-    <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
-    ${items}
-  </channel>
-</rss>`;
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<rss version="2.0">\n  <channel>\n    <title>Raio Publicador — ${xmlEscape(vehicle.name)}</title>\n    <link>${baseUrl}</link>\n    <description>Releases publicados no Raio Publicador para ${xmlEscape(vehicle.name)}</description>\n    <language>pt-BR</language>\n    <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>\n    ${items}\n  </channel>\n</rss>`;
 
-  return new NextResponse(xml, {
-    headers: { "Content-Type": "application/rss+xml; charset=utf-8" },
+  return new Response(xml, {
+    headers: {
+      "Content-Type": "application/xml; charset=utf-8",
+      "Cache-Control": "no-store",
+      "X-Content-Type-Options": "nosniff",
+    },
   });
 }
