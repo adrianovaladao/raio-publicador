@@ -164,7 +164,7 @@ export default function LoginPage() {
             Um plano. Dezenas de veículos.{" "}
             <b>Quantos releases você precisar.</b>
           </div>
-          <div className="by">A primeira plataforma de publicação garantida e branded content por créditos do Brasil.</div>
+          <div className="by">A nova plataforma de publicação garantida e branded content da Markable.</div>
 
           <div className="steps-mini" style={{ marginTop: 18 }}>
             {STEPS_MINI.map(({ icon: Icon, t }, i) => (
