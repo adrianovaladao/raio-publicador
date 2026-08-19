@@ -185,7 +185,7 @@ function CadastroInner() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const sa = setActive ?? (window as any).Clerk?.setActive;
 
-      // If missing_requirements, try to patch firstName/lastName in case they weren't saved
+      // If missing_requirements, patch all fields that might have been lost from the Clerk session
       if (result.status === "missing_requirements") {
         const parts = name.trim().split(/\s+/);
         const firstName = parts[0] || "";
@@ -193,8 +193,16 @@ function CadastroInner() {
         try {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const liveSignUp = (window as any).Clerk?.client?.signUp ?? clerkSu;
-          result = await liveSignUp.update({ firstName, lastName });
-        } catch { /* ignore update errors, fall through */ }
+          // Include password in the update — it can be lost from Clerk's session context
+          result = await liveSignUp.update({ firstName, lastName, password });
+        } catch {
+          // If update with password fails, retry with just the name fields
+          try {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const liveSignUp = (window as any).Clerk?.client?.signUp ?? clerkSu;
+            result = await liveSignUp.update({ firstName, lastName });
+          } catch { /* ignore, fall through */ }
+        }
       }
 
       const proceed = isVoucherFlow && voucherState === "valid" ? redeemAndProceed : goToCheckout;
@@ -206,12 +214,14 @@ function CadastroInner() {
         await proceed();
       } else {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const sessionId = (window as any).Clerk?.client?.activeSessions?.[0]?.id;
+        const sessionId = (window as any).Clerk?.client?.activeSessions?.[0]?.id
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ?? (window as any).Clerk?.session?.id;
         if (sessionId) {
           await sa({ session: sessionId });
           await proceed();
         } else {
-          setError(`Verificação incompleta (status: ${result.status}). Tente novamente.`);
+          setError("Houve um problema na verificação. Por favor, recarregue a página e tente novamente.");
         }
       }
     } catch (err: unknown) {
