@@ -3,8 +3,6 @@ import { auth } from "@clerk/nextjs/server";
 import { getPrisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-const VOUCHER_CREDIT_CAP = 100;
-
 export async function POST(req: Request) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -29,10 +27,8 @@ export async function POST(req: Request) {
   const existingSub = await prisma.subscription.findUnique({ where: { ownerId: userId } });
   const isNewUser = !existingSub;
 
-  // New users get the VOUCHER plan (capped at 100 credits); existing subscribers just get credits added
-  const creditsToAdd = isNewUser
-    ? Math.min(voucher.credits, VOUCHER_CREDIT_CAP)
-    : voucher.credits;
+  // Credits applied in full — no cap
+  const creditsToAdd = voucher.credits;
 
   const now = new Date();
   const expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);

@@ -594,7 +594,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               Ver planos
             </div>
           )}
-          {sub.plan && (
+          {sub.plan && sub.plan !== "VOUCHER" && (
             <div
               style={{ marginTop: 6, padding: "6px 10px", borderRadius: 8, background: "#000", border: "1px solid #000", fontSize: 12, fontWeight: 600, color: "#fff", textAlign: "center", cursor: "pointer" }}
               onClick={e => { e.stopPropagation(); setShowBuyCredits(true); }}
@@ -667,7 +667,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* ── MODAIS ── */}
       {showPlans && <PlansModal onClose={() => setShowPlans(false)} sub={sub} onSuccess={msg => { setToast(msg); setShowPlans(false); fetchSub(); }} onBuyCredits={() => { setShowPlans(false); setShowBuyCredits(true); }} />}
-      {showBuyCredits && sub.plan && (
+      {showBuyCredits && sub.plan && sub.plan !== "VOUCHER" && (
         <BuyCreditsModal currentPlan={sub.plan} onClose={() => setShowBuyCredits(false)} />
       )}
       {showNewBrand && (
