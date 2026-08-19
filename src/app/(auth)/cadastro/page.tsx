@@ -234,7 +234,10 @@ function CadastroInner() {
       } catch { /* fall through */ }
 
       if (!await tryActivate(result)) {
-        setError("Não foi possível concluir o cadastro. Por favor, recarregue a página e tente novamente com uma senha diferente.");
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const stillMissing: string[] = (result as any).missingFields ?? missing;
+        const debugInfo = stillMissing.length ? ` [faltando: ${stillMissing.join(", ")}]` : "";
+        setError(`Não foi possível concluir o cadastro. Por favor, tente novamente.${debugInfo}`);
       }
     } catch (err: unknown) {
       const e = err as { errors?: { longMessage?: string; message?: string; code?: string }[] };
