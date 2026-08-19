@@ -227,7 +227,7 @@ function Hero() {
 
 function OQueE() {
   return (
-    <section className="section">
+    <section className="section" style={{ background: "#1F1F1F" }}>
       <div className="wrap" style={{ maxWidth: 760, textAlign: "center" }}>
         <div className="sec-head reveal" style={{ border: "none", padding: 0, background: "transparent", boxShadow: "none", borderRadius: 0, outline: "none" }}>
           <h2>O que é um <em>release?</em></h2>
