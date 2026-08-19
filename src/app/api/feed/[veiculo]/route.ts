@@ -104,7 +104,7 @@ export async function GET(
       <title>${xmlEscape(r.title)}</title>
       <subtitle>${xmlEscape(r.summary ?? "")}</subtitle>
       <description>${xmlEscape(htmlToPlainText(r.body))}</description>
-      <guid>${baseUrl}/releases/${r.id}</guid>
+      <guid isPermaLink="false">${r.id}</guid>
       <link>${baseUrl}/releases/${r.id}</link>
     </item>`
     : `
