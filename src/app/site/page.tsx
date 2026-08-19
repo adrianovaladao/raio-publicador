@@ -349,15 +349,12 @@ function Plans({ onContact }: { onContact: () => void }) {
           <span className="eyebrow">Planos e preços</span>
           <h2>Escolha o plano e <em>comece a publicar</em></h2>
           <p className="sub">Todos os planos dão acesso à rede de 50+ portais parceiros. A diferença está no saldo de créditos e no limite de portais categoria A por release.</p>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 7, marginTop: 18, padding: "7px 14px", borderRadius: 999, background: "rgba(251,191,36,0.12)", border: "1px solid rgba(251,191,36,0.35)", color: "#FBBF24", fontSize: 13, fontWeight: 600, letterSpacing: "0.01em" }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-            Preços promocionais de lançamento
-          </div>
         </div>
         <div className="plans">
           {PLANS.map((p, i) => (
-            <div className={`plan reveal${p.featured ? " featured" : ""}`} key={p.name} style={{ transitionDelay: `${i * 80}ms` }}>
+            <div className={`plan reveal${p.featured ? " featured" : ""}`} key={p.name} style={{ transitionDelay: `${i * 80}ms`, position: "relative", overflow: "hidden" }}>
               {p.featured && <span className="ribbon">Mais vendido</span>}
+              <span style={{ position: "absolute", top: 14, right: -28, background: "#FBBF24", color: "#000", fontSize: 10, fontWeight: 700, letterSpacing: "0.04em", padding: "4px 36px", transform: "rotate(45deg)", transformOrigin: "center", whiteSpace: "nowrap", textTransform: "uppercase", boxShadow: "0 1px 4px rgba(0,0,0,0.25)" }}>Lançamento</span>
               <div className="pname">{p.name}</div>
               <div className="pdesc">{p.desc}</div>
               <div className="price">
