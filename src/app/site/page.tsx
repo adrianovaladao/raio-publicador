@@ -356,8 +356,8 @@ function Plans({ onContact }: { onContact: () => void }) {
               {p.featured && <span className="ribbon">Mais vendido</span>}
               <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, marginBottom: 4 }}>
                 <div className="pname" style={{ margin: 0 }}>{p.name}</div>
-                <span style={{ flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 4, padding: "3px 9px", borderRadius: 999, background: "rgba(251,191,36,0.15)", border: "1px solid rgba(251,191,36,0.4)", color: "#FBBF24", fontSize: 10.5, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", whiteSpace: "nowrap", marginTop: 2 }}>
-                  🏷️ Lançamento
+                <span style={{ flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 4, padding: "3px 9px", borderRadius: 999, background: "rgba(251,191,36,0.10)", border: "1.5px dashed rgba(251,191,36,0.55)", color: "#FBBF24", fontSize: 10.5, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", whiteSpace: "nowrap", marginTop: 2 }}>
+                  🏷️ Preço promocional
                 </span>
               </div>
               <div className="pdesc">{p.desc}</div>
