@@ -15,7 +15,7 @@ export async function GET() {
   try {
     const stripe = getStripe();
     const invoices = await stripe.invoices.list({ subscription: sub.stripeSubscriptionId, limit: 1 });
-    const lastInvoice = invoices.data[0];
+    const lastInvoice = invoices.data[0] as unknown as { payment_intent?: string | null };
     if (!lastInvoice?.payment_intent || typeof lastInvoice.payment_intent !== "string") {
       return NextResponse.json({ paymentType: "unknown" });
     }
