@@ -1432,8 +1432,6 @@ function MarcasPanel({ onToast, isCancelled }: { onToast: (m: string) => void; i
   const [loading,      setLoading]      = useState(true);
   const [editing,      setEditing]      = useState<Brand | null>(null);
   const [showNew,      setShowNew]      = useState(false);
-  const [showUpgrade,  setShowUpgrade]  = useState(false);
-  const [currentPlan,  setCurrentPlan]  = useState<string | null>(null);
   const [brandsLimit,  setBrandsLimit]  = useState<number | null>(null);
   useEffect(() => {
     Promise.all([
@@ -1442,7 +1440,6 @@ function MarcasPanel({ onToast, isCancelled }: { onToast: (m: string) => void; i
     ]).then(([brandsData, subData]) => {
       setBrands(Array.isArray(brandsData) ? (brandsData as Brand[]) : []);
       const s = subData as { plan?: string; brandsLimit?: number };
-      setCurrentPlan(s.plan ?? null);
       setBrandsLimit(s.brandsLimit ?? null);
     }).catch(() => setBrands([])).finally(() => setLoading(false));
   }, []);
