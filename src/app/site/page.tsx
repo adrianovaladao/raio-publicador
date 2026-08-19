@@ -229,7 +229,7 @@ function OQueE() {
   return (
     <section className="section">
       <div className="wrap" style={{ maxWidth: 760, textAlign: "center" }}>
-        <div className="sec-head reveal">
+        <div className="sec-head reveal" style={{ border: "none", padding: 0, background: "transparent", boxShadow: "none", borderRadius: 0, outline: "none" }}>
           <h2>O que é um <em>release?</em></h2>
           <p className="sub">
             Um release é o texto enviado diretamente a jornalistas e editores de portais de notícias. É o atalho entre a sua novidade e a imprensa e, no Raio, seu release estará pronto para ser publicado e virar notícia rápido e sem intermediários.
@@ -249,7 +249,7 @@ function Como() {
   return (
     <section className="section" id="como">
       <div className="wrap">
-        <div className="sec-head reveal">
+        <div className="sec-head reveal" style={{ border: "none", padding: 0, background: "transparent", boxShadow: "none", borderRadius: 0, outline: "none" }}>
           <span className="eyebrow">Como funciona</span>
           <h2>Do rascunho à publicação garantida em <em>quatro passos</em></h2>
           <p className="sub">Um fluxo feito para marcas, agências e profissionais que precisam de resultados reais, sem burocracia e com controle absoluto.</p>
@@ -278,7 +278,7 @@ function Compare() {
   return (
     <section className="section">
       <div className="wrap">
-        <div className="sec-head reveal">
+        <div className="sec-head reveal" style={{ border: "none", padding: 0, background: "transparent", boxShadow: "none", borderRadius: 0, outline: "none" }}>
           <span className="eyebrow">Créditos vs. cobrança por nota</span>
           <h2>O mesmo alcance por <em>uma fração</em> do custo</h2>
           <p className="sub">Enquanto a concorrência te prende a uma única publicação por valor, no Raio você assina, ganha <strong>créditos</strong> e monta a estratégia que fizer mais sentido para o seu momento.</p>
@@ -345,7 +345,7 @@ function Plans({ onContact }: { onContact: () => void }) {
   return (
     <section className="section" id="planos">
       <div className="wrap">
-        <div className="sec-head reveal">
+        <div className="sec-head reveal" style={{ border: "none", padding: 0, background: "transparent", boxShadow: "none", borderRadius: 0, outline: "none" }}>
           <span className="eyebrow">Planos e preços</span>
           <h2>Escolha o plano e <em>comece a publicar</em></h2>
           <p className="sub">Todos os planos dão acesso à rede de 50+ portais parceiros. A diferença está no saldo de créditos e no limite de portais categoria A por release.</p>
@@ -401,7 +401,7 @@ function Testimonials() {
   return (
     <section className="section alt" id="depoimentos">
       <div className="wrap">
-        <div className="sec-head reveal">
+        <div className="sec-head reveal" style={{ border: "none", padding: 0, background: "transparent", boxShadow: "none", borderRadius: 0, outline: "none" }}>
           <span className="eyebrow">Quem usa, comprova os resultados</span>
           <h2>Nossos clientes publicam <em>mais rápido e com um custo menor</em></h2>
           <p className="sub">Veja por que grandes marcas e agências escolheram o Raio para escalar suas publicações.</p>
@@ -441,7 +441,7 @@ function Faq() {
   return (
     <section className="section" id="faq">
       <div className="wrap">
-        <div className="sec-head reveal">
+        <div className="sec-head reveal" style={{ border: "none", padding: 0, background: "transparent", boxShadow: "none", borderRadius: 0, outline: "none" }}>
           <span className="eyebrow">Perguntas Frequentes</span>
           <h2>Tudo sobre o <em>modelo de créditos</em></h2>
         </div>
