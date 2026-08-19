@@ -157,7 +157,7 @@ img { max-width: 100%; }
 .section { padding: 100px 0; position: relative; }
 .section.alt { background: var(--ink-2); }
 .section.panel { background: var(--panel); }
-.sec-head { max-width: 680px; margin: 0 auto 56px; text-align: center; }
+.sec-head { max-width: 680px; margin: 0 auto 56px; text-align: center; border: none !important; padding: 0 !important; background: transparent !important; box-shadow: none !important; outline: none !important; border-radius: 0 !important; }
 .sec-head.left { margin-left: 0; text-align: left; }
 .sec-head h2 { font-family: var(--sans); font-weight: 700; font-size: clamp(30px, 4vw, 46px); letter-spacing: -0.03em; line-height: 1.08; margin: 16px 0 0; }
 .sec-head h2 em { font-family: var(--serif); font-style: italic; font-weight: 400; color: var(--coral); }
