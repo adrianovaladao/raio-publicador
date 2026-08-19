@@ -10,10 +10,18 @@ import { createNotification } from "@/lib/notify";
 
 const REFUND_WINDOW_DAYS = 7;
 
-export async function POST() {
+export async function POST(req: Request) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const clerkUser = await currentUser();
+
+  let pixKey: string | undefined;
+  let pixKeyType: string | undefined;
+  try {
+    const body = await req.json().catch(() => ({})) as { pixKey?: string; pixKeyType?: string };
+    pixKey = body.pixKey;
+    pixKeyType = body.pixKeyType;
+  } catch { /* sem body */ }
 
   const prisma = getPrisma();
   const sub = await prisma.subscription.findUnique({ where: { ownerId: userId } });
@@ -33,7 +41,22 @@ export async function POST() {
     // Within 7-day window with no credits used (Art. 49 CDC): cancel immediately + full refund + wipe data
     const invoices = await stripe.invoices.list({ subscription: sub.stripeSubscriptionId, limit: 1 });
     const lastInvoice = invoices.data[0] as unknown as { payment_intent?: string | null };
+
+    // Detect payment method type to decide if Stripe refund is possible
+    let isBoleto = false;
     if (lastInvoice?.payment_intent && typeof lastInvoice.payment_intent === "string") {
+      try {
+        const pi = await stripe.paymentIntents.retrieve(lastInvoice.payment_intent, {
+          expand: ["charges.data.payment_method_details"],
+        });
+        const pmType = (pi as { charges?: { data?: Array<{ payment_method_details?: { type?: string } }> } })
+          .charges?.data?.[0]?.payment_method_details?.type;
+        isBoleto = pmType === "boleto";
+      } catch { /* assume card */ }
+    }
+
+    if (!isBoleto && lastInvoice?.payment_intent && typeof lastInvoice.payment_intent === "string") {
+      // Card: process automatic refund
       await stripe.refunds.create({ payment_intent: lastInvoice.payment_intent });
     }
     await stripe.subscriptions.cancel(sub.stripeSubscriptionId);
@@ -54,12 +77,20 @@ export async function POST() {
     if (email) {
       await sendCancellationEmail(email, firstName, true, null, planLabel).catch(console.error);
     }
-    await createNotification(userId, "subscription_cancelled",
-      "Assinatura cancelada e reembolso processado",
-      `Seu reembolso do Plano ${planLabel} foi processado. O valor será creditado em até 10 dias úteis.`,
-      "/configuracoes?tab=cobranca",
-    ).catch(console.error);
-    return NextResponse.json({ ok: true, refunded: true, periodEnd: null });
+    if (isBoleto && pixKey) {
+      await createNotification(userId, "subscription_cancelled",
+        "Reembolso via PIX solicitado",
+        `Chave PIX (${pixKeyType ?? "chave"}): ${pixKey}. O valor será transferido em até 5 dias úteis.`,
+        "/configuracoes?tab=cobranca",
+      ).catch(console.error);
+    } else {
+      await createNotification(userId, "subscription_cancelled",
+        "Assinatura cancelada e reembolso processado",
+        `Seu reembolso do Plano ${planLabel} foi processado. O valor será creditado em até 10 dias úteis.`,
+        "/configuracoes?tab=cobranca",
+      ).catch(console.error);
+    }
+    return NextResponse.json({ ok: true, refunded: !isBoleto, boletoRefund: isBoleto, periodEnd: null });
   } else {
     // After 7 days: cancel at period end, access maintained
     await stripe.subscriptions.update(sub.stripeSubscriptionId, { cancel_at_period_end: true });
