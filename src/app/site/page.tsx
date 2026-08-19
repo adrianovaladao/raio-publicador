@@ -210,7 +210,7 @@ function Hero() {
       </div>
       <div className="hero-logos">
         <div className="wrap">
-          <div className="ll">Distribua em veículos como</div>
+          <div className="ll">Distribua seus releases em veículos como</div>
           <div className="row">
             {PARTNERS.map((p) => (
               <Image key={p.file} src={`/assets/partners/${p.file}.svg`} alt={p.file} width={120} height={p.h} style={{ height: p.h, width: "auto", opacity: 0.8 }} />
