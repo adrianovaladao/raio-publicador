@@ -29,6 +29,13 @@ export default function LoginPage() {
   const [showPw, setShowPw]     = useState(false);
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState("");
+  const [remember, setRemember] = useState(false);
+
+  // Pre-fill saved email on mount
+  useEffect(() => {
+    const saved = localStorage.getItem("raio_remember_email");
+    if (saved) { setEmail(saved); setRemember(true); }
+  }, []);
 
   // ── 2FA ──────────────────────────────────────────────────────────────────────
   const [totpStep, setTotpStep] = useState(false);
@@ -103,6 +110,8 @@ export default function LoginPage() {
       const result = await si.create({ identifier: email, password });
 
       if (result.status === "complete") {
+        if (remember) localStorage.setItem("raio_remember_email", email);
+        else localStorage.removeItem("raio_remember_email");
         await clerk.setActive({ session: result.createdSessionId });
         router.replace("/dashboard");
         return;
@@ -291,7 +300,7 @@ export default function LoginPage() {
 
                 <div className="opt-row">
                   <label className="chk">
-                    <input type="checkbox" />
+                    <input type="checkbox" checked={remember} onChange={e => setRemember(e.target.checked)} />
                     <span className="bx" />
                     <span className="tx">Lembrar acesso</span>
                   </label>
