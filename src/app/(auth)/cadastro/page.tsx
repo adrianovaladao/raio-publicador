@@ -185,44 +185,56 @@ function CadastroInner() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const sa = setActive ?? (window as any).Clerk?.setActive;
 
-      // If missing_requirements, patch all fields that might have been lost from the Clerk session
-      if (result.status === "missing_requirements") {
-        const parts = name.trim().split(/\s+/);
-        const firstName = parts[0] || "";
-        const lastName = parts.slice(1).join(" ") || "";
-        try {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const liveSignUp = (window as any).Clerk?.client?.signUp ?? clerkSu;
-          // Include password in the update — it can be lost from Clerk's session context
-          result = await liveSignUp.update({ firstName, lastName, password });
-        } catch {
-          // If update with password fails, retry with just the name fields
-          try {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const liveSignUp = (window as any).Clerk?.client?.signUp ?? clerkSu;
-            result = await liveSignUp.update({ firstName, lastName });
-          } catch { /* ignore, fall through */ }
+      const proceed = isVoucherFlow && voucherState === "valid" ? redeemAndProceed : goToCheckout;
+
+      // Helper to activate session and proceed
+      async function tryActivate(r: { status: string; createdSessionId?: string | null }) {
+        if (r.status === "complete" && r.createdSessionId) {
+          await sa({ session: r.createdSessionId }); await proceed(); return true;
         }
+        if (r.createdSessionId) {
+          await sa({ session: r.createdSessionId }); await proceed(); return true;
+        }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const sid = (window as any).Clerk?.client?.activeSessions?.[0]?.id ?? (window as any).Clerk?.session?.id;
+        if (sid) { await sa({ session: sid }); await proceed(); return true; }
+        return false;
       }
 
-      const proceed = isVoucherFlow && voucherState === "valid" ? redeemAndProceed : goToCheckout;
-      if (result.status === "complete") {
-        await sa({ session: result.createdSessionId });
-        await proceed();
-      } else if (result.createdSessionId) {
-        await sa({ session: result.createdSessionId });
-        await proceed();
-      } else {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const sessionId = (window as any).Clerk?.client?.activeSessions?.[0]?.id
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          ?? (window as any).Clerk?.session?.id;
-        if (sessionId) {
-          await sa({ session: sessionId });
-          await proceed();
-        } else {
+      if (result.status !== "missing_requirements") {
+        if (!await tryActivate(result)) {
           setError("Houve um problema na verificação. Por favor, recarregue a página e tente novamente.");
         }
+        return;
+      }
+
+      // missing_requirements — build update payload from what Clerk says is missing
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const liveSignUp = (window as any).Clerk?.client?.signUp ?? clerkSu;
+      const parts = name.trim().split(/\s+/);
+      const firstName = parts[0] || "";
+      const lastName  = parts.slice(1).join(" ") || "";
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const missing: string[] = (result as any).missingFields ?? [];
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const patch: Record<string, any> = {};
+      if (missing.includes("first_name") || !missing.length) patch.firstName = firstName;
+      if (missing.includes("last_name")  || !missing.length) patch.lastName  = lastName;
+      if (missing.includes("password")   || !missing.length) patch.password  = password;
+
+      try {
+        result = await liveSignUp.update(patch);
+        if (await tryActivate(result)) return;
+        // If still missing, try updating everything at once as last resort
+        if (result.status === "missing_requirements") {
+          result = await liveSignUp.update({ firstName, lastName, password });
+          if (await tryActivate(result)) return;
+        }
+      } catch { /* fall through */ }
+
+      if (!await tryActivate(result)) {
+        setError("Não foi possível concluir o cadastro. Por favor, recarregue a página e tente novamente com uma senha diferente.");
       }
     } catch (err: unknown) {
       const e = err as { errors?: { longMessage?: string; message?: string; code?: string }[] };
