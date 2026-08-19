@@ -1,7 +1,11 @@
 export const dynamic = "force-dynamic";
-import { auth } from "@clerk/nextjs/server";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 import { getPrisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { Resend } from "resend";
+
+const ADMIN_EMAIL = "raiopublicador@gmail.com";
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: Request) {
   const { userId } = await auth();
@@ -53,6 +57,30 @@ export async function POST(req: Request) {
           data: { creditsTotal: { increment: creditsToAdd } },
         }),
   ]);
+
+  // Notifica admin
+  try {
+    const clerk = await clerkClient();
+    const user = await clerk.users.getUser(userId);
+    const userName = user.firstName ?? user.emailAddresses[0]?.emailAddress?.split("@")[0] ?? "usuário";
+    const userEmail = user.emailAddresses[0]?.emailAddress ?? "—";
+    await resend.emails.send({
+      from: "Raio Publicador <noreply@raiopublicador.com.br>",
+      to: ADMIN_EMAIL,
+      subject: `🎟️ Voucher resgatado — ${voucher.code} (${userName})`,
+      html: `<div style="font-family:Arial,sans-serif;max-width:480px;padding:24px">
+        <h2 style="margin:0 0 16px">🎟️ Voucher resgatado!</h2>
+        <table style="font-size:14px;color:#333;border-collapse:collapse;width:100%">
+          <tr><td style="padding:6px 0;color:#888;width:130px">Usuário</td><td style="padding:6px 0;font-weight:600">${userName}</td></tr>
+          <tr><td style="padding:6px 0;color:#888">E-mail</td><td style="padding:6px 0"><a href="mailto:${userEmail}" style="color:#c97b00">${userEmail}</a></td></tr>
+          <tr><td style="padding:6px 0;color:#888">Código</td><td style="padding:6px 0;font-weight:600;font-family:monospace">${voucher.code}</td></tr>
+          <tr><td style="padding:6px 0;color:#888">Créditos</td><td style="padding:6px 0;font-weight:600">${creditsToAdd.toLocaleString("pt-BR")}</td></tr>
+          <tr><td style="padding:6px 0;color:#888">Novo usuário?</td><td style="padding:6px 0">${isNewUser ? "Sim — conta criada agora" : "Não — já tinha assinatura"}</td></tr>
+          <tr><td style="padding:6px 0;color:#888">Data</td><td style="padding:6px 0">${new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}</td></tr>
+        </table>
+      </div>`,
+    });
+  } catch { /* silencioso — não bloqueia o resgate */ }
 
   return NextResponse.json({ credits: creditsToAdd });
 }

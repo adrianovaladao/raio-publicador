@@ -12,6 +12,28 @@ import {
   sendPaymentFailedEmail,
   sendUpgradeEmail,
 } from "@/lib/email";
+import { Resend } from "resend";
+
+const ADMIN_EMAIL = "raiopublicador@gmail.com";
+function getResend() { return new Resend(process.env.RESEND_API_KEY); }
+
+async function notifyAdminNewSubscription(userEmail: string, userName: string, planLabel: string, priceCents: number) {
+  await getResend().emails.send({
+    from: "Raio Publicador <noreply@raiopublicador.com.br>",
+    to: ADMIN_EMAIL,
+    subject: `🎉 Nova assinatura — ${planLabel} (${userName})`,
+    html: `<div style="font-family:Arial,sans-serif;max-width:480px;padding:24px">
+      <h2 style="margin:0 0 16px">🎉 Nova assinatura!</h2>
+      <table style="font-size:14px;color:#333;border-collapse:collapse;width:100%">
+        <tr><td style="padding:6px 0;color:#888;width:120px">Usuário</td><td style="padding:6px 0;font-weight:600">${userName}</td></tr>
+        <tr><td style="padding:6px 0;color:#888">E-mail</td><td style="padding:6px 0"><a href="mailto:${userEmail}" style="color:#c97b00">${userEmail}</a></td></tr>
+        <tr><td style="padding:6px 0;color:#888">Plano</td><td style="padding:6px 0;font-weight:600">${planLabel}</td></tr>
+        <tr><td style="padding:6px 0;color:#888">Valor</td><td style="padding:6px 0">R$ ${(priceCents / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}/mês</td></tr>
+        <tr><td style="padding:6px 0;color:#888">Data</td><td style="padding:6px 0">${new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}</td></tr>
+      </table>
+    </div>`,
+  });
+}
 import { createNotification } from "@/lib/notify";
 
 async function getClerkUser(clerkId: string) {
@@ -114,6 +136,7 @@ export async function POST(req: NextRequest) {
         if (email) {
           const nextRenewal = new Date(subscription.items.data[0].current_period_end * 1000);
           await sendWelcomeEmail(email, firstName, PLANS[planId].label, PLANS[planId].priceCents, PLANS[planId].credits, nextRenewal).catch(console.error);
+          await notifyAdminNewSubscription(email, firstName, PLANS[planId].label, PLANS[planId].priceCents).catch(console.error);
         }
       }
       break;
