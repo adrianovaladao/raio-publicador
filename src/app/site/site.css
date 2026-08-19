@@ -12,7 +12,8 @@
 *:focus, *:focus-visible, *:focus-within { outline: 0px solid transparent !important; box-shadow: none !important; }
 
 /* ZERO border em elementos estruturais (não nos cards intencionais) */
-.section, .wrap, .sec-head, .steps-grid, .step-card, .hero, .hero .wrap {
+.section, .wrap, .sec-head, .steps-grid, .step-card, .hero, .hero .wrap,
+.faq, .cta-inner, .reveal {
   border-width: 0 !important;
 }
 html, body { background: #1A1A1A !important; }
