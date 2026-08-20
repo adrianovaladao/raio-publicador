@@ -426,7 +426,31 @@ function CadastroInner() {
                   <input className="in" type="email" placeholder="voce@empresa.com.br" value={email} onChange={(e) => setEmail(e.target.value)} required />
                 </div>
                 <div className="fld">
-                  <label>Senha</label>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+                    <label style={{ margin: 0 }}>Senha</label>
+                    <button
+                      type="button"
+                      onClick={handleSuggestPassword}
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 5,
+                        background: "none",
+                        border: "none",
+                        padding: 0,
+                        cursor: "pointer",
+                        color: pwCopied ? "#34C759" : "rgba(255,255,255,0.45)",
+                        fontSize: 12,
+                        fontWeight: 500,
+                        transition: "color .2s",
+                      }}
+                    >
+                      {pwCopied
+                        ? <><Copy size={12} /> Copiada!</>
+                        : <><Wand2 size={12} /> Sugerir senha segura</>
+                      }
+                    </button>
+                  </div>
                   <div style={{ position: "relative" }}>
                     <input
                       className="in" type={showPw ? "text" : "password"}
@@ -439,29 +463,6 @@ function CadastroInner() {
                     </button>
                   </div>
                   <PwMeter pw={password} />
-                  <button
-                    type="button"
-                    onClick={handleSuggestPassword}
-                    style={{
-                      marginTop: 6,
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: 6,
-                      background: "none",
-                      border: "none",
-                      padding: 0,
-                      cursor: "pointer",
-                      color: pwCopied ? "#34C759" : "rgba(255,255,255,0.45)",
-                      fontSize: 12.5,
-                      fontWeight: 500,
-                      transition: "color .2s",
-                    }}
-                  >
-                    {pwCopied
-                      ? <><Copy size={13} /> Senha copiada!</>
-                      : <><Wand2 size={13} /> Sugerir senha segura</>
-                    }
-                  </button>
                 </div>
 
                 {isVoucherFlow && (
