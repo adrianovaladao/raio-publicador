@@ -9,6 +9,12 @@ const CLERK_ERROR_MAP: Record<string, string> = {
   "Passwords must be 8 characters or more.": "A senha deve ter no mínimo 8 caracteres.",
   "Password is incorrect. Try again, or use another method.": "Senha incorreta. Tente novamente.",
   "Password must be at least 8 characters long.": "A senha deve ter no mínimo 8 caracteres.",
+  "form_password_pwned": "Essa senha é muito comum ou foi encontrada em vazamentos de dados. Escolha uma senha mais segura e única.",
+  "form_password_not_strong_enough": "Sua senha não é forte o suficiente. Use letras maiúsculas, minúsculas, números ou símbolos.",
+  "form_password_size_in_bytes_exceeded": "Senha muito longa. Use no máximo 72 caracteres.",
+  "Password has been found in an online data breach": "Essa senha foi encontrada em vazamentos de dados. Por segurança, escolha uma senha diferente.",
+  "password_found_in_data_breach": "Essa senha foi encontrada em vazamentos de dados. Por segurança, escolha uma senha diferente.",
+  "Password must contain": "A senha não atende aos requisitos de segurança. Use letras maiúsculas, minúsculas e números.",
 
   // Login
   "Couldn't find your account.": "Conta não encontrada. Verifique seu e-mail.",

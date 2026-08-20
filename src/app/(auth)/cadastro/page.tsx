@@ -177,7 +177,14 @@ function CadastroInner() {
       const e = err as { errors?: { longMessage?: string; message?: string; code?: string }[]; message?: string };
       const raw = e?.errors?.[0]?.longMessage || e?.errors?.[0]?.message || e?.message || "";
       const code = e?.errors?.[0]?.code || "";
-      setError(translateClerkError(raw) || translateClerkError(code) || raw || code || "Erro ao criar conta.");
+      const translated = translateClerkError(code) || translateClerkError(raw) || "";
+      // Se a senha foi rejeitada, garante que o campo de senha fica em foco
+      const isPwError = ["form_password_pwned", "form_password_not_strong_enough", "password_found_in_data_breach"].includes(code)
+        || raw.toLowerCase().includes("breach") || raw.toLowerCase().includes("pwned");
+      if (isPwError) {
+        setPw("");
+      }
+      setError(translated || raw || code || "Erro ao criar conta. Tente novamente.");
     } finally {
       setLoading(false);
     }
