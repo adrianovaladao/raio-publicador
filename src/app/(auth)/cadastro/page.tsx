@@ -139,10 +139,12 @@ function CadastroInner() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let created: any;
       try {
-        created = await signUp.create({ emailAddress: email, password, firstName, lastName, username }) as any;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        created = await signUp.create({ emailAddress: email, password, firstName, lastName, username }) as unknown as any;
       } catch {
         // If username is not supported by this Clerk instance, retry without it
-        created = await signUp.create({ emailAddress: email, password, firstName, lastName }) as any;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        created = await signUp.create({ emailAddress: email, password, firstName, lastName }) as unknown as any;
       }
 
       // Also read the live object from window.Clerk as a fallback
