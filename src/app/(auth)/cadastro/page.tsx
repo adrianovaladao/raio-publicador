@@ -45,6 +45,8 @@ function CadastroInner() {
   const isVoucherFlow = searchParams.get("voucher") === "1";
   const plan = planParam && VALID_PLANS.includes(planParam) ? planParam : null;
 
+  const emailParam = searchParams.get("email");
+
   const [voucherCode,    setVoucherCode]    = useState("");
   const [voucherState,   setVoucherState]   = useState<"idle" | "checking" | "valid" | "invalid">("idle");
   const [voucherError,   setVoucherError]   = useState("");
@@ -105,7 +107,7 @@ function CadastroInner() {
 
   const [step, setStep]     = useState<Step>("signup");
   const [name, setName]     = useState("");
-  const [email, setEmail]   = useState("");
+  const [email, setEmail]   = useState(emailParam ?? "");
   const [password, setPw]   = useState("");
   const [showPw, setShowPw] = useState(false);
   const [otp, setOtp]       = useState(["","","","","",""]);
@@ -178,12 +180,34 @@ function CadastroInner() {
       const raw = e?.errors?.[0]?.longMessage || e?.errors?.[0]?.message || e?.message || "";
       const code = e?.errors?.[0]?.code || "";
       const translated = translateClerkError(code) || translateClerkError(raw) || "";
+
       // Se a senha foi rejeitada, garante que o campo de senha fica em foco
       const isPwError = ["form_password_pwned", "form_password_not_strong_enough", "password_found_in_data_breach"].includes(code)
         || raw.toLowerCase().includes("breach") || raw.toLowerCase().includes("pwned");
       if (isPwError) {
         setPw("");
       }
+
+      // Email já cadastrado com verificação pendente — tenta reenviar o código
+      // Clerk retorna "email_address_taken" ou "form_identifier_exists" nesse caso
+      if (code === "form_identifier_exists" || code === "email_address_taken" || raw.includes("already taken") || raw.includes("is already taken")) {
+        // Tenta pegar o signUp pendente do cliente Clerk e reenviar o código
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const liveSignUp = (window as any).Clerk?.client?.signUp;
+          if (liveSignUp && typeof liveSignUp.prepareEmailAddressVerification === "function") {
+            await liveSignUp.prepareEmailAddressVerification({ strategy: "email_code" });
+            clerkSuRef.current = liveSignUp;
+            setStep("verify");
+            setError("Encontramos um cadastro pendente com este e-mail. Reenviamos o código de verificação — verifique também o spam.");
+            return;
+          }
+        } catch { /* ignora — cai no erro padrão abaixo */ }
+        // Se não conseguiu reenviar, orienta o usuário
+        setError("Este e-mail já foi cadastrado mas o cadastro pode estar pendente de verificação. Acesse /login e use o link 'Reenviar código de verificação'.");
+        return;
+      }
+
       setError(translated || raw || code || "Erro ao criar conta. Tente novamente.");
     } finally {
       setLoading(false);
@@ -454,8 +478,11 @@ function CadastroInner() {
               <div className="auth-icon"><Mail size={26} /></div>
               <h1>Confirme seu <em>e-mail</em>.</h1>
               <p className="lead">
-                Enviamos um código para{" "}
+                Enviamos um código de 6 dígitos para{" "}
                 <span className="mail-to"><Mail size={15} />{email}</span>
+              </p>
+              <p style={{ fontSize: 12.5, color: "rgba(255,255,255,0.45)", marginBottom: 16, lineHeight: 1.5 }}>
+                📬 Pode levar até 2 minutos. <b style={{ color: "rgba(255,255,255,0.6)" }}>Verifique a pasta de spam</b> caso não apareça na caixa de entrada.
               </p>
 
               <div className="otp">
@@ -481,8 +508,13 @@ function CadastroInner() {
               </button>
 
               <div className="resend" style={{ marginTop: 16 }}>
-                Não recebeu?{" "}
-                <a onClick={handleResend} style={{ cursor: "pointer" }}>Reenviar código</a>
+                Não recebeu o código?{" "}
+                <a onClick={handleResend} style={{ cursor: "pointer", fontWeight: 600 }}>Reenviar agora</a>
+              </div>
+              <div style={{ marginTop: 8, textAlign: "center" }}>
+                <a onClick={() => { setStep("signup"); setError(""); setOtp(["","","","","",""]); }} style={{ cursor: "pointer", fontSize: 12, color: "rgba(255,255,255,0.4)" }}>
+                  Voltar e usar outro e-mail
+                </a>
               </div>
             </>
           )}

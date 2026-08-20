@@ -102,10 +102,13 @@ export default function LoginPage() {
     } finally { setLoading(false); }
   }
 
+  // State para conta não verificada
+  const [unverifiedEmail, setUnverifiedEmail] = useState("");
+
   async function doLogin() {
     const si = getSignIn();
     if (!si) { setError("Aguarde um instante e tente novamente."); return; }
-    setLoading(true); setError("");
+    setLoading(true); setError(""); setUnverifiedEmail("");
     try {
       const result = await si.create({ identifier: email, password });
 
@@ -141,8 +144,16 @@ export default function LoginPage() {
 
       setError("Status inesperado: " + result.status);
     } catch (err: unknown) {
-      const e = err as { errors?: { longMessage?: string; message?: string }[] };
-      setError(translateClerkError(e?.errors?.[0]?.longMessage || e?.errors?.[0]?.message || "") || "E-mail ou senha incorretos.");
+      const e = err as { errors?: { longMessage?: string; message?: string; code?: string }[] };
+      const code = e?.errors?.[0]?.code || "";
+      const msg  = e?.errors?.[0]?.longMessage || e?.errors?.[0]?.message || "";
+      // Conta não verificada: Clerk não consegue fazer login porque o cadastro está incompleto
+      if (code === "form_identifier_not_found" || code === "identifier_not_found" || code === "not_allowed_access") {
+        setUnverifiedEmail(email);
+        setError("Este e-mail não foi encontrado ou o cadastro não foi concluído. Se você se cadastrou mas não recebeu o código de verificação, reenvie pelo link abaixo.");
+        return;
+      }
+      setError(translateClerkError(msg) || translateClerkError(code) || "E-mail ou senha incorretos.");
     } finally {
       setLoading(false);
     }
@@ -313,6 +324,19 @@ export default function LoginPage() {
 
                 <div id="clerk-captcha" />
                 {error && <p style={{ color: "var(--red)", fontSize: 13, marginBottom: 14 }}>{error}</p>}
+                {unverifiedEmail && (
+                  <div style={{ background: "rgba(251,191,36,0.10)", border: "1px solid rgba(251,191,36,0.3)", borderRadius: 8, padding: "12px 14px", marginBottom: 14 }}>
+                    <p style={{ color: "#FBBF24", fontSize: 13, margin: 0, marginBottom: 8 }}>
+                      📬 Não recebeu o código de verificação? Verifique a pasta de spam ou solicite um novo código.
+                    </p>
+                    <Link
+                      href={`/cadastro?reenviar=1&email=${encodeURIComponent(unverifiedEmail)}`}
+                      style={{ color: "#FBBF24", fontSize: 13, fontWeight: 600, textDecoration: "underline" }}
+                    >
+                      Reenviar código de verificação →
+                    </Link>
+                  </div>
+                )}
 
                 <button className="btn btn-primary btn-block btn-lg" type="submit" disabled={loading}>
                   {loading ? "Entrando…" : <><span>Entrar</span><ArrowRight size={17} /></>}
