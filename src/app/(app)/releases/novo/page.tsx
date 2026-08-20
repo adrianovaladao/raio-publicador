@@ -21,7 +21,40 @@ import {
 } from "docx";
 import { saveAs } from "file-saver";
 
-type VehicleItem = { id: string; name: string; domain: string; cat: string; tier: string; reach: number; logoUrl?: string | null };
+type VehicleItem = { id: string; name: string; domain: string; cat: string; tier: string; reach: number; logoUrl?: string | null; location?: string | null };
+
+// ── Regiões do Brasil ─────────────────────────────────────────────────────────
+const BRASIL_REGIOES: Record<string, string[]> = {
+  "Norte":         ["AC","AM","AP","PA","RO","RR","TO"],
+  "Nordeste":      ["AL","BA","CE","MA","PB","PE","PI","RN","SE"],
+  "Centro-Oeste":  ["DF","GO","MS","MT"],
+  "Sudeste":       ["ES","MG","RJ","SP"],
+  "Sul":           ["PR","RS","SC"],
+};
+const UF_NOME: Record<string, string> = {
+  AC:"Acre",AL:"Alagoas",AM:"Amazonas",AP:"Amapá",BA:"Bahia",
+  CE:"Ceará",DF:"Distrito Federal",ES:"Espírito Santo",GO:"Goiás",
+  MA:"Maranhão",MG:"Minas Gerais",MS:"Mato Grosso do Sul",MT:"Mato Grosso",
+  PA:"Pará",PB:"Paraíba",PE:"Pernambuco",PI:"Piauí",PR:"Paraná",
+  RJ:"Rio de Janeiro",RN:"Rio Grande do Norte",RO:"Rondônia",RR:"Roraima",
+  RS:"Rio Grande do Sul",SC:"Santa Catarina",SE:"Sergipe",SP:"São Paulo",TO:"Tocantins",
+};
+function regiaoDeUF(uf: string): string | null {
+  for (const [reg, ufs] of Object.entries(BRASIL_REGIOES)) {
+    if (ufs.includes(uf.toUpperCase())) return reg;
+  }
+  return null;
+}
+// Extrai a UF de um campo location como "São Paulo, SP" ou "SP" ou "São Paulo"
+function ufDeLocation(location?: string | null): string | null {
+  if (!location) return null;
+  // Tenta padrão "Cidade, UF"
+  const m = location.match(/,\s*([A-Z]{2})$/);
+  if (m) return m[1];
+  // Tenta UF isolada
+  if (/^[A-Z]{2}$/.test(location.trim())) return location.trim();
+  return null;
+}
 
 
 function extractFirstImageUrl(html: string): string | null {
@@ -410,46 +443,99 @@ function StepContent({ content, setContent, brand, ownerName, onAIUsed, navSlot 
 
 // ── Passo 2: Veículos ────────────────────────────────────────────────────────
 
-function VehFilterModal({ cats, tiers, onApply, onClose }: {
-  cats: string[]; tiers: string[];
-  onApply: (cats: string[], tiers: string[]) => void;
+function VehFilterModal({ cats, tiers, regioes, estados, onApply, onClose }: {
+  cats: string[]; tiers: string[]; regioes: string[]; estados: string[];
+  onApply: (cats: string[], tiers: string[], regioes: string[], estados: string[]) => void;
   onClose: () => void;
 }) {
-  const [selCats,  setSelCats]  = useState<string[]>(cats);
-  const [selTiers, setSelTiers] = useState<string[]>(tiers);
-  const toggleCat  = (c: string) => setSelCats(prev  => prev.includes(c)  ? prev.filter(x => x !== c)  : [...prev, c]);
-  const toggleTier = (t: string) => setSelTiers(prev => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t]);
-  const activeCount = selCats.length + selTiers.length;
+  const [selCats,    setSelCats]    = useState<string[]>(cats);
+  const [selTiers,   setSelTiers]   = useState<string[]>(tiers);
+  const [selRegioes, setSelRegioes] = useState<string[]>(regioes);
+  const [selEstados, setSelEstados] = useState<string[]>(estados);
+
+  const toggleCat    = (c: string) => setSelCats(p    => p.includes(c) ? p.filter(x => x !== c) : [...p, c]);
+  const toggleTier   = (t: string) => setSelTiers(p   => p.includes(t) ? p.filter(x => x !== t) : [...p, t]);
+  const toggleRegiao = (r: string) => {
+    // Ao selecionar uma região, adiciona/remove todos os estados dela
+    const ufs = BRASIL_REGIOES[r] ?? [];
+    setSelRegioes(p => p.includes(r) ? p.filter(x => x !== r) : [...p, r]);
+    setSelEstados(p => {
+      if (p.some(e => ufs.includes(e))) return p.filter(e => !ufs.includes(e));
+      return [...new Set([...p, ...ufs])];
+    });
+  };
+  const toggleEstado = (e: string) => setSelEstados(p => p.includes(e) ? p.filter(x => x !== e) : [...p, e]);
+
+  const activeCount = selCats.length + selTiers.length + selRegioes.length + selEstados.length;
+
+  const labelStyle: React.CSSProperties = {
+    fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.12em",
+    textTransform: "uppercase", color: "var(--stone)", marginBottom: 10,
+  };
+
   return (
     <div className="overlay" onClick={onClose}>
-      <div className="modal" style={{ maxWidth: 440 }} onClick={e => e.stopPropagation()}>
+      <div className="modal" style={{ maxWidth: 500 }} onClick={e => e.stopPropagation()}>
         <div className="m-head">
           <h3>Filtrar veículos</h3>
           <button className="icon-btn" onClick={onClose}><X size={17} /></button>
         </div>
-        <div className="m-body" style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+        <div className="m-body" style={{ display: "flex", flexDirection: "column", gap: 22 }}>
+
+          {/* Editoria */}
           <div>
-            <p style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 10 }}>Editoria</p>
+            <p style={labelStyle}>Editoria</p>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
               {VEH_CATS_ALL.map(c => (
                 <button key={c} onClick={() => toggleCat(c)} className={`chip${selCats.includes(c) ? " active" : ""}`}>{c}</button>
               ))}
             </div>
           </div>
+
+          {/* Categoria */}
           <div>
-            <p style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 10 }}>Categoria</p>
+            <p style={labelStyle}>Categoria</p>
             <div style={{ display: "flex", gap: 8 }}>
               {VEH_TIERS_ALL.map(t => (
                 <button key={t} onClick={() => toggleTier(t)} className={`chip${selTiers.includes(t) ? " active" : ""}`}>Categoria {t}</button>
               ))}
             </div>
           </div>
+
+          {/* Região */}
+          <div>
+            <p style={labelStyle}>Região</p>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {Object.keys(BRASIL_REGIOES).map(r => (
+                <button key={r} onClick={() => toggleRegiao(r)} className={`chip${selRegioes.includes(r) ? " active" : ""}`}>{r}</button>
+              ))}
+            </div>
+          </div>
+
+          {/* Estado */}
+          <div>
+            <p style={labelStyle}>Estado</p>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {Object.entries(UF_NOME).sort((a, b) => a[1].localeCompare(b[1])).map(([uf, nome]) => (
+                <button
+                  key={uf}
+                  onClick={() => toggleEstado(uf)}
+                  className={`chip${selEstados.includes(uf) ? " active" : ""}`}
+                  title={nome}
+                  style={{ fontSize: 11, padding: "4px 9px" }}
+                >
+                  {uf}
+                </button>
+              ))}
+            </div>
+          </div>
+
         </div>
         <div className="m-foot" style={{ justifyContent: "space-between" }}>
-          <button className="btn btn-ghost btn-sm" onClick={() => { setSelCats([]); setSelTiers([]); }}>Limpar filtros</button>
+          <button className="btn btn-ghost btn-sm" onClick={() => { setSelCats([]); setSelTiers([]); setSelRegioes([]); setSelEstados([]); }}>Limpar filtros</button>
           <div style={{ display: "flex", gap: 8 }}>
             <button className="btn btn-ghost btn-sm" onClick={onClose}>Cancelar</button>
-            <button className="btn btn-primary btn-sm" onClick={() => { onApply(selCats, selTiers); onClose(); }}>
+            <button className="btn btn-primary btn-sm" onClick={() => { onApply(selCats, selTiers, selRegioes, selEstados); onClose(); }}>
               Aplicar {activeCount > 0 ? `(${activeCount})` : ""}
             </button>
           </div>
@@ -480,13 +566,15 @@ function sortVeh(arr: VehicleItem[], col: VehSortCol, dir: VehSortDir) {
 }
 
 function StepVehicles({ selected, setSelected, vehicles, sub, onUpgrade, onBuyCredits, navSlot }: { selected: string[]; setSelected: (s: string[]) => void; vehicles: VehicleItem[]; sub: SubInfo; onUpgrade?: () => void; onBuyCredits?: () => void; navSlot?: React.ReactNode }) {
-  const [filterCats,  setFilterCats]  = useState<string[]>([]);
-  const [filterTiers, setFilterTiers] = useState<string[]>([]);
-  const [q,           setQ]           = useState("");
-  const [page,        setPage]        = useState(1);
-  const [sortCol,     setSortCol]     = useState<VehSortCol>("reach");
-  const [sortDir,     setSortDir]     = useState<VehSortDir>("desc");
-  const [showFilter,  setShowFilter]  = useState(false);
+  const [filterCats,    setFilterCats]    = useState<string[]>([]);
+  const [filterTiers,   setFilterTiers]   = useState<string[]>([]);
+  const [filterRegioes, setFilterRegioes] = useState<string[]>([]);
+  const [filterEstados, setFilterEstados] = useState<string[]>([]);
+  const [q,             setQ]             = useState("");
+  const [page,          setPage]          = useState(1);
+  const [sortCol,       setSortCol]       = useState<VehSortCol>("reach");
+  const [sortDir,       setSortDir]       = useState<VehSortDir>("desc");
+  const [showFilter,    setShowFilter]    = useState(false);
 
   const resetPage = () => setPage(1);
 
@@ -496,7 +584,7 @@ function StepVehicles({ selected, setSelected, vehicles, sub, onUpgrade, onBuyCr
     resetPage();
   }
 
-  const activeFilters = filterCats.length + filterTiers.length;
+  const activeFilters = filterCats.length + filterTiers.length + filterRegioes.length + filterEstados.length;
 
   const hasSelectedTierA = selected.some(id => vehicles.find(v => v.id === id)?.tier === "A");
 
@@ -510,11 +598,17 @@ function StepVehicles({ selected, setSelected, vehicles, sub, onUpgrade, onBuyCr
   };
   const remove = (id: string) => setSelected(selected.filter(x => x !== id));
 
-  const baseFiltered = vehicles.filter(v =>
-    (filterCats.length  === 0 || filterCats.includes(v.cat))  &&
-    (filterTiers.length === 0 || filterTiers.includes(v.tier)) &&
-    (!q.trim() || (v.name + v.domain).toLowerCase().includes(q.toLowerCase()))
-  );
+  const baseFiltered = vehicles.filter(v => {
+    const uf = ufDeLocation(v.location);
+    const regiao = uf ? regiaoDeUF(uf) : null;
+    return (
+      (filterCats.length    === 0 || filterCats.includes(v.cat))  &&
+      (filterTiers.length   === 0 || filterTiers.includes(v.tier)) &&
+      (filterRegioes.length === 0 || (regiao !== null && filterRegioes.includes(regiao))) &&
+      (filterEstados.length === 0 || (uf !== null && filterEstados.includes(uf))) &&
+      (!q.trim() || (v.name + v.domain).toLowerCase().includes(q.toLowerCase()))
+    );
+  });
   const filtered   = sortVeh(baseFiltered, sortCol, sortDir);
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const list       = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -730,8 +824,8 @@ function StepVehicles({ selected, setSelected, vehicles, sub, onUpgrade, onBuyCr
 
     {showFilter && (
       <VehFilterModal
-        cats={filterCats} tiers={filterTiers}
-        onApply={(c, t) => { setFilterCats(c); setFilterTiers(t); resetPage(); }}
+        cats={filterCats} tiers={filterTiers} regioes={filterRegioes} estados={filterEstados}
+        onApply={(c, t, r, e) => { setFilterCats(c); setFilterTiers(t); setFilterRegioes(r); setFilterEstados(e); resetPage(); }}
         onClose={() => setShowFilter(false)}
       />
     )}
@@ -1430,8 +1524,8 @@ export default function NovoReleasePage() {
   useEffect(() => {
     fetch("/api/vehicles")
       .then(r => r.json())
-      .then((data: { id: string; name: string; domain: string; category: string; tier: string; reach: number; logoUrl?: string | null }[]) => {
-        setVehicles(data.map(v => ({ id: v.id, name: v.name, domain: v.domain, cat: v.category, tier: v.tier, reach: v.reach, logoUrl: v.logoUrl })));
+      .then((data: { id: string; name: string; domain: string; category: string; tier: string; reach: number; logoUrl?: string | null; location?: string | null }[]) => {
+        setVehicles(data.map(v => ({ id: v.id, name: v.name, domain: v.domain, cat: v.category, tier: v.tier, reach: v.reach, logoUrl: v.logoUrl, location: v.location })));
       })
       .catch(() => {});
   }, []);
