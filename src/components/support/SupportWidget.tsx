@@ -54,10 +54,16 @@ export function SupportWidget({ plan }: SupportWidgetProps) {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
 
-  async function sendMessage() {
-    const text = input.trim();
+  const QUICK_REPLIES = [
+    "Ajuda para criar um release",
+    "Alterar meu cadastro",
+    "Editar um release",
+  ];
+
+  async function sendMessage(overrideText?: string) {
+    const text = (overrideText ?? input).trim();
     if (!text || loading) return;
-    setInput("");
+    if (!overrideText) setInput("");
     setErr("");
     setMessages(prev => [...prev, { role: "user", content: text }]);
     setLoading(true);
@@ -132,6 +138,36 @@ export function SupportWidget({ plan }: SupportWidgetProps) {
                     <div className="sw-bubble">{m.content}</div>
                   </div>
                 ))}
+
+                {/* Atalhos rápidos — visíveis só na mensagem inicial */}
+                {messages.length === 1 && !loading && (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 7, padding: "4px 0 8px" }}>
+                    {QUICK_REPLIES.map((qr) => (
+                      <button
+                        key={qr}
+                        onClick={() => sendMessage(qr)}
+                        style={{
+                          alignSelf: "flex-start",
+                          background: "none",
+                          border: "1.5px solid var(--ink-border, #e0ddd8)",
+                          borderRadius: 20,
+                          padding: "7px 14px",
+                          fontSize: 13,
+                          color: "var(--ink, #1a1a1a)",
+                          cursor: "pointer",
+                          textAlign: "left",
+                          lineHeight: 1.3,
+                          transition: "background .15s",
+                        }}
+                        onMouseEnter={e => (e.currentTarget.style.background = "var(--bg-hover, #f4f2ed)")}
+                        onMouseLeave={e => (e.currentTarget.style.background = "none")}
+                      >
+                        {qr}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
                 {loading && (
                   <div className="sw-msg assistant">
                     <div className="sw-bubble sw-typing">
