@@ -201,7 +201,7 @@ export function SupportWidget({ plan }: SupportWidgetProps) {
                   onChange={e => setInput(e.target.value)}
                   onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
                 />
-                <button className="sw-send" onClick={sendMessage} disabled={!input.trim() || loading}>
+                <button className="sw-send" onClick={() => sendMessage()} disabled={!input.trim() || loading}>
                   {loading ? <Loader size={16} className="spin" /> : <Send size={16} />}
                 </button>
               </div>
