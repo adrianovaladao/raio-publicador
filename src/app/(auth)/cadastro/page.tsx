@@ -218,37 +218,45 @@ function CadastroInner() {
         return;
       }
 
-      // missing_requirements — build update payload from what Clerk says is missing
+      // missing_requirements — detect exactly what Clerk says is missing
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const missing: string[] = (result as any).missingFields ?? [];
+
+      // If password is flagged as missing, it means Clerk rejected it (compromised/too weak).
+      // Go back to the signup form so the user can choose a different password.
+      if (missing.includes("password") || missing.includes("password_digest")) {
+        setStep("signup");
+        setError("Sua senha foi recusada por ser muito comum ou comprometida. Por favor, escolha uma senha diferente e mais segura.");
+        return;
+      }
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const liveSignUp = (window as any).Clerk?.client?.signUp ?? clerkSu;
       const parts = name.trim().split(/\s+/);
       const firstName = parts[0] || "";
       const lastName  = parts.slice(1).join(" ") || "";
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const missing: string[] = (result as any).missingFields ?? [];
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const patch: Record<string, any> = {};
       if (missing.includes("first_name") || !missing.length) patch.firstName = firstName;
       if (missing.includes("last_name")  || !missing.length) patch.lastName  = lastName;
-      if (missing.includes("password")   || !missing.length) patch.password  = password;
       if (missing.includes("username")) patch.username = email.split("@")[0].replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 20) + "_" + Math.random().toString(36).slice(2, 6);
 
       try {
         result = await liveSignUp.update(patch);
         if (await tryActivate(result)) return;
-        // If still missing, try updating everything at once as last resort
-        if (result.status === "missing_requirements") {
-          result = await liveSignUp.update({ firstName, lastName, password });
-          if (await tryActivate(result)) return;
-        }
       } catch { /* fall through */ }
 
       if (!await tryActivate(result)) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const stillMissing: string[] = (result as any).missingFields ?? missing;
-        const debugInfo = stillMissing.length ? ` [faltando: ${stillMissing.join(", ")}]` : "";
-        setError(`Não foi possível concluir o cadastro. Por favor, tente novamente.${debugInfo}`);
+        if (stillMissing.includes("password") || stillMissing.includes("password_digest")) {
+          setStep("signup");
+          setError("Sua senha foi recusada por ser muito comum. Por favor, escolha uma senha diferente.");
+        } else {
+          setStep("signup");
+          setError("Não foi possível concluir o cadastro. Por favor, tente novamente com outra senha.");
+        }
       }
     } catch (err: unknown) {
       const e = err as { errors?: { longMessage?: string; message?: string; code?: string }[] };
