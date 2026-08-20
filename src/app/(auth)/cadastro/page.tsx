@@ -5,11 +5,25 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState, useRef, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { ArrowRight, Eye, EyeOff, CheckCircle, Feather, Newspaper, Send, Mail, Check, X, Loader } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, CheckCircle, Feather, Newspaper, Send, Mail, Check, X, Loader, Wand2, Copy } from "lucide-react";
 import { RaioLockup } from "@/components/logo/RaioLockup";
 import { translateClerkError } from "@/lib/clerkErrors";
 
 type Step = "signup" | "verify" | "done";
+
+function generatePassword(): string {
+  const upper  = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+  const lower  = "abcdefghjkmnpqrstuvwxyz";
+  const digits = "23456789";
+  const syms   = "!@#$%&*";
+  const all    = upper + lower + digits + syms;
+  const rand   = (s: string) => s[Math.floor(Math.random() * s.length)];
+  // Garante pelo menos 1 de cada categoria
+  const required = [rand(upper), rand(lower), rand(digits), rand(syms)];
+  const extra = Array.from({ length: 8 }, () => rand(all));
+  // Embaralha
+  return [...required, ...extra].sort(() => Math.random() - 0.5).join("");
+}
 
 function PwMeter({ pw }: { pw: string }) {
   let s = 0;
@@ -113,6 +127,18 @@ function CadastroInner() {
   const [otp, setOtp]       = useState(["","","","","",""]);
   const [loading, setLoading] = useState(false);
   const [error, setError]   = useState("");
+  const [pwCopied, setPwCopied] = useState(false);
+
+  function handleSuggestPassword() {
+    const pw = generatePassword();
+    setPw(pw);
+    setShowPw(true);
+    // Copia para clipboard automaticamente
+    navigator.clipboard.writeText(pw).then(() => {
+      setPwCopied(true);
+      setTimeout(() => setPwCopied(false), 2500);
+    }).catch(() => {});
+  }
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   async function handleSignUp(e: React.FormEvent) {
@@ -413,6 +439,29 @@ function CadastroInner() {
                     </button>
                   </div>
                   <PwMeter pw={password} />
+                  <button
+                    type="button"
+                    onClick={handleSuggestPassword}
+                    style={{
+                      marginTop: 6,
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 6,
+                      background: "none",
+                      border: "none",
+                      padding: 0,
+                      cursor: "pointer",
+                      color: pwCopied ? "#34C759" : "rgba(255,255,255,0.45)",
+                      fontSize: 12.5,
+                      fontWeight: 500,
+                      transition: "color .2s",
+                    }}
+                  >
+                    {pwCopied
+                      ? <><Copy size={13} /> Senha copiada!</>
+                      : <><Wand2 size={13} /> Sugerir senha segura</>
+                    }
+                  </button>
                 </div>
 
                 {isVoucherFlow && (
