@@ -17,8 +17,12 @@ export async function POST(req: NextRequest) {
   const svixSignature = req.headers.get("svix-signature") ?? "";
 
   if (!WEBHOOK_SECRET) {
-    console.error("[clerk-webhook] CLERK_WEBHOOK_SECRET não configurado");
-    return NextResponse.json({ error: "Server misconfigured" }, { status: 500 });
+    console.error("[clerk-webhook] CLERK_WEBHOOK_SECRET não configurado — verifique as env vars no Vercel");
+    // Sem secret, tenta processar sem verificação de assinatura (somente em dev)
+    // Em produção, rejeita para segurança
+    if (process.env.NODE_ENV === "production") {
+      return NextResponse.json({ error: "Server misconfigured" }, { status: 500 });
+    }
   }
 
   const body = await req.text();
@@ -31,6 +35,7 @@ export async function POST(req: NextRequest) {
       "svix-timestamp": svixTimestamp,
       "svix-signature": svixSignature,
     }) as Record<string, unknown>;
+    console.log("[clerk-webhook] assinatura verificada ✓");
   } catch (err) {
     console.error("[clerk-webhook] assinatura inválida:", err);
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
@@ -54,6 +59,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Incomplete payload" }, { status: 400 });
   }
 
+  console.log(`[clerk-webhook] enviando email para ${toEmail} | assunto: ${subject}`);
   try {
     const resend = getResend();
     const result = await resend.emails.send({
@@ -62,10 +68,10 @@ export async function POST(req: NextRequest) {
       subject,
       html: htmlBody,
     });
-    console.log("[clerk-webhook] email enviado via Resend:", result);
+    console.log("[clerk-webhook] ✓ email enviado via Resend — id:", (result as { data?: { id?: string } })?.data?.id);
     return NextResponse.json({ ok: true });
   } catch (err) {
-    console.error("[clerk-webhook] erro ao enviar email:", err);
+    console.error("[clerk-webhook] ✗ erro ao enviar email via Resend:", err);
     return NextResponse.json({ error: "Failed to send email" }, { status: 500 });
   }
 }
