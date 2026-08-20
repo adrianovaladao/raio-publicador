@@ -25,9 +25,9 @@ const CLERK_ERROR_MAP: Record<string, string> = {
   "Verification code expired": "Código expirado. Solicite um novo.",
   "Too many requests": "Muitas tentativas. Aguarde alguns minutos.",
   "is incorrect": "E-mail ou senha incorretos.",
-  "identifier_not_found": "Conta não encontrada.",
+  "identifier_not_found": "E-mail ou senha incorretos.",
   "form_password_incorrect": "Senha incorreta. Tente novamente.",
-  "form_identifier_not_found": "Conta não encontrada. Verifique seu e-mail.",
+  "form_identifier_not_found": "E-mail ou senha incorretos.",
 
   // Verificação
   "is invalid": "Código inválido. Verifique e tente novamente.",
