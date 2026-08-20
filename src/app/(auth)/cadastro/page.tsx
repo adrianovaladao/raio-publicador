@@ -131,9 +131,19 @@ function CadastroInner() {
       const suBefore = signUp as any;
       console.log("[cadastro] BEFORE create — typeof prepareEmailAddressVerification:", typeof suBefore?.prepareEmailAddressVerification, "| proto methods:", Object.getOwnPropertyNames(Object.getPrototypeOf(suBefore ?? {})).join(","));
 
+      // Generate a username from the email prefix + random suffix (required by some Clerk configs)
+      const username = email.split("@")[0].replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 20)
+        + "_" + Math.random().toString(36).slice(2, 6);
+
       // Use the return value of create() — Clerk returns an updated SignUpResource
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const created = await signUp.create({ emailAddress: email, password, firstName, lastName }) as any;
+      let created: any;
+      try {
+        created = await signUp.create({ emailAddress: email, password, firstName, lastName, username }) as any;
+      } catch {
+        // If username is not supported by this Clerk instance, retry without it
+        created = await signUp.create({ emailAddress: email, password, firstName, lastName }) as any;
+      }
 
       // Also read the live object from window.Clerk as a fallback
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -222,6 +232,7 @@ function CadastroInner() {
       if (missing.includes("first_name") || !missing.length) patch.firstName = firstName;
       if (missing.includes("last_name")  || !missing.length) patch.lastName  = lastName;
       if (missing.includes("password")   || !missing.length) patch.password  = password;
+      if (missing.includes("username")) patch.username = email.split("@")[0].replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 20) + "_" + Math.random().toString(36).slice(2, 6);
 
       try {
         result = await liveSignUp.update(patch);
