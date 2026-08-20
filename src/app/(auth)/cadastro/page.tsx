@@ -214,6 +214,12 @@ function CadastroInner() {
         setPw("");
       }
 
+      // Sessão ativa: usuário já está logado, redireciona para o dashboard
+      if (code === "session_exists") {
+        window.location.href = "/dashboard";
+        return;
+      }
+
       // Email já cadastrado com verificação pendente — tenta reenviar o código
       // Clerk retorna "email_address_taken" ou "form_identifier_exists" nesse caso
       if (code === "form_identifier_exists" || code === "email_address_taken" || raw.includes("already taken") || raw.includes("is already taken")) {

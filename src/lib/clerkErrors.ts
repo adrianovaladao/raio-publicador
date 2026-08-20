@@ -16,6 +16,9 @@ const CLERK_ERROR_MAP: Record<string, string> = {
   "password_found_in_data_breach": "Essa senha foi encontrada em vazamentos de dados. Por segurança, escolha uma senha diferente.",
   "Password must contain": "A senha não atende aos requisitos de segurança. Use letras maiúsculas, minúsculas e números.",
 
+  // Sessão
+  "session_exists": "Você já está logado. Redirecionando...",
+
   // Login
   "Couldn't find your account.": "Conta não encontrada. Verifique seu e-mail.",
   "Invalid verification code": "Código de verificação inválido.",
