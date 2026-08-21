@@ -12,7 +12,6 @@ const isPublicRoute = createRouteMatcher([
   "/api/stripe/webhook",
   "/api/vouchers/validate",
   "/api/feed/(.*)",
-  "/api/admin/check-subs",
 ]);
 
 const BETA_PASSWORD = process.env.BETA_PASSWORD;
@@ -87,7 +86,7 @@ export default clerkMiddleware(async (auth, req) => {
     }
 
     // Only the Stripe webhook bypasses the gate — everything else requires the password
-    if (!pathname.startsWith("/api/stripe/webhook") && !pathname.startsWith("/api/feed/") && !pathname.startsWith("/api/admin/check-subs") && !isBetaUnlocked(req)) {
+    if (!pathname.startsWith("/api/stripe/webhook") && !pathname.startsWith("/api/feed/") && !isBetaUnlocked(req)) {
       return betaGatePage(req);
     }
   }
