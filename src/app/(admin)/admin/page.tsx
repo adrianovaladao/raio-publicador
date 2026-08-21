@@ -29,6 +29,10 @@ function fmtBRL(cents: number) {
   return (cents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
+function fmtBRLReais(reais: number) {
+  return reais.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
 function KpiCard({ icon: Icon, label, val, sub, delta }: {
   icon: React.ElementType; label: string; val: string | number;
   sub?: string; delta?: number | null;
@@ -96,7 +100,7 @@ export default function AdminDashboard() {
             {/* ── Receita ── */}
             <p className="eyebrow" style={{ marginBottom: 12 }}>Receita</p>
             <div className="kpi-grid" style={{ gridTemplateColumns: "repeat(3,1fr)" }}>
-              <KpiCard icon={TrendingUp}    label="MRR atual"               val={fmtBRL(S.mrr)}                         delta={S.mrrGrowth} />
+              <KpiCard icon={TrendingUp}    label="MRR atual"               val={fmtBRLReais(S.mrr)}                         delta={S.mrrGrowth} />
               <KpiCard icon={UserCheck}     label="Assinantes ativos"       val={S.byStatus.ACTIVE ?? 0}                sub={`de ${S.totalUsers} cadastros`} />
               <KpiCard icon={AlertTriangle} label="Inadimplentes + cancelados" val={(S.byStatus.PAST_DUE ?? 0) + (S.byStatus.CANCELLED ?? 0)}
                 sub={`${S.byStatus.PAST_DUE ?? 0} inadimplentes · ${S.byStatus.CANCELLED ?? 0} cancelados`} />
