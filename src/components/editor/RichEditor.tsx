@@ -8,11 +8,13 @@ import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import Link from "@tiptap/extension-link";
 import Underline from "@tiptap/extension-underline";
+import TextAlign from "@tiptap/extension-text-align";
 import { useState, useCallback, useRef, useEffect } from "react";
 import {
   Bold, Italic, Underline as UnderlineIcon, Heading2,
   List, ListOrdered, Quote, Link as LinkIcon, Undo, Redo,
   Sparkles, Loader, X, Image as ImageIcon,
+  AlignLeft, AlignCenter, AlignRight, AlignJustify,
 } from "lucide-react";
 
 // ── Figure NodeView ──────────────────────────────────────────────────────────
@@ -138,6 +140,7 @@ export function RichEditor({
         orderedList: { keepMarks: true },
       }),
       Underline,
+      TextAlign.configure({ types: ["heading", "paragraph"], defaultAlignment: "left" }),
       Placeholder.configure({ placeholder: "Escreva o corpo do release. Dica: introduza o assunto principal logo no primeiro parágrafo de forma atrativa e use intertítulos para organizar o texto." }),
       Link.configure({ openOnClick: false, HTMLAttributes: { class: "editor-link" } }),
       FigureExtension,
@@ -285,6 +288,13 @@ export function RichEditor({
         <button type="button" className="tb" onClick={() => editor.chain().focus().redo().run()} disabled={!editor.can().redo()} title="Refazer">
           <Redo size={15} />
         </button>
+
+        <span className="div" />
+
+        {btn(editor.isActive({ textAlign: "left" }),    () => editor.chain().focus().setTextAlign("left").run(),    <AlignLeft size={15} />,    "Alinhar à esquerda")}
+        {btn(editor.isActive({ textAlign: "center" }),  () => editor.chain().focus().setTextAlign("center").run(),  <AlignCenter size={15} />,  "Centralizar")}
+        {btn(editor.isActive({ textAlign: "right" }),   () => editor.chain().focus().setTextAlign("right").run(),   <AlignRight size={15} />,   "Alinhar à direita")}
+        {btn(editor.isActive({ textAlign: "justify" }), () => editor.chain().focus().setTextAlign("justify").run(), <AlignJustify size={15} />, "Justificar")}
 
         <span className="div" />
         <button
