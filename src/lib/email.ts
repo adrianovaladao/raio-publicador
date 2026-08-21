@@ -79,7 +79,7 @@ export async function sendWelcomeEmail(
       <tr style="border-top:1px solid #eee"><td style="padding:10px 14px;color:#888">Próxima cobrança</td><td style="padding:10px 14px;color:#1a1a1a">${renewal}</td></tr>
     </table>
     ${p("Não deixe a energia acumular: cadastre sua primeira marca e crie um release. Leva menos de cinco minutos!")}
-    ${btn("Cadastrar minha marca", `${APP_URL}/boas-vindas`)}
+    ${btn("Acessar agora", `${APP_URL}/dashboard`)}
   `);
 
   return getResend().emails.send({ from: FROM, to, subject: `${firstName}, você foi atingido pelo Raio ⚡ — Assinatura confirmada`, html });
