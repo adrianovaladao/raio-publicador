@@ -1,5 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 import { PLANS, type PlanId } from "@/lib/plans";
 import { getPrisma } from "@/lib/prisma";
 import BoasVindasClient from "./BoasVindasClient";
@@ -10,16 +11,16 @@ const VALID_PLANS: PlanId[] = ["BASIC", "ADVANCED", "PROFESSIONAL"];
 export default async function BoasVindasPage({
   searchParams,
 }: {
-  searchParams: Promise<{ plan?: string; checkout?: string }>;
+  searchParams: Promise<{ plan?: string; checkout?: string; vc?: string }>;
 }) {
   const { userId } = await auth();
   if (!userId) redirect("/login");
 
   const { plan: planParam, checkout } = await searchParams;
 
-  // Arrived from Stripe success or no plan param — show onboarding
-  if (checkout === "success" || !planParam || !VALID_PLANS.includes(planParam as PlanId)) {
-    return <BoasVindasClient />;
+  // Arrived from Stripe success, voucher flow, or no plan param — show onboarding
+  if (checkout === "success" || checkout === "voucher" || !planParam || !VALID_PLANS.includes(planParam as PlanId)) {
+    return <Suspense><BoasVindasClient /></Suspense>;
   }
 
   // Has a plan param — check if already has active subscription
@@ -28,7 +29,7 @@ export default async function BoasVindasPage({
   const sub = await prisma.subscription.findUnique({ where: { ownerId: userId } });
 
   if (sub && !["INACTIVE", "CANCELLED"].includes(sub.status)) {
-    return <BoasVindasClient />;
+    return <Suspense><BoasVindasClient /></Suspense>;
   }
 
   const fmt = (cents: number) =>

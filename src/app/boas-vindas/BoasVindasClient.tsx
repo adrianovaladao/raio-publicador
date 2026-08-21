@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useUser } from "@clerk/nextjs";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowRight, ArrowLeft, Check, X, Sparkles, Rocket,
@@ -334,6 +335,7 @@ function Done({ data }: { data: OnbData }) {
 export default function BoasVindasPage() {
   const { user } = useUser();
   const firstName = user?.firstName || "";
+  const searchParams = useSearchParams();
   const [step, setStep] = useState<Stage>("welcome");
   const [data, setData] = useState<OnbData>({
     name: "", segment: "Franquias", site: "", contact: "", desc: "", logoUrl: "",
@@ -342,25 +344,28 @@ export default function BoasVindasPage() {
   const idx = STAGES.findIndex(s => s.id === step);
   const go = (s: Stage) => { setStep(s); try { window.scrollTo(0, 0); } catch { /* ignore */ } };
 
-  // Fallback: se o resgate do voucher falhou no cadastro (sessão não propagada),
-  // tenta novamente aqui onde a sessão já está estável
+  // Resgate de voucher: o código chega via ?vc=base64(code) do cadastro.
+  // A sessão já está estável neste ponto (navegação completa), então o resgate funciona.
   useEffect(() => {
-    const pending = (() => { try { return sessionStorage.getItem("raio_pending_voucher"); } catch { return null; } })();
-    if (!pending) return;
-    const attempt = async () => {
+    const vc = searchParams.get("vc");
+    if (!vc) return;
+    let code = "";
+    try { code = atob(vc); } catch { return; }
+    if (!code) return;
+
+    const redeem = async () => {
       try {
-        const res = await fetch("/api/vouchers/redeem", {
+        await fetch("/api/vouchers/redeem", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ code: pending }),
+          body: JSON.stringify({ code }),
         });
-        if (res.ok || res.status === 400) {
-          // 400 = já resgatado ou expirado — em qualquer caso, limpa o pending
-          try { sessionStorage.removeItem("raio_pending_voucher"); } catch { /* ignore */ }
-        }
+        // Sucesso ou já resgatado (400) — em ambos os casos não fazemos nada especial.
+        // O usuário verá os créditos ao atualizar a página.
       } catch { /* ignora — usuário pode resgatar em configurações */ }
     };
-    attempt();
+    redeem();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   let screen;
