@@ -30,6 +30,7 @@ export default function LoginPage() {
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState("");
   const [remember, setRemember] = useState(false);
+  const [notFound, setNotFound] = useState(false);
 
   // Pre-fill saved email on mount
   useEffect(() => {
@@ -145,6 +146,9 @@ export default function LoginPage() {
       const e = err as { errors?: { longMessage?: string; message?: string; code?: string }[] };
       const code = e?.errors?.[0]?.code || "";
       const msg  = e?.errors?.[0]?.longMessage || e?.errors?.[0]?.message || "";
+      if (code === "form_identifier_not_found") {
+        setNotFound(true);
+      }
       setError(translateClerkError(msg) || translateClerkError(code) || "E-mail ou senha incorretos.");
     } finally {
       setLoading(false);
@@ -286,7 +290,7 @@ export default function LoginPage() {
                 <div className="fld">
                   <label>E-mail</label>
                   <input className="in" type="email" placeholder="voce@empresa.com.br"
-                    value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus />
+                    value={email} onChange={(e) => { setEmail(e.target.value); setNotFound(false); setError(""); }} required autoFocus />
                 </div>
 
                 <div className="fld">
@@ -315,7 +319,36 @@ export default function LoginPage() {
                 </div>
 
                 <div id="clerk-captcha" />
-                {error && <p style={{ color: "var(--red)", fontSize: 13, marginBottom: 14 }}>{error}</p>}
+                {error && <p style={{ color: "var(--red)", fontSize: 13, marginBottom: notFound ? 8 : 14 }}>{error}</p>}
+
+                {/* Conta não encontrada — caminho de recuperação */}
+                {notFound && (
+                  <div style={{
+                    background: "rgba(255,200,0,0.09)",
+                    border: "1.5px solid rgba(255,200,0,0.3)",
+                    borderRadius: 10,
+                    padding: "13px 15px",
+                    marginBottom: 14,
+                  }}>
+                    <p style={{ color: "rgba(255,255,255,0.8)", fontSize: 13, margin: "0 0 8px", lineHeight: 1.5 }}>
+                      Se você tentou se cadastrar recentemente mas não concluiu (por exemplo, porque a senha foi recusada ou o código não chegou), tente criar sua conta novamente:
+                    </p>
+                    <a
+                      href={`/cadastro?email=${encodeURIComponent(email)}`}
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 6,
+                        color: "#FFD60A",
+                        fontWeight: 700,
+                        fontSize: 13,
+                        textDecoration: "none",
+                      }}
+                    >
+                      Concluir meu cadastro →
+                    </a>
+                  </div>
+                )}
 
                 <button className="btn btn-primary btn-block btn-lg" type="submit" disabled={loading}>
                   {loading ? "Entrando…" : <><span>Entrar</span><ArrowRight size={17} /></>}

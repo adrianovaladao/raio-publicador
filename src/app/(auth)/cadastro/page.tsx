@@ -128,6 +128,7 @@ function CadastroInner() {
   const [loading, setLoading] = useState(false);
   const [error, setError]   = useState("");
   const [pwCopied, setPwCopied] = useState(false);
+  const [pwRejected, setPwRejected] = useState(false);
 
   function handleSuggestPassword() {
     const pw = generatePassword();
@@ -212,6 +213,7 @@ function CadastroInner() {
         || raw.toLowerCase().includes("breach") || raw.toLowerCase().includes("pwned");
       if (isPwError) {
         setPw("");
+        setPwRejected(true);
       }
 
       // Sessão ativa: usuário já está logado, redireciona para o dashboard
@@ -461,7 +463,7 @@ function CadastroInner() {
                     <input
                       className="in" type={showPw ? "text" : "password"}
                       placeholder="Mínimo 8 caracteres" value={password}
-                      onChange={(e) => setPw(e.target.value)} required style={{ paddingRight: 46 }}
+                      onChange={(e) => { setPw(e.target.value); if (pwRejected) setPwRejected(false); }} required style={{ paddingRight: 46 }}
                     />
                     <button type="button" onClick={() => setShowPw(v => !v)}
                       style={{ position: "absolute", right: 13, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "rgba(255,255,255,0.44)", cursor: "pointer", display: "grid", placeItems: "center" }}>
@@ -515,7 +517,29 @@ function CadastroInner() {
 
                 <div style={{ marginTop: 12 }} />
                 <div id="clerk-captcha" />
-                {error && <p style={{ color: "var(--red)", fontSize: 13, marginBottom: 14 }}>{error}</p>}
+
+                {/* Banner proeminente quando senha foi rejeitada e conta NÃO foi criada */}
+                {pwRejected && (
+                  <div style={{
+                    background: "rgba(255,59,48,0.13)",
+                    border: "1.5px solid rgba(255,59,48,0.45)",
+                    borderRadius: 10,
+                    padding: "14px 16px",
+                    marginBottom: 14,
+                  }}>
+                    <p style={{ color: "#FF6B6B", fontWeight: 700, margin: "0 0 5px", fontSize: 13.5, display: "flex", alignItems: "center", gap: 6 }}>
+                      ⚠️ Sua conta ainda NÃO foi criada
+                    </p>
+                    <p style={{ color: "rgba(255,255,255,0.72)", fontSize: 13, margin: "0 0 8px", lineHeight: 1.5 }}>
+                      Sua senha foi recusada por ser muito comum ou ter aparecido em vazamentos de dados. Escolha uma senha diferente para concluir o cadastro.
+                    </p>
+                    <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 12, margin: 0 }}>
+                      💡 Use o botão <b style={{ color: "rgba(255,255,255,0.7)" }}>Sugerir senha segura</b> acima para gerar uma senha forte automaticamente.
+                    </p>
+                  </div>
+                )}
+
+                {error && !pwRejected && <p style={{ color: "var(--red)", fontSize: 13, marginBottom: 14 }}>{error}</p>}
 
                 <button className="btn btn-primary btn-block btn-lg" type="submit" disabled={loading || (isVoucherFlow && voucherState !== "valid")}>
                   {loading ? "Criando conta…" : <><span>Criar conta</span><ArrowRight size={17} /></>}
