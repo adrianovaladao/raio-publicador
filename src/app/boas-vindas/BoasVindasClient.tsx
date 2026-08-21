@@ -342,6 +342,27 @@ export default function BoasVindasPage() {
   const idx = STAGES.findIndex(s => s.id === step);
   const go = (s: Stage) => { setStep(s); try { window.scrollTo(0, 0); } catch { /* ignore */ } };
 
+  // Fallback: se o resgate do voucher falhou no cadastro (sessão não propagada),
+  // tenta novamente aqui onde a sessão já está estável
+  useEffect(() => {
+    const pending = (() => { try { return sessionStorage.getItem("raio_pending_voucher"); } catch { return null; } })();
+    if (!pending) return;
+    const attempt = async () => {
+      try {
+        const res = await fetch("/api/vouchers/redeem", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code: pending }),
+        });
+        if (res.ok || res.status === 400) {
+          // 400 = já resgatado ou expirado — em qualquer caso, limpa o pending
+          try { sessionStorage.removeItem("raio_pending_voucher"); } catch { /* ignore */ }
+        }
+      } catch { /* ignora — usuário pode resgatar em configurações */ }
+    };
+    attempt();
+  }, []);
+
   let screen;
   switch (step) {
     case "welcome": screen = <Welcome go={go} firstName={firstName} />; break;

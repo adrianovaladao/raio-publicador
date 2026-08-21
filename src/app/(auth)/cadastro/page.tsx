@@ -91,22 +91,31 @@ function CadastroInner() {
   }
 
   async function redeemAndProceed() {
+    const code = voucherCode.trim();
+    // Salva no sessionStorage como fallback — boas-vindas vai tentar resgatar se falhar aqui
+    try { sessionStorage.setItem("raio_pending_voucher", code); } catch { /* ignore */ }
+
+    const tryRedeem = () => fetch("/api/vouchers/redeem", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code }),
+    });
+
     try {
-      const res = await fetch("/api/vouchers/redeem", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: voucherCode.trim() }),
-      });
+      const res = await tryRedeem();
       if (!res.ok) {
-        // Retry once after a short delay (session cookie may not be set yet)
-        await new Promise(r => setTimeout(r, 800));
-        await fetch("/api/vouchers/redeem", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ code: voucherCode.trim() }),
-        });
+        // Sessão pode não estar propagada ainda — tenta com backoff crescente
+        await new Promise(r => setTimeout(r, 1000));
+        const res2 = await tryRedeem();
+        if (!res2.ok) {
+          await new Promise(r => setTimeout(r, 2000));
+          await tryRedeem();
+        }
+      } else {
+        // Sucesso — limpa o pending
+        try { sessionStorage.removeItem("raio_pending_voucher"); } catch { /* ignore */ }
       }
-    } catch { /* ignore — user can redeem later in configurações */ }
+    } catch { /* ignore — boas-vindas vai tentar resgatar via sessionStorage */ }
     window.location.href = "/boas-vindas?checkout=voucher";
   }
 
