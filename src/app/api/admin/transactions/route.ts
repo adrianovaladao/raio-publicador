@@ -3,7 +3,6 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { getPrisma } from "@/lib/prisma";
 import { getStripe } from "@/lib/stripe";
 import { isAnyAdmin } from "@/lib/admin";
-import { PLANS, type PlanId } from "@/lib/plans";
 import { NextResponse } from "next/server";
 
 async function assertRaioAdmin() {
