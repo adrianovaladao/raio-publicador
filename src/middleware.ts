@@ -86,7 +86,7 @@ export default clerkMiddleware(async (auth, req) => {
     }
 
     // Only the Stripe webhook bypasses the gate — everything else requires the password
-    if (!pathname.startsWith("/api/stripe/webhook") && !pathname.startsWith("/api/feed/") && !isBetaUnlocked(req)) {
+    if (!pathname.startsWith("/api/stripe/webhook") && !pathname.startsWith("/api/feed/") && !pathname.startsWith("/api/admin/check-subs") && !isBetaUnlocked(req)) {
       return betaGatePage(req);
     }
   }
