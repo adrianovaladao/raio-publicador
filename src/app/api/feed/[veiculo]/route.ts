@@ -6,6 +6,7 @@ const prisma = getPrisma();
 // Tokens por veículo — adicione novos veículos parceiros aqui
 const VEHICLE_TOKENS: Record<string, string> = {
   folhapress: process.env.FEED_TOKEN_FOLHAPRESS ?? "",
+  ig:         process.env.FEED_TOKEN_IG ?? "",
 };
 
 function xmlEscape(str: string) {
@@ -75,13 +76,22 @@ export async function GET(
   });
 
   const isFolhapress = veiculo.toLowerCase() === "folhapress";
+  const isIG         = veiculo.toLowerCase() === "ig";
 
   if (format === "json") {
     const items = releases.map(r => isFolhapress
+      ? { title: r.title, summary: r.summary ?? "", body: htmlToPlainText(r.body) }
+      : isIG
       ? {
-          title:   r.title,
-          summary: r.summary ?? "",
-          body:    htmlToPlainText(r.body),
+          guid:        r.id,
+          title:       r.title,
+          description: htmlToPlainText(r.summary ?? r.body).slice(0, 500),
+          contentEncoded: r.body,
+          pubDate:     pubDate(r),
+          link:        `${baseUrl}/releases/${r.id}`,
+          category:    r.brand.name,
+          dcCreator:   r.brand.name,
+          imageUrl:    r.imageUrl ?? null,
         }
       : {
           id:          r.id,
@@ -101,8 +111,8 @@ export async function GET(
   const pubDate = (r: { publishedAt: Date | null; updatedAt: Date; createdAt: Date }) =>
     (r.publishedAt ?? r.updatedAt ?? r.createdAt).toUTCString();
 
-  const items = releases.map(r => isFolhapress
-    ? `
+  const items = releases.map(r => {
+    if (isFolhapress) return `
     <item>
       <title>${xmlEscape(r.title)}</title>
       <subtitle><![CDATA[${r.summary ?? ""}]]></subtitle>
@@ -110,8 +120,30 @@ export async function GET(
       <pubDate>${pubDate(r)}</pubDate>
       <guid isPermaLink="false">${r.id}</guid>
       <link>${baseUrl}/releases/${r.id}</link>
-    </item>`
-    : `
+    </item>`;
+
+    if (isIG) {
+      const description = xmlEscape(htmlToPlainText(r.summary ?? r.body).slice(0, 500));
+      const categoryTag = `<category>${xmlEscape(r.brand.name)}</category>`;
+      const mediaContent = r.imageUrl
+        ? `<media:content url="${xmlEscape(r.imageUrl)}" type="image/jpeg"><media:credit>Divulgação</media:credit><media:text>${xmlEscape(r.title)}</media:text></media:content>`
+        : "";
+      return `
+    <item>
+      <title>${xmlEscape(r.title)}</title>
+      <guid isPermaLink="false">${r.id}</guid>
+      <link>${baseUrl}/releases/${r.id}</link>
+      <description>${description}</description>
+      <pubDate>${pubDate(r)}</pubDate>
+      <content:encoded><![CDATA[${r.body}]]></content:encoded>
+      ${categoryTag}
+      <dc:creator>${xmlEscape(r.brand.name)}</dc:creator>
+      <author>${xmlEscape(r.brand.name)}</author>
+      ${mediaContent}
+    </item>`;
+    }
+
+    return `
     <item>
       <title>${xmlEscape(r.title)}</title>
       <description><![CDATA[${r.body}]]></description>
@@ -121,10 +153,14 @@ export async function GET(
       <guid isPermaLink="false">${r.id}</guid>
       <link>${baseUrl}/releases/${r.id}</link>
       ${r.imageUrl ? `<enclosure url="${xmlEscape(r.imageUrl)}" type="image/jpeg" />` : ""}
-    </item>`
-  ).join("\n");
+    </item>`;
+  }).join("\n");
 
-  const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<rss version="2.0">\n  <channel>\n    <title>Raio Publicador — ${xmlEscape(vehicle.name)}</title>\n    <link>${baseUrl}</link>\n    <description>Releases publicados no Raio Publicador para ${xmlEscape(vehicle.name)}</description>\n    <language>pt-BR</language>\n    <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>\n    ${items}\n  </channel>\n</rss>`;
+  const igNamespaces = isIG
+    ? ` xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:media="http://search.yahoo.com/mrss/" xmlns:dc="http://purl.org/dc/elements/1.1/"`
+    : "";
+
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<rss version="2.0"${igNamespaces}>\n  <channel>\n    <title>Raio Publicador — ${xmlEscape(vehicle.name)}</title>\n    <link>${baseUrl}</link>\n    <description>Releases publicados no Raio Publicador para ${xmlEscape(vehicle.name)}</description>\n    <language>pt-BR</language>\n    <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>\n    ${items}\n  </channel>\n</rss>`;
 
   return new Response(xml, {
     headers: {
