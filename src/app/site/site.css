@@ -421,3 +421,51 @@ select.sm-in option { background: var(--ink-2); color: var(--tx); }
 .reveal { opacity: 0; transform: translateY(22px); transition: opacity .7s cubic-bezier(.2,.7,.3,1), transform .7s cubic-bezier(.2,.7,.3,1); }
 .reveal.in { opacity: 1; transform: none; }
 @media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; transition: none; } html { scroll-behavior: auto; } }
+
+/* ============================================================
+   MOBILE — correções de padding/margens (≤ 600px)
+   ============================================================ */
+@media (max-width: 600px) {
+  /* Padding lateral consistente em 20px */
+  .wrap { padding: 0 20px; }
+
+  /* Seções com menos respiro vertical */
+  .section { padding: 72px 0; }
+  .cta-band { padding: 64px 0; }
+
+  /* CTA final — padding interno reduzido para não colapsar */
+  .cta-inner { padding: 44px 24px; }
+
+  /* Hero */
+  .hero { padding-top: 120px; }
+  .hero-logos { padding: 48px 0 36px; margin-top: 56px; }
+  .hero-logos .row { gap: 24px; }
+
+  /* Planos — largura total, sem max-width que cria assimetria */
+  .plans { max-width: 100%; }
+  .plan { padding: 26px 22px; }
+  .plan .price .amt { font-size: 38px; }
+
+  /* Depoimentos — largura total */
+  .tst-grid { max-width: 100%; }
+  .tst { padding: 22px 20px; }
+
+  /* Comparativo */
+  .comp-card { padding: 26px 22px; }
+
+  /* Métricas */
+  .metric { padding: 28px 16px; }
+
+  /* Nota anual */
+  .annual-note { padding: 22px 18px; }
+
+  /* Rodapé */
+  .footer .top { grid-template-columns: 1fr 1fr; gap: 28px 16px; }
+  .footer { padding: 48px 0 32px; }
+
+  /* Cabeçalho de seção */
+  .sec-head { margin-bottom: 36px; }
+
+  /* Step cards */
+  .step-card { padding: 22px 20px; }
+}
