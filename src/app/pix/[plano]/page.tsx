@@ -110,17 +110,17 @@ export default function PixPage() {
   };
 
   return (
-    <div data-theme="dark" style={{ minHeight: "100vh", background: "#212121", zoom: 1.2 }}>
+    <div data-theme="dark" style={{ height: "100dvh", overflow: "hidden", background: "#212121", display: "flex", flexDirection: "column" }}>
       <div style={{ position: "fixed", top: "-180px", left: "50%", transform: "translateX(-50%)", width: 600, height: 400, background: "radial-gradient(ellipse, rgba(250,181,0,0.08) 0%, transparent 70%)", pointerEvents: "none", zIndex: 0 }} />
 
-      <header style={{ position: "relative", zIndex: 1, padding: "22px 32px", display: "flex", alignItems: "center" }}>
+      <header style={{ position: "relative", zIndex: 1, padding: "18px 32px", display: "flex", alignItems: "center", flexShrink: 0 }}>
         <Link href="/" style={{ display: "flex", alignItems: "center", textDecoration: "none" }}>
           <RaioLockup height={27} variant="dark" />
         </Link>
       </header>
 
-      <main style={{ position: "relative", zIndex: 1, display: "flex", justifyContent: "center", padding: "16px 16px 60px" }}>
-        <div style={{ width: "100%", maxWidth: 440 }}>
+      <main style={{ position: "relative", zIndex: 1, flex: 1, display: "flex", justifyContent: "center", overflowY: "auto", padding: "12px 16px 16px" }}>
+        <div style={{ width: "100%", maxWidth: 440, zoom: 1.2 }}>
 
           <button onClick={() => router.back()} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontSize: 13, cursor: "pointer", marginBottom: 24, padding: 0 }}>
             <ArrowLeft size={14} /> Voltar
