@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { ArrowRight, Check, Coins, Building2, Users, Newspaper, Zap } from "lucide-react";
 import { RaioLockup } from "@/components/logo/RaioLockup";
@@ -31,7 +31,7 @@ function PlanFeatures({ plan }: { plan: PlanData }) {
     { icon: Users,     text: `${plan.editorsLimit} editor${plan.editorsLimit > 1 ? "es" : ""} · ${plan.reviewersLimit} revisor${plan.reviewersLimit > 1 ? "es" : ""}` },
   ];
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
       {features.map(({ icon: Icon, text }, i) => (
         <div key={i} style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <span style={{ width: 32, height: 32, borderRadius: 8, background: "rgba(250,181,0,0.1)", display: "grid", placeItems: "center", flexShrink: 0 }}>
@@ -50,6 +50,19 @@ export default function CheckoutConfirmClient({ initialPlanId, allPlans }: Props
   const [flipped, setFlipped] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showBackWarning, setShowBackWarning] = useState(false);
+
+  // Intercept browser back button — keep user on this page and show friendly notice
+  useEffect(() => {
+    window.history.pushState(null, "", window.location.href);
+    const handlePopState = () => {
+      window.history.pushState(null, "", window.location.href);
+      setShowBackWarning(true);
+      setTimeout(() => setShowBackWarning(false), 5000);
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
 
   const plan = allPlans.find(p => p.id === selectedId) ?? allPlans[0];
 
@@ -79,14 +92,25 @@ export default function CheckoutConfirmClient({ initialPlanId, allPlans }: Props
   }
 
   return (
-    <div data-theme="dark" style={{ minHeight: "100vh", background: "var(--ink)", zoom: 1.15 }}>
-      <div className="onb">
+    <div data-theme="dark" style={{ height: "100dvh", overflow: "hidden", background: "var(--ink)", zoom: 1.15 }}>
+      <div className="onb" style={{ height: "100%" }}>
         <span className="bg-glow" />
         <header className="onb-top">
           <Link className="lock" href="/" style={{ display: "flex", alignItems: "center" }}>
             <RaioLockup height={27} variant="dark" />
           </Link>
         </header>
+        {showBackWarning && (
+          <div style={{
+            position: "fixed", top: 20, left: "50%", transform: "translateX(-50%)", zIndex: 999,
+            background: "rgba(250,181,0,0.95)", color: "#212121", borderRadius: 12,
+            padding: "12px 20px", fontSize: 13.5, fontWeight: 600, maxWidth: 420, width: "calc(100% - 40px)",
+            boxShadow: "0 4px 24px rgba(0,0,0,0.35)", display: "flex", alignItems: "center", gap: 10,
+          }}>
+            <span style={{ fontSize: 18 }}>⚠️</span>
+            <span>Não use o botão Voltar do navegador — utilize os botões desta página para navegar sem perder seu cadastro.</span>
+          </div>
+        )}
         <main className="onb-body">
           <div className="onb-card narrow" style={{ textAlign: "center" }}>
 
@@ -129,15 +153,15 @@ export default function CheckoutConfirmClient({ initialPlanId, allPlans }: Props
                 {/* ── FRENTE: confirmação ── */}
                 <div className="flip-front">
                   <div className="onb-head">
-                    <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 56, height: 56, borderRadius: 14, background: "rgba(250,181,0,0.12)", marginBottom: 18 }}>
-                      <Zap size={26} style={{ color: "var(--coral)" }} />
+                    <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 44, height: 44, borderRadius: 12, background: "rgba(250,181,0,0.12)", marginBottom: 12 }}>
+                      <Zap size={22} style={{ color: "var(--coral)" }} />
                     </div>
                     <h1>Confirme sua <em>assinatura</em></h1>
                     <p className="sub">Revise os detalhes do plano antes de prosseguir para o pagamento.</p>
                   </div>
 
-                  <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 16, padding: "28px 28px 24px", textAlign: "left", marginBottom: 24 }}>
-                    <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 24 }}>
+                  <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 16, padding: "20px 22px 18px", textAlign: "left", marginBottom: 16 }}>
+                    <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 16 }}>
                       <div>
                         <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--tx-3)", marginBottom: 6 }}>Plano selecionado</div>
                         <div style={{ fontSize: 26, fontWeight: 800, letterSpacing: "-0.02em", color: "var(--tx)" }}>{plan.label}</div>
@@ -153,16 +177,22 @@ export default function CheckoutConfirmClient({ initialPlanId, allPlans }: Props
                   {error && <p style={{ color: "var(--red, #c0392b)", fontSize: 13, marginBottom: 16 }}>{error}</p>}
 
                   <button className="btn btn-primary btn-lg" onClick={handleConfirm} disabled={loading}
-                    style={{ width: "100%", justifyContent: "center", marginBottom: 14 }}>
-                    {loading ? "Redirecionando…" : <><span>Confirmar e pagar</span><ArrowRight size={17} /></>}
+                    style={{ width: "100%", justifyContent: "center", marginBottom: 8 }}>
+                    {loading ? "Redirecionando…" : <><span>Pagar com cartão ou boleto</span><ArrowRight size={17} /></>}
                   </button>
+
+                  <a href={`/pix/${plan.id.toLowerCase()}`}
+                    style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 7, width: "100%", padding: "10px 0", background: "rgba(250,181,0,0.12)", border: "1.5px solid rgba(250,181,0,0.35)", borderRadius: 10, fontSize: 14, fontWeight: 700, color: "#FAB500", textDecoration: "none", marginBottom: 10, cursor: "pointer" }}>
+                    <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h.01M14 17h.01M17 14h.01M17 17h.01M20 14h.01M20 17h.01M20 20h.01M17 20h.01M14 20h.01"/></svg>
+                    Pagar com Pix
+                  </a>
 
                   <button onClick={() => setFlipped(true)}
                     style={{ background: "none", border: "none", fontSize: 13.5, color: "var(--tx-3)", cursor: "pointer", padding: "4px 8px", marginBottom: 20 }}>
                     Mudar de plano
                   </button>
 
-                  <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: 16, fontSize: 12, color: "var(--tx-3)", lineHeight: 1.6, textAlign: "left" }}>
+                  <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: 12, fontSize: 12, color: "var(--tx-3)", lineHeight: 1.5, textAlign: "left" }}>
                     <b style={{ color: "var(--tx-2)" }}>Garantia de Satisfação (Art. 49, CDC):</b>{" "}
                     Queremos que você ame o Raio. Se você cancelar em até 7 dias sem ter utilizado nenhum crédito, devolvemos 100% do seu dinheiro de forma integral. Após o uso de créditos ou o prazo de 7 dias, o seu acesso continua ativo até o final do período contratado, sem renovação automática caso decida cancelar.
                   </div>

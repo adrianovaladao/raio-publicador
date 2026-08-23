@@ -531,3 +531,37 @@ export async function sendCancellationEmail(
     return getResend().emails.send({ from: FROM, to, subject: "Assinatura cancelada — Raio", html });
   }
 }
+
+// ─── Pix pendente (notificação ao admin) ─────────────────────────────────────
+export async function sendPixPendingEmail(opts: {
+  paymentId: string;
+  userName: string;
+  userEmail: string;
+  planLabel: string;
+  amountCents: number;
+  txId?: string;
+  adminUrl: string;
+}) {
+  const amount = (opts.amountCents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  const html = base(`
+    ${h1("⚡ Novo pagamento Pix aguardando confirmação")}
+    ${p("Um usuário realizou o pagamento via Pix e está aguardando a ativação do plano.")}
+    <table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0;background:#f9f9f7;border-radius:8px">
+      <tr><td style="padding:10px 14px;color:#888;width:140px">Nome</td><td style="padding:10px 14px;color:#1a1a1a;font-weight:600">${opts.userName}</td></tr>
+      <tr style="border-top:1px solid #eee"><td style="padding:10px 14px;color:#888">E-mail</td><td style="padding:10px 14px;color:#1a1a1a">${opts.userEmail}</td></tr>
+      <tr style="border-top:1px solid #eee"><td style="padding:10px 14px;color:#888">Plano</td><td style="padding:10px 14px;color:#1a1a1a">${opts.planLabel}</td></tr>
+      <tr style="border-top:1px solid #eee"><td style="padding:10px 14px;color:#888">Valor</td><td style="padding:10px 14px;color:#1a1a1a;font-weight:700">${amount}</td></tr>
+      ${opts.txId ? `<tr style="border-top:1px solid #eee"><td style="padding:10px 14px;color:#888">ID da transação</td><td style="padding:10px 14px;color:#1a1a1a;font-family:monospace">${opts.txId}</td></tr>` : ""}
+    </table>
+    ${p("Verifique o pagamento no seu banco e confirme ou rejeite no painel admin.")}
+    ${btn("Abrir painel admin", opts.adminUrl)}
+  `);
+
+  const ADMIN_EMAIL = process.env.ADMIN_NOTIFICATION_EMAIL ?? "adrianovaladao@gmail.com";
+  return getResend().emails.send({
+    from: FROM,
+    to: ADMIN_EMAIL,
+    subject: `💰 Pix pendente — ${opts.userName} (${opts.planLabel})`,
+    html,
+  });
+}

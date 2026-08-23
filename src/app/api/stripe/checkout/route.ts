@@ -39,17 +39,41 @@ export async function POST(req: NextRequest) {
   }
 
   const origin = req.nextUrl.origin;
+  const cardFeeCents = Math.round(plan.priceCents * 0.04);
+  const planFeatures: Record<string, string> = {
+    BASIC:        "200 créditos/mês · 2 marcas · 1 editor · 1 revisor · 2 pub. Cat. A/mês",
+    ADVANCED:     "1.000 créditos/mês · 5 marcas · 3 editores · 5 revisores · 5 pub. Cat. A/mês",
+    PROFESSIONAL: "2.000 créditos/mês · 10 marcas · 5 editores · 10 revisores · 10 pub. Cat. A/mês",
+  };
+
   const session = await stripe.checkout.sessions.create({
     mode: "subscription",
     customer: customerId,
     currency: "brl",
     payment_method_types: ["card", "boleto"],
-    line_items: [{ price: plan.stripePriceId, quantity: 1 }],
+    line_items: [
+      { price: plan.stripePriceId, quantity: 1 },
+      {
+        price_data: {
+          currency: "brl",
+          unit_amount: cardFeeCents,
+          recurring: { interval: "month" },
+          product_data: {
+            name: "Taxa de processamento de cartão (4%)",
+            description: "Aplicada mensalmente sobre o valor do plano.",
+          },
+        },
+        quantity: 1,
+      },
+    ],
     success_url: `${origin}/boas-vindas?checkout=success`,
     cancel_url: `${origin}/site#planos`,
     locale: "pt-BR",
     metadata: { clerkId: userId, planId },
     subscription_data: { metadata: { clerkId: userId, planId } },
+    custom_text: {
+      submit: { message: `Plano ${plan.label}: ${planFeatures[planId] ?? ""}` },
+    },
   });
 
   if (!sub) {

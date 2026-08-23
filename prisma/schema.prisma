@@ -241,3 +241,26 @@ model SupportTicket {
   createdAt      DateTime            @default(now())
   conversation   SupportConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 }
+
+// ─── Pix ──────────────────────────────────────────────────────────────────────
+
+model PixPayment {
+  id          String          @id @default(cuid())
+  ownerId     String
+  planId      String          // BASIC | ADVANCED | PROFESSIONAL
+  amountCents Int
+  userName    String
+  userEmail   String
+  txId        String?         // ID da transação informado pelo usuário
+  status      PixStatus       @default(PENDING)
+  confirmedAt DateTime?
+  confirmedBy String?         // admin userId
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+}
+
+enum PixStatus {
+  PENDING
+  CONFIRMED
+  REJECTED
+}

@@ -6,7 +6,7 @@ import { PLANS, type PlanId } from "@/lib/plans";
 import { isAnyAdmin } from "@/lib/admin";
 import {
   TrendingUp, TrendingDown, Users, FileText, Zap,
-  UserCheck, UserX, AlertTriangle, Crown, ExternalLink, Tag, RefreshCw,
+  UserCheck, UserX, AlertTriangle, Crown, ExternalLink, Tag, RefreshCw, QrCode, Check, X, Play,
 } from "lucide-react";
 
 interface Stats {
@@ -55,6 +55,11 @@ function KpiCard({ icon: Icon, label, val, sub, delta }: {
   );
 }
 
+interface PixPayment {
+  id: string; ownerId: string; planId: string; amountCents: number;
+  userName: string; userEmail: string; txId: string | null; status: string; createdAt: string;
+}
+
 export default function AdminDashboard() {
   const { user, isLoaded } = useUser();
   const isAdmin = isAnyAdmin(user?.publicMetadata as Record<string, unknown>);
@@ -68,6 +73,13 @@ export default function AdminDashboard() {
     plan: string; ownerId: string; receiptUrl: string | null;
   };
   const [txRows, setTxRows] = useState<TxRow[]>([]);
+  const [pixPayments, setPixPayments] = useState<PixPayment[]>([]);
+  const [pixLoading, setPixLoading] = useState(false);
+  const [pixActionId, setPixActionId] = useState<string | null>(null);
+  const [webhookStatus, setWebhookStatus] = useState<"idle" | "loading" | "ok" | "error">("idle");
+  const [webhookMsg, setWebhookMsg] = useState("");
+  const [simLoading, setSimLoading] = useState<string | null>(null);
+  const [simMsg, setSimMsg] = useState<{ id: string; ok: boolean; text: string } | null>(null);
   const [txTotal, setTxTotal] = useState(0);
   const [txLoading, setTxLoading] = useState(true);
 
@@ -84,7 +96,50 @@ export default function AdminDashboard() {
         setTxTotal(d.totalRevenueCents ?? 0);
       })
       .finally(() => setTxLoading(false));
+    fetch("/api/admin/pix")
+      .then(r => r.json())
+      .then((d: { payments: PixPayment[] }) => setPixPayments(d.payments ?? []));
   }, [isAdmin]);
+
+  async function handleSimular(payment: PixPayment) {
+    if (!payment.txId) return;
+    setSimLoading(payment.id);
+    setSimMsg(null);
+    try {
+      const res = await fetch("/api/admin/pix/simular", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ txId: payment.txId }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setSimMsg({ id: payment.id, ok: true, text: `✓ Pix simulado — plano ${data.planId} ativado` });
+        setPixPayments(prev => prev.filter(p => p.id !== payment.id));
+      } else {
+        setSimMsg({ id: payment.id, ok: false, text: data.error ?? "Erro ao simular" });
+      }
+    } catch (e) {
+      setSimMsg({ id: payment.id, ok: false, text: String(e) });
+    } finally {
+      setSimLoading(null);
+    }
+  }
+
+  async function handlePixAction(paymentId: string, action: "confirm" | "reject") {
+    setPixActionId(paymentId);
+    setPixLoading(true);
+    try {
+      const res = await fetch("/api/admin/pix", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ paymentId, action }),
+      });
+      if (res.ok) setPixPayments(prev => prev.filter(p => p.id !== paymentId));
+    } finally {
+      setPixLoading(false);
+      setPixActionId(null);
+    }
+  }
 
   if (!isLoaded) return null;
   if (!isAdmin) return (
@@ -233,6 +288,117 @@ export default function AdminDashboard() {
             )}
           </>
         )}
+
+        {/* ─── Pix pendentes ─────────────────────────────────────────── */}
+        <div style={{ marginTop: 36 }}>
+          <h2 style={{ fontSize: 15, fontWeight: 700, marginBottom: 12, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+            <QrCode size={16} /> Pagamentos Pix pendentes
+            {pixPayments.length > 0 && (
+              <span style={{ background: "#FAB500", color: "#1a1a1a", borderRadius: 99, padding: "1px 8px", fontSize: 11, fontWeight: 700 }}>
+                {pixPayments.length}
+              </span>
+            )}
+          </h2>
+          {/* Botão registrar webhook C6 Bank */}
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+            <button
+              onClick={async () => {
+                setWebhookStatus("loading");
+                setWebhookMsg("");
+                try {
+                  const res = await fetch("/api/admin/c6bank-setup", { method: "POST" });
+                  const data = await res.json();
+                  if (res.ok) { setWebhookStatus("ok"); setWebhookMsg(data.webhookUrl ?? "Webhook registrado!"); }
+                  else { setWebhookStatus("error"); setWebhookMsg(data.error ?? "Erro desconhecido"); }
+                } catch (e) { setWebhookStatus("error"); setWebhookMsg(String(e)); }
+              }}
+              disabled={webhookStatus === "loading"}
+              style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 14px", background: webhookStatus === "ok" ? "#2F8A5B" : "#f0ede8", color: webhookStatus === "ok" ? "#fff" : "#333", border: "1px solid #d6d2cc", borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: webhookStatus === "loading" ? "not-allowed" : "pointer", opacity: webhookStatus === "loading" ? 0.7 : 1 }}
+            >
+              {webhookStatus === "loading" ? <RefreshCw size={12} style={{ animation: "spin 1s linear infinite" }} /> : <QrCode size={12} />}
+              {webhookStatus === "ok" ? "Webhook registrado ✓" : "Registrar webhook C6 Bank"}
+            </button>
+            {webhookMsg && (
+              <span style={{ fontSize: 11, color: webhookStatus === "ok" ? "#2F8A5B" : "var(--red)", fontFamily: "var(--mono)", maxWidth: 340, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {webhookMsg}
+              </span>
+            )}
+          </div>
+
+          {pixPayments.length === 0 ? (
+            <div className="card empty"><div className="muted">Nenhum pagamento Pix pendente.</div></div>
+          ) : (
+            <div className="card" style={{ padding: 0, overflow: "hidden" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                <thead>
+                  <tr style={{ borderBottom: "1px solid var(--line)", background: "var(--bg2)" }}>
+                    {["Data", "Nome", "E-mail", "Plano", "Valor", "ID transação", "Ações"].map(h => (
+                      <th key={h} style={{ padding: "10px 16px", textAlign: "left", fontWeight: 600, fontSize: 11, color: "var(--stone)", whiteSpace: "nowrap" }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {pixPayments.map((p, i) => (
+                    <tr key={p.id} style={{ borderBottom: i < pixPayments.length - 1 ? "1px solid var(--line)" : "none" }}>
+                      <td style={{ padding: "12px 16px", whiteSpace: "nowrap", fontFamily: "var(--mono)", fontSize: 12, color: "var(--stone)" }}>
+                        {new Date(p.createdAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}
+                      </td>
+                      <td style={{ padding: "12px 16px", fontWeight: 600 }}>{p.userName}</td>
+                      <td style={{ padding: "12px 16px", color: "var(--stone)", fontFamily: "var(--mono)", fontSize: 12 }}>{p.userEmail}</td>
+                      <td style={{ padding: "12px 16px" }}>
+                        <span style={{ background: "var(--amber-soft)", color: "var(--coral-ink)", borderRadius: 6, padding: "2px 8px", fontSize: 11, fontWeight: 700 }}>
+                          {p.planId}
+                        </span>
+                      </td>
+                      <td style={{ padding: "12px 16px", fontFamily: "var(--mono)", fontWeight: 700 }}>
+                        {fmtBRL(p.amountCents)}
+                      </td>
+                      <td style={{ padding: "12px 16px", fontFamily: "var(--mono)", fontSize: 12, color: "var(--stone)" }}>
+                        {p.txId ?? "—"}
+                      </td>
+                      <td style={{ padding: "12px 16px" }}>
+                        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                          <button
+                            onClick={() => handlePixAction(p.id, "confirm")}
+                            disabled={pixLoading && pixActionId === p.id}
+                            style={{ display: "flex", alignItems: "center", gap: 4, padding: "5px 10px", background: "#2F8A5B", color: "#fff", border: "none", borderRadius: 7, fontSize: 12, fontWeight: 600, cursor: "pointer", opacity: pixLoading && pixActionId === p.id ? 0.6 : 1 }}
+                          >
+                            <Check size={12} /> Confirmar
+                          </button>
+                          <button
+                            onClick={() => handlePixAction(p.id, "reject")}
+                            disabled={pixLoading && pixActionId === p.id}
+                            style={{ display: "flex", alignItems: "center", gap: 4, padding: "5px 10px", background: "var(--red-soft)", color: "var(--red)", border: "1px solid var(--red)", borderRadius: 7, fontSize: 12, fontWeight: 600, cursor: "pointer", opacity: pixLoading && pixActionId === p.id ? 0.6 : 1 }}
+                          >
+                            <X size={12} /> Rejeitar
+                          </button>
+                          {p.txId && (
+                            <button
+                              onClick={() => handleSimular(p)}
+                              disabled={simLoading === p.id}
+                              title="Simula pagamento confirmado (sandbox apenas)"
+                              style={{ display: "flex", alignItems: "center", gap: 4, padding: "5px 10px", background: "#1d4ed8", color: "#fff", border: "none", borderRadius: 7, fontSize: 12, fontWeight: 600, cursor: simLoading === p.id ? "not-allowed" : "pointer", opacity: simLoading === p.id ? 0.6 : 1 }}
+                            >
+                              {simLoading === p.id
+                                ? <RefreshCw size={12} style={{ animation: "spin 1s linear infinite" }} />
+                                : <Play size={12} />}
+                              Simular
+                            </button>
+                          )}
+                        </div>
+                        {simMsg?.id === p.id && (
+                          <div style={{ marginTop: 6, fontSize: 11, color: simMsg.ok ? "#2F8A5B" : "var(--red)", fontFamily: "var(--mono)" }}>
+                            {simMsg.text}
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

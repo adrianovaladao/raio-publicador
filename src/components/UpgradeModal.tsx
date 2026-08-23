@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useEscapeKey } from "@/hooks/useEscapeKey";
-import { X, ArrowRight } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { X, ArrowRight, QrCode } from "lucide-react";
 
 const UPGRADE_OPTIONS: Record<string, Array<{ id: string; label: string; brandsLimit: number; price: string }>> = {
   BASIC: [
@@ -16,6 +17,7 @@ const UPGRADE_OPTIONS: Record<string, Array<{ id: string; label: string; brandsL
 
 export function UpgradeModal({ currentPlan, onClose, returnUrl, onSuccess, context }: { currentPlan: string; onClose: () => void; returnUrl?: string; onSuccess?: () => void; context?: "brands" | "credits" }) {
   useEscapeKey(onClose);
+  const router = useRouter();
   const options = UPGRADE_OPTIONS[currentPlan] ?? UPGRADE_OPTIONS["BASIC"] ?? [];
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -77,7 +79,15 @@ export function UpgradeModal({ currentPlan, onClose, returnUrl, onSuccess, conte
                       onClick={() => handleUpgrade(opt.id)}
                       disabled={loadingId !== null}
                     >
-                      {loadingId === opt.id ? "Aguarde…" : <><span>Fazer upgrade</span><ArrowRight size={14} /></>}
+                      {loadingId === opt.id ? "Aguarde…" : <><span>Pagar com cartão ou boleto</span><ArrowRight size={14} /></>}
+                    </button>
+                    <button
+                      className="btn btn-ghost btn-sm btn-block"
+                      style={{ justifyContent: "center", gap: 6 }}
+                      onClick={() => { onClose(); router.push(`/pix/${opt.id.toLowerCase()}`); }}
+                      disabled={loadingId !== null}
+                    >
+                      <QrCode size={13} /> Pagar com Pix
                     </button>
                   </div>
                 ))}
