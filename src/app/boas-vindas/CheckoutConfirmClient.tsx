@@ -92,7 +92,7 @@ export default function CheckoutConfirmClient({ initialPlanId, allPlans }: Props
   }
 
   return (
-    <div data-theme="dark" style={{ height: "100dvh", overflow: "hidden", background: "var(--ink)", zoom: 1.15 }}>
+    <div data-theme="dark" style={{ height: "100dvh", overflow: "hidden", background: "var(--ink)" }}>
       <div className="onb" style={{ height: "100%" }}>
         <span className="bg-glow" />
         <header className="onb-top">
@@ -112,7 +112,7 @@ export default function CheckoutConfirmClient({ initialPlanId, allPlans }: Props
           </div>
         )}
         <main className="onb-body">
-          <div className="onb-card narrow" style={{ textAlign: "center" }}>
+          <div className="onb-card narrow" style={{ textAlign: "center", zoom: 1.15 }}>
 
             {/* ── flip container ── */}
             <style>{`
