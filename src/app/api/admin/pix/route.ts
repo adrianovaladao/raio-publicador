@@ -1,5 +1,5 @@
 export const dynamic = "force-dynamic";
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { auth, currentUser, clerkClient } from "@clerk/nextjs/server";
 import { getPrisma } from "@/lib/prisma";
 import { isAnyAdmin } from "@/lib/admin";
 import { PLANS, type PlanId } from "@/lib/plans";
@@ -24,7 +24,33 @@ export async function GET() {
     orderBy: { createdAt: "desc" },
   });
 
-  return NextResponse.json({ payments });
+  // Enriquece campos em branco via Clerk (retroativo para registros antigos)
+  const missingIds = payments
+    .filter(p => !p.userName && !p.userEmail)
+    .map(p => p.ownerId)
+    .filter((v, i, a) => a.indexOf(v) === i);
+
+  const clerkUsers: Record<string, { name: string; email: string }> = {};
+  if (missingIds.length > 0) {
+    try {
+      const client = await clerkClient();
+      const userList = await client.users.getUserList({ userId: missingIds, limit: 100 });
+      for (const u of userList.data) {
+        clerkUsers[u.id] = {
+          name: `${u.firstName ?? ""} ${u.lastName ?? ""}`.trim(),
+          email: u.emailAddresses?.[0]?.emailAddress ?? "",
+        };
+      }
+    } catch { /* ignora falha — exibe vazio */ }
+  }
+
+  const enriched = payments.map(p => ({
+    ...p,
+    userName:  p.userName  || clerkUsers[p.ownerId]?.name  || "",
+    userEmail: p.userEmail || clerkUsers[p.ownerId]?.email || "",
+  }));
+
+  return NextResponse.json({ payments: enriched });
 }
 
 // POST — confirmar ou rejeitar

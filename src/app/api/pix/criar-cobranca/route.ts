@@ -1,5 +1,5 @@
 export const dynamic = "force-dynamic";
-import { auth } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { getPrisma } from "@/lib/prisma";
 import { PLANS, type PlanId } from "@/lib/plans";
 import { criarCobranca } from "@/lib/c6bank";
@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from "next/server";
 export async function POST(req: NextRequest) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const clerkUser = await currentUser();
 
   const { planId } = (await req.json()) as { planId: PlanId };
   const plan = PLANS[planId];
@@ -38,8 +39,8 @@ export async function POST(req: NextRequest) {
         ownerId:    userId,
         planId,
         amountCents: plan.priceCents,
-        userName:   "",
-        userEmail:  "",
+        userName:   clerkUser ? `${clerkUser.firstName ?? ""} ${clerkUser.lastName ?? ""}`.trim() : "",
+        userEmail:  clerkUser?.emailAddresses?.[0]?.emailAddress ?? "",
         txId:       cob.txid,
         status:     "PENDING",
       },
