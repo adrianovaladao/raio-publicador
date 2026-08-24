@@ -241,7 +241,8 @@ function PlansModal({ onClose, sub, onSuccess, onBuyCredits }: { onClose: () => 
 
           <div className="plans-row">
             {APP_PLANS.map(p => {
-              const isCurrent = sub.plan === p.id;
+              const isActive = sub.status === "ACTIVE" || sub.status === "PAST_DUE";
+              const isCurrent = isActive && sub.plan === p.id;
               return (
                 <div key={p.name} className={`plan-card${p.featured ? " featured" : ""}${isCurrent ? " current" : ""}`}>
                   {p.featured && !isCurrent && <span className="pc-ribbon">Mais vendido</span>}
