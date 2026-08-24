@@ -23,7 +23,7 @@ export default function PrivacidadePage() {
         <h1 style={{ fontSize: 36, fontWeight: 800, color: "#1a1a1a", marginBottom: 32, lineHeight: 1.2 }}>Política de Privacidade</h1>
 
         <Section title="1. Quem somos">
-          <p><strong>RAIO PUBLICADOR TECNOLOGIA DE COMUNICACAO LTDA</strong>, CNPJ 68.372.169/0001-06, com sede em São Paulo – SP ("Raio", "nós" ou "empresa"), é a controladora dos dados pessoais tratados no âmbito da plataforma Raio Publicador.</p>
+          <p><strong>RAIO PUBLICADOR TECNOLOGIA DE COMUNICACAO LTDA</strong>, CNPJ 68.372.169/0001-06, com sede em São Paulo &ndash; SP (&ldquo;Raio&rdquo;, &ldquo;nós&rdquo; ou &ldquo;empresa&rdquo;), é a controladora dos dados pessoais tratados no âmbito da plataforma Raio Publicador.</p>
           <p>Esta Política de Privacidade foi elaborada em conformidade com a <strong>Lei Geral de Proteção de Dados (Lei nº 13.709/2018 – LGPD)</strong> e descreve como coletamos, usamos, armazenamos e protegemos seus dados pessoais.</p>
         </Section>
 

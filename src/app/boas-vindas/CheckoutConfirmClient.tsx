@@ -71,16 +71,6 @@ function PlanFeatures({ plan }: { plan: PlanData }) {
   );
 }
 
-function inp(style?: React.CSSProperties): React.CSSProperties {
-  return {
-    width: "100%", padding: "10px 13px", borderRadius: 9,
-    border: "1.5px solid rgba(255,255,255,0.12)",
-    background: "rgba(255,255,255,0.06)", color: "var(--tx)",
-    fontSize: 14, outline: "none", boxSizing: "border-box",
-    ...style,
-  };
-}
-
 function label(text: string, required = true) {
   return (
     <div style={{ fontSize: 12.5, fontWeight: 600, color: "var(--tx-3)", marginBottom: 5, textAlign: "left", letterSpacing: "0.03em" }}>
@@ -239,8 +229,6 @@ export default function CheckoutConfirmClient({ initialPlanId, allPlans }: Props
     setSelectedId(id);
     setTimeout(() => setStep("confirm"), 120);
   }
-
-  const inputStyle = inp();
 
   return (
     <div data-theme="dark" style={{ height: "100dvh", overflow: "hidden", background: "var(--ink)" }}>

@@ -25,7 +25,7 @@ export default function TermosPage() {
         <h1 style={{ fontSize: 36, fontWeight: 800, color: "#1a1a1a", marginBottom: 32, lineHeight: 1.2 }}>Termos de Uso</h1>
 
         <Section title="1. Aceitação dos Termos">
-          <p>Ao acessar ou utilizar a plataforma Raio Publicador, operada por <strong>RAIO PUBLICADOR TECNOLOGIA DE COMUNICACAO LTDA</strong>, CNPJ 68.372.169/0001-06, com sede em São Paulo – SP ("Raio", "nós" ou "empresa"), você ("Usuário") concorda integralmente com estes Termos de Uso.</p>
+          <p>Ao acessar ou utilizar a plataforma Raio Publicador, operada por <strong>RAIO PUBLICADOR TECNOLOGIA DE COMUNICACAO LTDA</strong>, CNPJ 68.372.169/0001-06, com sede em São Paulo &ndash; SP (&ldquo;Raio&rdquo;, &ldquo;nós&rdquo; ou &ldquo;empresa&rdquo;), você (&ldquo;Usuário&rdquo;) concorda integralmente com estes Termos de Uso.</p>
           <p>Se você não concordar com qualquer disposição destes termos, não utilize a plataforma.</p>
         </Section>
 

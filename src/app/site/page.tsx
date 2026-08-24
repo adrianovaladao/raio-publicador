@@ -499,7 +499,7 @@ function CtaBand() {
 
 // ─── Footer ───────────────────────────────────────────────────────────────────
 
-function Footer({ onContact }: { onContact: () => void }) {
+function Footer() {
   return (
     <footer className="footer">
       <div className="wrap">
@@ -665,7 +665,7 @@ export default function SitePage() {
       <Testimonials />
       <Faq />
       <CtaBand />
-      <Footer onContact={() => setContact(true)} />
+      <Footer />
       <MobileNotice />
       {contact && <ContactModal onClose={() => setContact(false)} />}
     </>
