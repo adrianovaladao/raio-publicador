@@ -4,7 +4,7 @@ import { getPrisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { ReleaseStatus } from "@prisma/client";
 import { clerkClient } from "@clerk/nextjs/server";
-import { sendAdminNewReleaseEmail } from "@/lib/email";
+import { sendAdminNewReleaseEmail, sendReleaseScheduledEmail } from "@/lib/email";
 
 const EDIT_LOCKED_STATUSES: ReleaseStatus[] = ["IN_REVIEW", "IN_PUBLICATION", "PUBLISHED"];
 
@@ -87,7 +87,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       : []),
   ]);
 
-  // Notify admin when a release is newly scheduled
+  // Notify admin + user when a release is newly scheduled
   if (becomingScheduled) {
     try {
       const clerk = await clerkClient();
@@ -97,6 +97,22 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       const scheduledAt = body.scheduledAt ? new Date(body.scheduledAt) : prev?.scheduledAt ?? null;
       const vehicleCount = (body.vehicles ?? prev?.vehicles ?? []).length;
       await sendAdminNewReleaseEmail(body.title ?? prev?.title ?? "Sem título", userName, userEmail, vehicleCount, scheduledAt);
+
+      // Email para o usuário
+      if (userEmail) {
+        const firstName = user.firstName ?? userEmail.split("@")[0];
+        const vehicleNames = (body.vehicles ?? prev?.vehicles ?? []).length > 0
+          ? (await getPrisma().vehicle.findMany({ where: { id: { in: body.vehicles ?? (prev?.vehicles as string[] | undefined) ?? [] } }, select: { name: true } })).map(v => v.name)
+          : [];
+        await sendReleaseScheduledEmail(
+          userEmail,
+          firstName,
+          body.title ?? prev?.title ?? "Sem título",
+          scheduledAt ?? new Date(),
+          vehicleNames,
+          id,
+        ).catch(err => console.error("[email] erro release agendado (PUT):", err));
+      }
     } catch (err) {
       console.error("Admin notification email failed:", err);
     }
