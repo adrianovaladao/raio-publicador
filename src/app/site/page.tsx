@@ -518,20 +518,16 @@ function Footer({ onContact }: { onContact: () => void }) {
           <div className="col">
             <h4>Empresa</h4>
             <a href="#">Sobre</a>
-            <a href="#">Veículos parceiros</a>
-            <button style={{ background: "none", border: "none", padding: "6px 0", fontSize: "14.5px", color: "var(--tx-2)", cursor: "pointer", textAlign: "left", display: "block" }} onClick={onContact}>
-              Contato comercial
-            </button>
           </div>
           <div className="col">
             <h4>Legal</h4>
-            <a href="#">Termos de uso</a>
-            <a href="#">Privacidade</a>
-            <a href="#">Cookies</a>
+            <Link href="/termos">Termos de uso</Link>
+            <Link href="/privacidade">Privacidade</Link>
+            <Link href="/cookies">Cookies</Link>
           </div>
         </div>
         <div className="bottom">
-          <span className="cp" style={{ display: "block", fontSize: 11, color: "var(--stone)", marginBottom: 6, fontStyle: "italic" }}>*Todas as notas precisam seguir tanto as diretrizes editoriais dos portais parceiros quanto a legislação vigente antes de serem publicadas.</span>
+          <span className="cp" style={{ display: "block", fontSize: 11, color: "var(--stone)", marginBottom: 6, fontStyle: "italic" }}>*Todos os releases precisam seguir tanto as diretrizes editoriais dos portais parceiros quanto a legislação vigente antes de serem publicados.</span>
           <span className="cp">© 2026 Raio Publicador. Todos os direitos reservados.</span>
           <span className="powered">
             Energizado pela{" "}
