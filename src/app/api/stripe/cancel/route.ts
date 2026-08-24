@@ -25,11 +25,11 @@ export async function POST(req: Request) {
 
   const prisma = getPrisma();
   const sub = await prisma.subscription.findUnique({ where: { ownerId: userId } });
-  if (!sub?.stripeSubscriptionId) return NextResponse.json({ error: "Assinatura não encontrada" }, { status: 404 });
+  if (!sub) return NextResponse.json({ error: "Assinatura não encontrada" }, { status: 404 });
 
+  const isPix = !sub.stripeSubscriptionId;
   const stripe = getStripe();
   const now = new Date();
-  // Use currentPeriodStart from Stripe webhook; fall back to subscription createdAt
   const periodStart = sub.currentPeriodStart ?? sub.createdAt ?? null;
   const daysSincePeriodStart = periodStart
     ? (now.getTime() - periodStart.getTime()) / (1000 * 60 * 60 * 24)
@@ -37,12 +37,35 @@ export async function POST(req: Request) {
   const creditsUsed = sub.creditsUsed ?? 0;
   const eligibleForRefund = daysSincePeriodStart <= REFUND_WINDOW_DAYS && creditsUsed === 0;
 
+  const email = clerkUser?.emailAddresses?.[0]?.emailAddress;
+  const firstName = clerkUser?.firstName ?? "Cliente";
+  const planLabel = PLANS[sub.plan as keyof typeof PLANS]?.label ?? sub.plan;
+
   if (eligibleForRefund) {
-    // Within 7-day window with no credits used (Art. 49 CDC): cancel immediately + full refund + wipe data
-    const invoices = await stripe.invoices.list({ subscription: sub.stripeSubscriptionId, limit: 1 });
+    // ── Pix: sem Stripe, apenas cancela e zera créditos ──────────────────
+    if (isPix) {
+      const brands = await prisma.brand.findMany({ where: { ownerId: userId }, select: { id: true } });
+      const brandIds = brands.map(b => b.id);
+      await prisma.release.deleteMany({ where: { brandId: { in: brandIds } } });
+      await prisma.brandMember.deleteMany({ where: { brandId: { in: brandIds } } });
+      await prisma.brand.deleteMany({ where: { ownerId: userId } });
+      await prisma.subscription.update({
+        where: { ownerId: userId },
+        data: { status: "CANCELLED", creditsTotal: 0, creditsUsed: 0 },
+      });
+      if (email) await sendCancellationEmail(email, firstName, true, null, planLabel).catch(console.error);
+      await createNotification(userId, "subscription_cancelled",
+        "Assinatura cancelada",
+        `Seu Plano ${planLabel} foi cancelado. Para reembolso via Pix, entre em contato pelo suporte.`,
+        "/configuracoes?tab=cobranca",
+      ).catch(console.error);
+      return NextResponse.json({ ok: true, refunded: false, boletoRefund: false, periodEnd: null });
+    }
+
+    // ── Stripe: reembolso automático ──────────────────────────────────────
+    const invoices = await stripe.invoices.list({ subscription: sub.stripeSubscriptionId!, limit: 1 });
     const lastInvoice = invoices.data[0] as unknown as { payment_intent?: string | null };
 
-    // Detect payment method type to decide if Stripe refund is possible
     let isBoleto = false;
     if (lastInvoice?.payment_intent && typeof lastInvoice.payment_intent === "string") {
       try {
@@ -56,12 +79,10 @@ export async function POST(req: Request) {
     }
 
     if (!isBoleto && lastInvoice?.payment_intent && typeof lastInvoice.payment_intent === "string") {
-      // Card: process automatic refund
       await stripe.refunds.create({ payment_intent: lastInvoice.payment_intent });
     }
-    await stripe.subscriptions.cancel(sub.stripeSubscriptionId);
+    await stripe.subscriptions.cancel(sub.stripeSubscriptionId!);
 
-    // Delete all user data: releases, brands, subscription
     const brands = await prisma.brand.findMany({ where: { ownerId: userId }, select: { id: true } });
     const brandIds = brands.map(b => b.id);
     await prisma.release.deleteMany({ where: { brandId: { in: brandIds } } });
@@ -71,12 +92,7 @@ export async function POST(req: Request) {
       where: { ownerId: userId },
       data: { status: "CANCELLED", creditsTotal: 0, creditsUsed: 0 },
     });
-    const email = clerkUser?.emailAddresses?.[0]?.emailAddress;
-    const firstName = clerkUser?.firstName ?? "Cliente";
-    const planLabel = PLANS[sub.plan as keyof typeof PLANS]?.label ?? sub.plan;
-    if (email) {
-      await sendCancellationEmail(email, firstName, true, null, planLabel).catch(console.error);
-    }
+    if (email) await sendCancellationEmail(email, firstName, true, null, planLabel).catch(console.error);
     if (isBoleto && pixKey) {
       await createNotification(userId, "subscription_cancelled",
         "Reembolso via PIX solicitado",
@@ -91,19 +107,17 @@ export async function POST(req: Request) {
       ).catch(console.error);
     }
     return NextResponse.json({ ok: true, refunded: !isBoleto, boletoRefund: isBoleto, periodEnd: null });
+
   } else {
-    // After 7 days: cancel at period end, access maintained
-    await stripe.subscriptions.update(sub.stripeSubscriptionId, { cancel_at_period_end: true });
+    // ── Fora da janela de 7 dias: cancela ao fim do período ───────────────
+    if (!isPix) {
+      await stripe.subscriptions.update(sub.stripeSubscriptionId!, { cancel_at_period_end: true });
+    }
     await prisma.subscription.update({
       where: { ownerId: userId },
       data: { status: "CANCELLED" },
     });
-    const email = clerkUser?.emailAddresses?.[0]?.emailAddress;
-    const firstName = clerkUser?.firstName ?? "Cliente";
-    const planLabel = PLANS[sub.plan as keyof typeof PLANS]?.label ?? sub.plan;
-    if (email) {
-      await sendCancellationEmail(email, firstName, false, sub.currentPeriodEnd ?? null, planLabel).catch(console.error);
-    }
+    if (email) await sendCancellationEmail(email, firstName, false, sub.currentPeriodEnd ?? null, planLabel).catch(console.error);
     const until = sub.currentPeriodEnd
       ? sub.currentPeriodEnd.toLocaleDateString("pt-BR", { day: "2-digit", month: "long" })
       : "o fim do ciclo";
