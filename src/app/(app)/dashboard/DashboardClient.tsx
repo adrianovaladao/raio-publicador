@@ -430,7 +430,26 @@ function KpiCard({ icon: Icon, label, val, delta, period, accent }: {
 
 // ── Empty state ───────────────────────────────────────────────────────────────
 
-function EmptyState() {
+function EmptyState({ subStatus }: { subStatus: string | null }) {
+  const isCancelled = subStatus === "CANCELLED" || subStatus === "INACTIVE" || subStatus === null;
+
+  if (isCancelled) {
+    return (
+      <div className="card empty" style={{ marginTop: 32 }}>
+        <Zap size={34} style={{ color: "var(--coral)" }} />
+        <div className="t">Sua assinatura está inativa</div>
+        <div className="h">Escolha um plano para cadastrar marcas e começar a distribuir releases.</div>
+        <button
+          className="btn btn-primary btn-sm"
+          style={{ marginTop: 16 }}
+          onClick={() => window.dispatchEvent(new CustomEvent("open-plans"))}
+        >
+          Reativar assinatura
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="card empty" style={{ marginTop: 32 }}>
       <Building2 size={34} />
@@ -519,7 +538,9 @@ export default function DashboardPage() {
             <p className="sub">
               {hasBrands
                 ? <>{activeBrand ? <><b style={{ color: "var(--ink)" }}>{activeBrand.releases} release{activeBrand.releases !== 1 ? "s" : ""}</b> nessa marca · </> : ""}<b style={{ color: "var(--ink)" }}>{brands.length} marca{brands.length !== 1 ? "s" : ""}</b> no total.</>
-                : "Bem-vindo! Cadastre sua primeira marca para começar."}
+                : (subStatus === "CANCELLED" || subStatus === "INACTIVE" || subStatus === null)
+                  ? "Reative sua assinatura para começar a publicar."
+                  : "Bem-vindo! Cadastre sua primeira marca para começar."}
             </p>
           </div>
           <div className="actions">
@@ -530,7 +551,7 @@ export default function DashboardPage() {
         {loading ? (
           <div className="card empty"><div className="muted">Carregando…</div></div>
         ) : !hasBrands ? (
-          <EmptyState />
+          <EmptyState subStatus={subStatus} />
         ) : (
           <>
             <div className="kpi-grid">
