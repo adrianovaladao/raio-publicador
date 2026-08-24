@@ -86,6 +86,8 @@ interface RichEditorProps {
   brandName?: string;
   onAIUsed?: () => void;
   onImageInserted?: (url: string) => void;
+  /** Chamado quando usuário sem plano ativo tenta usar a IA */
+  onNoPlan?: () => void;
 }
 
 function AutoTextarea({ className, value, onChange, placeholder, style }: {
@@ -119,6 +121,7 @@ export function RichEditor({
   brandName,
   onAIUsed,
   onImageInserted,
+  onNoPlan,
 }: RichEditorProps) {
   const imageFileRef = useRef<HTMLInputElement>(null);
   const [imgUploading, setImgUploading] = useState(false);
@@ -312,7 +315,7 @@ export function RichEditor({
         <button
           type="button"
           className="tb ai-btn"
-          onClick={() => { setAiErr(""); setBriefingOpen(true); }}
+          onClick={() => { if (onNoPlan) { onNoPlan(); return; } setAiErr(""); setBriefingOpen(true); }}
           disabled={aiLoading || !title.trim() || !subtitle.trim()}
           title={!title.trim() || !subtitle.trim() ? "Preencha o título e o subtítulo para usar a IA" : "Gerar ou reescrever com IA"}
           style={{ display: "flex", alignItems: "center", gap: 5, padding: "0 12px", width: "auto", background: aiLoading ? "#e6a800" : (!title.trim() || !subtitle.trim()) ? "var(--line)" : "#FAB500", color: (!title.trim() || !subtitle.trim()) ? "var(--stone)" : "#000", fontWeight: 700, fontSize: 13, borderRadius: 99, height: 32, cursor: (!title.trim() || !subtitle.trim()) ? "not-allowed" : "pointer" }}

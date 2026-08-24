@@ -394,7 +394,7 @@ function StepBrand({ selected, onSelect, brands, brandsLimit, onAddBrand, onLimi
 interface Content { title: string; subtitle: string; body: string; cat: string; author: string; imageUrls: string[] }
 
 
-function StepContent({ content, setContent, brand, ownerName, onAIUsed, navSlot }: { content: Content; setContent: React.Dispatch<React.SetStateAction<Content>>; brand: Brand | null; ownerName: string; onAIUsed?: () => void; navSlot?: React.ReactNode }) {
+function StepContent({ content, setContent, brand, ownerName, onAIUsed, onNoPlan, navSlot }: { content: Content; setContent: React.Dispatch<React.SetStateAction<Content>>; brand: Brand | null; ownerName: string; onAIUsed?: () => void; onNoPlan?: () => void; navSlot?: React.ReactNode }) {
   const brandAuthors = brand?.authors ?? [];
   const authors = brandAuthors.length > 0 ? brandAuthors : [ownerName].filter(Boolean);
   const up = (k: keyof Content, v: string | string[]) => setContent(prev => ({ ...prev, [k]: v }));
@@ -417,6 +417,7 @@ function StepContent({ content, setContent, brand, ownerName, onAIUsed, navSlot 
           onContentChange={v => up("body", v)}
           brandName={brand?.name}
           onAIUsed={onAIUsed}
+          onNoPlan={onNoPlan}
           onImageInserted={url => up("imageUrls", [url, ...content.imageUrls.filter(u => u !== url)])}
         />
       </div>
@@ -1817,7 +1818,7 @@ export default function NovoReleasePage() {
             : <>{backBtn}{nextBtn}</>;
 
           if (step === 0) return <StepBrand selected={brand} onSelect={setBrand} brands={brands} brandsLimit={sub.brandsLimit} onAddBrand={b => setBrands(prev => [...prev, b])} onLimitReached={() => { window.dispatchEvent(new CustomEvent("open-plans")); }} isCancelled={sub.status === "CANCELLED"} navSlot={navSlot} />;
-          if (step === 1) return <StepContent content={content} setContent={setContent} brand={brand} ownerName={ownerName} onAIUsed={handleAIUsed} navSlot={navSlot} />;
+          if (step === 1) return <StepContent content={content} setContent={setContent} brand={brand} ownerName={ownerName} onAIUsed={handleAIUsed} onNoPlan={(sub.plan === "VOUCHER" || !sub.plan || sub.status === "CANCELLED" || sub.status === "INACTIVE") ? () => window.dispatchEvent(new CustomEvent("open-plans")) : undefined} navSlot={navSlot} />;
           if (step === 2) return <StepVehicles selected={selected} setSelected={setSelected} vehicles={vehicles} sub={sub} onBuyCredits={sub.plan === "VOUCHER" ? undefined : () => { try { sessionStorage.setItem("raio_draft_vehicles", JSON.stringify(selected)); sessionStorage.setItem("raio_draft_brand", JSON.stringify(brand)); } catch { /* ignore */ } setShowBuyCreditsModal(true); }} onUpgrade={() => { try { sessionStorage.setItem("raio_draft_vehicles", JSON.stringify(selected)); sessionStorage.setItem("raio_draft_brand", JSON.stringify(brand)); } catch { /* ignore */ } window.dispatchEvent(new CustomEvent("open-plans")); }} navSlot={navSlot} />;
           if (step === 3) return <StepReview content={content} selected={selected} when={when} setWhen={setWhen} brand={brand} vehicles={vehicles} datePicked={datePicked} setDatePicked={setDatePicked} dateFlash={dateFlash} setDateFlash={setDateFlash} navSlot={navSlot} />;
         })()}
