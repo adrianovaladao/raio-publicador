@@ -264,3 +264,27 @@ enum PixStatus {
   CONFIRMED
   REJECTED
 }
+
+// ─── Perfil Fiscal ────────────────────────────────────────────────────────────
+
+model FiscalProfile {
+  id           String   @id @default(cuid())
+  ownerId      String   @unique
+  personType   String   // "PF" | "PJ"
+  // PF
+  fullName     String?
+  cpf          String?
+  // PJ
+  companyName  String?
+  cnpj         String?
+  // Endereço
+  cep          String
+  street       String
+  number       String
+  complement   String?
+  district     String
+  city         String
+  state        String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
