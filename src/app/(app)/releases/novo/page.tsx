@@ -1222,14 +1222,20 @@ async function downloadDocx(content: Content, selVehicles: VehicleItem[], brand:
           children: [],
         }),
 
-        // Corpo
-        ...content.body.split("\n").filter(Boolean).map(line =>
-          new Paragraph({
-            spacing: { after: 200 },
-            children: [new TextRun({ text: line, size: 24, font: "Calibri" })],
-            alignment: AlignmentType.JUSTIFIED,
-          })
-        ),
+        // Corpo — converte HTML para texto antes de exportar
+        ...(() => {
+          const div = document.createElement("div");
+          div.innerHTML = content.body ?? "";
+          const plainText = (div.innerText ?? div.textContent ?? "")
+            .split("\n").map(l => l.trim()).filter(Boolean);
+          return plainText.map(line =>
+            new Paragraph({
+              spacing: { after: 200 },
+              children: [new TextRun({ text: line, size: 24, font: "Calibri" })],
+              alignment: AlignmentType.JUSTIFIED,
+            })
+          );
+        })(),
 
         // Boilerplate
         ...(brand ? [
