@@ -101,7 +101,7 @@ export async function sendReleaseScheduledEmail(
 
   const html = base(`
     ${h1(`Tudo certo, ${firstName}! ✓`)}
-    ${p("O seu release já está agendado e será publicado nos portais selecionados.")}
+    ${p("O seu release já está agendado e será publicado nos portais selecionados, caso esteja de acordo tanto com as diretrizes editoriais dos portais parceiros quanto a legislação vigente.")}
     <table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0">
       <tr><td style="padding:8px 0;color:#888;width:130px;vertical-align:top">Release</td><td style="padding:8px 0;color:#1a1a1a;font-weight:600">${releaseTitle}</td></tr>
       <tr><td style="padding:8px 0;color:#888;vertical-align:top">Agendado para</td><td style="padding:8px 0;color:#1a1a1a">${date} (Brasília)</td></tr>
