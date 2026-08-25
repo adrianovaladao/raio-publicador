@@ -388,19 +388,6 @@ export default function CheckoutConfirmClient({ initialPlanId, allPlans }: Props
                             <span>Total/mês</span><span>{fmt(totalCents)}</span>
                           </div>
                         </div>
-                        {/* Pix */}
-                        <div style={{ flex: 1, background: "rgba(250,181,0,0.06)", border: "1.5px solid rgba(250,181,0,0.25)", borderRadius: 12, padding: "14px 14px 12px" }}>
-                          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#FAB500", marginBottom: 10 }}>⚡ Pix</div>
-                          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "var(--tx-2)", marginBottom: 5 }}>
-                            <span>Plano {plan.label}</span><span>{fmt(plan.priceCents)}</span>
-                          </div>
-                          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#4ade80", marginBottom: 10 }}>
-                            <span>Sem taxa de processamento</span><span>—</span>
-                          </div>
-                          <div style={{ borderTop: "1px solid rgba(250,181,0,0.2)", paddingTop: 8, display: "flex", justifyContent: "space-between", fontSize: 15, fontWeight: 800, color: "#FAB500" }}>
-                            <span>Total/mês</span><span>{fmt(plan.priceCents)}</span>
-                          </div>
-                        </div>
                       </div>
                     </div>
                   );
@@ -413,11 +400,6 @@ export default function CheckoutConfirmClient({ initialPlanId, allPlans }: Props
                   {loading ? "Redirecionando…" : <><span>Pagar com cartão ou boleto</span><ArrowRight size={17} /></>}
                 </button>
 
-                <button onClick={() => startPayment("pix")}
-                  style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 7, width: "100%", padding: "10px 0", background: "rgba(250,181,0,0.12)", border: "1.5px solid rgba(250,181,0,0.35)", borderRadius: 10, fontSize: 14, fontWeight: 700, color: "#FAB500", marginBottom: 10, cursor: "pointer", fontFamily: "inherit" }}>
-                  <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h.01M14 17h.01M17 14h.01M17 17h.01M20 14h.01M20 17h.01M20 20h.01M17 20h.01M14 20h.01"/></svg>
-                  Pagar com Pix
-                </button>
 
                 <button onClick={() => setStep("plans")}
                   style={{ background: "none", border: "none", fontSize: 13.5, color: "var(--tx-3)", cursor: "pointer", padding: "4px 8px", marginBottom: 20 }}>
