@@ -517,7 +517,7 @@ function Footer() {
           </div>
           <div className="col">
             <h4>Empresa</h4>
-            <a href="#">Sobre</a>
+            <Link href="/sobre">Sobre</Link>
           </div>
           <div className="col">
             <h4>Legal</h4>
