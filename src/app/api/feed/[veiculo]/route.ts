@@ -18,6 +18,11 @@ function xmlEscape(str: string) {
     .replace(/'/g, "&apos;");
 }
 
+function boldLinks(html: string) {
+  // Wraps <a> anchor text in <strong> so links appear bold in partner feeds
+  return html.replace(/(<a\b[^>]*>)([\s\S]*?)(<\/a>)/gi, "$1<strong>$2</strong>$3");
+}
+
 function htmlToPlainText(html: string) {
   return html
     .replace(/<br\s*\/?>/gi, "\n")
@@ -116,7 +121,7 @@ export async function GET(
     <item>
       <title>${xmlEscape(r.title)}</title>
       <subtitle><![CDATA[${r.summary ?? ""}]]></subtitle>
-      <description><![CDATA[${r.body}]]></description>
+      <description><![CDATA[${boldLinks(r.body)}]]></description>
       <pubDate>${pubDate(r)}</pubDate>
       <guid isPermaLink="false">${r.id}</guid>
       <link>${baseUrl}/releases/${r.id}</link>

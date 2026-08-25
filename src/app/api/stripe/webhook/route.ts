@@ -121,9 +121,12 @@ export async function POST(req: NextRequest) {
         // Nova assinatura: preserva saldo disponível existente (ex: voucher) + créditos do plano
         const current = await prisma.subscription.findUnique({
           where: { ownerId: clerkId },
-          select: { creditsTotal: true, creditsUsed: true },
+          select: { creditsTotal: true, creditsUsed: true, plan: true },
         });
-        const bonusCredits = Math.max(0, (current?.creditsTotal ?? 0) - (current?.creditsUsed ?? 0));
+        // Preserva créditos disponíveis apenas se vieram de um voucher — não de registros INACTIVE pré-criados no checkout
+        const bonusCredits = current?.plan === "VOUCHER"
+          ? Math.max(0, (current.creditsTotal ?? 0) - (current.creditsUsed ?? 0))
+          : 0;
         await prisma.subscription.update({
           where: { ownerId: clerkId },
           data: {

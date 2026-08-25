@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
 
   if (!sub) {
     await prisma.subscription.create({
-      data: { ownerId: userId, plan: planId, status: "INACTIVE", creditsTotal: plan.credits, stripeCustomerId: customerId },
+      data: { ownerId: userId, plan: planId, status: "INACTIVE", creditsTotal: 0, stripeCustomerId: customerId },
     });
   }
 
