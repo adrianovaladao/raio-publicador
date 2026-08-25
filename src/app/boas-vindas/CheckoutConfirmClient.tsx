@@ -101,7 +101,7 @@ function formatCEP(v: string) {
 export default function CheckoutConfirmClient({ initialPlanId, allPlans }: Props) {
   const [selectedId, setSelectedId] = useState(initialPlanId);
   const [step, setStep] = useState<Step>("confirm");
-  const [pendingPayment, setPendingPayment] = useState<"card" | "pix" | null>(null);
+  const [pendingPayment, setPendingPayment] = useState<"card" | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showBackWarning, setShowBackWarning] = useState(false);
@@ -158,8 +158,8 @@ export default function CheckoutConfirmClient({ initialPlanId, allPlans }: Props
     finally { setCepLoading(false); }
   }
 
-  function startPayment(type: "card" | "pix") {
-    setPendingPayment(type);
+  function startPayment() {
+    setPendingPayment("card");
     setStep("fiscal");
     setFiscalError("");
   }
@@ -199,11 +199,7 @@ export default function CheckoutConfirmClient({ initialPlanId, allPlans }: Props
     }
 
     // Proceed to payment
-    if (pendingPayment === "pix") {
-      window.location.href = `/pix/${plan.id.toLowerCase()}`;
-    } else {
-      await proceedToStripe();
-    }
+    await proceedToStripe();
   }
 
   async function proceedToStripe() {
@@ -395,7 +391,7 @@ export default function CheckoutConfirmClient({ initialPlanId, allPlans }: Props
 
                 {error && <p style={{ color: "var(--red, #c0392b)", fontSize: 13, marginBottom: 16 }}>{error}</p>}
 
-                <button className="btn btn-primary btn-lg" onClick={() => startPayment("card")} disabled={loading}
+                <button className="btn btn-primary btn-lg" onClick={() => startPayment()} disabled={loading}
                   style={{ width: "100%", justifyContent: "center", marginBottom: 8 }}>
                   {loading ? "Redirecionando…" : <><span>Pagar com cartão ou boleto</span><ArrowRight size={17} /></>}
                 </button>
