@@ -101,7 +101,6 @@ function formatCEP(v: string) {
 export default function CheckoutConfirmClient({ initialPlanId, allPlans }: Props) {
   const [selectedId, setSelectedId] = useState(initialPlanId);
   const [step, setStep] = useState<Step>("confirm");
-  const [pendingPayment, setPendingPayment] = useState<"card" | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showBackWarning, setShowBackWarning] = useState(false);
@@ -159,7 +158,6 @@ export default function CheckoutConfirmClient({ initialPlanId, allPlans }: Props
   }
 
   function startPayment() {
-    setPendingPayment("card");
     setStep("fiscal");
     setFiscalError("");
   }
