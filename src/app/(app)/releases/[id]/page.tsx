@@ -1146,26 +1146,6 @@ useEffect(() => {
       <div className="content-inner">
 
         {/* Stepper + ações */}
-        <div className="page-head" style={{ marginBottom: 28 }}>
-          <div className="steps">
-            {STEPS.map((s, i) => (
-              <span key={s} style={{ display: "contents" }}>
-                {i > 0 && <span className={`bar${i <= step ? " done" : ""}`} />}
-                <div
-                  className={`step${i === step ? " active" : i < step ? " done" : ""}`}
-                  onClick={() => i < step && setStep(i)}
-                  style={{ cursor: i < step ? "pointer" : "default" }}
-                >
-                  <span className="n">{i < step ? <Check size={13} /> : i + 1}</span>
-                  <span className="lbl">{s}</span>
-                </div>
-              </span>
-            ))}
-          </div>
-        </div>
-
-        {err && <p style={{ color: "var(--red,#c0392b)", fontSize: 13, marginBottom: 16, fontWeight: 500 }}>{err}</p>}
-
         {(() => {
           const cancelBtn = <button className="btn btn-quiet btn-sm" onClick={() => router.back()}>Cancelar</button>;
           const backBtn = step > 0 ? <button className="btn btn-ghost btn-sm" onClick={() => setStep(s => s - 1)}><ArrowLeft size={16} /> Voltar</button> : null;
@@ -1192,31 +1172,55 @@ useEffect(() => {
               {saving ? "Salvando…" : <><Check size={15} /> Salvar alterações</>}
             </button>
           );
-          const navSlot = <>{cancelBtn}{backBtn}{nextBtn}</>;
 
-          if (step === 0) return (
-            <StepContent
-              title={title} setTitle={setTitle}
-              subtitle={subtitle} setSubtitle={setSubtitle}
-              body={body} setBody={setBody}
-              cat={cat} setCat={setCat}
-              author={author} setAuthor={setAuthor}
-              brand={brand}
-              navSlot={navSlot}
-            />
-          );
-          if (step === 1) return <StepVehicles selected={selectedVeh} setSelected={setSelectedVeh} vehicles={vehicles} sub={sub} onBuyCredits={(sub.plan === "VOUCHER" || sub.status === "CANCELLED" || sub.status === "INACTIVE") ? undefined : () => setShowBuyCreditsModal(true)} onUpgrade={() => window.dispatchEvent(new CustomEvent("open-plans"))} navSlot={navSlot} />;
-          if (step === 2) return (
-            <StepSchedule
-              schedDate={schedDate} setSchedDate={setSchedDate}
-              title={title} body={body} subtitle={subtitle} cat={cat}
-              selectedVeh={selectedVeh} brand={brand}
-              releaseStatus={release?.status ?? "DRAFT"}
-              onSaveDraft={saveDraft}
-              saving={saving}
-              vehicles={vehicles}
-              navSlot={navSlot}
-            />
+          return (
+            <>
+              <div className="page-head" style={{ marginBottom: 28 }}>
+                <div className="steps">
+                  {STEPS.map((s, i) => (
+                    <span key={s} style={{ display: "contents" }}>
+                      {i > 0 && <span className={`bar${i <= step ? " done" : ""}`} />}
+                      <div
+                        className={`step${i === step ? " active" : i < step ? " done" : ""}`}
+                        onClick={() => i < step && setStep(i)}
+                        style={{ cursor: i < step ? "pointer" : "default" }}
+                      >
+                        <span className="n">{i < step ? <Check size={13} /> : i + 1}</span>
+                        <span className="lbl">{s}</span>
+                      </div>
+                    </span>
+                  ))}
+                </div>
+                <div className="actions">{cancelBtn}{backBtn}{nextBtn}</div>
+              </div>
+
+              {err && <p style={{ color: "var(--red,#c0392b)", fontSize: 13, marginBottom: 16, fontWeight: 500 }}>{err}</p>}
+
+              {step === 0 && (
+                <StepContent
+                  title={title} setTitle={setTitle}
+                  subtitle={subtitle} setSubtitle={setSubtitle}
+                  body={body} setBody={setBody}
+                  cat={cat} setCat={setCat}
+                  author={author} setAuthor={setAuthor}
+                  brand={brand}
+                />
+              )}
+              {step === 1 && (
+                <StepVehicles selected={selectedVeh} setSelected={setSelectedVeh} vehicles={vehicles} sub={sub} onBuyCredits={(sub.plan === "VOUCHER" || sub.status === "CANCELLED" || sub.status === "INACTIVE") ? undefined : () => setShowBuyCreditsModal(true)} onUpgrade={() => window.dispatchEvent(new CustomEvent("open-plans"))} />
+              )}
+              {step === 2 && (
+                <StepSchedule
+                  schedDate={schedDate} setSchedDate={setSchedDate}
+                  title={title} body={body} subtitle={subtitle} cat={cat}
+                  selectedVeh={selectedVeh} brand={brand}
+                  releaseStatus={release?.status ?? "DRAFT"}
+                  onSaveDraft={saveDraft}
+                  saving={saving}
+                  vehicles={vehicles}
+                />
+              )}
+            </>
           );
         })()}
       </div>
