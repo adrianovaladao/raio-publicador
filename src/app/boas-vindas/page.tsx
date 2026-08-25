@@ -37,7 +37,7 @@ export default async function BoasVindasPage({
 
   const allPlans = (["BASIC", "ADVANCED", "PROFESSIONAL"] as PlanId[]).map((id) => {
     const p = PLANS[id];
-    return { id, label: p.label, priceBRL: fmt(p.priceCents), credits: p.credits, brandsLimit: p.brandsLimit, editorsLimit: p.editorsLimit, reviewersLimit: p.reviewersLimit, tierAIncluded: p.tierAIncluded };
+    return { id, label: p.label, priceBRL: fmt(p.priceCents), priceCents: p.priceCents, credits: p.credits, brandsLimit: p.brandsLimit, editorsLimit: p.editorsLimit, reviewersLimit: p.reviewersLimit, tierAIncluded: p.tierAIncluded };
   });
 
   const plan = PLANS[planId];

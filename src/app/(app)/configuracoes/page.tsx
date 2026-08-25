@@ -228,8 +228,8 @@ const PIX_TYPES = [
   { value: "Aleatória", label: "Chave aleatória" },
 ];
 
-function CancelFlow({ plan, email, periodEnd, periodStart, isCancelled, onDone, onReactivated }: {
-  plan: string; email: string; periodEnd: string | null; periodStart: string | null; isCancelled?: boolean; onDone: (refunded: boolean) => void; onReactivated: () => void;
+function CancelFlow({ plan, email, periodEnd, periodStart, isCancelled, creditsUsed, onDone, onReactivated }: {
+  plan: string; email: string; periodEnd: string | null; periodStart: string | null; isCancelled?: boolean; creditsUsed: number; onDone: (refunded: boolean) => void; onReactivated: () => void;
 }) {
   const [step, setStep] = useState<CancelStep>("idle");
   const [zapping, setZapping] = useState(false);
@@ -248,7 +248,7 @@ function CancelFlow({ plan, email, periodEnd, periodStart, isCancelled, onDone, 
   const daysSincePeriodStart = periodStart
     ? (Date.now() - new Date(periodStart).getTime()) / (1000 * 60 * 60 * 24)
     : Infinity;
-  const eligibleForRefund = daysSincePeriodStart <= 7;
+  const eligibleForRefund = daysSincePeriodStart <= 7 && creditsUsed === 0;
 
   const isAdvanced = plan === "ADVANCED";
   const isProfessional = plan === "PROFESSIONAL";
@@ -549,7 +549,9 @@ function CancelFlow({ plan, email, periodEnd, periodStart, isCancelled, onDone, 
                 {[
                   eligibleForRefund
                     ? { icon: <CheckCircle2 size={16} />, color: "#15803D", bg: "#F0FDF4", title: "Reembolso integral garantido", desc: "Sua cobrança tem menos de 7 dias. Você tem direito ao reembolso completo conforme o Art. 49 do CDC. O cancelamento será imediato." }
-                    : { icon: <Ban size={16} />, color: "var(--stone)", bg: "var(--cream)", title: "Sem reembolso", desc: "O prazo de 7 dias para arrependimento (Art. 49, CDC) já expirou. O valor pago não será devolvido." },
+                    : daysSincePeriodStart <= 7 && creditsUsed > 0
+                      ? { icon: <AlertTriangle size={16} />, color: "#B45309", bg: "#FFFBEB", title: "Reembolso possível", desc: "Você ainda está dentro do prazo de 7 dias (Art. 49, CDC), mas utilizou créditos neste ciclo. Se cancelar todos os releases agendados antes de prosseguir, os créditos voltam ao seu saldo e o reembolso integral será aplicado automaticamente." }
+                      : { icon: <Ban size={16} />, color: "var(--stone)", bg: "var(--cream)", title: "Sem reembolso", desc: "O prazo de 7 dias para arrependimento (Art. 49, CDC) já expirou. O valor pago não será devolvido." },
                   { icon: <Clock size={16} />, color: "var(--stone)", bg: "var(--cream)", title: "Créditos", desc: eligibleForRefund ? "Seu acesso e créditos serão encerrados imediatamente." : `Use seus créditos até ${periodEndFmt}. Após isso, expiram.` },
                   { icon: <FileText size={16} />, color: "var(--stone)", bg: "var(--cream)", title: "Releases não publicados", desc: eligibleForRefund ? "Ficam arquivados imediatamente." : `Podem ser editados até ${periodEndFmt}. Depois ficam arquivados.` },
                   { icon: <CheckCircle2 size={16} />, color: "var(--stone)", bg: "var(--cream)", title: "Releases já publicados", desc: "Permanecem nos veículos normalmente." },
@@ -801,7 +803,7 @@ function NotificacoesPanel({ onToast }: { onToast: (m: string) => void }) {
 
 function ContaPanel({ onToast }: { onToast: (m: string) => void }) {
   const { user, isLoaded } = useUser();
-  const [subInfo, setSubInfo] = useState<{ plan: string; periodEnd: string | null; periodStart: string | null; status: string | null } | null>(null);
+  const [subInfo, setSubInfo] = useState<{ plan: string; periodEnd: string | null; periodStart: string | null; status: string | null; creditsUsed: number } | null>(null);
 
   // troca de senha
   const [showPwForm, setShowPwForm] = useState(false);
@@ -817,7 +819,7 @@ function ContaPanel({ onToast }: { onToast: (m: string) => void }) {
   useEffect(() => {
     fetch("/api/stripe/subscription")
       .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d) setSubInfo({ plan: d.plan ?? "BASIC", periodEnd: d.currentPeriodEnd ?? null, periodStart: d.currentPeriodStart ?? null, status: d.status ?? null }); })
+      .then(d => { if (d) setSubInfo({ plan: d.plan ?? "BASIC", periodEnd: d.currentPeriodEnd ?? null, periodStart: d.currentPeriodStart ?? null, status: d.status ?? null, creditsUsed: d.creditsUsed ?? 0 }); })
       .catch(() => {});
   }, []);
 
@@ -895,6 +897,7 @@ function ContaPanel({ onToast }: { onToast: (m: string) => void }) {
           periodEnd={subInfo.periodEnd}
           periodStart={subInfo.periodStart}
           isCancelled={subInfo.status === "CANCELLED"}
+          creditsUsed={subInfo.creditsUsed}
           onDone={(refunded) => onToast(refunded ? "Assinatura cancelada e reembolso processado." : "Assinatura cancelada. Seu acesso permanece até o fim do ciclo.")}
           onReactivated={() => { onToast("Assinatura reativada! Bem-vindo de volta."); setSubInfo(s => s ? { ...s, status: "ACTIVE" } : s); }}
         />

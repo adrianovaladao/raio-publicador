@@ -512,7 +512,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   const pct  = sub.credits > 0 ? Math.round((sub.creditsUsed / sub.credits) * 100) : 0;
   const left = sub.credits - sub.creditsUsed;
-  const isCancelled = sub.status === "CANCELLED" || sub.status === "INACTIVE" && sub.credits === 0;
+  const isCancelled = sub.status === "CANCELLED" || sub.status === "INACTIVE" || sub.status === null;
 
   return (
     <div className="app">
@@ -579,7 +579,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <button className="credits" onClick={() => setShowPlans(true)} title="Ver planos e créditos">
           <div className="top">
             <span className="lbl">Créditos</span>
-            <span className="credits-plan">{sub.label}</span>
+            <span className="credits-plan">{isCancelled ? "Sem plano" : sub.label}</span>
           </div>
           <div className="num">
             {left.toLocaleString("pt-BR")}
@@ -595,7 +595,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               Ver planos
             </div>
           )}
-          {sub.plan && sub.plan !== "VOUCHER" && (
+          {sub.plan && !isCancelled && sub.plan !== "VOUCHER" && (
             <div
               style={{ marginTop: 6, padding: "6px 10px", borderRadius: 8, background: "#000", border: "1px solid #000", fontSize: 12, fontWeight: 600, color: "#fff", textAlign: "center", cursor: "pointer" }}
               onClick={e => { e.stopPropagation(); setShowBuyCredits(true); }}

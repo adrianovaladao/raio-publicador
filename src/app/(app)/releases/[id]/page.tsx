@@ -744,11 +744,11 @@ export default function EditReleasePage() {
   const [dupChecking, setDupChecking] = useState(false);
   const [err,        setErr]        = useState("");
   const [toast,      setToast]      = useState<string | null>(null);
-  const [sub, setSub] = useState({ credits: 0, creditsUsed: 0, plan: null as string | null });
-  useEffect(() => {
+  const [sub, setSub] = useState({ credits: 0, creditsUsed: 0, plan: null as string | null, status: null as string | null });
+useEffect(() => {
     fetch("/api/stripe/subscription").then(r => r.json())
-      .then((d: { credits?: number; creditsUsed?: number; plan?: string | null }) => {
-        setSub({ credits: d.credits ?? 0, creditsUsed: d.creditsUsed ?? 0, plan: d.plan ?? null });
+      .then((d: { credits?: number; creditsUsed?: number; plan?: string | null; status?: string | null }) => {
+        setSub({ credits: d.credits ?? 0, creditsUsed: d.creditsUsed ?? 0, plan: d.plan ?? null, status: d.status ?? null });
       }).catch(() => {});
   }, []);
 
@@ -1205,7 +1205,7 @@ export default function EditReleasePage() {
               navSlot={navSlot}
             />
           );
-          if (step === 1) return <StepVehicles selected={selectedVeh} setSelected={setSelectedVeh} vehicles={vehicles} sub={sub} onBuyCredits={sub.plan === "VOUCHER" ? undefined : () => setShowBuyCreditsModal(true)} onUpgrade={() => window.dispatchEvent(new CustomEvent("open-plans"))} navSlot={navSlot} />;
+          if (step === 1) return <StepVehicles selected={selectedVeh} setSelected={setSelectedVeh} vehicles={vehicles} sub={sub} onBuyCredits={(sub.plan === "VOUCHER" || sub.status === "CANCELLED" || sub.status === "INACTIVE") ? undefined : () => setShowBuyCreditsModal(true)} onUpgrade={() => window.dispatchEvent(new CustomEvent("open-plans"))} navSlot={navSlot} />;
           if (step === 2) return (
             <StepSchedule
               schedDate={schedDate} setSchedDate={setSchedDate}

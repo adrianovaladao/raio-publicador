@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Política de Cookies — Raio Publicador",
-  description: "Entenda como o Raio Publicador utiliza cookies e tecnologias similares.",
+  description: "Quais cookies o Raio Publicador usa, para que servem e como gerenciá-los.",
 };
 
 export default function CookiesPage() {
@@ -19,98 +19,117 @@ export default function CookiesPage() {
       </header>
 
       <main style={{ maxWidth: 760, margin: "0 auto", padding: "56px 24px 80px" }}>
-        <p style={{ fontSize: 13, color: "#888", marginBottom: 8 }}>Última atualização: agosto de 2026</p>
-        <h1 style={{ fontSize: 36, fontWeight: 800, color: "#1a1a1a", marginBottom: 32, lineHeight: 1.2 }}>Política de Cookies</h1>
+        <p style={{ fontSize: 13, color: "#888", marginBottom: 8 }}>Vigência a partir de: agosto de 2026</p>
+        <h1 style={{ fontSize: 36, fontWeight: 800, color: "#1a1a1a", marginBottom: 16, lineHeight: 1.2 }}>Política de Cookies</h1>
+        <p style={{ fontSize: 16, color: "#555", lineHeight: 1.7, marginBottom: 40, borderLeft: "3px solid #FAB500", paddingLeft: 16 }}>
+          Cookies são pequenos arquivos que o navegador salva no seu dispositivo quando você visita um site. Usamos apenas o necessário para manter a plataforma funcionando e entender como ela é usada. Aqui está exatamente o que e por quê.
+        </p>
 
-        <Section title="1. O que são cookies">
-          <p>Cookies são pequenos arquivos de texto armazenados no seu dispositivo quando você acessa um site ou aplicativo. Eles permitem que a plataforma reconheça seu dispositivo, mantenha sua sessão ativa, lembre suas preferências e colete informações sobre como você usa o serviço.</p>
-        </Section>
+        <Section title="1. Cookies essenciais">
+          <p>São indispensáveis para que a plataforma funcione. Sem eles, você não consegue fazer login nem navegar pelas páginas autenticadas. <strong>Não há opção de desativá-los enquanto você usa o Raio Publicador</strong> &mdash; desabilitá-los significa não conseguir usar o serviço.</p>
 
-        <Section title="2. Cookies que utilizamos">
-          <p>O Raio Publicador utiliza dois tipos de cookies:</p>
-
-          <div style={{ background: "#fff", border: "1px solid #e8e8e4", borderRadius: 12, overflow: "hidden", marginTop: 8 }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14, minWidth: 540 }}>
               <thead>
-                <tr style={{ background: "#f4f4f0" }}>
-                  <th style={{ padding: "12px 16px", textAlign: "left", fontWeight: 700, color: "#1a1a1a", borderBottom: "1px solid #e8e8e4" }}>Tipo</th>
-                  <th style={{ padding: "12px 16px", textAlign: "left", fontWeight: 700, color: "#1a1a1a", borderBottom: "1px solid #e8e8e4" }}>Nome</th>
-                  <th style={{ padding: "12px 16px", textAlign: "left", fontWeight: 700, color: "#1a1a1a", borderBottom: "1px solid #e8e8e4" }}>Finalidade</th>
-                  <th style={{ padding: "12px 16px", textAlign: "left", fontWeight: 700, color: "#1a1a1a", borderBottom: "1px solid #e8e8e4" }}>Duração</th>
+                <tr style={{ background: "#f0eeea" }}>
+                  <th style={th}>Cookie</th>
+                  <th style={th}>Origem</th>
+                  <th style={th}>Função</th>
+                  <th style={th}>Validade</th>
                 </tr>
               </thead>
               <tbody>
-                <tr style={{ borderBottom: "1px solid #f0f0ec" }}>
-                  <td style={{ padding: "12px 16px", color: "#444", verticalAlign: "top" }}><span style={{ background: "#e8f5ee", color: "#2F8A5B", fontSize: 12, fontWeight: 700, padding: "2px 8px", borderRadius: 6 }}>Essencial</span></td>
-                  <td style={{ padding: "12px 16px", color: "#444", fontFamily: "monospace", fontSize: 13 }}>__session, __clerk_*</td>
-                  <td style={{ padding: "12px 16px", color: "#444" }}>Autenticação e manutenção da sessão do usuário</td>
-                  <td style={{ padding: "12px 16px", color: "#444" }}>Sessão</td>
-                </tr>
-                <tr style={{ borderBottom: "1px solid #f0f0ec" }}>
-                  <td style={{ padding: "12px 16px", color: "#444", verticalAlign: "top" }}><span style={{ background: "#e8f5ee", color: "#2F8A5B", fontSize: 12, fontWeight: 700, padding: "2px 8px", borderRadius: 6 }}>Essencial</span></td>
-                  <td style={{ padding: "12px 16px", color: "#444", fontFamily: "monospace", fontSize: 13 }}>__stripe_*</td>
-                  <td style={{ padding: "12px 16px", color: "#444" }}>Prevenção de fraude em transações de pagamento (Stripe)</td>
-                  <td style={{ padding: "12px 16px", color: "#444" }}>1 ano</td>
-                </tr>
-                <tr style={{ borderBottom: "1px solid #f0f0ec" }}>
-                  <td style={{ padding: "12px 16px", color: "#444", verticalAlign: "top" }}><span style={{ background: "#fff3cd", color: "#8A6500", fontSize: 12, fontWeight: 700, padding: "2px 8px", borderRadius: 6 }}>Analítico</span></td>
-                  <td style={{ padding: "12px 16px", color: "#444", fontFamily: "monospace", fontSize: 13 }}>_ga, _ga_*</td>
-                  <td style={{ padding: "12px 16px", color: "#444" }}>Google Analytics — análise de uso e comportamento de navegação (dados anonimizados)</td>
-                  <td style={{ padding: "12px 16px", color: "#444" }}>2 anos</td>
-                </tr>
-                <tr>
-                  <td style={{ padding: "12px 16px", color: "#444", verticalAlign: "top" }}><span style={{ background: "#e8f5ee", color: "#2F8A5B", fontSize: 12, fontWeight: 700, padding: "2px 8px", borderRadius: 6 }}>Essencial</span></td>
-                  <td style={{ padding: "12px 16px", color: "#444", fontFamily: "monospace", fontSize: 13 }}>next-auth.*, __Host-*</td>
-                  <td style={{ padding: "12px 16px", color: "#444" }}>Proteção contra CSRF e segurança da aplicação</td>
-                  <td style={{ padding: "12px 16px", color: "#444" }}>Sessão</td>
-                </tr>
+                <Row name="__session" origin="Clerk" desc="Mantém sua sessão autenticada na plataforma" val="Sessão" />
+                <Row name="__clerk_*" origin="Clerk" desc="Tokens de segurança e estado de autenticação" val="Sessão" />
+                <Row name="__stripe_mid" origin="Stripe" desc="Detecção de fraude em pagamentos" val="1 ano" />
+                <Row name="__stripe_sid" origin="Stripe" desc="Sessão de checkout no Stripe" val="30 min" />
+                <Row name="__Host-next-auth.*" origin="Next.js" desc="Estado de roteamento seguro (CSRF)" val="Sessão" />
               </tbody>
             </table>
           </div>
         </Section>
 
-        <Section title="3. Cookies essenciais">
-          <p>Os cookies essenciais são estritamente necessários para o funcionamento da plataforma. Sem eles, a autenticação, o gerenciamento de sessão e a segurança das transações não funcionariam adequadamente. Por essa razão, esses cookies não podem ser desativados.</p>
+        <Section title="2. Cookies de análise">
+          <p>Usamos o Google Analytics para entender como a plataforma é usada: quais páginas são mais visitadas, de onde vêm os acessos e onde as pessoas encontram dificuldade. Esses dados são <strong>agregados e anonimizados</strong> &mdash; não usamos o Analytics para rastrear você individualmente ou para fins publicitários.</p>
+
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14, minWidth: 540 }}>
+              <thead>
+                <tr style={{ background: "#f0eeea" }}>
+                  <th style={th}>Cookie</th>
+                  <th style={th}>Origem</th>
+                  <th style={th}>Função</th>
+                  <th style={th}>Validade</th>
+                </tr>
+              </thead>
+              <tbody>
+                <Row name="_ga" origin="Google" desc="Identifica sessões únicas para métricas de audiência" val="2 anos" />
+                <Row name="_ga_*" origin="Google" desc="Mantém estado da sessão do Analytics" val="2 anos" />
+              </tbody>
+            </table>
+          </div>
+
+          <p>Para desativar o rastreamento pelo Google Analytics sem precisar ajustar configurações do navegador, você pode instalar o <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener noreferrer" style={{ color: "#1a1a1a", fontWeight: 600 }}>complemento oficial de exclusão do Google Analytics</a>.</p>
         </Section>
 
-        <Section title="4. Cookies analíticos (Google Analytics)">
-          <p>Utilizamos o Google Analytics para entender como os usuários interagem com nossa plataforma. Os dados coletados são anonimizados e não permitem identificar usuários individualmente. Essas informações nos ajudam a melhorar a experiência do produto.</p>
-          <p>Você pode optar por não ser rastreado pelo Google Analytics instalando o <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener noreferrer" style={{ color: "#1a1a1a", fontWeight: 600 }}>complemento de desativação do Google Analytics</a> no seu navegador.</p>
-          <p>Para mais informações sobre como o Google trata esses dados, consulte a <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" style={{ color: "#1a1a1a", fontWeight: 600 }}>Política de Privacidade do Google</a>.</p>
+        <Section title="3. O que não usamos">
+          <p>Para deixar claro: o Raio Publicador <strong>não utiliza</strong>:</p>
+          <ul>
+            <li>Cookies de rastreamento publicitário ou remarketing</li>
+            <li>Pixels de redes sociais (Facebook, TikTok, LinkedIn etc.)</li>
+            <li>Cookies de terceiros para segmentação de audiência</li>
+            <li>Qualquer tecnologia de rastreamento entre sites (<em>cross-site tracking</em>)</li>
+          </ul>
         </Section>
 
-        <Section title="5. Como gerenciar cookies">
-          <p>A maioria dos navegadores permite que você visualize, gerencie e exclua cookies por meio das configurações de privacidade. Veja como fazer isso nos principais navegadores:</p>
+        <Section title="4. Como gerenciar cookies no seu navegador">
+          <p>Você pode configurar seu navegador para bloquear, excluir ou alertá-lo sobre cookies. Lembre-se: bloquear cookies essenciais impede o uso da plataforma. Para cookies de análise, o impacto é apenas na nossa capacidade de entender o uso.</p>
           <ul>
             <li><a href="https://support.google.com/chrome/answer/95647" target="_blank" rel="noopener noreferrer" style={{ color: "#1a1a1a" }}>Google Chrome</a></li>
-            <li><a href="https://support.mozilla.org/pt-BR/kb/cookies-informacoes-sites-armazenam-no-computador" target="_blank" rel="noopener noreferrer" style={{ color: "#1a1a1a" }}>Mozilla Firefox</a></li>
-            <li><a href="https://support.apple.com/pt-br/guide/safari/sfri11471/mac" target="_blank" rel="noopener noreferrer" style={{ color: "#1a1a1a" }}>Apple Safari</a></li>
-            <li><a href="https://support.microsoft.com/pt-br/microsoft-edge/excluir-cookies-no-microsoft-edge-63947406" target="_blank" rel="noopener noreferrer" style={{ color: "#1a1a1a" }}>Microsoft Edge</a></li>
+            <li><a href="https://support.mozilla.org/pt-BR/kb/limpar-cookies-e-dados-de-sites-no-firefox" target="_blank" rel="noopener noreferrer" style={{ color: "#1a1a1a" }}>Mozilla Firefox</a></li>
+            <li><a href="https://support.apple.com/pt-br/guide/safari/sfri11471/mac" target="_blank" rel="noopener noreferrer" style={{ color: "#1a1a1a" }}>Safari (Mac e iOS)</a></li>
+            <li><a href="https://support.microsoft.com/pt-br/microsoft-edge/excluir-cookies-no-microsoft-edge-63947406-40ac-c3b8-57b9-2a946a29ae09" target="_blank" rel="noopener noreferrer" style={{ color: "#1a1a1a" }}>Microsoft Edge</a></li>
           </ul>
-          <p>Atenção: desativar cookies essenciais pode impedir o correto funcionamento da plataforma, incluindo o login e o acesso à área logada.</p>
         </Section>
 
-        <Section title="6. Alterações nesta Política">
-          <p>Esta Política de Cookies pode ser atualizada periodicamente para refletir mudanças nos cookies que utilizamos ou alterações regulatórias. A data de revisão no topo deste documento indica quando a última versão foi publicada.</p>
+        <Section title="5. Atualizações nesta Política">
+          <p>Se introduzirmos novos cookies &mdash; especialmente de categorias diferentes das que já usamos &mdash; atualizaremos esta página e notificaremos por e-mail com antecedência mínima de 10 dias. Mudanças em cookies essenciais de fornecedores existentes (por exemplo, uma versão nova do Clerk) podem ser feitas sem aviso prévio, mas sempre serão refletidas aqui.</p>
+          <p>Dúvidas: <a href="mailto:adrianovaladao@raiopublicador.com.br" style={{ color: "#1a1a1a", fontWeight: 600 }}>adrianovaladao@raiopublicador.com.br</a></p>
         </Section>
 
-        <Section title="7. Contato">
-          <p>Para dúvidas sobre o uso de cookies pelo Raio Publicador:<br />
-          <a href="mailto:adrianovaladao@raiopublicador.com.br" style={{ color: "#1a1a1a", fontWeight: 600 }}>adrianovaladao@raiopublicador.com.br</a></p>
-        </Section>
-
-        <div style={{ marginTop: 48, paddingTop: 24, borderTop: "1px solid #e8e8e4" }}>
-          <Link href="/" style={{ fontSize: 14, color: "#888", textDecoration: "none" }}>← Voltar para o início</Link>
+        <div style={{ marginTop: 48, paddingTop: 24, borderTop: "1px solid #e8e8e4", display: "flex", gap: 24, flexWrap: "wrap" }}>
+          <Link href="/termos" style={{ fontSize: 14, color: "#555", textDecoration: "none" }}>Termos de Uso →</Link>
+          <Link href="/privacidade" style={{ fontSize: 14, color: "#555", textDecoration: "none" }}>Política de Privacidade →</Link>
+          <Link href="/" style={{ fontSize: 14, color: "#888", textDecoration: "none", marginLeft: "auto" }}>← Voltar para o início</Link>
         </div>
       </main>
     </div>
   );
 }
 
+const th: React.CSSProperties = {
+  padding: "8px 12px",
+  textAlign: "left",
+  fontWeight: 700,
+  borderBottom: "2px solid #e0ddd8",
+  whiteSpace: "nowrap",
+};
+
+function Row({ name, origin, desc, val }: { name: string; origin: string; desc: string; val: string }) {
+  return (
+    <tr style={{ borderBottom: "1px solid #eee" }}>
+      <td style={{ padding: "8px 12px", fontFamily: "monospace", fontSize: 13, color: "#333", whiteSpace: "nowrap" }}>{name}</td>
+      <td style={{ padding: "8px 12px", color: "#555", whiteSpace: "nowrap" }}>{origin}</td>
+      <td style={{ padding: "8px 12px", color: "#444" }}>{desc}</td>
+      <td style={{ padding: "8px 12px", color: "#666", whiteSpace: "nowrap" }}>{val}</td>
+    </tr>
+  );
+}
+
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section style={{ marginBottom: 36 }}>
-      <h2 style={{ fontSize: 18, fontWeight: 700, color: "#1a1a1a", marginBottom: 12 }}>{title}</h2>
+    <section style={{ marginBottom: 40 }}>
+      <h2 style={{ fontSize: 17, fontWeight: 700, color: "#1a1a1a", marginBottom: 12, paddingBottom: 8, borderBottom: "1px solid #eee" }}>{title}</h2>
       <div style={{ fontSize: 15, color: "#444", lineHeight: 1.8, display: "flex", flexDirection: "column", gap: 10 }}>
         {children}
       </div>

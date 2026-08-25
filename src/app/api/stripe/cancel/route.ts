@@ -64,12 +64,36 @@ export async function POST(req: Request) {
 
     // ── Stripe: reembolso automático ──────────────────────────────────────
     const invoices = await stripe.invoices.list({ subscription: sub.stripeSubscriptionId!, limit: 1 });
-    const lastInvoice = invoices.data[0] as unknown as { payment_intent?: string | null };
+    const lastInvoice = invoices.data[0] as unknown as { payment_intent?: string | null; charge?: string | null };
+
+    // Resolve o payment_intent: pode estar direto na fatura ou via charge
+    // (pagamentos via Checkout Session não populam payment_intent na fatura)
+    let paymentIntentId: string | null = null;
+    if (lastInvoice?.payment_intent && typeof lastInvoice.payment_intent === "string") {
+      paymentIntentId = lastInvoice.payment_intent;
+    } else if (lastInvoice?.charge && typeof lastInvoice.charge === "string") {
+      try {
+        const ch = await stripe.charges.retrieve(lastInvoice.charge);
+        paymentIntentId = typeof ch.payment_intent === "string" ? ch.payment_intent : null;
+      } catch { /* ignora */ }
+    } else {
+      // Fallback: busca o charge mais recente do cliente
+      try {
+        const stripeCustomerId = sub.stripeCustomerId as string | undefined;
+        if (stripeCustomerId) {
+          const charges = await stripe.charges.list({ customer: stripeCustomerId, limit: 1 });
+          const ch = charges.data[0];
+          if (ch && ch.paid && !ch.refunded) {
+            paymentIntentId = typeof ch.payment_intent === "string" ? ch.payment_intent : null;
+          }
+        }
+      } catch { /* ignora */ }
+    }
 
     let isBoleto = false;
-    if (lastInvoice?.payment_intent && typeof lastInvoice.payment_intent === "string") {
+    if (paymentIntentId) {
       try {
-        const pi = await stripe.paymentIntents.retrieve(lastInvoice.payment_intent, {
+        const pi = await stripe.paymentIntents.retrieve(paymentIntentId, {
           expand: ["charges.data.payment_method_details"],
         });
         const pmType = (pi as { charges?: { data?: Array<{ payment_method_details?: { type?: string } }> } })
@@ -78,8 +102,8 @@ export async function POST(req: Request) {
       } catch { /* assume card */ }
     }
 
-    if (!isBoleto && lastInvoice?.payment_intent && typeof lastInvoice.payment_intent === "string") {
-      await stripe.refunds.create({ payment_intent: lastInvoice.payment_intent });
+    if (!isBoleto && paymentIntentId) {
+      await stripe.refunds.create({ payment_intent: paymentIntentId });
     }
     await stripe.subscriptions.cancel(sub.stripeSubscriptionId!);
 

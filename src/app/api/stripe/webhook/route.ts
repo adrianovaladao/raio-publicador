@@ -118,14 +118,19 @@ export async function POST(req: NextRequest) {
           await sendUpgradeEmail(email, firstName, PLANS[planId].label, PLANS[planId].credits).catch(console.error);
         }
       } else {
-        // Nova assinatura: define créditos do plano e seta highestPlan inicial
+        // Nova assinatura: preserva saldo disponível existente (ex: voucher) + créditos do plano
+        const current = await prisma.subscription.findUnique({
+          where: { ownerId: clerkId },
+          select: { creditsTotal: true, creditsUsed: true },
+        });
+        const bonusCredits = Math.max(0, (current?.creditsTotal ?? 0) - (current?.creditsUsed ?? 0));
         await prisma.subscription.update({
           where: { ownerId: clerkId },
           data: {
             plan: planId,
             highestPlan: planId,
             status: "ACTIVE",
-            creditsTotal: PLANS[planId].credits,
+            creditsTotal: PLANS[planId].credits + bonusCredits,
             creditsUsed: 0,
             stripeSubscriptionId: subscription.id,
             currentPeriodStart: new Date(subscription.items.data[0].current_period_start * 1000),

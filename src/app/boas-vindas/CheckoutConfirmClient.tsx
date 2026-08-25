@@ -10,6 +10,7 @@ interface PlanData {
   id: string;
   label: string;
   priceBRL: string;
+  priceCents: number;
   credits: number;
   brandsLimit: number;
   editorsLimit: number;
@@ -312,19 +313,48 @@ export default function CheckoutConfirmClient({ initialPlanId, allPlans }: Props
                   <p className="sub">Revise os detalhes do plano antes de prosseguir para o pagamento.</p>
                 </div>
 
-                <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 16, padding: "20px 22px 18px", textAlign: "left", marginBottom: 16 }}>
-                  <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 16 }}>
-                    <div>
-                      <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--tx-3)", marginBottom: 6 }}>Plano selecionado</div>
-                      <div style={{ fontSize: 26, fontWeight: 800, letterSpacing: "-0.02em", color: "var(--tx)" }}>{plan.label}</div>
+                {(() => {
+                  const feeCents = Math.round(plan.priceCents * 0.035);
+                  const totalCents = plan.priceCents + feeCents;
+                  const fmt = (c: number) => (c / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+                  return (
+                    <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 16, padding: "20px 22px 18px", textAlign: "left", marginBottom: 16 }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--tx-3)", marginBottom: 14 }}>Plano selecionado</div>
+                      <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: "-0.02em", color: "var(--tx)", marginBottom: 16 }}>{plan.label}</div>
+                      <PlanFeatures plan={plan} />
+
+                      {/* Detalhamento por método */}
+                      <div style={{ marginTop: 18, display: "flex", gap: 10 }}>
+                        {/* Cartão */}
+                        <div style={{ flex: 1, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, padding: "14px 14px 12px" }}>
+                          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--tx-3)", marginBottom: 10 }}>💳 Cartão ou boleto</div>
+                          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "var(--tx-2)", marginBottom: 5 }}>
+                            <span>Plano {plan.label}</span><span>{fmt(plan.priceCents)}</span>
+                          </div>
+                          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "var(--tx-3)", marginBottom: 10 }}>
+                            <span>Taxa de processamento (3,5%)</span><span>{fmt(feeCents)}</span>
+                          </div>
+                          <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: 8, display: "flex", justifyContent: "space-between", fontSize: 15, fontWeight: 800, color: "var(--coral)" }}>
+                            <span>Total/mês</span><span>{fmt(totalCents)}</span>
+                          </div>
+                        </div>
+                        {/* Pix */}
+                        <div style={{ flex: 1, background: "rgba(250,181,0,0.06)", border: "1.5px solid rgba(250,181,0,0.25)", borderRadius: 12, padding: "14px 14px 12px" }}>
+                          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#FAB500", marginBottom: 10 }}>⚡ Pix</div>
+                          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "var(--tx-2)", marginBottom: 5 }}>
+                            <span>Plano {plan.label}</span><span>{fmt(plan.priceCents)}</span>
+                          </div>
+                          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#4ade80", marginBottom: 10 }}>
+                            <span>Sem taxa de processamento</span><span>—</span>
+                          </div>
+                          <div style={{ borderTop: "1px solid rgba(250,181,0,0.2)", paddingTop: 8, display: "flex", justifyContent: "space-between", fontSize: 15, fontWeight: 800, color: "#FAB500" }}>
+                            <span>Total/mês</span><span>{fmt(plan.priceCents)}</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <div style={{ textAlign: "right" }}>
-                      <div style={{ fontSize: 28, fontWeight: 800, color: "var(--coral)", letterSpacing: "-0.02em", lineHeight: 1 }}>{plan.priceBRL}</div>
-                      <div style={{ fontSize: 13, color: "var(--tx-3)", marginTop: 4 }}>por mês</div>
-                    </div>
-                  </div>
-                  <PlanFeatures plan={plan} />
-                </div>
+                  );
+                })()}
 
                 {error && <p style={{ color: "var(--red, #c0392b)", fontSize: 13, marginBottom: 16 }}>{error}</p>}
 
