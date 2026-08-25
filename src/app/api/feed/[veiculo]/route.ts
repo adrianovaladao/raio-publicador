@@ -116,7 +116,7 @@ export async function GET(
     <item>
       <title>${xmlEscape(r.title)}</title>
       <subtitle><![CDATA[${r.summary ?? ""}]]></subtitle>
-      <description><![CDATA[${htmlToPlainText(r.body)}]]></description>
+      <description><![CDATA[${r.body}]]></description>
       <pubDate>${pubDate(r)}</pubDate>
       <guid isPermaLink="false">${r.id}</guid>
       <link>${baseUrl}/releases/${r.id}</link>
