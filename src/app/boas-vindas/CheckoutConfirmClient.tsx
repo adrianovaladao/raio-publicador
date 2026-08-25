@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowRight, ArrowLeft, Check, Coins, Building2, Users, Newspaper, Zap, FileText } from "lucide-react";
+import { ArrowRight, ArrowLeft, Check, X, Coins, Building2, Users, Newspaper, Zap, FileText } from "lucide-react";
 import { RaioLockup } from "@/components/logo/RaioLockup";
 import "./onboarding.css";
 
@@ -252,13 +252,13 @@ export default function CheckoutConfirmClient({ initialPlanId, allPlans }: Props
           </div>
         )}
         <main className="onb-body">
-          <div className="onb-card narrow" style={{ textAlign: "center", zoom: 1.15 }}>
+          <div className={step === "plans" ? "onb-plans-wide" : "onb-card narrow"} style={{ textAlign: "center", zoom: 1.15 }}>
 
             <style>{`
               .flip-wrap { perspective: 1200px; }
               .flipper {
                 position: relative;
-                transition: transform 0.55s cubic-bezier(0.45, 0, 0.55, 1);
+                transition: transform 0.6s cubic-bezier(0.45, 0, 0.55, 1);
                 transform-style: preserve-3d;
               }
               .flipper.is-flipped { transform: rotateY(180deg); }
@@ -270,20 +270,8 @@ export default function CheckoutConfirmClient({ initialPlanId, allPlans }: Props
                 position: absolute;
                 inset: 0;
                 transform: rotateY(180deg);
-                height: 100%;
+                overflow-y: auto;
               }
-              .plan-choice {
-                background: rgba(255,255,255,0.04);
-                border: 1.5px solid rgba(255,255,255,0.08);
-                border-radius: 14px;
-                padding: 20px;
-                cursor: pointer;
-                text-align: left;
-                transition: border-color .18s, background .18s;
-                flex: 1;
-              }
-              .plan-choice:hover { border-color: rgba(250,181,0,0.4); background: rgba(250,181,0,0.04); }
-              .plan-choice.active { border-color: var(--coral); background: rgba(250,181,0,0.07); }
               .fiscal-input {
                 width: 100%; padding: 10px 13px; border-radius: 9px;
                 border: 1.5px solid rgba(255,255,255,0.12);
@@ -300,6 +288,68 @@ export default function CheckoutConfirmClient({ initialPlanId, allPlans }: Props
               }
               .person-tab.active { background: var(--coral); color: #1a1a1a; }
               .person-tab.inactive { background: rgba(255,255,255,0.06); color: var(--tx-3); }
+
+              /* Planos wide */
+              .onb-plans-wide {
+                width: 100%;
+                max-width: 960px;
+                margin: 0 auto;
+                padding: 0 16px;
+              }
+              .onb-plans-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 20px;
+                align-items: start;
+              }
+              @media (max-width: 720px) {
+                .onb-plans-grid { grid-template-columns: 1fr; }
+              }
+              .onb-plan-card {
+                position: relative;
+                background: rgba(255,255,255,0.04);
+                border: 1.5px solid rgba(255,255,255,0.1);
+                border-radius: 20px;
+                padding: 24px 22px 22px;
+                text-align: left;
+                cursor: pointer;
+                transition: border-color .2s, background .2s, transform .2s;
+              }
+              .onb-plan-card:hover { border-color: rgba(250,181,0,0.5); transform: translateY(-3px); }
+              .onb-plan-card.featured {
+                border-color: var(--coral);
+                background: rgba(250,181,0,0.06);
+              }
+              .onb-plan-ribbon {
+                position: absolute;
+                top: -1px; right: 20px;
+                background: var(--coral);
+                color: #1a1a1a;
+                font-size: 10px;
+                font-weight: 800;
+                letter-spacing: 0.08em;
+                text-transform: uppercase;
+                padding: 4px 10px;
+                border-radius: 0 0 8px 8px;
+              }
+              .onb-plan-name { font-size: 22px; font-weight: 800; color: var(--tx); letter-spacing: -0.02em; margin-bottom: 4px; }
+              .onb-plan-price { display: flex; align-items: baseline; gap: 3px; margin-bottom: 16px; }
+              .onb-plan-price .cur { font-size: 14px; font-weight: 600; color: var(--tx-2); }
+              .onb-plan-price .amt { font-size: 34px; font-weight: 800; color: var(--tx); letter-spacing: -0.03em; line-height: 1; }
+              .onb-plan-price .per { font-size: 13px; color: var(--tx-3); margin-left: 2px; }
+              .onb-plan-credits { display: flex; align-items: center; gap: 8px; padding: 10px 12px; background: rgba(250,181,0,0.08); border-radius: 10px; margin-bottom: 16px; }
+              .onb-plan-feats { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+              .onb-plan-feat { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--tx-2); }
+              .onb-plan-feat svg { flex-shrink: 0; }
+              .onb-plan-cta {
+                width: 100%; padding: 11px; border-radius: 10px; border: none;
+                font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit;
+                transition: background .15s;
+              }
+              .onb-plan-cta.primary { background: var(--coral); color: #1a1a1a; }
+              .onb-plan-cta.primary:hover { background: #ffc93b; }
+              .onb-plan-cta.dark { background: rgba(255,255,255,0.1); color: var(--tx); }
+              .onb-plan-cta.dark:hover { background: rgba(255,255,255,0.16); }
             `}</style>
 
             {/* ── STEP: CONFIRM ── */}
@@ -492,46 +542,75 @@ export default function CheckoutConfirmClient({ initialPlanId, allPlans }: Props
 
             {/* ── STEP: PLANS ── */}
             {step === "plans" && (
-              <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 16, padding: "28px 24px 24px", textAlign: "left" }}>
-                <div style={{ fontSize: 15.5, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--tx-3)", marginBottom: 20 }}>Escolha seu plano</div>
-
-                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                  {allPlans.map(p => (
-                    <div key={p.id} className={`plan-choice${p.id === selectedId ? " active" : ""}`} onClick={() => selectPlan(p.id)}>
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-                        <div>
-                          <div style={{ fontSize: 22, fontWeight: 800, color: "var(--tx)", letterSpacing: "-0.01em" }}>{p.label}</div>
-                          <div style={{ fontSize: 17, color: "var(--tx-3)", marginTop: 2 }}>{p.priceBRL}/mês</div>
-                        </div>
-                        <div style={{
-                          width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
-                          border: `2px solid ${p.id === selectedId ? "var(--coral)" : "rgba(255,255,255,0.2)"}`,
-                          background: p.id === selectedId ? "var(--coral)" : "transparent",
-                          display: "grid", placeItems: "center", transition: "all .15s",
-                        }}>
-                          {p.id === selectedId && <Check size={12} style={{ color: "var(--ink)" }} />}
-                        </div>
-                      </div>
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: "6px 16px" }}>
-                        {[
-                          `${p.credits.toLocaleString("pt-BR")} créditos`,
-                          `Até ${p.brandsLimit} marca${p.brandsLimit > 1 ? "s" : ""}`,
-                          `Até ${p.tierAIncluded} portais categoria A`,
-                          `${p.editorsLimit} editor${p.editorsLimit > 1 ? "es" : ""}`,
-                        ].map((t, i) => (
-                          <span key={i} style={{ fontSize: 15.5, color: "var(--tx-3)", display: "flex", alignItems: "center", gap: 4 }}>
-                            <Check size={11} style={{ color: "#2F8A5B" }} />{t}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
+              <div>
+                <div style={{ marginBottom: 28, textAlign: "center" }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--coral)" }}>Planos e preços</span>
+                  <h2 style={{ fontSize: "clamp(22px, 3vw, 30px)", fontWeight: 800, letterSpacing: "-0.03em", marginTop: 8, color: "var(--tx)" }}>
+                    Escolha o plano ideal
+                  </h2>
                 </div>
 
-                <button onClick={() => setStep("confirm")}
-                  style={{ background: "none", border: "none", fontSize: 17.5, color: "var(--tx-3)", cursor: "pointer", marginTop: 20, padding: "4px 8px" }}>
-                  ← Voltar
-                </button>
+                <div className="onb-plans-grid">
+                  {allPlans.map((p, idx) => {
+                    const isFeatured = idx === 1; // Avançado
+                    const feats: [string, boolean][] = [
+                      [`Até ${p.brandsLimit} marca${p.brandsLimit > 1 ? "s" : ""} cadastradas`, true],
+                      [`Até ${p.tierAIncluded} publicações em portais categoria A`, true],
+                      ["Acesso completo aos 50 portais parceiros", true],
+                      ["Calendário e agendamento de publicações", true],
+                      [`${p.editorsLimit} editor${p.editorsLimit > 1 ? "es" : ""} · ${p.reviewersLimit} revisor${p.reviewersLimit > 1 ? "es" : ""}`, true],
+                    ];
+                    return (
+                      <div
+                        key={p.id}
+                        className={`onb-plan-card${isFeatured ? " featured" : ""}`}
+                        onClick={() => selectPlan(p.id)}
+                      >
+                        {isFeatured && <div className="onb-plan-ribbon">Mais vendido</div>}
+
+                        <div className="onb-plan-name">{p.label}</div>
+
+                        <div className="onb-plan-price">
+                          <span className="cur">R$</span>
+                          <span className="amt">{(p.priceCents / 100).toLocaleString("pt-BR")}</span>
+                          <span className="per">/mês</span>
+                        </div>
+
+                        <div className="onb-plan-credits">
+                          <Zap size={16} style={{ color: "var(--coral)" }} />
+                          <div>
+                            <div style={{ fontSize: 13.5, fontWeight: 700, color: "var(--tx)" }}>{p.credits.toLocaleString("pt-BR")} créditos/mês</div>
+                            <div style={{ fontSize: 11.5, color: "var(--tx-3)" }}>
+                              R$ {(p.priceCents / p.credits).toLocaleString("pt-BR", { minimumFractionDigits: 2 })} por crédito
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="onb-plan-feats">
+                          {feats.map(([text, on], i) => (
+                            <div key={i} className="onb-plan-feat">
+                              {on
+                                ? <Check size={14} style={{ color: "#2F8A5B" }} />
+                                : <X size={14} style={{ color: "var(--tx-3)" }} />}
+                              {text}
+                            </div>
+                          ))}
+                        </div>
+
+                        <button className={`onb-plan-cta ${isFeatured ? "primary" : "dark"}`}>
+                          Assinar {p.label}
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div style={{ textAlign: "center", marginTop: 24 }}>
+                  <button onClick={() => setStep("confirm")}
+                    style={{ background: "none", border: "none", fontSize: 14, color: "var(--tx-3)", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 5 }}>
+                    <ArrowLeft size={14} /> Voltar
+                  </button>
+                </div>
               </div>
             )}
 
