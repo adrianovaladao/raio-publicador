@@ -396,6 +396,10 @@ export default function CheckoutConfirmClient({ initialPlanId, allPlans }: Props
                   {loading ? "Redirecionando…" : <><span>Pagar com cartão ou boleto</span><ArrowRight size={17} /></>}
                 </button>
 
+                <button onClick={() => window.location.href = "/#planos"}
+                  style={{ display: "block", width: "100%", padding: "11px 0", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, fontSize: 14, fontWeight: 600, color: "var(--tx-2)", cursor: "pointer", fontFamily: "inherit", marginBottom: 8 }}>
+                  Cancelar
+                </button>
 
                 <button onClick={() => setStep("plans")}
                   style={{ background: "none", border: "none", fontSize: 13.5, color: "var(--tx-3)", cursor: "pointer", padding: "4px 8px", marginBottom: 20 }}>
