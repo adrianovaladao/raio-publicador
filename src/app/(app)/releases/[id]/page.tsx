@@ -672,15 +672,28 @@ function StepSchedule({
           <div className="card-head"><h3>Quando publicar</h3></div>
           <div className="sc-body">
             {(() => {
-              const today = new Date();
+              const now = new Date();
+              // Hora atual em Brasília (UTC-3)
+              const hourBrasilia = (now.getUTCHours() - 3 + 24) % 24;
               const pad = (n: number) => String(n).padStart(2, "0");
-              const minDate = `${today.getFullYear()}-${pad(today.getMonth()+1)}-${pad(today.getDate())}`;
-              const lastDay = new Date(today.getFullYear(), today.getMonth()+1, 0).getDate();
-              const maxDate = `${today.getFullYear()}-${pad(today.getMonth()+1)}-${pad(lastDay)}`;
+              // Após 18h de Brasília, bloqueia o agendamento para hoje — mínimo é amanhã
+              const minDay = hourBrasilia >= 18
+                ? new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1))
+                : now;
+              const minDate = `${minDay.getUTCFullYear()}-${pad(minDay.getUTCMonth()+1)}-${pad(minDay.getUTCDate())}`;
+              const lastDay = new Date(now.getUTCFullYear(), now.getUTCMonth()+1, 0).getDate();
+              const maxDate = `${now.getUTCFullYear()}-${pad(now.getUTCMonth()+1)}-${pad(lastDay)}`;
+              // Se o usuário já selecionou hoje mas agora passou das 18h, limpa a seleção
+              if (schedDate && schedDate < minDate) setSchedDate("");
               return (
                 <div className="field-row" style={{ marginBottom: 0 }}>
                   <label style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--stone)" }}>Data</label>
                   <DatePicker value={schedDate} onChange={setSchedDate} minDate={minDate} maxDate={maxDate} />
+                  {hourBrasilia >= 18 && (
+                    <p style={{ fontSize: 11, color: "var(--stone)", marginTop: 6, lineHeight: 1.4 }}>
+                      ⏰ Após as 18h (horário de Brasília) o agendamento mínimo é para amanhã.
+                    </p>
+                  )}
                 </div>
               );
             })()}

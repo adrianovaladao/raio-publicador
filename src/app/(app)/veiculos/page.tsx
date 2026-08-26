@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useEscapeKey } from "@/hooks/useEscapeKey";
-import { ArrowUpDown, ArrowUp, ArrowDown, SlidersHorizontal, X } from "lucide-react";
+import { ArrowUpDown, ArrowUp, ArrowDown, SlidersHorizontal, X, Clock } from "lucide-react";
 
 type VehicleItem = { id: string; name: string; domain: string; site?: string | null; location?: string | null; cat: string; tier: string; reach: number; logoUrl?: string | null };
 
@@ -36,6 +36,15 @@ function initials(name: string | null | undefined) {
 }
 
 const TIER_ORDER: Record<string, number> = { A: 0, B: 1, C: 2 };
+
+// Tempo médio de publicação estimado por tier (em horas)
+const TIER_AVG_HOURS: Record<string, number> = { A: 48, B: 24, C: 12 };
+
+function fmtAvgTime(hours: number) {
+  if (hours < 24) return `~${hours}h`;
+  const d = Math.round(hours / 24);
+  return `~${d} dia${d > 1 ? "s" : ""}`;
+}
 
 function sortVehicles(arr: VehicleItem[], col: SortCol, dir: SortDir) {
   return [...arr].sort((a, b) => {
@@ -127,6 +136,14 @@ export default function VeiculosPage() {
   const [sortDir,     setSortDir]    = useState<SortDir>("desc");
   const [showFilter,  setShowFilter] = useState(false);
   const [page,        setPage]       = useState(1);
+  const [clockToast,  setClockToast] = useState<{ msg: string; x: number; y: number } | null>(null);
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function showClockToast(msg: string, e: React.MouseEvent) {
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    setClockToast({ msg, x: e.clientX, y: e.clientY });
+    toastTimer.current = setTimeout(() => setClockToast(null), 3000);
+  }
 
 
   const [vehicles, setVehicles] = useState<VehicleItem[]>([]);
@@ -285,10 +302,19 @@ export default function VeiculosPage() {
                     <td><span className={`tier t-${v.tier.toLowerCase()}`}>{v.tier}</span></td>
                     <td className="num" style={{ textAlign: "right", fontWeight: 600 }}>{fmtReach(v.reach)}</td>
                     <td className="num" style={{ textAlign: "right" }}>
-                      {tkn > 0
-                        ? <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontWeight: 700 }}>{tkn} <span style={{ color: "var(--coral)", fontSize: 13 }}>⚡</span></span>
-                        : <span style={{ fontWeight: 700 }}>0</span>
-                      }
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                        {tkn > 0
+                          ? <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontWeight: 700 }}>{tkn} <span style={{ color: "var(--coral)", fontSize: 13 }}>⚡</span></span>
+                          : <span style={{ fontWeight: 700 }}>0</span>
+                        }
+                        <button
+                          onClick={e => { e.stopPropagation(); showClockToast(`Tempo médio de publicação: ${fmtAvgTime(TIER_AVG_HOURS[v.tier] ?? 48)}`, e); }}
+                          style={{ background: "none", border: "none", cursor: "pointer", padding: 2, color: "var(--stone)", display: "inline-flex", alignItems: "center", lineHeight: 1 }}
+                          title="Tempo médio de publicação"
+                        >
+                          <Clock size={12} />
+                        </button>
+                      </span>
                     </td>
                   </tr>
                 );
@@ -317,6 +343,31 @@ export default function VeiculosPage() {
           onApply={(c, t) => { setFilterCats(c); setFilterTiers(t); setPage(1); }}
           onClose={() => setShowFilter(false)}
         />
+      )}
+
+      {/* Toast de tempo médio de publicação */}
+      {clockToast && (
+        <div style={{
+          position: "fixed",
+          left: clockToast.x + 12,
+          top: clockToast.y - 36,
+          background: "var(--ink)",
+          color: "var(--paper)",
+          fontSize: 12,
+          fontWeight: 500,
+          padding: "6px 12px",
+          borderRadius: 8,
+          pointerEvents: "none",
+          zIndex: 9999,
+          whiteSpace: "nowrap",
+          boxShadow: "0 4px 16px rgba(0,0,0,0.18)",
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
+        }}>
+          <Clock size={12} style={{ opacity: 0.7 }} />
+          {clockToast.msg}
+        </div>
       )}
     </div>
   );
