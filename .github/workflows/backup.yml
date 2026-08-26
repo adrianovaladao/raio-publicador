@@ -1,0 +1,26 @@
+name: Backup diário do banco
+
+on:
+  schedule:
+    - cron: "0 4 * * *"
+  workflow_dispatch:
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Exportar banco
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+          FILENAME="raio_backup_${TIMESTAMP}.sql.gz"
+          pg_dump "$DATABASE_URL" --no-owner --no-acl | gzip > "$FILENAME"
+          echo "✅ Backup: $FILENAME ($(du -sh $FILENAME | cut -f1))"
+
+      - name: Salvar backup no GitHub
+        uses: actions/upload-artifact@v4
+        with:
+          name: db-backup-${{ github.run_number }}
+          path: "*.sql.gz"
+          retention-days: 90
