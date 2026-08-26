@@ -42,7 +42,7 @@ export async function applyRateLimit(
   // Se Upstash não estiver configurado, não bloqueia (fallback seguro)
   if (!process.env.UPSTASH_REDIS_REST_URL) return null;
 
-  const { success, limit, remaining, reset } = await limiter.limit(identifier);
+  const { success, limit, reset } = await limiter.limit(identifier);
   if (!success) {
     return NextResponse.json(
       { error: "Muitas requisições. Tente novamente em instantes." },
