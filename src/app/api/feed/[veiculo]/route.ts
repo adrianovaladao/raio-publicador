@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import { getPrisma } from "@/lib/prisma";
+import { applyRateLimit, rateLimiters, getIp } from "@/lib/ratelimit";
 const prisma = getPrisma();
 
 // Tokens por veículo — adicione novos veículos parceiros aqui
@@ -43,6 +44,9 @@ export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ veiculo: string }> }
 ) {
+  const limited = await applyRateLimit(rateLimiters.feed, getIp(req));
+  if (limited) return limited;
+
   const { veiculo } = await params;
   const { searchParams } = req.nextUrl;
   const token  = searchParams.get("token") ?? "";

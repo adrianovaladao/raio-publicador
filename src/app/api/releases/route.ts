@@ -2,15 +2,19 @@ export const dynamic = "force-dynamic";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { getPrisma } from "@/lib/prisma";
 import { sendReleaseScheduledEmail, sendLowCreditsEmail, sendZeroCreditsEmail } from "@/lib/email";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { ReleaseStatus } from "@prisma/client";
+import { applyRateLimit, rateLimiters, getIp } from "@/lib/ratelimit";
 
 function extractFirstImageUrl(html: string): string | null {
   const m = html.match(/<img[^>]+src=["']([^"']+)["']/i);
   return m ? m[1] : null;
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const limited = await applyRateLimit(rateLimiters.api, getIp(req));
+  if (limited) return limited;
+
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const releases = await getPrisma().release.findMany({
@@ -26,7 +30,10 @@ export async function GET() {
   return NextResponse.json(enriched);
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  const limited = await applyRateLimit(rateLimiters.api, getIp(req));
+  if (limited) return limited;
+
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const body = await req.json() as { status: string; creditsUsed: number; title: string; body: string; summary?: string; scheduledAt?: string | null; brandId: string; imageUrl?: string | null; vehicles: string[] };

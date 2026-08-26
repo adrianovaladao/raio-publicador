@@ -4,8 +4,12 @@ import { getStripe } from "@/lib/stripe";
 import { PLANS, type PlanId } from "@/lib/plans";
 import { getPrisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
+import { applyRateLimit, rateLimiters, getIp } from "@/lib/ratelimit";
 
 export async function POST(req: NextRequest) {
+  const limited = await applyRateLimit(rateLimiters.checkout, getIp(req));
+  if (limited) return limited;
+
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 

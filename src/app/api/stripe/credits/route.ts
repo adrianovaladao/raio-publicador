@@ -4,6 +4,7 @@ import { getStripe } from "@/lib/stripe";
 import { getPrisma } from "@/lib/prisma";
 import { PLANS } from "@/lib/plans";
 import { NextRequest, NextResponse } from "next/server";
+import { applyRateLimit, rateLimiters, getIp } from "@/lib/ratelimit";
 
 // Price per credit in cents per plan
 const CREDIT_PRICE_CENTS: Record<string, number> = {
@@ -14,6 +15,9 @@ const CREDIT_PRICE_CENTS: Record<string, number> = {
 };
 
 export async function POST(req: NextRequest) {
+  const limited = await applyRateLimit(rateLimiters.checkout, getIp(req));
+  if (limited) return limited;
+
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
