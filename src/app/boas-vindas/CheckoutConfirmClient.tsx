@@ -424,35 +424,36 @@ export default function CheckoutConfirmClient({ initialPlanId, allPlans }: Props
 
                 {/* Tipo de pessoa */}
                 <div style={{ display: "flex", gap: 8, marginBottom: 18, background: "rgba(255,255,255,0.04)", borderRadius: 10, padding: 4 }}>
-                  <button className={`person-tab ${fiscal.personType === "PJ" ? "active" : "inactive"}`} onClick={() => setF("personType", "PJ")}>
+                  <button type="button" className={`person-tab ${fiscal.personType === "PJ" ? "active" : "inactive"}`} onClick={() => setF("personType", "PJ")}>
                     Pessoa Jurídica (PJ)
                   </button>
-                  <button className={`person-tab ${fiscal.personType === "PF" ? "active" : "inactive"}`} onClick={() => setF("personType", "PF")}>
+                  <button type="button" className={`person-tab ${fiscal.personType === "PF" ? "active" : "inactive"}`} onClick={() => setF("personType", "PF")}>
                     Pessoa Física (PF)
                   </button>
                 </div>
 
+                <form onSubmit={e => { e.preventDefault(); handleFiscalSubmit(); }} noValidate>
                 <div style={{ display: "flex", flexDirection: "column", gap: 12, textAlign: "left" }}>
                   {fiscal.personType === "PJ" ? (
                     <>
                       <div>
                         {label("Razão Social")}
-                        <input className="fiscal-input" placeholder="Nome da empresa conforme CNPJ" value={fiscal.companyName} onChange={e => setF("companyName", e.target.value)} />
+                        <input required className="fiscal-input" placeholder="Nome da empresa conforme CNPJ" value={fiscal.companyName} onChange={e => setF("companyName", e.target.value)} />
                       </div>
                       <div>
                         {label("CNPJ")}
-                        <input className="fiscal-input" placeholder="00.000.000/0000-00" value={fiscal.cnpj} onChange={e => setF("cnpj", formatCNPJ(e.target.value))} />
+                        <input required className="fiscal-input" placeholder="00.000.000/0000-00" value={fiscal.cnpj} onChange={e => setF("cnpj", formatCNPJ(e.target.value))} inputMode="numeric" />
                       </div>
                     </>
                   ) : (
                     <>
                       <div>
                         {label("Nome Completo")}
-                        <input className="fiscal-input" placeholder="Seu nome completo" value={fiscal.fullName} onChange={e => setF("fullName", e.target.value)} />
+                        <input required className="fiscal-input" placeholder="Seu nome completo" value={fiscal.fullName} onChange={e => setF("fullName", e.target.value)} />
                       </div>
                       <div>
                         {label("CPF")}
-                        <input className="fiscal-input" placeholder="000.000.000-00" value={fiscal.cpf} onChange={e => setF("cpf", formatCPF(e.target.value))} />
+                        <input required className="fiscal-input" placeholder="000.000.000-00" value={fiscal.cpf} onChange={e => setF("cpf", formatCPF(e.target.value))} inputMode="numeric" />
                       </div>
                     </>
                   )}
@@ -464,7 +465,7 @@ export default function CheckoutConfirmClient({ initialPlanId, allPlans }: Props
                     <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 8, marginBottom: 12 }}>
                       <div>
                         {label("CEP")}
-                        <input className="fiscal-input" placeholder="00000-000" value={fiscal.cep}
+                        <input required className="fiscal-input" placeholder="00000-000" value={fiscal.cep} inputMode="numeric"
                           onChange={e => { const v = formatCEP(e.target.value); setF("cep", v); if (v.replace(/\D/g, "").length === 8) lookupCEP(v); }} />
                       </div>
                       <div style={{ display: "flex", alignItems: "flex-end" }}>
@@ -475,11 +476,11 @@ export default function CheckoutConfirmClient({ initialPlanId, allPlans }: Props
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 100px", gap: 8, marginBottom: 12 }}>
                       <div>
                         {label("Logradouro")}
-                        <input className="fiscal-input" placeholder="Rua, Av., etc." value={fiscal.street} onChange={e => setF("street", e.target.value)} />
+                        <input required className="fiscal-input" placeholder="Rua, Av., etc." value={fiscal.street} onChange={e => setF("street", e.target.value)} />
                       </div>
                       <div>
                         {label("Número")}
-                        <input className="fiscal-input" placeholder="123" value={fiscal.number} onChange={e => setF("number", e.target.value)} />
+                        <input required className="fiscal-input" placeholder="123" value={fiscal.number} onChange={e => setF("number", e.target.value)} />
                       </div>
                     </div>
 
@@ -491,32 +492,45 @@ export default function CheckoutConfirmClient({ initialPlanId, allPlans }: Props
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 }}>
                       <div>
                         {label("Bairro")}
-                        <input className="fiscal-input" placeholder="Bairro" value={fiscal.district} onChange={e => setF("district", e.target.value)} />
+                        <input required className="fiscal-input" placeholder="Bairro" value={fiscal.district} onChange={e => setF("district", e.target.value)} />
                       </div>
                       <div>
                         {label("Cidade")}
-                        <input className="fiscal-input" placeholder="Cidade" value={fiscal.city} onChange={e => setF("city", e.target.value)} />
+                        <input required className="fiscal-input" placeholder="Cidade" value={fiscal.city} onChange={e => setF("city", e.target.value)} />
                       </div>
                     </div>
 
                     <div style={{ maxWidth: 100 }}>
                       {label("Estado")}
-                      <input className="fiscal-input" placeholder="SP" maxLength={2} value={fiscal.state} onChange={e => setF("state", e.target.value.toUpperCase())} />
+                      <input required className="fiscal-input" placeholder="SP" maxLength={2} value={fiscal.state} onChange={e => setF("state", e.target.value.toUpperCase())} />
                     </div>
                   </div>
                 </div>
 
                 {fiscalError && <p style={{ color: "#e05c5c", fontSize: 13, marginTop: 12, textAlign: "left" }}>{fiscalError}</p>}
 
-                <button className="btn btn-primary btn-lg" onClick={handleFiscalSubmit} disabled={fiscalSaving}
-                  style={{ width: "100%", justifyContent: "center", marginTop: 18, marginBottom: 8 }}>
+                {/* Disclaimer NFS-e */}
+                <div style={{
+                  marginTop: 16, padding: "12px 14px", borderRadius: 10,
+                  background: "rgba(250,181,0,0.07)", border: "1px solid rgba(250,181,0,0.2)",
+                  display: "flex", gap: 10, alignItems: "flex-start", textAlign: "left",
+                }}>
+                  <FileText size={15} style={{ color: "var(--coral)", flexShrink: 0, marginTop: 1 }} />
+                  <span style={{ fontSize: 12.5, color: "var(--tx-3)", lineHeight: 1.55 }}>
+                    <b style={{ color: "var(--tx-2)" }}>Emissão da nota fiscal:</b> a NFS-e será emitida após o período de 7 dias previsto para cancelamento (Art. 49, CDC). Os dados preenchidos aqui são utilizados exclusivamente para este fim.
+                  </span>
+                </div>
+
+                <button type="submit" className="btn btn-primary btn-lg" disabled={fiscalSaving}
+                  style={{ width: "100%", justifyContent: "center", marginTop: 14, marginBottom: 8 }}>
                   {fiscalSaving ? "Salvando…" : <><span>Continuar para pagamento</span><ArrowRight size={17} /></>}
                 </button>
 
-                <button onClick={() => setStep("confirm")}
+                <button type="button" onClick={() => setStep("confirm")}
                   style={{ background: "none", border: "none", fontSize: 13.5, color: "var(--tx-3)", cursor: "pointer", padding: "4px 8px", display: "flex", alignItems: "center", gap: 5, margin: "0 auto" }}>
                   <ArrowLeft size={13} /> Voltar
                 </button>
+                </form>
               </div>
             )}
 
