@@ -1,12 +1,13 @@
-name: Backup diário do banco
+name: Backup diário do banco e blobs
 
 on:
   schedule:
-    - cron: "0 4 * * *"
-  workflow_dispatch:
+    - cron: "0 4 * * *"   # todo dia às 04:00 UTC (01:00 Brasília)
+  workflow_dispatch:        # permite rodar manualmente pelo GitHub
 
 jobs:
-  backup:
+  backup-db:
+    name: Banco de dados (PostgreSQL)
     runs-on: ubuntu-latest
     steps:
       - name: Instalar PostgreSQL 17
@@ -24,11 +25,65 @@ jobs:
           TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
           FILENAME="raio_backup_${TIMESTAMP}.sql.gz"
           /usr/lib/postgresql/17/bin/pg_dump "$DATABASE_URL" --no-owner --no-acl | gzip > "$FILENAME"
-          echo "✅ Backup: $FILENAME ($(du -sh $FILENAME | cut -f1))"
+          echo "✅ Banco exportado: $FILENAME ($(du -sh $FILENAME | cut -f1))"
 
-      - name: Salvar backup no GitHub
+      - name: Salvar backup do banco
         uses: actions/upload-artifact@v4
         with:
           name: db-backup-${{ github.run_number }}
           path: "*.sql.gz"
+          retention-days: 90
+
+  backup-blobs:
+    name: Logos e imagens (Vercel Blob)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Instalar jq
+        run: sudo apt-get install -y jq
+
+      - name: Baixar todos os blobs
+        env:
+          BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
+        run: |
+          mkdir -p blobs-backup
+          CURSOR=""
+          TOTAL=0
+
+          while true; do
+            if [ -z "$CURSOR" ]; then
+              URL="https://blob.vercel-storage.com?limit=1000"
+            else
+              URL="https://blob.vercel-storage.com?limit=1000&cursor=${CURSOR}"
+            fi
+
+            RESPONSE=$(curl -s "$URL" -H "Authorization: Bearer $BLOB_READ_WRITE_TOKEN")
+            BLOBS=$(echo "$RESPONSE" | jq -r '.blobs[] | .url + "|" + .pathname')
+
+            if [ -z "$BLOBS" ]; then
+              break
+            fi
+
+            while IFS= read -r line; do
+              BLOB_URL=$(echo "$line" | cut -d'|' -f1)
+              PATHNAME=$(echo "$line" | cut -d'|' -f2)
+              DEST="blobs-backup/$PATHNAME"
+              mkdir -p "$(dirname "$DEST")"
+              curl -s -o "$DEST" "$BLOB_URL"
+              TOTAL=$((TOTAL + 1))
+            done <<< "$BLOBS"
+
+            HAS_MORE=$(echo "$RESPONSE" | jq -r '.hasMore // false')
+            if [ "$HAS_MORE" != "true" ]; then
+              break
+            fi
+            CURSOR=$(echo "$RESPONSE" | jq -r '.cursor')
+          done
+
+          echo "✅ $TOTAL blobs baixados ($(du -sh blobs-backup | cut -f1))"
+
+      - name: Salvar backup dos blobs
+        uses: actions/upload-artifact@v4
+        with:
+          name: blobs-backup-${{ github.run_number }}
+          path: blobs-backup/
           retention-days: 90
