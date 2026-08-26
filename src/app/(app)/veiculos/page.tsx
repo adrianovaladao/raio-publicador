@@ -141,9 +141,7 @@ export default function VeiculosPage() {
 
   function showClockToast(msg: string, e: React.MouseEvent) {
     if (toastTimer.current) clearTimeout(toastTimer.current);
-    // Sempre aparece à esquerda do cursor (ancoragem right)
-    const x = e.clientX - 12;
-    setClockToast({ msg, x, y: e.clientY });
+    setClockToast({ msg, x: e.clientX, y: e.clientY });
     toastTimer.current = setTimeout(() => setClockToast(null), 3000);
   }
 
@@ -351,8 +349,9 @@ export default function VeiculosPage() {
       {clockToast && (
         <div style={{
           position: "fixed",
-          right: window.innerWidth - clockToast.x + 8,
-          top: clockToast.y - 36,
+          left: clockToast.x,
+          top: clockToast.y + 20,
+          transform: "translateX(-50%)",
           background: "var(--ink)",
           color: "var(--paper)",
           fontSize: 12,
