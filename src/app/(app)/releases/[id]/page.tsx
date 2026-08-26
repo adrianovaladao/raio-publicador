@@ -1209,7 +1209,6 @@ useEffect(() => {
                   <button className="btn btn-ghost btn-sm" onClick={saveDraft} disabled={saving}>
                     <Save size={14} /> {saving ? "Salvando…" : "Salvar rascunho"}
                   </button>
-                  {backBtn}{nextBtn}
                 </div>
               </div>
 
@@ -1223,10 +1222,11 @@ useEffect(() => {
                   cat={cat} setCat={setCat}
                   author={author} setAuthor={setAuthor}
                   brand={brand}
+                  navSlot={<>{backBtn}{nextBtn}</>}
                 />
               )}
               {step === 1 && (
-                <StepVehicles selected={selectedVeh} setSelected={setSelectedVeh} vehicles={vehicles} sub={sub} onBuyCredits={(sub.plan === "VOUCHER" || sub.status === "CANCELLED" || sub.status === "INACTIVE") ? undefined : () => setShowBuyCreditsModal(true)} onUpgrade={() => window.dispatchEvent(new CustomEvent("open-plans"))} />
+                <StepVehicles selected={selectedVeh} setSelected={setSelectedVeh} vehicles={vehicles} sub={sub} onBuyCredits={(sub.plan === "VOUCHER" || sub.status === "CANCELLED" || sub.status === "INACTIVE") ? undefined : () => setShowBuyCreditsModal(true)} onUpgrade={() => window.dispatchEvent(new CustomEvent("open-plans"))} navSlot={<>{backBtn}{nextBtn}</>} />
               )}
               {step === 2 && (
                 <StepSchedule
