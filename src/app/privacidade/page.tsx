@@ -3,7 +3,7 @@ import { RaioLockup } from "@/components/logo/RaioLockup";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Política de Privacidade — Raio Publicador",
+  title: "Política de Privacidade",
   description: "Como o Raio Publicador trata, armazena e protege seus dados pessoais.",
 };
 

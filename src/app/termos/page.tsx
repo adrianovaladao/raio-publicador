@@ -3,7 +3,7 @@ import { RaioLockup } from "@/components/logo/RaioLockup";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Termos de Uso — Raio Publicador",
+  title: "Termos de Uso",
   description: "Termos e condições de uso da plataforma Raio Publicador.",
 };
 

@@ -3,7 +3,7 @@ import { RaioLockup } from "@/components/logo/RaioLockup";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Política de Cookies — Raio Publicador",
+  title: "Política de Cookies",
   description: "Quais cookies o Raio Publicador usa, para que servem e como gerenciá-los.",
 };
 

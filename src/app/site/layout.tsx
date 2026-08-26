@@ -1,5 +1,16 @@
+import type { Metadata } from "next";
 import "./site.css";
 import BlurOnBack from "./BlurOnBack";
+
+export const metadata: Metadata = {
+  title: "Raio Publicador",
+  description: "A mais inovadora plataforma brasileira de publicação garantida e branded content em créditos que você distribui como preferir.",
+  openGraph: {
+    title: "Raio Publicador",
+    description: "A mais inovadora plataforma brasileira de publicação garantida e branded content em créditos que você distribui como preferir.",
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "Raio Publicador" }],
+  },
+};
 
 function WhatsAppFab() {
   return (

@@ -1,4 +1,9 @@
+import type { Metadata } from "next";
 import "./auth.css";
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 function WhatsAppFab() {
   return (
