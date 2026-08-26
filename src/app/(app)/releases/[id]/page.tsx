@@ -568,6 +568,14 @@ function StepVehicles({ selected, setSelected, vehicles, sub, onUpgrade, onBuyCr
           </div>
         </div>
       )}
+      {selVehicles.some(v => v.domain.includes("folhapress")) && (
+        <div style={{ background: "rgba(250,181,0,0.07)", border: "1px solid rgba(250,181,0,0.25)", borderRadius: 10, padding: "10px 14px", display: "flex", gap: 10, alignItems: "flex-start" }}>
+          <span style={{ fontSize: 18, lineHeight: 1 }}>⚠️</span>
+          <span style={{ fontSize: 12.5, color: "var(--tx-2)", lineHeight: 1.5 }}>
+            <b>Folhapress não aceita imagens.</b> Releases enviados à Folhapress devem conter apenas texto. Remova imagens do conteúdo antes de agendar.
+          </span>
+        </div>
+      )}
       {navSlot && <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>{navSlot}</div>}
       </div>
     </div>
