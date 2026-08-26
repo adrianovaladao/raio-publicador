@@ -141,7 +141,9 @@ export default function VeiculosPage() {
 
   function showClockToast(msg: string, e: React.MouseEvent) {
     if (toastTimer.current) clearTimeout(toastTimer.current);
-    setClockToast({ msg, x: e.clientX, y: e.clientY });
+    // Posiciona à esquerda do cursor para não sair do viewport
+    const x = Math.min(e.clientX + 12, window.innerWidth - 240);
+    setClockToast({ msg, x, y: e.clientY });
     toastTimer.current = setTimeout(() => setClockToast(null), 3000);
   }
 
@@ -309,7 +311,7 @@ export default function VeiculosPage() {
                         }
                         <button
                           onClick={e => { e.stopPropagation(); showClockToast(`Tempo médio de publicação: ${fmtAvgTime(TIER_AVG_HOURS[v.tier] ?? 48)}`, e); }}
-                          style={{ background: "none", border: "none", cursor: "pointer", padding: 2, color: "var(--stone)", display: "inline-flex", alignItems: "center", lineHeight: 1 }}
+                          style={{ background: "none", border: "none", cursor: "pointer", padding: 2, color: "var(--stone)", display: "inline-flex", alignItems: "center", lineHeight: 1, outline: "none" }}
                           title="Tempo médio de publicação"
                         >
                           <Clock size={12} />
