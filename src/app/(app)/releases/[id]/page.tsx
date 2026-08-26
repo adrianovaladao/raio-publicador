@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import {
-  ArrowLeft, ArrowRight, Check,
+  ArrowLeft, ArrowRight, Check, Save,
   Calendar, X, Search, Trash2,
   ArrowUpDown, ArrowUp, ArrowDown, SlidersHorizontal,
 } from "lucide-react";
@@ -1204,7 +1204,13 @@ useEffect(() => {
                     </span>
                   ))}
                 </div>
-                <div className="actions">{cancelBtn}{backBtn}{nextBtn}</div>
+                <div className="actions">
+                  {cancelBtn}
+                  <button className="btn btn-ghost btn-sm" onClick={saveDraft} disabled={saving}>
+                    <Save size={14} /> {saving ? "Salvando…" : "Salvar rascunho"}
+                  </button>
+                  {backBtn}{nextBtn}
+                </div>
               </div>
 
               {err && <p style={{ color: "var(--red,#c0392b)", fontSize: 13, marginBottom: 16, fontWeight: 500 }}>{err}</p>}
