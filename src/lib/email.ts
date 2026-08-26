@@ -548,7 +548,7 @@ export async function sendFounderWelcomeEmail(to: string, firstName: string) {
   return getResend().emails.send({
     from: "Adriano Valadão <adrianovaladao@raiopublicador.com.br>",
     to,
-    subject: `Bem-vindo ao Raio Publicador, ${firstName}`,
+    subject: `Olá, ${firstName}. Uma mensagem do fundador do Raio Publicador`,
     html,
   });
 }
