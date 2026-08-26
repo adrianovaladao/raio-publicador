@@ -536,9 +536,9 @@ export async function sendCancellationEmail(
 export async function sendFounderWelcomeEmail(to: string, firstName: string) {
   const html = base(`
     ${p(`Olá, ${firstName}. Tudo bem?`)}
+    ${p("Estamos muito felizes com a sua escolha e honrados com a confiança. Seja muito bem-vindo.")}
     ${p(`Me chamo Adriano Valadão. Fundei o Raio Publicador em parceria com a <a href="https://www.linkedin.com/in/samaraperez/" style="color:#1a1a1a">Samara Perez</a>, da <a href="https://www.markable.com.br/" style="color:#1a1a1a">Markable</a>, uma das maiores assessorias de imprensa do Brasil com mais de 15 anos de mercado. Nesse período, a Markable conversou com milhares de empresas e profissionais e percebeu que nem todos buscavam a mesma coisa. Alguns queriam um trabalho contínuo de assessoria de imprensa. Outros precisavam de algo mais pontual, queriam falar sobre a própria trajetória ou buscavam a segurança de saber exatamente onde seu conteúdo seria publicado. Em muitos casos, a verba disponível também pedia uma solução mais acessível. Foi dessa necessidade que nasceu o Raio Publicador: uma nova forma de colocar boas histórias em grandes portais de notícias, com mais autonomia, simplicidade e publicação garantida.`)}
     ${p("Você já pode publicar seu primeiro release agora mesmo. Se tiver qualquer dúvida ao longo do caminho, sobre a plataforma, sobre como escrever um bom release ou sobre qualquer outra coisa, é só responder a este e-mail. Leio e respondo pessoalmente.")}
-    ${p("Bem-vindo.")}
     <p style="margin:24px 0 0;font-size:15px;color:#444;line-height:1.6">
       <a href="https://www.linkedin.com/in/adriano-valadao-freitas/" style="color:#1a1a1a;font-weight:600">Adriano Valadão</a><br>
       <span style="color:#888;font-size:14px">Fundador e CEO, Raio Publicador</span>
@@ -546,7 +546,7 @@ export async function sendFounderWelcomeEmail(to: string, firstName: string) {
   `);
 
   return getResend().emails.send({
-    from: "Adriano Valadão <adriano@raiopublicador.com.br>",
+    from: "Adriano Valadão <adrianovaladao@raiopublicador.com.br>",
     to,
     subject: `Bem-vindo ao Raio Publicador, ${firstName}`,
     html,
