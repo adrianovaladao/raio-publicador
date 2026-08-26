@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import {
   sendWelcomeEmail,
+  sendFounderWelcomeEmail,
   sendRenewalEmail,
   sendRenewalReminderEmail,
   sendPaymentFailedEmail,
@@ -144,6 +145,7 @@ export async function POST(req: NextRequest) {
         if (email) {
           const nextRenewal = new Date(subscription.items.data[0].current_period_end * 1000);
           await sendWelcomeEmail(email, firstName, PLANS[planId].label, PLANS[planId].priceCents, PLANS[planId].credits, nextRenewal).catch(console.error);
+          await sendFounderWelcomeEmail(email, firstName).catch(console.error);
           await notifyAdminNewSubscription(email, firstName, PLANS[planId].label, PLANS[planId].priceCents).catch(console.error);
         }
       }
