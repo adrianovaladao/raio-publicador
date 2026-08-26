@@ -17,7 +17,7 @@ const BR_STATES = ["Nacional","AC","AL","AP","AM","BA","CE","DF","ES","GO","MA",
 const TIER_ORDER: Record<string, number> = { A: 0, B: 1, C: 2 };
 const PAGE_SIZE = 30;
 
-interface VehicleRow { id: string; name: string; domain: string; site?: string | null; location?: string | null; category: string; tier: string; reach: number; logoUrl?: string | null; avgPublicationHours?: number | null }
+interface VehicleRow { id: string; name: string; domain: string; site?: string | null; location?: string | null; category: string; tier: string; reach: number; logoUrl?: string | null }
 type SortCol = "name" | "category" | "tier" | "reach" | "location" | "site";
 type SortDir = "asc" | "desc";
 
@@ -57,7 +57,6 @@ function VehicleModal({ initial, onSave, onClose }: {
   const [category,  setCategory]  = useState(initial?.category ?? VEH_CATS[0]);
   const [tier,      setTier]      = useState(initial?.tier     ?? "B");
   const [reach,     setReach]     = useState(String(initial?.reach ?? ""));
-  const [avgHours,  setAvgHours]  = useState(String(initial?.avgPublicationHours ?? ""));
   const [logoUrl,   setLogoUrl]   = useState(initial?.logoUrl  ?? "");
   const [uploading, setUploading] = useState(false);
   const [saving,    setSaving]    = useState(false);
@@ -77,7 +76,7 @@ function VehicleModal({ initial, onSave, onClose }: {
     if (!name.trim() || !domain.trim() || !reach) { setErr("Preencha todos os campos."); return; }
     setSaving(true); setErr("");
     try {
-      await onSave({ name: name.trim(), domain: domain.trim(), site: site.trim() || null, location: location.trim() || null, category, tier, reach: Number(reach), logoUrl: logoUrl || null, avgPublicationHours: avgHours ? Number(avgHours) : null });
+      await onSave({ name: name.trim(), domain: domain.trim(), site: site.trim() || null, location: location.trim() || null, category, tier, reach: Number(reach), logoUrl: logoUrl || null });
       onClose();
     } catch (e: unknown) {
       setErr(e instanceof Error ? e.message : "Erro ao salvar");
@@ -150,10 +149,6 @@ function VehicleModal({ initial, onSave, onClose }: {
           </div>
 
           <div><label style={labelStyle}>Alcance/mês</label><input style={inputStyle} type="number" value={reach} onChange={e => setReach(e.target.value)} placeholder="Ex.: 5000000" /></div>
-          <div>
-            <label style={labelStyle}>Tempo médio de publicação (horas)</label>
-            <input style={inputStyle} type="number" min="1" value={avgHours} onChange={e => setAvgHours(e.target.value)} placeholder="Ex.: 48 (deixe vazio para usar padrão do tier)" />
-          </div>
         </div>
 
         {err && <p style={{ color: "#DC2626", fontSize: 13, marginTop: 12 }}>{err}</p>}

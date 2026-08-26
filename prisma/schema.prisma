@@ -112,7 +112,6 @@ model Vehicle {
   logoUrl              String?
   site                 String?
   location             String?
-  avgPublicationHours  Int?     // Tempo médio de publicação em horas
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 }
