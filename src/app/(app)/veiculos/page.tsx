@@ -139,9 +139,10 @@ export default function VeiculosPage() {
   const [clockToast,  setClockToast] = useState<{ msg: string; x: number; y: number } | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  function showClockToast(msg: string, e: React.MouseEvent) {
+  function showClockToast(msg: string, e: React.MouseEvent<HTMLButtonElement>) {
     if (toastTimer.current) clearTimeout(toastTimer.current);
-    setClockToast({ msg, x: e.clientX, y: e.clientY });
+    const rect = e.currentTarget.getBoundingClientRect();
+    setClockToast({ msg, x: rect.left + rect.width / 2, y: rect.bottom });
     toastTimer.current = setTimeout(() => setClockToast(null), 3000);
   }
 
