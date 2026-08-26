@@ -9,13 +9,21 @@ jobs:
   backup:
     runs-on: ubuntu-latest
     steps:
+      - name: Instalar PostgreSQL 17
+        run: |
+          sudo apt-get install -y gnupg curl
+          curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo gpg --dearmor -o /usr/share/keyrings/postgresql.gpg
+          echo "deb [signed-by=/usr/share/keyrings/postgresql.gpg] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client-17
+
       - name: Exportar banco
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
           TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
           FILENAME="raio_backup_${TIMESTAMP}.sql.gz"
-          pg_dump "$DATABASE_URL" --no-owner --no-acl | gzip > "$FILENAME"
+          /usr/lib/postgresql/17/bin/pg_dump "$DATABASE_URL" --no-owner --no-acl | gzip > "$FILENAME"
           echo "✅ Backup: $FILENAME ($(du -sh $FILENAME | cut -f1))"
 
       - name: Salvar backup no GitHub
