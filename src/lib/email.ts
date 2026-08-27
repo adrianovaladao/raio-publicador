@@ -230,13 +230,27 @@ export async function sendRenewalEmail(to: string, firstName: string, planLabel:
 }
 
 // ─── 8. Aviso de renovação (7 dias antes) ─────────────────────────────────────
-export async function sendRenewalReminderEmail(to: string, firstName: string, planLabel: string, amountBRL: string, renewalDate: Date) {
+export async function sendRenewalReminderEmail(to: string, firstName: string, planLabel: string, amountBRL: string, renewalDate: Date, daysLeft = 7) {
   const date = renewalDate.toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric", timeZone: "America/Sao_Paulo" });
+
+  const intro =
+    daysLeft === 0
+      ? `Sua assinatura do plano <strong>${planLabel}</strong> será renovada <strong>hoje</strong> no valor de <strong>R$ ${amountBRL}</strong>.`
+      : daysLeft === 2
+      ? `Sua assinatura do plano <strong>${planLabel}</strong> será renovada em <strong>2 dias</strong>, no dia <strong>${date}</strong>, no valor de <strong>R$ ${amountBRL}</strong>.`
+      : `Passando para avisar que o plano <strong>${planLabel}</strong> será renovado automaticamente no dia <strong>${date}</strong> no valor de <strong>R$ ${amountBRL}</strong>.`;
+
+  const subject =
+    daysLeft === 0
+      ? `Sua assinatura ${planLabel} renova hoje — Raio`
+      : daysLeft === 2
+      ? `Sua assinatura ${planLabel} renova em 2 dias — Raio`
+      : `Lembrete: plano ${planLabel} renova em 7 dias — Raio`;
 
   const html = base(`
     ${h1(`${firstName},`)}
-    ${p(`Passando para avisar que o plano <strong>${planLabel}</strong> será renovado automaticamente no dia <strong>${date}</strong> no valor de <strong>R$ ${amountBRL}</strong>.`)}
-    ${p("Caso não deseje continuar, você pode gerenciar ou pausar sua assinatura diretamente nas configurações antes dessa data. Após a cobrança, o reembolso é garantido por lei em até 7 dias (Art. 49, CDC).")}
+    ${p(intro)}
+    ${p("Caso não deseje continuar, você pode cancelar sua assinatura diretamente nas configurações antes dessa data. Após a cobrança, o reembolso é garantido por lei em até 7 dias (Art. 49, CDC).")}
     <table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0">
       <tr><td style="padding:8px 0;color:#888;width:130px">Plano</td><td style="padding:8px 0;color:#1a1a1a;font-weight:600">${planLabel}</td></tr>
       <tr><td style="padding:8px 0;color:#888">Renovação em</td><td style="padding:8px 0;color:#1a1a1a">${date}</td></tr>
@@ -246,7 +260,7 @@ export async function sendRenewalReminderEmail(to: string, firstName: string, pl
     <p style="margin:24px 0 0;font-size:12px;color:#999;line-height:1.6">Garantia de arrependimento: cancelamentos solicitados em até 7 dias após o pagamento têm direito a reembolso integral, conforme o Art. 49 do Código de Defesa do Consumidor, desde que nenhum crédito do período tenha sido utilizado.</p>
   `);
 
-  return getResend().emails.send({ from: FROM, to, subject: `Lembrete: plano ${planLabel} renova em 7 dias — Raio`, html });
+  return getResend().emails.send({ from: FROM, to, subject, html });
 }
 
 // ─── 9. Falha no pagamento ─────────────────────────────────────────────────────

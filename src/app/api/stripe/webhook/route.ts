@@ -165,8 +165,12 @@ export async function POST(req: NextRequest) {
       const renewalDate = new Date(subscription.items.data[0].current_period_end * 1000);
       const amountBRL = (PLANS[planId].priceCents / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 });
       const { firstName, email } = await getClerkUser(clerkId);
+      // Calcula quantos dias faltam para a renovação (arredonda para 0, 2 ou 7)
+      const msLeft = renewalDate.getTime() - Date.now();
+      const daysLeft = Math.round(msLeft / (1000 * 60 * 60 * 24));
+      const bucket = daysLeft <= 1 ? 0 : daysLeft <= 3 ? 2 : 7;
       if (email) {
-        await sendRenewalReminderEmail(email, firstName, PLANS[planId].label, amountBRL, renewalDate).catch(console.error);
+        await sendRenewalReminderEmail(email, firstName, PLANS[planId].label, amountBRL, renewalDate, bucket).catch(console.error);
       }
       break;
     }
