@@ -127,7 +127,7 @@ export function RichEditor({
   const inlineImgRef    = useRef<HTMLInputElement>(null);
   const editorWrapRef   = useRef<HTMLDivElement>(null);
   const [imgUploading, setImgUploading] = useState(false);
-  const [plusBtn, setPlusBtn] = useState<{ top: number; left: number; visible: boolean }>({ top: 0, left: 0, visible: false });
+  const [plusBtn, setPlusBtn] = useState<{ top: number; left: number; contentLeft: number; visible: boolean }>({ top: 0, left: 0, contentLeft: 0, visible: false });
   const [aiLoading,    setAiLoading]    = useState(false);
   const [aiErr,        setAiErr]        = useState("");
   const [briefingOpen, setBriefingOpen] = useState(false);
@@ -188,7 +188,8 @@ export function RichEditor({
       const wrap = editorWrapRef.current;
       if (!wrap) return;
       const wrapRect = wrap.getBoundingClientRect();
-      setPlusBtn({ top: coords.top + window.scrollY - 13, left: wrapRect.left - 34, visible: true });
+      const lineCenter = (coords.top + coords.bottom) / 2 + window.scrollY;
+      setPlusBtn({ top: lineCenter - 13, left: wrapRect.left - 34, contentLeft: wrapRect.left + 26, visible: true });
     };
     editor.on("selectionUpdate", update);
     editor.on("update", update);
@@ -396,6 +397,7 @@ export function RichEditor({
           onChange={onSubtitleChange}
         />
         {plusBtn.visible && (
+          <>
           <button
             type="button"
             onMouseDown={e => {
@@ -435,6 +437,26 @@ export function RichEditor({
           >
             <ImageIcon size={13} />
           </button>
+          <span
+            style={{
+              position: "fixed",
+              left: plusBtn.contentLeft,
+              top: plusBtn.top,
+              height: 26,
+              display: "flex",
+              alignItems: "center",
+              fontSize: 14,
+              color: "var(--stone)",
+              fontStyle: "italic",
+              pointerEvents: "none",
+              userSelect: "none",
+              opacity: 0.6,
+              zIndex: 10,
+            }}
+          >
+            Clique no ícone para adicionar uma foto
+          </span>
+          </>
         )}
         <EditorContent editor={editor} />
       </div>
