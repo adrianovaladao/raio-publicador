@@ -78,6 +78,21 @@ export async function sendWelcomeEmail(
       <tr style="border-top:1px solid #eee"><td style="padding:10px 14px;color:#888">Créditos</td><td style="padding:10px 14px;color:#1a1a1a">${credits.toLocaleString("pt-BR")} créditos/mês</td></tr>
       <tr style="border-top:1px solid #eee"><td style="padding:10px 14px;color:#888">Próxima cobrança</td><td style="padding:10px 14px;color:#1a1a1a">${renewal}</td></tr>
     </table>
+    <p style="margin:28px 0 8px;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#888">Como funciona sua assinatura</p>
+    <table style="width:100%;border-collapse:collapse;font-size:14px;margin:0 0 24px">
+      <tr>
+        <td style="padding:10px 0;border-top:1px solid #eee;vertical-align:top;width:28px;color:#FAB500;font-size:16px">⚡</td>
+        <td style="padding:10px 0 10px 10px;border-top:1px solid #eee;color:#444;line-height:1.6">Todo mês, no mesmo dia em que você assinou, o valor de <strong>${price}</strong> é debitado automaticamente no cartão cadastrado. Você será avisado com 1 semana, 2 dias e no dia da cobrança.</td>
+      </tr>
+      <tr>
+        <td style="padding:10px 0;border-top:1px solid #eee;vertical-align:top;color:#FAB500;font-size:16px">⚡</td>
+        <td style="padding:10px 0 10px 10px;border-top:1px solid #eee;color:#444;line-height:1.6">A cada renovação, você recebe <strong>${credits.toLocaleString("pt-BR")} créditos</strong> para usar como quiser ao longo do mês. Cada publicação consome créditos conforme o portal escolhido.</td>
+      </tr>
+      <tr>
+        <td style="padding:10px 0;border-top:1px solid #eee;vertical-align:top;color:#FAB500;font-size:16px">⚡</td>
+        <td style="padding:10px 0 10px 10px;border-top:1px solid #eee;color:#444;line-height:1.6">Para cancelar, basta acessar as configurações da plataforma ou entrar em contato. Você continua com acesso até o fim do período já pago. A cada novo ciclo, você tem <strong>7 dias</strong> para cancelar e receber reembolso integral.</td>
+      </tr>
+    </table>
     ${p("Não deixe a energia acumular: cadastre sua primeira marca e crie um release. Leva menos de cinco minutos!")}
     ${btn("Acessar agora", `${APP_URL}/dashboard`)}
   `);
