@@ -370,6 +370,25 @@ export default function AdminVeiculos() {
         </div>
       </div>
 
+      {/* Category legend */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 20 }}>
+        {[
+          { tier: "A", credits: 100, label: "Grande Portal Nacional", reach: "+500 mil leitores/mês" },
+          { tier: "B", credits: 50,  label: "Portal Regional Forte",  reach: "100–500 mil leitores/mês" },
+          { tier: "C", credits: 25,  label: "Portal Médio / Nicho",   reach: "Até 100 mil leitores/mês" },
+        ].map(({ tier, credits, label, reach }) => (
+          <div key={tier} style={{ background: "var(--paper)", border: "1px solid var(--line)", borderRadius: 12, padding: "16px 18px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+              <div style={{ width: 28, height: 28, borderRadius: 6, background: TIER_COLORS[tier], color: TIER_FG[tier], display: "grid", placeItems: "center", fontWeight: 800, fontSize: 13, fontFamily: "var(--mono)", flexShrink: 0 }}>{tier}</div>
+              <span style={{ fontWeight: 700, fontSize: 15 }}>{credits}</span>
+              <span style={{ fontSize: 13, color: "var(--stone)" }}>créditos</span>
+            </div>
+            <p style={{ margin: "0 0 4px", fontSize: 10, fontFamily: "var(--mono)", letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--stone)" }}>{label}</p>
+            <p style={{ margin: 0, fontSize: 13, fontWeight: 600 }}>{reach}</p>
+          </div>
+        ))}
+      </div>
+
       {/* Bulk action bar */}
       {selected.size > 0 && (
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14, padding: "12px 16px", background: "var(--ink)", color: "#fff", borderRadius: 10 }}>
