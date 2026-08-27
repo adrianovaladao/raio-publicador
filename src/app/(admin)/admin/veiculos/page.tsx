@@ -17,8 +17,8 @@ const BR_STATES = ["Nacional","AC","AL","AP","AM","BA","CE","DF","ES","GO","MA",
 const TIER_ORDER: Record<string, number> = { A: 0, B: 1, C: 2 };
 const PAGE_SIZE = 30;
 
-interface VehicleRow { id: string; name: string; domain: string; site?: string | null; location?: string | null; category: string; tier: string; reach: number; logoUrl?: string | null; avgPublishDays?: number | null }
-type SortCol = "name" | "category" | "tier" | "reach" | "location" | "site" | "avgPublishDays";
+interface VehicleRow { id: string; name: string; domain: string; site?: string | null; location?: string | null; category: string; tier: string; reach: number; logoUrl?: string | null }
+type SortCol = "name" | "category" | "tier" | "reach" | "location" | "site";
 type SortDir = "asc" | "desc";
 
 function fmtReach(n: number) {
@@ -34,7 +34,6 @@ function sortVehicles(arr: VehicleRow[], col: SortCol, dir: SortDir) {
     let va: string | number, vb: string | number;
     if (col === "tier")  { va = TIER_ORDER[a.tier] ?? 99; vb = TIER_ORDER[b.tier] ?? 99; }
     else if (col === "reach") { va = a.reach; vb = b.reach; }
-    else if (col === "avgPublishDays") { va = a.avgPublishDays ?? 999; vb = b.avgPublishDays ?? 999; }
     else if (col === "location") { va = (a.location ?? "").toLowerCase(); vb = (b.location ?? "").toLowerCase(); }
     else if (col === "site") { va = (a.site ?? "").toLowerCase(); vb = (b.site ?? "").toLowerCase(); }
     else { va = (a[col] as string).toLowerCase(); vb = (b[col] as string).toLowerCase(); }
@@ -51,15 +50,14 @@ function VehicleModal({ initial, onSave, onClose }: {
   onSave: (data: Omit<VehicleRow, "id">) => Promise<void>;
   onClose: () => void;
 }) {
-  const [name,           setName]           = useState(initial?.name          ?? "");
-  const [domain,         setDomain]         = useState(initial?.domain        ?? "");
-  const [site,           setSite]           = useState(initial?.site          ?? "");
-  const [location,       setLocation]       = useState(initial?.location      ?? "");
-  const [category,       setCategory]       = useState(initial?.category      ?? VEH_CATS[0]);
-  const [tier,           setTier]           = useState(initial?.tier          ?? "B");
-  const [reach,          setReach]          = useState(String(initial?.reach  ?? ""));
-  const [avgPublishDays, setAvgPublishDays] = useState(initial?.avgPublishDays != null ? String(initial.avgPublishDays) : "");
-  const [logoUrl,        setLogoUrl]        = useState(initial?.logoUrl       ?? "");
+  const [name,      setName]      = useState(initial?.name     ?? "");
+  const [domain,    setDomain]    = useState(initial?.domain   ?? "");
+  const [site,      setSite]      = useState(initial?.site     ?? "");
+  const [location,  setLocation]  = useState(initial?.location ?? "");
+  const [category,  setCategory]  = useState(initial?.category ?? VEH_CATS[0]);
+  const [tier,      setTier]      = useState(initial?.tier     ?? "B");
+  const [reach,     setReach]     = useState(String(initial?.reach ?? ""));
+  const [logoUrl,   setLogoUrl]   = useState(initial?.logoUrl  ?? "");
   const [uploading,      setUploading]      = useState(false);
   const [saving,         setSaving]         = useState(false);
   const [err,            setErr]            = useState("");
@@ -78,7 +76,7 @@ function VehicleModal({ initial, onSave, onClose }: {
     if (!name.trim() || !domain.trim() || !reach) { setErr("Preencha todos os campos."); return; }
     setSaving(true); setErr("");
     try {
-      await onSave({ name: name.trim(), domain: domain.trim(), site: site.trim() || null, location: location.trim() || null, category, tier, reach: Number(reach), logoUrl: logoUrl || null, avgPublishDays: avgPublishDays ? Number(avgPublishDays) : null });
+      await onSave({ name: name.trim(), domain: domain.trim(), site: site.trim() || null, location: location.trim() || null, category, tier, reach: Number(reach), logoUrl: logoUrl || null });
       onClose();
     } catch (e: unknown) {
       setErr(e instanceof Error ? e.message : "Erro ao salvar");
@@ -150,14 +148,7 @@ function VehicleModal({ initial, onSave, onClose }: {
             </div>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-            <div><label style={labelStyle}>Alcance/mês</label><input style={inputStyle} type="number" value={reach} onChange={e => setReach(e.target.value)} placeholder="Ex.: 5000000" /></div>
-            <div>
-              <label style={labelStyle}>Tempo de publicação (dias)</label>
-              <input style={inputStyle} type="number" min="1" value={avgPublishDays} onChange={e => setAvgPublishDays(e.target.value)} placeholder="Ex.: 2" />
-              <p style={{ fontSize: 11, color: "var(--stone)", marginTop: 4 }}>Exibido como &ldquo;~N dias&rdquo; para os usuários.</p>
-            </div>
-          </div>
+          <div><label style={labelStyle}>Alcance/mês</label><input style={inputStyle} type="number" value={reach} onChange={e => setReach(e.target.value)} placeholder="Ex.: 5000000" /></div>
         </div>
 
         {err && <p style={{ color: "#DC2626", fontSize: 13, marginTop: 12 }}>{err}</p>}
@@ -433,7 +424,6 @@ export default function AdminVeiculos() {
                   <th style={thS} onClick={() => toggleSort("tier")}><span style={{ display: "flex", alignItems: "center", gap: 4 }}>Categoria <SortIcon col="tier" /></span></th>
                   <th style={{ ...thS, textAlign: "right" }} onClick={() => toggleSort("reach")}><span style={{ display: "flex", alignItems: "center", gap: 4, justifyContent: "flex-end" }}>Alcance/mês <SortIcon col="reach" /></span></th>
                   <th style={{ ...thS, textAlign: "right" }}>Créditos</th>
-                  <th style={{ ...thS, textAlign: "right" }} onClick={() => toggleSort("avgPublishDays")}><span style={{ display: "flex", alignItems: "center", gap: 4, justifyContent: "flex-end" }}>Publicação <SortIcon col="avgPublishDays" /></span></th>
                   <th style={{ ...thS, width: 80 }}></th>
                 </tr>
               </thead>
@@ -474,12 +464,6 @@ export default function AdminVeiculos() {
                     </td>
                     <td style={{ ...tdS, textAlign: "right", fontFamily: "var(--mono)", fontWeight: 700, background: selected.has(v.id) ? "var(--cream)" : "" }}>{fmtReach(v.reach)}</td>
                     <td style={{ ...tdS, textAlign: "right", fontFamily: "var(--mono)", fontWeight: 700, background: selected.has(v.id) ? "var(--cream)" : "" }}>{TIER_TOKENS[v.tier] ?? 0} ⚡</td>
-                    <td style={{ ...tdS, textAlign: "right", background: selected.has(v.id) ? "var(--cream)" : "" }}>
-                      {v.avgPublishDays != null
-                        ? <span style={{ fontSize: 12, color: "var(--stone)", fontFamily: "var(--mono)" }}>~{v.avgPublishDays}d</span>
-                        : <span style={{ color: "var(--stone)", opacity: 0.4 }}>—</span>
-                      }
-                    </td>
                     <td style={{ ...tdS, background: selected.has(v.id) ? "var(--cream)" : "" }}>
                       <div style={{ display: "flex", gap: 4, justifyContent: "flex-end" }}>
                         <button title="Editar" onClick={() => setEditing(v)}

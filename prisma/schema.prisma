@@ -109,7 +109,6 @@ model Vehicle {
   category             String
   tier                 String
   reach                Int
-  avgPublishDays       Int?     // Tempo médio de publicação em dias (exibido como "~N dias")
   logoUrl              String?
   site                 String?
   location             String?
