@@ -194,12 +194,13 @@ export function RichEditor({
     editor.on("selectionUpdate", update);
     editor.on("update", update);
     editor.on("focus", update);
-    editor.on("blur", () => setPlusBtn(p => ({ ...p, visible: false })));
+    const onBlur = () => { setTimeout(() => setPlusBtn(p => ({ ...p, visible: false })), 150); };
+    editor.on("blur", onBlur);
     return () => {
       editor.off("selectionUpdate", update);
       editor.off("update", update);
       editor.off("focus", update);
-      editor.off("blur", () => setPlusBtn(p => ({ ...p, visible: false })));
+      editor.off("blur", onBlur);
     };
   }, [editor]);
 
