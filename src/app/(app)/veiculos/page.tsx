@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useEscapeKey } from "@/hooks/useEscapeKey";
 import { ArrowUpDown, ArrowUp, ArrowDown, SlidersHorizontal, X, Clock } from "lucide-react";
 
-type VehicleItem = { id: string; name: string; domain: string; site?: string | null; location?: string | null; cat: string; tier: string; reach: number; logoUrl?: string | null };
+type VehicleItem = { id: string; name: string; domain: string; site?: string | null; location?: string | null; cat: string; tier: string; reach: number; logoUrl?: string | null; avgPublishDays?: number | null };
 
 
 
@@ -142,8 +142,8 @@ export default function VeiculosPage() {
   useEffect(() => {
     fetch("/api/vehicles")
       .then(r => r.json())
-      .then((data: { id: string; name: string; domain: string; site?: string | null; location?: string | null; category: string; tier: string; reach: number; logoUrl?: string | null }[]) => {
-        setVehicles(data.map(v => ({ id: v.id, name: v.name, domain: v.domain, site: v.site, location: v.location, cat: v.category, tier: v.tier, reach: v.reach, logoUrl: v.logoUrl })));
+      .then((data: { id: string; name: string; domain: string; site?: string | null; location?: string | null; category: string; tier: string; reach: number; logoUrl?: string | null; avgPublishDays?: number | null }[]) => {
+        setVehicles(data.map(v => ({ id: v.id, name: v.name, domain: v.domain, site: v.site, location: v.location, cat: v.category, tier: v.tier, reach: v.reach, logoUrl: v.logoUrl, avgPublishDays: v.avgPublishDays ?? null })));
       })
       .catch(() => {});
   }, []);
@@ -307,7 +307,7 @@ export default function VeiculosPage() {
                             <Clock size={12} />
                           </button>
                           <span className="clock-tip">
-                            Tempo médio de publicação: {fmtAvgTime(TIER_AVG_HOURS[v.tier] ?? 48)}
+                            Tempo médio de publicação: {v.avgPublishDays != null ? `~${v.avgPublishDays} dia${v.avgPublishDays !== 1 ? "s" : ""}` : fmtAvgTime(TIER_AVG_HOURS[v.tier] ?? 48)}
                           </span>
                         </span>
                       </span>
