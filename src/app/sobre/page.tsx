@@ -82,7 +82,7 @@ function SobreHero() {
         <p style={{ fontSize: "1.1rem", lineHeight: 1.75, color: "rgba(255,255,255,0.65)", maxWidth: 620, margin: "0 auto" }}>
           O Raio nasceu de uma experiência acumulada ao longo de 15 anos de trabalho com comunicação e imprensa. Nesse período, a Markable conversou com milhares de empresas e profissionais e percebeu que nem todos buscavam a mesma coisa. Alguns queriam um trabalho contínuo de assessoria de imprensa. Outros precisavam de algo mais pontual, queriam falar sobre a própria trajetória ou buscavam a segurança de saber exatamente onde seu conteúdo seria publicado. Em muitos casos, a verba disponível também pedia uma solução mais acessível.
         </p>
-        <p style={{ fontSize: "1.1rem", lineHeight: 1.75, color: "rgba(255,255,255,0.65)", maxWidth: 620, margin: "16px auto 0" }}>
+        <p style={{ fontSize: "1.2rem", lineHeight: 1.75, color: "rgba(255,255,255,0.9)", maxWidth: 620, margin: "28px auto 0", fontWeight: 600, borderLeft: "3px solid var(--coral)", paddingLeft: 20, textAlign: "left" }}>
           Foi dessa necessidade que nasceu o Raio Publicador: uma nova forma de colocar boas histórias em grandes portais de notícias, com mais autonomia, simplicidade e publicação garantida.
         </p>
       </div>
@@ -98,7 +98,7 @@ function Origem() {
       <div className="wrap" style={{ maxWidth: 800 }}>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "48px 64px", alignItems: "start" }}>
 
-          <div className="reveal" style={{ gridColumn: "1 / -1" }}>
+          <div className="reveal">
             <span className="eyebrow" style={{ marginBottom: 16, display: "block" }}>A oportunidade que nos motivou</span>
             <h2 style={{ fontSize: "clamp(1.4rem, 3vw, 2rem)", lineHeight: 1.25, marginBottom: 20, letterSpacing: "-0.025em", fontWeight: 700 }}>
               Aparecer é obrigação, mas nem toda empresa precisa da mesma{" "}
@@ -116,6 +116,30 @@ function Origem() {
             <p style={{ color: "rgba(255,255,255,0.65)", lineHeight: 1.8 }}>
               O Raio Publicador não substitui a assessoria de imprensa. Ele resolve uma necessidade diferente.
             </p>
+          </div>
+
+          <div className="reveal" style={{ transitionDelay: "100ms" }}>
+            <div style={{
+              background: "rgba(255,255,255,0.04)",
+              border: "1px solid rgba(255,255,255,0.08)",
+              borderRadius: 16,
+              padding: "32px 28px",
+              display: "flex",
+              flexDirection: "column",
+              gap: 24,
+            }}>
+              {[
+                { n: "50+",   l: "portais parceiros ativos" },
+                { n: "5 mil", l: "contatos na imprensa brasileira" },
+                { n: "100%",  l: "de publicação garantida" },
+                { n: "5 min", l: "para publicar o primeiro release" },
+              ].map(({ n, l }) => (
+                <div key={n} style={{ display: "flex", alignItems: "center", gap: 20 }}>
+                  <div style={{ fontSize: "1.7rem", fontWeight: 800, color: "var(--coral)", minWidth: 80, lineHeight: 1 }}>{n}</div>
+                  <div style={{ color: "rgba(255,255,255,0.55)", fontSize: "0.9rem", lineHeight: 1.4 }}>{l}</div>
+                </div>
+              ))}
+            </div>
           </div>
 
         </div>
@@ -150,11 +174,11 @@ function QuemEstaPorTras() {
         }}>
           <div style={{ textAlign: "center" }}>
             <Image
-              src="/assets/logo/markable-stacked-mono-white.svg"
+              src="/assets/logo/markable-sobre.svg"
               alt="Markable"
-              width={96}
-              height={96}
-              style={{ height: 80, width: "auto", opacity: 0.9 }}
+              width={160}
+              height={93}
+              style={{ height: 72, width: "auto", opacity: 0.95 }}
             />
           </div>
           <div>
