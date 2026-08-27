@@ -76,11 +76,14 @@ function SobreHero() {
       <div className="wrap" style={{ maxWidth: 760 }}>
         <span className="eyebrow">Nossa história</span>
         <h1 style={{ fontSize: "clamp(2rem, 5vw, 3.2rem)", lineHeight: 1.18, fontWeight: 700, marginTop: 12, marginBottom: 24, letterSpacing: "-0.03em" }}>
-          Uma plataforma criada para quem precisa sair na imprensa,{" "}
+          Uma plataforma criada para quem quer transformar conteúdo em presença na mídia,{" "}
           <span style={emStyle}>de forma garantida.</span>
         </h1>
         <p style={{ fontSize: "1.1rem", lineHeight: 1.75, color: "rgba(255,255,255,0.65)", maxWidth: 620, margin: "0 auto" }}>
-          O Raio nasceu de uma percepção simples: muitos profissionais e marcas queriam aparecer na mídia, mas ou não tinham orçamento para uma assessoria completa ou buscavam algo mais pessoal e individualizado sobre o profissional por trás das suas marcas.
+          O Raio nasceu de uma experiência acumulada ao longo de 15 anos de trabalho com comunicação e imprensa. Nesse período, a Markable conversou com milhares de empresas e profissionais e percebeu que nem todos buscavam a mesma coisa. Alguns queriam um trabalho contínuo de assessoria de imprensa. Outros precisavam de algo mais pontual, queriam falar sobre a própria trajetória ou buscavam a segurança de saber exatamente onde seu conteúdo seria publicado. Em muitos casos, a verba disponível também pedia uma solução mais acessível.
+        </p>
+        <p style={{ fontSize: "1.1rem", lineHeight: 1.75, color: "rgba(255,255,255,0.65)", maxWidth: 620, margin: "16px auto 0" }}>
+          Foi dessa necessidade que nasceu o Raio Publicador: uma nova forma de colocar boas histórias em grandes portais de notícias, com mais autonomia, simplicidade e publicação garantida.
         </p>
       </div>
     </header>
@@ -95,42 +98,24 @@ function Origem() {
       <div className="wrap" style={{ maxWidth: 800 }}>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "48px 64px", alignItems: "start" }}>
 
-          <div className="reveal">
-            <span className="eyebrow" style={{ marginBottom: 16, display: "block" }}>O problema que motivou o Raio</span>
+          <div className="reveal" style={{ gridColumn: "1 / -1" }}>
+            <span className="eyebrow" style={{ marginBottom: 16, display: "block" }}>A oportunidade que nos motivou</span>
             <h2 style={{ fontSize: "clamp(1.4rem, 3vw, 2rem)", lineHeight: 1.25, marginBottom: 20, letterSpacing: "-0.025em", fontWeight: 700 }}>
-              Visibilidade na imprensa não deveria ser{" "}
-              <span style={emStyle}>privilégio apenas de quem tem acesso aos jornalistas.</span>
+              Aparecer é obrigação, mas nem toda empresa precisa da mesma{" "}
+              <span style={emStyle}>estratégia de comunicação.</span>
             </h2>
-            <p style={{ color: "rgba(255,255,255,0.65)", lineHeight: 1.8, marginBottom: 20 }}>
-              O Raio nasceu para que qualquer marca ou profissional pudesse publicar nos maiores portais de notícias do Brasil de forma direta e garantida, sem precisar esperar pela agenda de uma assessoria ou negociar espaço individualmente com jornalistas.
+            <p style={{ color: "rgba(255,255,255,0.65)", lineHeight: 1.8, marginBottom: 16 }}>
+              Ao longo dos anos, percebemos que muitas marcas e profissionais queriam estar nos grandes portais, mas nem todas buscavam a mesma dinâmica da assessoria de imprensa tradicional.
+            </p>
+            <p style={{ color: "rgba(255,255,255,0.65)", lineHeight: 1.8, marginBottom: 16 }}>
+              Algumas queriam falar de um lançamento, contar a história de um fundador ou fortalecer determinado posicionamento. Outras simplesmente queriam ter a certeza da publicação, algo que a imprensa espontânea, por sua própria natureza, não pode garantir.
+            </p>
+            <p style={{ color: "rgba(255,255,255,0.65)", lineHeight: 1.8, marginBottom: 16 }}>
+              O Raio Publicador nasceu justamente para atender essa demanda por uma plataforma em que marcas e profissionais podem escolher onde querem estar e publicar seus conteúdos de forma direta, simples e garantida.
             </p>
             <p style={{ color: "rgba(255,255,255,0.65)", lineHeight: 1.8 }}>
-              Quem começa pelo Raio descobre rapidamente o poder da presença editorial. E quando a comunicação cresce e as demandas se tornam mais estratégicas, a Markable está aqui: com 15 anos de mercado, uma equipe especializada e mais de 5.000 contatos na imprensa, pronta para levar sua marca para o próximo nível.
+              O Raio Publicador não substitui a assessoria de imprensa. Ele resolve uma necessidade diferente.
             </p>
-          </div>
-
-          <div className="reveal" style={{ transitionDelay: "100ms" }}>
-            <div style={{
-              background: "rgba(255,255,255,0.04)",
-              border: "1px solid rgba(255,255,255,0.08)",
-              borderRadius: 16,
-              padding: "32px 28px",
-              display: "flex",
-              flexDirection: "column",
-              gap: 24,
-            }}>
-              {[
-                { n: "50+", l: "portais parceiros ativos" },
-                { n: "5 mil", l: "contatos na imprensa brasileira" },
-                { n: "100%", l: "de publicação garantida" },
-                { n: "5 min", l: "para publicar o primeiro release" },
-              ].map(({ n, l }) => (
-                <div key={n} style={{ display: "flex", alignItems: "center", gap: 20 }}>
-                  <div style={{ fontSize: "1.7rem", fontWeight: 800, color: "var(--coral)", minWidth: 80, lineHeight: 1 }}>{n}</div>
-                  <div style={{ color: "rgba(255,255,255,0.55)", fontSize: "0.9rem", lineHeight: 1.4 }}>{l}</div>
-                </div>
-              ))}
-            </div>
           </div>
 
         </div>
@@ -146,9 +131,9 @@ function QuemEstaPorTras() {
     <section className="section">
       <div className="wrap" style={{ maxWidth: 860 }}>
         <div className="sec-head reveal" style={{ border: "none", padding: 0, background: "transparent", boxShadow: "none", borderRadius: 0, outline: "none", textAlign: "center", marginBottom: 64 }}>
-          <span className="eyebrow">Quem está por trás do Raio</span>
+          <span className="eyebrow">Quem está por trás do Raio Publicador</span>
           <h2 style={{ fontSize: "clamp(1.6rem, 3.5vw, 2.4rem)" }}>
-            Duas décadas de estratégia de marca <em>em uma plataforma.</em>
+            15 anos de comunicação e relacionamento com a imprensa <em>transformados em tecnologia.</em>
           </h2>
         </div>
 
@@ -173,12 +158,14 @@ function QuemEstaPorTras() {
             />
           </div>
           <div>
-            <div style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--coral)", marginBottom: 8 }}>Desenvolvido pela Markable</div>
-            <h3 style={{ fontSize: "1.3rem", fontWeight: 700, marginBottom: 12, lineHeight: 1.3 }}>
-              A maior assessoria de imprensa especializada em franquias do Brasil.
-            </h3>
             <p style={{ color: "rgba(255,255,255,0.6)", lineHeight: 1.75, marginBottom: 16 }}>
-              Com mais de 15 anos de mercado, a Markable gerencia a comunicação de dezenas de redes franqueadoras nacionais, operando uma das maiores redes de contatos editoriais do país, com mais de 5.000 jornalistas e editores em carteira. O Raio Publicador nasce desse histórico e foi criado como a porta de entrada para marcas que ainda estão construindo sua presença na imprensa. Quando sua estratégia de comunicação crescer, a Markable é o próximo passo natural.
+              O Raio Publicador nasce dentro da Markable Comunicação, uma agência com 15 anos de experiência em assessoria de imprensa e relacionamento com os principais veículos do país.
+            </p>
+            <p style={{ color: "rgba(255,255,255,0.6)", lineHeight: 1.75, marginBottom: 16 }}>
+              Foi essa experiência que nos mostrou que comunicação não precisa ter um único caminho.
+            </p>
+            <p style={{ color: "rgba(255,255,255,0.6)", lineHeight: 1.75, marginBottom: 16 }}>
+              Para algumas empresas, o objetivo é conquistar espaço espontâneo na imprensa, construir relacionamento com jornalistas e desenvolver reputação no longo prazo. Para outras, existe uma necessidade mais direta: publicar determinado conteúdo, em determinado veículo, com previsibilidade.
             </p>
             <a
               href="https://markable.com.br"
@@ -186,7 +173,7 @@ function QuemEstaPorTras() {
               rel="noopener noreferrer"
               style={{ display: "inline-flex", alignItems: "center", gap: 6, color: "var(--coral)", fontSize: "0.85rem", fontWeight: 600, textDecoration: "none" }}
             >
-              Conhecer a Markable <ExternalLink size={13} />
+              Mais sobre a Markable <ExternalLink size={13} />
             </a>
           </div>
         </div>
@@ -201,16 +188,16 @@ function QuemEstaPorTras() {
 function PorQueEditorial() {
   const items = [
     {
-      title: "Credibilidade que não se compra.",
-      desc: "Um anúncio diz que você é bom. Uma matéria em um portal de referência mostra que alguém achou isso digno de nota. A diferença na percepção de autoridade é substancial.",
+      title: "Você escolhe onde quer estar.",
+      desc: "No Raio Publicador, você escolhe entre os portais disponíveis, envia seu conteúdo e sabe previamente onde ele será publicado. Sem depender da aprovação espontânea de uma pauta por uma redação.",
     },
     {
-      title: "Visibilidade que dura.",
-      desc: "Publicações editoriais ficam indexadas por meses ou anos. Uma campanha paga desaparece quando o orçamento acaba. O release continua trabalhando por você muito depois da publicação.",
+      title: "Sua marca ganha autoridade.",
+      desc: "Uma publicação em um portal relevante pode ajudar a apresentar uma empresa, contar uma história, fortalecer um posicionamento e ampliar sua presença digital.",
     },
     {
-      title: "O Raio é o começo da jornada.",
-      desc: "Marcas que começam publicando pelo Raio constroem autoridade editorial rapidamente. Quando chega a hora de escalar com estratégia e relacionamento direto com jornalistas, a Markable está pronta para o próximo passo.",
+      title: "Mas, se quiser ir além, tem a Markable.",
+      desc: "Quando o objetivo passa a envolver estratégia contínua, relacionamento com jornalistas, construção de reputação e conquista de mídia espontânea, a Markable complementa esse trabalho com uma atuação completa de assessoria de imprensa.",
     },
   ];
 
@@ -220,10 +207,10 @@ function PorQueEditorial() {
         <div className="sec-head reveal" style={{ border: "none", padding: 0, background: "transparent", boxShadow: "none", borderRadius: 0, outline: "none", textAlign: "center", marginBottom: 56 }}>
           <span className="eyebrow">Por que isso importa</span>
           <h2 style={{ fontSize: "clamp(1.6rem, 3.5vw, 2.4rem)" }}>
-            Presença editorial é um <em>ativo de longo prazo.</em>
+            Existem diferentes formas de <em>construir presença na mídia.</em>
           </h2>
           <p className="sub" style={{ maxWidth: 580, margin: "16px auto 0" }}>
-            Publicidade comprada gera cliques. Publicação editorial constrói autoridade. O Raio é a forma mais direta de começar essa construção. E a Markable é o parceiro para quem quer ir mais longe.
+            Publicação garantida e assessoria de imprensa cumprem papéis diferentes dentro de uma estratégia de comunicação. O importante é entender qual deles faz sentido para cada momento da marca.
           </p>
         </div>
 
@@ -265,8 +252,8 @@ function SobreCta() {
       <div className="wrap">
         <div className="cta-inner reveal">
           <span className="glow" />
-          <h2>Comece pelo Raio. <em>Cresça com a Markable.</em></h2>
-          <p className="sub">Publique seus primeiros releases de forma garantida pelo Raio e, quando sua estratégia de comunicação precisar de mais, a Markable está a um clique de distância.</p>
+          <h2>Raio Publicador + Markable. <em>Duas soluções com a mesma expertise em comunicação.</em></h2>
+          <p className="sub">Você pode publicar pelo Raio. Pode trabalhar sua reputação com a Markable. Ou pode combinar as duas estratégias. Sua marca escolhe até onde quer ir e a gente tem um caminho para cada momento.</p>
           <div className="cta-row">
             <Link className="btn btn-primary btn-lg" href="/#planos">
               Ver planos <ArrowRight size={17} />
