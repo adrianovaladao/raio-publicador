@@ -697,9 +697,10 @@ function StepSchedule({
           </div>
         </div>
 
+        {navSlot && <div style={{ marginTop: 16, display: "flex", gap: 10, justifyContent: "flex-end" }}>{navSlot}</div>}
+
       </div>
     </div>
-    {navSlot && <div style={{ marginTop: 16, display: "flex", gap: 10, justifyContent: "flex-end" }}>{navSlot}</div>}
     </>
   );
 }
