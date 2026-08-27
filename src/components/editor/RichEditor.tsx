@@ -127,7 +127,7 @@ export function RichEditor({
   const inlineImgRef    = useRef<HTMLInputElement>(null);
   const editorWrapRef   = useRef<HTMLDivElement>(null);
   const [imgUploading, setImgUploading] = useState(false);
-  const [plusBtn, setPlusBtn] = useState<{ top: number; visible: boolean }>({ top: 0, visible: false });
+  const [plusBtn, setPlusBtn] = useState<{ top: number; left: number; visible: boolean }>({ top: 0, left: 0, visible: false });
   const [aiLoading,    setAiLoading]    = useState(false);
   const [aiErr,        setAiErr]        = useState("");
   const [briefingOpen, setBriefingOpen] = useState(false);
@@ -189,7 +189,7 @@ export function RichEditor({
       const wrap = editorWrapRef.current;
       if (!wrap) return;
       const wrapRect = wrap.getBoundingClientRect();
-      setPlusBtn({ top: coords.top - wrapRect.top + wrap.scrollTop, visible: true });
+      setPlusBtn({ top: coords.top + window.scrollY - 13, left: wrapRect.left - 34, visible: true });
     };
     editor.on("selectionUpdate", update);
     editor.on("update", update);
@@ -383,7 +383,7 @@ export function RichEditor({
         </div>
       )}
 
-      <div className="body-pad" ref={editorWrapRef} style={{ position: "relative" }}>
+      <div className="body-pad" ref={editorWrapRef}>
         <AutoTextarea
           className="title-input"
           placeholder="Título do release"
@@ -405,9 +405,9 @@ export function RichEditor({
             }}
             title="Inserir imagem aqui"
             style={{
-              position: "absolute",
-              left: -36,
-              top: plusBtn.top - 2,
+              position: "fixed",
+              left: plusBtn.left,
+              top: plusBtn.top,
               width: 26,
               height: 26,
               borderRadius: "50%",

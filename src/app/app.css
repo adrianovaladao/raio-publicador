@@ -527,7 +527,7 @@ textarea.input { resize: vertical; line-height: 1.55; }
 .editor .toolbtns .tb:hover { background: var(--cream); }
 .editor .toolbtns .tb svg { width: 17px; height: 17px; }
 .editor .toolbtns .div { width: 1px; height: 20px; background: var(--line-2); margin: 0 7px; }
-.editor .body-pad { padding: 22px 26px 28px 48px; }
+.editor .body-pad { padding: 22px 26px 28px; }
 .title-input {
   width: 100%; border: none; outline: none; background: none;
   font-family: var(--sans); font-weight: 700; font-size: 28px; letter-spacing: -0.03em; color: var(--ink);
