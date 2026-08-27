@@ -9,7 +9,7 @@ import Placeholder from "@tiptap/extension-placeholder";
 import Link from "@tiptap/extension-link";
 import Underline from "@tiptap/extension-underline";
 import TextAlign from "@tiptap/extension-text-align";
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect, useLayoutEffect } from "react";
 import {
   Bold, Italic, Underline as UnderlineIcon, Heading2,
   List, ListOrdered, Quote, Link as LinkIcon, Undo, Redo,
@@ -123,8 +123,11 @@ export function RichEditor({
   onImageInserted,
   onNoPlan,
 }: RichEditorProps) {
-  const imageFileRef = useRef<HTMLInputElement>(null);
+  const imageFileRef    = useRef<HTMLInputElement>(null);
+  const inlineImgRef    = useRef<HTMLInputElement>(null);
+  const editorWrapRef   = useRef<HTMLDivElement>(null);
   const [imgUploading, setImgUploading] = useState(false);
+  const [plusBtn, setPlusBtn] = useState<{ top: number; visible: boolean }>({ top: 0, visible: false });
   const [aiLoading,    setAiLoading]    = useState(false);
   const [aiErr,        setAiErr]        = useState("");
   const [briefingOpen, setBriefingOpen] = useState(false);
@@ -165,6 +168,40 @@ export function RichEditor({
     },
     immediatelyRender: false,
   });
+
+  // Botão "+" flutuante nas linhas vazias
+  useLayoutEffect(() => {
+    if (!editor) return;
+    const update = () => {
+      const { state, view } = editor;
+      const { selection } = state;
+      const node = state.doc.nodeAt(selection.from);
+      const resolved = state.doc.resolve(selection.from);
+      const parentNode = resolved.parent;
+      const isEmpty = parentNode.type.name === "paragraph" && parentNode.content.size === 0;
+
+      if (!isEmpty || !view.hasFocus()) {
+        setPlusBtn(p => ({ ...p, visible: false }));
+        return;
+      }
+
+      const coords = view.coordsAtPos(selection.from);
+      const wrap = editorWrapRef.current;
+      if (!wrap) return;
+      const wrapRect = wrap.getBoundingClientRect();
+      setPlusBtn({ top: coords.top - wrapRect.top + wrap.scrollTop, visible: true });
+    };
+    editor.on("selectionUpdate", update);
+    editor.on("update", update);
+    editor.on("focus", update);
+    editor.on("blur", () => setPlusBtn(p => ({ ...p, visible: false })));
+    return () => {
+      editor.off("selectionUpdate", update);
+      editor.off("update", update);
+      editor.off("focus", update);
+      editor.off("blur", () => setPlusBtn(p => ({ ...p, visible: false })));
+    };
+  }, [editor]);
 
   const setLink = useCallback(() => {
     if (!editor) return;
@@ -269,6 +306,13 @@ export function RichEditor({
       style={{ display: "none" }}
       onChange={e => { const f = e.target.files?.[0]; if (f) handleImageFile(f); e.target.value = ""; }}
     />
+    <input
+      ref={inlineImgRef}
+      type="file"
+      accept="image/jpeg,image/png,image/webp"
+      style={{ display: "none" }}
+      onChange={e => { const f = e.target.files?.[0]; if (f) handleImageFile(f); e.target.value = ""; }}
+    />
     <div className="card editor">
       <div className="toolbtns">
         {btn(editor.isActive("bold"),      () => editor.chain().focus().toggleBold().run(),      <Bold size={15} />,          "Negrito (Ctrl+B)")}
@@ -331,7 +375,7 @@ export function RichEditor({
         </div>
       )}
 
-      <div className="body-pad">
+      <div className="body-pad" ref={editorWrapRef} style={{ position: "relative" }}>
         <AutoTextarea
           className="title-input"
           placeholder="Título do release"
@@ -344,6 +388,47 @@ export function RichEditor({
           value={subtitle}
           onChange={onSubtitleChange}
         />
+        {plusBtn.visible && (
+          <button
+            type="button"
+            onMouseDown={e => {
+              e.preventDefault();
+              inlineImgRef.current?.click();
+            }}
+            title="Inserir imagem aqui"
+            style={{
+              position: "absolute",
+              left: -36,
+              top: plusBtn.top - 2,
+              width: 26,
+              height: 26,
+              borderRadius: "50%",
+              border: "1.5px solid var(--line)",
+              background: "var(--paper,#fff)",
+              color: "var(--stone)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              fontSize: 18,
+              lineHeight: 1,
+              padding: 0,
+              boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
+              transition: "border-color .15s, color .15s",
+              zIndex: 10,
+            }}
+            onMouseEnter={e => {
+              (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--ink)";
+              (e.currentTarget as HTMLButtonElement).style.color = "var(--ink)";
+            }}
+            onMouseLeave={e => {
+              (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--line)";
+              (e.currentTarget as HTMLButtonElement).style.color = "var(--stone)";
+            }}
+          >
+            <ImageIcon size={13} />
+          </button>
+        )}
         <EditorContent editor={editor} />
       </div>
 
