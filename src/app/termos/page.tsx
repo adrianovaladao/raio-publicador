@@ -51,8 +51,9 @@ export default function TermosPage() {
         </Section>
 
         <Section title="5. Direito de arrependimento, cancelamento e reembolso">
-          <p>Quando aplicável uma relação de consumo, será assegurado ao Usuário o direito de arrependimento nos termos do artigo 49 do Código de Defesa do Consumidor e demais normas aplicáveis. Fora das hipóteses de reembolso obrigatório previstas em lei, valores correspondentes a créditos já utilizados em serviços efetivamente prestados ou publicações já realizadas não serão reembolsados.</p>
-          <p>O cancelamento da assinatura interrompe as renovações futuras. Salvo nas hipóteses de reembolso integral previstas em lei, o Usuário poderá utilizar os créditos remanescentes e acessar a plataforma até o término do período já contratado.</p>
+          <p>O Usuário tem direito ao reembolso integral do valor pago quando o cancelamento ocorrer dentro de <strong>7 dias corridos</strong> a partir da data de contratação ou renovação, desde que <strong>nenhum release tenha sido publicado</strong> no período. Releases agendados que ainda não foram publicados não impedem o reembolso — os créditos correspondentes retornam automaticamente ao saldo quando o agendamento é cancelado.</p>
+          <p>A partir do momento em que qualquer release é efetivamente publicado, os créditos utilizados naquela publicação são considerados consumidos e o direito ao reembolso integral fica automaticamente encerrado, independentemente do prazo de 7 dias.</p>
+          <p>O cancelamento da assinatura interrompe as renovações futuras. Fora das hipóteses de reembolso integral descritas acima, o Usuário poderá utilizar os créditos remanescentes e acessar a plataforma até o término do período já contratado.</p>
           <p>Quando houver reembolso, a devolução será realizada preferencialmente pelo mesmo meio utilizado no pagamento ou por outro meio acordado com o Usuário, observados os prazos e procedimentos das instituições financeiras envolvidas.</p>
         </Section>
 
