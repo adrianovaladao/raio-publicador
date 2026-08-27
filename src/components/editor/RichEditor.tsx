@@ -127,7 +127,7 @@ export function RichEditor({
   const inlineImgRef    = useRef<HTMLInputElement>(null);
   const editorWrapRef   = useRef<HTMLDivElement>(null);
   const [imgUploading, setImgUploading] = useState(false);
-  const [plusBtn, setPlusBtn] = useState<{ top: number; left: number; contentLeft: number; visible: boolean }>({ top: 0, left: 0, contentLeft: 0, visible: false });
+  const [plusBtn, setPlusBtn] = useState<{ top: number; contentLeft: number; visible: boolean }>({ top: 0, contentLeft: 0, visible: false });
   const [aiLoading,    setAiLoading]    = useState(false);
   const [aiErr,        setAiErr]        = useState("");
   const [briefingOpen, setBriefingOpen] = useState(false);
@@ -189,7 +189,7 @@ export function RichEditor({
       if (!wrap) return;
       const wrapRect = wrap.getBoundingClientRect();
       const lineCenter = (coords.top + coords.bottom) / 2 + window.scrollY;
-      setPlusBtn({ top: lineCenter - 13, left: wrapRect.left - 34, contentLeft: wrapRect.left + 26, visible: true });
+      setPlusBtn({ top: lineCenter - 14, contentLeft: wrapRect.left + 26, visible: true });
     };
     editor.on("selectionUpdate", update);
     editor.on("update", update);
@@ -397,66 +397,54 @@ export function RichEditor({
           onChange={onSubtitleChange}
         />
         {plusBtn.visible && (
-          <>
-          <button
-            type="button"
-            onMouseDown={e => {
-              e.preventDefault();
-              inlineImgRef.current?.click();
-            }}
-            title="Inserir imagem aqui"
-            style={{
-              position: "fixed",
-              left: plusBtn.left,
-              top: plusBtn.top,
-              width: 26,
-              height: 26,
-              borderRadius: "50%",
-              border: "1.5px solid var(--line)",
-              background: "var(--paper,#fff)",
-              color: "var(--stone)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              fontSize: 18,
-              lineHeight: 1,
-              padding: 0,
-              boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
-              transition: "border-color .15s, color .15s",
-              zIndex: 10,
-            }}
-            onMouseEnter={e => {
-              (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--ink)";
-              (e.currentTarget as HTMLButtonElement).style.color = "var(--ink)";
-            }}
-            onMouseLeave={e => {
-              (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--line)";
-              (e.currentTarget as HTMLButtonElement).style.color = "var(--stone)";
-            }}
-          >
-            <ImageIcon size={13} />
-          </button>
-          <span
+          <div
             style={{
               position: "fixed",
               left: plusBtn.contentLeft,
               top: plusBtn.top,
-              height: 26,
+              height: 28,
               display: "flex",
               alignItems: "center",
-              fontSize: 14,
-              color: "var(--stone)",
-              fontStyle: "italic",
-              pointerEvents: "none",
-              userSelect: "none",
-              opacity: 0.6,
-              zIndex: 10,
+              gap: 2,
+              background: "var(--ink)",
+              borderRadius: 8,
+              padding: "0 6px",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.18)",
+              zIndex: 20,
             }}
           >
-            Clique no ícone para adicionar uma foto
-          </span>
-          </>
+            {[
+              { icon: <Bold size={13} />,      title: "Negrito",  action: () => editor?.chain().focus().toggleBold().run() },
+              { icon: <Italic size={13} />,    title: "Itálico",  action: () => editor?.chain().focus().toggleItalic().run() },
+              { icon: <LinkIcon size={13} />,  title: "Link",     action: () => { editor?.chain().focus().run(); setLinkModal({ open: true, initial: "https://" }); } },
+              { icon: <ImageIcon size={13} />, title: "Imagem",   action: () => inlineImgRef.current?.click() },
+            ].map(({ icon, title, action }) => (
+              <button
+                key={title}
+                type="button"
+                title={title}
+                onMouseDown={e => { e.preventDefault(); action(); }}
+                style={{
+                  width: 28, height: 28,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  background: "none", border: "none", borderRadius: 6,
+                  color: "rgba(255,255,255,0.75)",
+                  cursor: "pointer",
+                  transition: "color .1s, background .1s",
+                }}
+                onMouseEnter={e => {
+                  (e.currentTarget as HTMLButtonElement).style.color = "#fff";
+                  (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.12)";
+                }}
+                onMouseLeave={e => {
+                  (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,0.75)";
+                  (e.currentTarget as HTMLButtonElement).style.background = "none";
+                }}
+              >
+                {icon}
+              </button>
+            ))}
+          </div>
         )}
         <EditorContent editor={editor} />
       </div>
