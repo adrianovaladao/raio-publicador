@@ -109,6 +109,7 @@ model Vehicle {
   category             String
   tier                 String
   reach                Int
+  avgPublishDays       Int?
   logoUrl              String?
   site                 String?
   location             String?
