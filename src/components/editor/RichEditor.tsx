@@ -175,7 +175,6 @@ export function RichEditor({
     const update = () => {
       const { state, view } = editor;
       const { selection } = state;
-      const node = state.doc.nodeAt(selection.from);
       const resolved = state.doc.resolve(selection.from);
       const parentNode = resolved.parent;
       const isEmpty = parentNode.type.name === "paragraph" && parentNode.content.size === 0;
