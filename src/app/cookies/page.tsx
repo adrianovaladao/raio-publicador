@@ -22,11 +22,12 @@ export default function CookiesPage() {
         <p style={{ fontSize: 13, color: "#888", marginBottom: 8 }}>Vigência a partir de: agosto de 2026</p>
         <h1 style={{ fontSize: 36, fontWeight: 800, color: "#1a1a1a", marginBottom: 16, lineHeight: 1.2 }}>Política de Cookies</h1>
         <p style={{ fontSize: 16, color: "#555", lineHeight: 1.7, marginBottom: 40, borderLeft: "3px solid #FAB500", paddingLeft: 16 }}>
-          Cookies são pequenos arquivos que o navegador salva no seu dispositivo quando você visita um site. Usamos apenas o necessário para manter a plataforma funcionando e entender como ela é usada. Aqui está exatamente o que e por quê.
+          Cookies são pequenos arquivos que o navegador salva no seu dispositivo quando você visita um site. Utilizamos cookies essenciais para o funcionamento da plataforma e, mediante consentimento quando aplicável, cookies de análise para compreender como o Raio Publicador é utilizado e aprimorar a experiência dos usuários.
         </p>
 
         <Section title="1. Cookies essenciais">
           <p>São indispensáveis para que a plataforma funcione. Sem eles, você não consegue fazer login nem navegar pelas páginas autenticadas. <strong>Não há opção de desativá-los enquanto você usa o Raio Publicador</strong> &mdash; desabilitá-los significa não conseguir usar o serviço.</p>
+          <p>Esses cookies são utilizados com fundamento na necessidade de execução do serviço, segurança da plataforma e demais hipóteses legais aplicáveis. Como são indispensáveis ao funcionamento do Raio Publicador, não dependem de consentimento e não podem ser desativados por meio do gerenciador de cookies da plataforma.</p>
 
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14, minWidth: 540 }}>
@@ -50,7 +51,7 @@ export default function CookiesPage() {
         </Section>
 
         <Section title="2. Cookies de análise">
-          <p>Usamos o Google Analytics para entender como a plataforma é usada: quais páginas são mais visitadas, de onde vêm os acessos e onde as pessoas encontram dificuldade. Esses dados são <strong>agregados e anonimizados</strong> &mdash; não usamos o Analytics para rastrear você individualmente ou para fins publicitários.</p>
+          <p>Utilizamos ferramentas de análise, como o Google Analytics, para compreender de forma estatística como a plataforma é utilizada, incluindo páginas acessadas, origem dos acessos, tempo de navegação e possíveis dificuldades de uso. Esses dados são utilizados para análise de desempenho e melhoria da plataforma, e não para publicidade comportamental ou remarketing.</p>
 
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14, minWidth: 540 }}>
@@ -69,11 +70,12 @@ export default function CookiesPage() {
             </table>
           </div>
 
+          <p>Os cookies de análise são não essenciais e serão utilizados somente quando houver base legal adequada, inclusive consentimento quando aplicável. O Usuário poderá aceitar, rejeitar ou posteriormente revogar sua autorização por meio do gerenciador de cookies disponibilizado na plataforma.</p>
           <p>Para desativar o rastreamento pelo Google Analytics sem precisar ajustar configurações do navegador, você pode instalar o <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener noreferrer" style={{ color: "#1a1a1a", fontWeight: 600 }}>complemento oficial de exclusão do Google Analytics</a>.</p>
         </Section>
 
         <Section title="3. O que não usamos">
-          <p>Para deixar claro: o Raio Publicador <strong>não utiliza</strong>:</p>
+          <p>Atualmente o Raio Publicador <strong>não utiliza</strong>:</p>
           <ul>
             <li>Cookies de rastreamento publicitário ou remarketing</li>
             <li>Pixels de redes sociais (Facebook, TikTok, LinkedIn etc.)</li>
@@ -84,6 +86,7 @@ export default function CookiesPage() {
 
         <Section title="4. Como gerenciar cookies no seu navegador">
           <p>Você pode configurar seu navegador para bloquear, excluir ou alertá-lo sobre cookies. Lembre-se: bloquear cookies essenciais impede o uso da plataforma. Para cookies de análise, o impacto é apenas na nossa capacidade de entender o uso.</p>
+          <p>A exclusão ou bloqueio de cookies diretamente pelo navegador poderá apagar preferências anteriormente registradas e exigir novo login ou nova configuração em acessos futuros.</p>
           <ul>
             <li><a href="https://support.google.com/chrome/answer/95647" target="_blank" rel="noopener noreferrer" style={{ color: "#1a1a1a" }}>Google Chrome</a></li>
             <li><a href="https://support.mozilla.org/pt-BR/kb/limpar-cookies-e-dados-de-sites-no-firefox" target="_blank" rel="noopener noreferrer" style={{ color: "#1a1a1a" }}>Mozilla Firefox</a></li>
@@ -92,9 +95,14 @@ export default function CookiesPage() {
           </ul>
         </Section>
 
-        <Section title="5. Atualizações nesta Política">
-          <p>Se introduzirmos novos cookies &mdash; especialmente de categorias diferentes das que já usamos &mdash; atualizaremos esta página e notificaremos por e-mail com antecedência mínima de 10 dias. Mudanças em cookies essenciais de fornecedores existentes (por exemplo, uma versão nova do Clerk) podem ser feitas sem aviso prévio, mas sempre serão refletidas aqui.</p>
-          <p>Dúvidas: <a href="mailto:adrianovaladao@raiopublicador.com.br" style={{ color: "#1a1a1a", fontWeight: 600 }}>adrianovaladao@raiopublicador.com.br</a></p>
+        <Section title="5. Cookies e tecnologias de terceiros">
+          <p>Algumas funcionalidades do Raio Publicador dependem de serviços fornecidos por terceiros, como ferramentas de autenticação, pagamento e análise de uso. Esses fornecedores poderão utilizar cookies ou tecnologias semelhantes conforme suas próprias políticas de privacidade e cookies.</p>
+          <p>O Raio Publicador seleciona fornecedores necessários à operação da plataforma e trata os dados relacionados a esses serviços conforme sua Política de Privacidade e a legislação aplicável.</p>
+        </Section>
+
+        <Section title="6. Atualizações nesta Política">
+          <p>Esta Política poderá ser atualizada para refletir alterações na plataforma, nos fornecedores utilizados, na legislação aplicável ou nas práticas de tratamento de dados. Alterações relevantes serão comunicadas pelos meios disponíveis na plataforma quando necessário. A versão vigente estará sempre disponível nesta página, com indicação da data de atualização.</p>
+          <p>Dúvidas: <a href="mailto:raiopublicador@gmail.com" style={{ color: "#1a1a1a", fontWeight: 600 }}>raiopublicador@gmail.com</a></p>
         </Section>
 
         <div style={{ marginTop: 48, paddingTop: 24, borderTop: "1px solid #e8e8e4", display: "flex", gap: 24, flexWrap: "wrap" }}>

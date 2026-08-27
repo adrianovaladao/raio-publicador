@@ -27,7 +27,7 @@ export default function PrivacidadePage() {
 
         <Section title="1. Quem responde pelos seus dados">
           <p>A controladora dos seus dados pessoais é a <strong>RAIO PUBLICADOR TECNOLOGIA DE COMUNICACAO LTDA</strong>, CNPJ 68.372.169/0001-06, com sede em São Paulo &ndash; SP. Sempre que &ldquo;Raio&rdquo;, &ldquo;nós&rdquo; ou &ldquo;nosso&rdquo; aparecerem nesta Política, é a ela que nos referimos.</p>
-          <p>Para dúvidas ou exercício de direitos: <a href="mailto:adrianovaladao@raiopublicador.com.br" style={{ color: "#1a1a1a", fontWeight: 600 }}>adrianovaladao@raiopublicador.com.br</a></p>
+          <p>Para dúvidas relacionadas à privacidade, proteção de dados ou exercício dos direitos previstos nesta Política, entre em contato pelo e-mail: <a href="mailto:raiopublicador@gmail.com" style={{ color: "#1a1a1a", fontWeight: 600 }}>raiopublicador@gmail.com</a></p>
         </Section>
 
         <Section title="2. O que coletamos e em qual momento">
@@ -50,9 +50,10 @@ export default function PrivacidadePage() {
           </ul>
           <p><strong>Automaticamente, durante a navegação:</strong></p>
           <ul>
-            <li>Comportamento de uso (páginas visitadas, cliques, tempo de sessão) via Google Analytics</li>
+            <li>Dados de navegação e interação com a plataforma, como páginas visitadas, cliques e duração da sessão, por meio de ferramentas de análise, quando autorizadas pelo Usuário e conforme descrito na Política de Cookies.</li>
             <li>Cookies de sessão e autenticação (ver nossa <Link href="/cookies" style={{ color: "#1a1a1a", fontWeight: 600 }}>Política de Cookies</Link>)</li>
           </ul>
+          <p><strong>Dados fornecidos pelo Usuário sobre terceiros:</strong> ao utilizar a plataforma, o Usuário poderá inserir informações relacionadas a membros de sua equipe ou terceiros mencionados nos conteúdos submetidos à publicação, como nomes, cargos, imagens, depoimentos e outras informações. Nesses casos, o Usuário declara possuir autorização ou outra base legal adequada para o tratamento e compartilhamento desses dados.</p>
         </Section>
 
         <Section title="3. Por que usamos seus dados">
@@ -70,8 +71,8 @@ export default function PrivacidadePage() {
                 ["Emitir NFS-e e cumprir obrigações tributárias", "Obrigação legal — art. 7º, II"],
                 ["Enviar notificações e e-mails operacionais do serviço", "Execução de contrato — art. 7º, V"],
                 ["Prevenir fraudes e garantir a segurança da plataforma", "Legítimo interesse — art. 7º, IX"],
-                ["Analisar o uso para melhorar funcionalidades (dados anonimizados)", "Legítimo interesse — art. 7º, IX"],
-                ["Enviar comunicações de marketing e novidades (opt-out a qualquer momento)", "Consentimento — art. 7º, I"],
+                ["Analisar a utilização da plataforma por meio de cookies e ferramentas analíticas não essenciais", "Legítimo interesse — art. 7º, IX / Consentimento — art. 7º, I, quando aplicável"],
+                ["Enviar comunicações de marketing e novidades (opt-out a qualquer momento). O consentimento para comunicações de marketing poderá ser revogado a qualquer momento por meio do link de descadastramento presente nas mensagens ou pelos canais de atendimento, sem prejuízo do recebimento de comunicações operacionais necessárias à prestação do serviço.", "Consentimento — art. 7º, I"],
               ].map(([fin, base], i) => (
                 <tr key={i} style={{ borderBottom: "1px solid #eee" }}>
                   <td style={{ padding: "8px 12px", color: "#444" }}>{fin}</td>
@@ -85,22 +86,21 @@ export default function PrivacidadePage() {
         <Section title="4. Inteligência artificial e seus dados">
           <p>Quando você usa o assistente de IA para criar ou reescrever releases, o conteúdo do briefing é enviado ao modelo de linguagem para gerar o texto solicitado. Esses dados:</p>
           <ul>
-            <li><strong>Não são usados para treinar modelos externos</strong> ou alimentar bases de dados de terceiros para finalidades outras que não a geração do texto solicitado</li>
-            <li>Não são associados ao seu perfil para fins comerciais ou de segmentação</li>
-            <li>São tratados com o mesmo nível de confidencialidade que o conteúdo dos seus releases</li>
+            <li>Os dados e conteúdos inseridos nos recursos de inteligência artificial são tratados para viabilizar a funcionalidade solicitada pelo Usuário e poderão ser processados pelos fornecedores tecnológicos responsáveis por esses recursos, conforme suas condições contratuais e de privacidade.</li>
+            <li>O Raio Publicador não utiliza o conteúdo inserido pelo Usuário nos recursos de IA para fins próprios de publicidade comportamental ou comercialização de dados.</li>
+            <li>O Usuário não deverá inserir informações confidenciais, segredos comerciais ou dados pessoais de terceiros sem possuir autorização ou base legal adequada para esse tratamento.</li>
           </ul>
-          <p>A responsabilidade pelo conteúdo gerado, revisado e publicado é sempre do Usuário (ver Termos de Uso, seção 7).</p>
         </Section>
 
         <Section title="5. Com quem compartilhamos">
-          <p>Seus dados são compartilhados apenas com os fornecedores essenciais à operação da plataforma, sempre com cláusulas contratuais de proteção de dados:</p>
+          <p>Seus dados poderão ser compartilhados com fornecedores necessários à operação da plataforma, observadas as finalidades descritas nesta Política e as medidas de proteção aplicáveis.</p>
           <ul>
             <li><strong>Clerk Inc.</strong> — autenticação, sessões e gestão de identidade</li>
-            <li><strong>Stripe Inc.</strong> — processamento de pagamentos com cartão (PCI DSS)</li>
+            <li><strong>Stripe Inc.</strong> — processamento de pagamentos com cartão e boleto (PCI DSS)</li>
             <li><strong>NFe.io</strong> — emissão de notas fiscais de serviço eletrônicas</li>
             <li><strong>Resend Inc.</strong> — envio de e-mails transacionais (confirmações, notificações)</li>
             <li><strong>Google LLC</strong> — analytics de uso (Google Analytics) e infraestrutura de hospedagem (Vercel / GCP)</li>
-            <li><strong>Portais jornalísticos parceiros</strong> — recebem exclusivamente o conteúdo do release aprovado para publicação, sem dados pessoais adicionais do Usuário</li>
+            <li><strong>Portais jornalísticos parceiros</strong> — recebem o conteúdo e as informações necessárias à realização da publicação contratada, que poderão incluir dados pessoais constantes do próprio material enviado pelo Usuário</li>
           </ul>
           <p><strong>Não vendemos, alugamos nem comercializamos seus dados pessoais</strong> com anunciantes ou quaisquer terceiros para fins de segmentação ou marketing.</p>
         </Section>
@@ -116,7 +116,7 @@ export default function PrivacidadePage() {
         </Section>
 
         <Section title="7. Como protegemos suas informações">
-          <p>A segurança é camada, não checkbox. As principais medidas que adotamos:</p>
+          <p>O Raio Publicador adota medidas técnicas, administrativas e organizacionais razoáveis e compatíveis com a natureza dos dados tratados e os riscos envolvidos, buscando proteger as informações contra acessos não autorizados, destruição, perda, alteração, comunicação ou tratamento inadequado ou ilícito.</p>
           <ul>
             <li>Transmissão criptografada via HTTPS com TLS 1.2+ em todos os ambientes</li>
             <li>Banco de dados com controle de acesso por autenticação e segregação de ambientes</li>
@@ -125,7 +125,7 @@ export default function PrivacidadePage() {
             <li>Acesso interno aos dados restrito ao princípio do menor privilégio</li>
             <li>Monitoramento de atividades suspeitas e alertas de segurança</li>
           </ul>
-          <p>Em caso de incidente que possa afetar seus dados, notificaremos a ANPD e os titulares afetados nos prazos previstos na LGPD.</p>
+          <p>Em caso de incidente de segurança envolvendo dados pessoais, o Raio Publicador adotará as medidas previstas na legislação aplicável, incluindo, quando exigido, a comunicação à ANPD e aos titulares afetados.</p>
         </Section>
 
         <Section title="8. Seus direitos como titular">
@@ -138,16 +138,23 @@ export default function PrivacidadePage() {
             <li><strong>Oposição</strong> &mdash; contestar o tratamento com base em legítimo interesse</li>
             <li><strong>Revogação do consentimento</strong> &mdash; retirar a qualquer momento autorizações dadas voluntariamente</li>
             <li><strong>Informação sobre compartilhamento</strong> &mdash; saber com quais entidades seus dados foram compartilhados</li>
+            <li>Informação sobre a possibilidade de não fornecer consentimento e sobre as consequências dessa negativa</li>
+            <li>Revisão de decisões tomadas unicamente com base em tratamento automatizado, quando aplicável</li>
           </ul>
-          <p>Responderemos a todas as solicitações em até 15 dias úteis.</p>
+          <p>As solicitações serão analisadas e respondidas nos prazos previstos pela legislação e regulamentação aplicáveis. Quando necessário para proteção do titular e prevenção a fraudes, poderemos solicitar informações adicionais para confirmar a identidade do solicitante.</p>
         </Section>
 
         <Section title="9. Crianças e adolescentes">
-          <p>A plataforma é destinada exclusivamente a maiores de 18 anos. Não coletamos intencionalmente dados de menores de idade. Se identificarmos que uma conta foi criada por um menor, ela será imediatamente encerrada e os dados, eliminados.</p>
+          <p>A plataforma é destinada exclusivamente a maiores de 18 anos. Não coletamos intencionalmente dados de menores de idade. Caso identifiquemos que dados de crianças ou adolescentes foram fornecidos em desacordo com esta Política ou com os Termos de Uso, adotaremos as medidas adequadas, que poderão incluir o bloqueio ou encerramento da conta e a eliminação dos dados, ressalvadas as hipóteses legais de conservação.</p>
         </Section>
 
         <Section title="10. Como comunicamos mudanças">
-          <p>Quando houver alterações relevantes nesta Política &mdash; novas finalidades de tratamento, novos parceiros de dados ou mudanças nas bases legais &mdash; notificaremos por e-mail com antecedência mínima de 10 dias. A data de vigência no topo deste documento sempre reflete a versão atual.</p>
+          <p>Esta Política poderá ser atualizada para refletir mudanças na plataforma, nas práticas de tratamento de dados, nos fornecedores utilizados ou na legislação aplicável. Alterações relevantes serão comunicadas aos Usuários pelos meios disponíveis na plataforma ou pelo endereço eletrônico cadastrado, quando necessário. A versão vigente estará sempre disponível nesta página, acompanhada da respectiva data de atualização.</p>
+        </Section>
+
+        <Section title="11. Documentos relacionados">
+          <p>Esta Política de Privacidade deve ser lida em conjunto com os <Link href="/termos" style={{ color: "#1a1a1a", fontWeight: 600 }}>Termos de Uso</Link> e a <Link href="/cookies" style={{ color: "#1a1a1a", fontWeight: 600 }}>Política de Cookies</Link> do Raio Publicador, disponíveis na plataforma.</p>
+          <p>Esses documentos apresentam informações complementares sobre as condições de utilização do serviço, tratamento de dados pessoais e tecnologias utilizadas durante a navegação.</p>
         </Section>
 
         <div style={{ marginTop: 48, paddingTop: 24, borderTop: "1px solid #e8e8e4", display: "flex", gap: 24, flexWrap: "wrap" }}>
