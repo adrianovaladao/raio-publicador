@@ -265,7 +265,7 @@ export async function sendRenewalReminderEmail(to: string, firstName: string, pl
   const html = base(`
     ${h1(`${firstName},`)}
     ${p(intro)}
-    ${p(`Ficamos muito felizes em ter você como cliente e esperamos que o Raio continue sendo uma ferramenta valiosa para a sua comunicação. Nossa missão é ajudar sua marca a ganhar cada vez mais relevância — e é uma satisfação enorme fazer isso ao lado de você.`)}
+    ${p(`Ficamos muito felizes em ter você como cliente e esperamos que o Raio continue sendo uma ferramenta valiosa para a sua comunicação. Nossa missão é ajudar sua marca a ganhar cada vez mais relevância, e é uma satisfação enorme fazer isso ao lado de você.`)}
     <table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0">
       <tr><td style="padding:8px 0;color:#888;width:130px">Plano</td><td style="padding:8px 0;color:#1a1a1a;font-weight:600">${planLabel}</td></tr>
       <tr><td style="padding:8px 0;color:#888">Renovação em</td><td style="padding:8px 0;color:#1a1a1a">${date}</td></tr>
