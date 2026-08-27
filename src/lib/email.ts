@@ -265,14 +265,14 @@ export async function sendRenewalReminderEmail(to: string, firstName: string, pl
   const html = base(`
     ${h1(`${firstName},`)}
     ${p(intro)}
-    ${p("Caso não deseje continuar, você pode cancelar sua assinatura diretamente nas configurações antes dessa data. Após a cobrança, o reembolso é garantido por lei em até 7 dias (Art. 49, CDC).")}
+    ${p(`Ficamos muito felizes em ter você como cliente e esperamos que o Raio continue sendo uma ferramenta valiosa para a sua comunicação. Nossa missão é ajudar sua marca a ganhar cada vez mais relevância — e é uma satisfação enorme fazer isso ao lado de você.`)}
     <table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0">
       <tr><td style="padding:8px 0;color:#888;width:130px">Plano</td><td style="padding:8px 0;color:#1a1a1a;font-weight:600">${planLabel}</td></tr>
       <tr><td style="padding:8px 0;color:#888">Renovação em</td><td style="padding:8px 0;color:#1a1a1a">${date}</td></tr>
       <tr><td style="padding:8px 0;color:#888">Valor</td><td style="padding:8px 0;color:#1a1a1a">R$ ${amountBRL}/mês</td></tr>
     </table>
     ${btn("Gerenciar assinatura", `${APP_URL}/configuracoes`)}
-    <p style="margin:24px 0 0;font-size:12px;color:#999;line-height:1.6">Garantia de arrependimento: cancelamentos solicitados em até 7 dias após o pagamento têm direito a reembolso integral, conforme o Art. 49 do Código de Defesa do Consumidor, desde que nenhum crédito do período tenha sido utilizado.</p>
+    <p style="margin:24px 0 0;font-size:12px;color:#999;line-height:1.6">Se não quiser continuar, você pode cancelar antes da data de renovação nas configurações. Após a cobrança, o reembolso é garantido por lei em até 7 dias (Art. 49, CDC), desde que nenhum crédito do período tenha sido utilizado.</p>
   `);
 
   return getResend().emails.send({ from: FROM, to, subject, html });
