@@ -1185,7 +1185,7 @@ useEffect(() => {
 
           return (
             <>
-              <div className="page-head" style={{ marginBottom: 28, position: "sticky", top: -28, zIndex: 10, background: "var(--paper)", padding: "16px 0 12px", marginTop: -28 }}>
+              <div className="page-head" style={{ marginBottom: 28, position: "sticky", top: -28, zIndex: 10, background: "var(--bg)", padding: "16px 0 12px", marginTop: -28 }}>
                 <div className="steps">
                   {STEPS.map((s, i) => (
                     <span key={s} style={{ display: "contents" }}>
@@ -1234,6 +1234,7 @@ useEffect(() => {
                   onSaveDraft={saveDraft}
                   saving={saving}
                   vehicles={vehicles}
+                  navSlot={<>{backBtn}{nextBtn}</>}
                 />
               )}
             </>
