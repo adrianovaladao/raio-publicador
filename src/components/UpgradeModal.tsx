@@ -79,7 +79,7 @@ export function UpgradeModal({ currentPlan, onClose, returnUrl, onSuccess, conte
                       onClick={() => handleUpgrade(opt.id)}
                       disabled={loadingId !== null}
                     >
-                      {loadingId === opt.id ? "Aguarde…" : <><span>Pagar com cartão ou boleto</span><ArrowRight size={14} /></>}
+                      {loadingId === opt.id ? "Aguarde…" : <><span>Pagar com cartão</span><ArrowRight size={14} /></>}
                     </button>
                     <button
                       className="btn btn-ghost btn-sm btn-block"

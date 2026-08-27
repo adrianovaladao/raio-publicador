@@ -371,7 +371,7 @@ export default function CheckoutConfirmClient({ initialPlanId, allPlans }: Props
                       <div style={{ marginTop: 18, display: "flex", gap: 10 }}>
                         {/* Cartão */}
                         <div style={{ flex: 1, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, padding: "14px 14px 12px" }}>
-                          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--tx-3)", marginBottom: 10 }}>💳 Cartão ou boleto</div>
+                          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--tx-3)", marginBottom: 10 }}>💳 Cartão de crédito</div>
                           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "var(--tx-2)", marginBottom: 5 }}>
                             <span>Plano {plan.label}</span><span>{fmt(plan.priceCents)}</span>
                           </div>
@@ -391,7 +391,7 @@ export default function CheckoutConfirmClient({ initialPlanId, allPlans }: Props
 
                 <button className="btn btn-primary btn-lg" onClick={() => startPayment()} disabled={loading}
                   style={{ width: "100%", justifyContent: "center", marginBottom: 8 }}>
-                  {loading ? "Redirecionando…" : <><span>Pagar com cartão ou boleto</span><ArrowRight size={17} /></>}
+                  {loading ? "Redirecionando…" : <><span>Pagar com cartão</span><ArrowRight size={17} /></>}
                 </button>
 
                 <button onClick={() => window.location.href = "/#planos"}

@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
       }],
       success_url: returnUrl ? `${returnUrl}${returnUrl.includes("?") ? "&" : "?"}credits=success` : `${origin}/configuracoes?credits=success`,
       cancel_url: returnUrl ?? `${origin}/configuracoes`,
-      payment_method_types: ["card", "boleto", "pix"],
+      payment_method_types: ["card", "pix"],
       locale: "pt-BR",
       metadata: { clerkId: userId, creditQty: String(quantity), type: "credit_purchase" },
       // Copia metadata para o PaymentIntent/Charge para que apareça no extrato e cobrança

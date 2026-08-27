@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
     mode: "subscription",
     customer: customerId,
     currency: "brl",
-    payment_method_types: ["card", "boleto"],
+    payment_method_types: ["card"],
     line_items: [
       { price: plan.stripePriceId, quantity: 1 },
       {

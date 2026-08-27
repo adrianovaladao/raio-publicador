@@ -44,7 +44,7 @@ export default function TermosPage() {
         <Section title="4. Planos, pagamento e renovação">
           <p>Os planos disponíveis, seus preços e os créditos incluídos estão descritos na página de planos em <strong>raiopublicador.com.br</strong>. O pagamento pode ser realizado via:</p>
           <ul>
-            <li><strong>Cartão de crédito ou boleto bancário</strong> &mdash; processados pelo Stripe</li>
+            <li><strong>Cartão de crédito</strong> &mdash; processado pelo Stripe</li>
             <li><strong>Pix</strong> &mdash; pagamento manual com confirmação pela nossa equipe</li>
           </ul>
           <p>A assinatura é <strong>renovada automaticamente</strong> ao término de cada período mensal, exceto em caso de cancelamento pelo Usuário antes do próximo vencimento. O valor cobrado na renovação é o vigente no momento do ciclo, podendo ser reajustado com aviso prévio de 30 dias.</p>
@@ -53,7 +53,7 @@ export default function TermosPage() {
         <Section title="5. Garantia de satisfação e reembolso">
           <p>Acreditamos no que entregamos. Por isso, e em conformidade com o Art. 49 do Código de Defesa do Consumidor (Lei nº 8.078/1990), garantimos reembolso integral para cancelamentos realizados em até <strong>7 dias corridos</strong> após a contratação, desde que <strong>nenhum crédito do período tenha sido utilizado</strong>.</p>
           <p>Após o prazo de 7 dias ou com qualquer crédito consumido, o cancelamento é processado sem reembolso: o acesso e os créditos remanescentes do ciclo atual permanecem ativos até o fim do período pago, e a renovação automática é interrompida.</p>
-          <p>Pagamentos realizados via boleto bancário que sejam elegíveis a reembolso são devolvidos por Pix, mediante informação da chave pelo Usuário. Pagamentos via Pix também são reembolsados por Pix. Não reembolsamos tarifas de processamento bancário cobradas diretamente pelas instituições financeiras.</p>
+          <p>Pagamentos elegíveis a reembolso são devolvidos pelo mesmo método utilizado na compra. Pagamentos via Pix são reembolsados por Pix. Não reembolsamos tarifas de processamento bancário cobradas diretamente pelas instituições financeiras.</p>
         </Section>
 
         <Section title="6. Responsabilidade pelo conteúdo">

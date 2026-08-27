@@ -96,7 +96,7 @@ export default function PrivacidadePage() {
           <p>Seus dados são compartilhados apenas com os fornecedores essenciais à operação da plataforma, sempre com cláusulas contratuais de proteção de dados:</p>
           <ul>
             <li><strong>Clerk Inc.</strong> — autenticação, sessões e gestão de identidade</li>
-            <li><strong>Stripe Inc.</strong> — processamento de pagamentos com cartão e boleto (PCI DSS)</li>
+            <li><strong>Stripe Inc.</strong> — processamento de pagamentos com cartão (PCI DSS)</li>
             <li><strong>NFe.io</strong> — emissão de notas fiscais de serviço eletrônicas</li>
             <li><strong>Resend Inc.</strong> — envio de e-mails transacionais (confirmações, notificações)</li>
             <li><strong>Google LLC</strong> — analytics de uso (Google Analytics) e infraestrutura de hospedagem (Vercel / GCP)</li>

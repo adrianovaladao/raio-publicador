@@ -218,15 +218,8 @@ function PerfilPanel({ onToast }: { onToast: (m: string) => void }) {
 
 // ─── Cancel flow ─────────────────────────────────────────────────────────────
 
-type CancelStep = "idle" | "retention" | "policy" | "confirm" | "boleto-pix" | "done" | "reactivate";
+type CancelStep = "idle" | "retention" | "policy" | "confirm" | "done" | "reactivate";
 
-const PIX_TYPES = [
-  { value: "CPF", label: "CPF" },
-  { value: "CNPJ", label: "CNPJ" },
-  { value: "Telefone", label: "Telefone" },
-  { value: "E-mail", label: "E-mail" },
-  { value: "Aleatória", label: "Chave aleatória" },
-];
 
 function CancelFlow({ plan, email, periodEnd, periodStart, isCancelled, creditsUsed, onDone, onReactivated }: {
   plan: string; email: string; periodEnd: string | null; periodStart: string | null; isCancelled?: boolean; creditsUsed: number; onDone: (refunded: boolean) => void; onReactivated: () => void;
@@ -239,11 +232,7 @@ function CancelFlow({ plan, email, periodEnd, periodStart, isCancelled, creditsU
   const [applyingRetention, setApplyingRetention] = useState(false);
   const [retentionDone, setRetentionDone] = useState(false);
   const [wasRefunded, setWasRefunded] = useState(false);
-  const [wasBoletoRefund, setWasBoletoRefund] = useState(false);
   const [err, setErr] = useState("");
-  const [paymentType, setPaymentType] = useState<string | null>(null);
-  const [pixKey, setPixKey] = useState("");
-  const [pixKeyType, setPixKeyType] = useState("CPF");
 
   const daysSincePeriodStart = periodStart
     ? (Date.now() - new Date(periodStart).getTime()) / (1000 * 60 * 60 * 24)
@@ -280,13 +269,6 @@ function CancelFlow({ plan, email, periodEnd, periodStart, isCancelled, creditsU
 
   function handleButtonClick() {
     setZapping(true);
-    // Fetch payment type in background so it's ready when needed
-    if (eligibleForRefund && paymentType === null) {
-      fetch("/api/stripe/payment-info")
-        .then(r => r.json())
-        .then((d: { paymentType: string }) => setPaymentType(d.paymentType))
-        .catch(() => setPaymentType("unknown"));
-    }
     setTimeout(() => {
       setZapping(false);
       setStep(hasRetention ? "retention" : "policy");
@@ -317,27 +299,21 @@ function CancelFlow({ plan, email, periodEnd, periodStart, isCancelled, creditsU
       setErr("E-mail incorreto. Digite exatamente seu e-mail de cadastro.");
       return;
     }
-    // If boleto + eligible for refund, collect PIX key before cancelling
-    if (eligibleForRefund && paymentType === "boleto") {
-      setStep("boleto-pix");
-      return;
-    }
     await doCancel();
   }
 
-  async function doCancel(pix?: { pixKey: string; pixKeyType: string }) {
+  async function doCancel() {
     setCancelling(true);
     setErr("");
     try {
       const res = await fetch("/api/stripe/cancel", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(pix ?? {}),
+        body: JSON.stringify({}),
       });
       if (!res.ok) throw new Error("Erro ao cancelar");
-      const data = await res.json() as { refunded?: boolean; boletoRefund?: boolean };
+      const data = await res.json() as { refunded?: boolean };
       setWasRefunded(data.refunded ?? false);
-      setWasBoletoRefund(data.boletoRefund ?? false);
       setStep("done");
       onDone(data.refunded ?? false);
     } catch {
@@ -350,14 +326,12 @@ function CancelFlow({ plan, email, periodEnd, periodStart, isCancelled, creditsU
   if (step === "done") {
     return (
       <div style={{ textAlign: "center", padding: "28px 0 8px" }}>
-        <div style={{ fontSize: 40, marginBottom: 12 }}>{wasRefunded || wasBoletoRefund ? "✅" : "😔"}</div>
+        <div style={{ fontSize: 40, marginBottom: 12 }}>{wasRefunded ? "✅" : "😔"}</div>
         <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 6 }}>Assinatura cancelada</div>
         <div style={{ fontSize: 13, color: "var(--stone)", maxWidth: 380, margin: "0 auto" }}>
           {wasRefunded
-            ? <>O reembolso integral foi processado e será creditado em seu cartão em até 10 dias úteis. Seus dados foram removidos da plataforma.</>
-            : wasBoletoRefund
-            ? <>Solicitação de reembolso registrada. Transferiremos o valor para sua chave PIX em até 5 dias úteis. Seus dados foram removidos da plataforma.</>
-            : <>Seu acesso permanece ativo até <b>{periodEndFmt}</b>. Use seus créditos até lá — eles não serão reembolsados.</>
+            ? <>O reembolso integral foi processado e será creditado em seu cartão em até 10 dias úteis.</>
+            : <>Seu acesso permanece ativo até <b>{periodEndFmt}</b>. Use seus créditos até lá.</>
           }
         </div>
       </div>
@@ -626,77 +600,7 @@ function CancelFlow({ plan, email, periodEnd, periodStart, isCancelled, creditsU
         </div>
       )}
 
-      {/* Boleto PIX refund form */}
-      {step === "boleto-pix" && (
-        <div className="overlay" onClick={() => setStep("confirm")}>
-          <div className="modal" style={{ maxWidth: 440, borderRadius: 20, padding: 0, overflow: "hidden" }} onClick={e => e.stopPropagation()}>
-            <div style={{ padding: "28px 32px 0", position: "relative" }}>
-              <button onClick={() => setStep("confirm")} style={{ position: "absolute", top: 20, right: 20, background: "var(--cream)", border: "none", borderRadius: "50%", width: 30, height: 30, display: "grid", placeItems: "center", cursor: "pointer", color: "var(--stone)" }}>
-                <X size={15} />
-              </button>
-              <div style={{ fontSize: 28, marginBottom: 10 }}>🏦</div>
-              <div style={{ fontWeight: 800, fontSize: 18, color: "var(--ink)", letterSpacing: "-0.3px", marginBottom: 4 }}>Reembolso via PIX</div>
-              <div style={{ fontSize: 13, color: "var(--stone)", lineHeight: 1.5 }}>
-                Seu pagamento foi feito por boleto. Informe sua chave PIX para devolvermos o valor em até 5 dias úteis.
-              </div>
-            </div>
-            <div style={{ padding: "20px 32px" }}>
-              <div style={{ background: "#F0FDF4", border: "1.5px solid #BBF7D0", borderRadius: 10, padding: "12px 14px", marginBottom: 18, fontSize: 13, color: "#15803D", lineHeight: 1.5 }}>
-                Reembolso integral garantido pelo <b>Art. 49 do CDC</b>. O cancelamento é imediato.
-              </div>
-              <div className="field" style={{ marginBottom: 12 }}>
-                <label style={{ fontSize: 12, fontWeight: 600, color: "var(--stone)", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: 6 }}>
-                  Tipo de chave PIX
-                </label>
-                <select
-                  className="input"
-                  value={pixKeyType}
-                  onChange={e => setPixKeyType(e.target.value)}
-                  style={{ width: "100%" }}
-                >
-                  {PIX_TYPES.map(t => (
-                    <option key={t.value} value={t.value}>{t.label}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="field" style={{ marginBottom: 4 }}>
-                <label style={{ fontSize: 12, fontWeight: 600, color: "var(--stone)", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: 6 }}>
-                  Chave PIX
-                </label>
-                <input
-                  className="input"
-                  type="text"
-                  placeholder={
-                    pixKeyType === "CPF" ? "000.000.000-00" :
-                    pixKeyType === "CNPJ" ? "00.000.000/0000-00" :
-                    pixKeyType === "Telefone" ? "+55 (00) 00000-0000" :
-                    pixKeyType === "E-mail" ? "seu@email.com" :
-                    "Chave aleatória (UUID)"
-                  }
-                  value={pixKey}
-                  onChange={e => { setPixKey(e.target.value); setErr(""); }}
-                  autoFocus
-                />
-              </div>
-              {err && <p style={{ fontSize: 12, color: "#c0392b", marginTop: 6 }}>{err}</p>}
-            </div>
-            <div style={{ padding: "0 32px 28px", display: "flex", gap: 10, justifyContent: "flex-end" }}>
-              <button className="btn btn-ghost btn-sm" onClick={() => setStep("confirm")}>Voltar</button>
-              <button
-                className="btn btn-danger btn-sm"
-                disabled={cancelling || !pixKey.trim()}
-                onClick={() => {
-                  if (!pixKey.trim()) { setErr("Informe sua chave PIX para continuar."); return; }
-                  doCancel({ pixKey: pixKey.trim(), pixKeyType });
-                }}
-              >
-                {cancelling ? "Processando…" : "Confirmar e cancelar"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </>
+          </>
   );
 }
 
