@@ -220,23 +220,31 @@ export function RichEditor({
     if (!editor || !file.type.startsWith("image/")) return;
     if (file.size > 5 * 1024 * 1024) { setAiErr("Imagem muito grande (máx. 5 MB)."); return; }
     setImgUploading(true);
+    setAiErr("");
     try {
       const form = new FormData();
       form.append("file", file);
       const res = await fetch("/api/upload", { method: "POST", body: form });
       const data = await res.json() as { url?: string; error?: string };
       if (!res.ok || !data.url) { setAiErr(data.error ?? "Falha no upload da imagem."); return; }
-      const ok = editor.chain().focus().insertContent({
-        type: "figure",
-        attrs: { src: data.url, caption: "" },
-      }).run();
-      if (!ok) setAiErr("Não foi possível inserir a imagem no editor.");
-      else {
-        onContentChange(editor.getHTML());
-        onImageInserted?.(data.url);
+
+      // Garante que o cursor esteja em posição válida para inserção.
+      // Se estiver dentro de um nó atômico (ex: figure), move para após ele.
+      const { state } = editor;
+      const { $from } = state.selection;
+      const isInsideAtom = $from.parent.type.spec.atom || $from.node(-1)?.type.spec.atom;
+      if (isInsideAtom) {
+        const afterPos = $from.after($from.depth);
+        editor.chain().focus().insertContentAt(afterPos, { type: "figure", attrs: { src: data.url, caption: "" } }).run();
+      } else {
+        editor.chain().focus().insertContent({ type: "figure", attrs: { src: data.url, caption: "" } }).run();
       }
+
+      onContentChange(editor.getHTML());
+      onImageInserted?.(data.url);
     } catch (e) {
-      setAiErr(e instanceof Error ? e.message : "Falha de conexão.");
+      setAiErr("Falha ao inserir imagem. Tente novamente.");
+      console.error("[handleImageFile]", e);
     }
     finally { setImgUploading(false); }
   }
