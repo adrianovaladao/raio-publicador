@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic";
 import { getPrisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { assertMaster } from "@/lib/admin-server";
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!await assertMaster())

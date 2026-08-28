@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 import { getPrisma } from "@/lib/prisma";
 import { PLANS, type PlanId } from "@/lib/plans";
 import { NextResponse } from "next/server";
+import { assertMaster } from "@/lib/admin-server";
 
 export async function GET() {
   if (!await assertMaster())

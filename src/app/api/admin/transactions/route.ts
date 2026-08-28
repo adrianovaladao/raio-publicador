@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 import { getPrisma } from "@/lib/prisma";
 import { getStripe } from "@/lib/stripe";
 import { NextResponse } from "next/server";
+import { assertMaster } from "@/lib/admin-server";
 
 const PLAN_LABELS: Record<string, string> = { BASIC: "Básico", ADVANCED: "Avançado", PROFESSIONAL: "Profissional", VOUCHER: "Voucher" };
 const PRICE_TO_PLAN: Record<number, string> = { 100000: "Básico", 300000: "Avançado", 500000: "Profissional" };
