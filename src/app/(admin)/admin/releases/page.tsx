@@ -216,7 +216,11 @@ function ReleaseActions({ release, onSaved, onDeleted }: {
           notifyUser: notify,
         }),
       });
-      if (!res.ok) { const d = await res.json(); throw new Error(d.error ?? "Erro"); }
+      if (!res.ok) {
+        let msg = `Erro ${res.status}`;
+        try { const d = await res.json(); msg = d.error ?? msg; } catch {}
+        throw new Error(msg);
+      }
       setOk(notify ? "Salvo e usuário notificado!" : "Salvo!");
       onSaved();
     } catch (e) {
@@ -230,7 +234,11 @@ function ReleaseActions({ release, onSaved, onDeleted }: {
     setDeleting(true); setErr("");
     try {
       const res = await fetch(`/api/admin/releases/${release.id}`, { method: "DELETE" });
-      if (!res.ok) { const d = await res.json(); throw new Error(d.error ?? "Erro"); }
+      if (!res.ok) {
+        let msg = `Erro ${res.status}`;
+        try { const d = await res.json(); msg = d.error ?? msg; } catch {}
+        throw new Error(msg);
+      }
       onDeleted();
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Erro ao excluir");

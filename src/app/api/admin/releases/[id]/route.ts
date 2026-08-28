@@ -46,25 +46,28 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
   const release = await prisma.release.update({ where: { id }, data: updateData });
 
-  // Send notification emails
-  if (body.notifyUser !== false && body.status && body.status !== prev.status) {
-    try {
-      const clerk = await clerkClient();
-      const user = await clerk.users.getUser(prev.authorId);
-      const firstName = user.firstName ?? user.emailAddresses[0]?.emailAddress?.split("@")[0] ?? "usuário";
-      const email = user.emailAddresses[0]?.emailAddress ?? "";
+  // Fire notifications asynchronously — respond immediately so the client never times out
+  const shouldNotify = body.notifyUser !== false && body.status && body.status !== prev.status;
+  if (shouldNotify) {
+    (async () => {
+      try {
+        const clerk = await clerkClient();
+        const user = await clerk.users.getUser(prev.authorId);
+        const firstName = user.firstName ?? user.emailAddresses[0]?.emailAddress?.split("@")[0] ?? "usuário";
+        const email = user.emailAddresses[0]?.emailAddress ?? "";
 
-      if (email) {
+        if (!email) return;
+
         if (body.status === "NEEDS_REVISION") {
           await sendReleaseNeedsReviewEmail(email, firstName, prev.title, body.adminNotes ?? "", id);
-          await createNotification(prev.authorId, "release_needs_revision",
+          createNotification(prev.authorId, "release_needs_revision",
             "Release precisa de revisão",
             `"${prev.title}" precisa de ajustes antes de ser publicado.`,
             `/releases/${id}`,
           ).catch(console.error);
         } else if (body.status === "REJECTED") {
           await sendReleaseRejectedEmail(email, firstName, prev.title, body.adminNotes ?? "", id);
-          await createNotification(prev.authorId, "release_rejected",
+          createNotification(prev.authorId, "release_rejected",
             "Release rejeitado",
             `"${prev.title}" foi recusado. Veja os detalhes e entre em contato com o suporte.`,
             `/releases/${id}`,
@@ -73,7 +76,6 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
           await sendReleaseInPublicationEmail(email, firstName, prev.title, id);
         } else if (body.status === "PUBLISHED") {
           const rawUrls = body.publishedVehicleUrls ?? {};
-          // Resolve vehicle IDs to names for the email
           const vehicleIds = Object.keys(rawUrls);
           let urlsByName: Record<string, string> = rawUrls;
           if (vehicleIds.length > 0) {
@@ -93,16 +95,16 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
           const notifBody = urlValues.length > 0
             ? `"${prev.title}" foi publicado em ${vehicleCount} veículo${vehicleCount !== 1 ? "s" : ""}.\n${urlValues.join("\n")}`
             : `"${prev.title}" foi publicado em ${vehicleCount} veículo${vehicleCount !== 1 ? "s" : ""}.`;
-          await createNotification(prev.authorId, "release_published",
+          createNotification(prev.authorId, "release_published",
             "Release publicado",
             notifBody,
             `/releases/${id}`,
           ).catch(console.error);
         }
+      } catch (err) {
+        console.error("Email notification failed:", err);
       }
-    } catch (err) {
-      console.error("Email notification failed:", err);
-    }
+    })();
   }
 
   return NextResponse.json(release);
