@@ -129,7 +129,7 @@ export default function PrivacidadePage() {
         </Section>
 
         <Section title="8. Seus direitos como titular">
-          <p>A LGPD garante a você os seguintes direitos, que podem ser exercidos a qualquer momento pelo e-mail <a href="mailto:adrianovaladao@raiopublicador.com.br" style={{ color: "#1a1a1a", fontWeight: 600 }}>adrianovaladao@raiopublicador.com.br</a>:</p>
+          <p>A LGPD garante a você os seguintes direitos, que podem ser exercidos a qualquer momento pelo e-mail <a href="mailto:contato@raiopublicador.com.br" style={{ color: "#1a1a1a", fontWeight: 600 }}>contato@raiopublicador.com.br</a>:</p>
           <ul>
             <li><strong>Confirmação e acesso</strong> &mdash; saber se processamos seus dados e obter uma cópia</li>
             <li><strong>Correção</strong> &mdash; atualizar dados incompletos, inexatos ou desatualizados</li>
