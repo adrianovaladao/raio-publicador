@@ -25,11 +25,19 @@ export default async function IniciarPlanoPage({
   const stripe = getStripe();
   const prisma = getPrisma();
 
-  const sub = await prisma.subscription.findUnique({ where: { ownerId: userId } });
+  const [sub, fiscalProfile] = await Promise.all([
+    prisma.subscription.findUnique({ where: { ownerId: userId } }),
+    prisma.fiscalProfile.findUnique({ where: { ownerId: userId } }),
+  ]);
 
   // If already has active paid subscription, skip checkout
   if (sub && !["INACTIVE", "CANCELLED"].includes(sub.status)) {
     redirect("/dashboard");
+  }
+
+  // Fiscal profile is required before payment — send to boas-vindas flow which collects it
+  if (!fiscalProfile) {
+    redirect(`/boas-vindas?plan=${planId}`);
   }
 
   let customerId = sub?.stripeCustomerId ?? undefined;
