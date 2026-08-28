@@ -597,8 +597,12 @@ export default function AdminReleasesPage() {
   const load = useCallback(() => {
     setLoading(true);
     fetch("/api/admin/releases")
-      .then(r => r.json())
+      .then(r => {
+        if (!r.ok) throw new Error(`Erro ${r.status}`);
+        return r.json();
+      })
       .then(setReleases)
+      .catch(e => console.error("Erro ao carregar releases:", e))
       .finally(() => setLoading(false));
   }, []);
 

@@ -16,23 +16,23 @@ export async function GET() {
     orderBy: { updatedAt: "desc" },
   });
 
-  // Batch-fetch Clerk users for all unique authorIds
+  // Batch-fetch Clerk users in a single call
   const authorIds = [...new Set(releases.map(r => r.authorId))];
   const clerk = await clerkClient();
   const userMap: Record<string, { name: string; email: string }> = {};
-  await Promise.allSettled(
-    authorIds.map(async id => {
-      try {
-        const u = await clerk.users.getUser(id);
-        userMap[id] = {
-          name: [u.firstName, u.lastName].filter(Boolean).join(" ") || u.emailAddresses[0]?.emailAddress || id,
+  if (authorIds.length > 0) {
+    try {
+      const clerkUsers = await clerk.users.getUserList({ userId: authorIds, limit: 500 });
+      for (const u of clerkUsers.data) {
+        userMap[u.id] = {
+          name: [u.firstName, u.lastName].filter(Boolean).join(" ") || u.emailAddresses[0]?.emailAddress || u.id,
           email: u.emailAddresses[0]?.emailAddress || "",
         };
-      } catch {
-        userMap[id] = { name: id, email: "" };
       }
-    })
-  );
+    } catch {
+      // fallback: leave userMap empty, rows will show authorId
+    }
+  }
 
   // Resolve vehicle IDs → names
   const allVehicleIds = [...new Set(releases.flatMap(r => r.vehicles as string[]))];
