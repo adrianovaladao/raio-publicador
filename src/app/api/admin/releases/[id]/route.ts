@@ -1,5 +1,5 @@
 export const dynamic = "force-dynamic";
-import { auth, clerkClient } from "@clerk/nextjs/server";
+import { clerkClient } from "@clerk/nextjs/server";
 import { getPrisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { ReleaseStatus } from "@prisma/client";

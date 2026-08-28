@@ -1,7 +1,6 @@
 export const dynamic = "force-dynamic";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
-import { type AdminRole } from "@/lib/admin";
 import { assertMaster } from "@/lib/admin-server";
 
 async function assertMaster() {
