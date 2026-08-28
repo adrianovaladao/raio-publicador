@@ -1,18 +1,10 @@
 export const dynamic = "force-dynamic";
-import { auth, clerkClient } from "@clerk/nextjs/server";
 import { getPrisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { isAnyAdmin } from "@/lib/admin";
-
-async function checkAdmin(userId: string) {
-  const client = await clerkClient();
-  const user = await client.users.getUser(userId);
-  return isAnyAdmin(user.publicMetadata as Record<string, unknown>);
-}
+import { assertAnyAdmin } from "@/lib/admin-server";
 
 export async function GET() {
-  const { userId } = await auth();
-  if (!userId || !(await checkAdmin(userId))) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!await assertAnyAdmin()) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const vouchers = await getPrisma().voucher.findMany({
     orderBy: { createdAt: "desc" },

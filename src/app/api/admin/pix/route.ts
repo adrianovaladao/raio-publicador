@@ -1,18 +1,13 @@
 export const dynamic = "force-dynamic";
-import { auth, clerkClient } from "@clerk/nextjs/server";
+import { clerkClient } from "@clerk/nextjs/server";
 import { getPrisma } from "@/lib/prisma";
 import { PLANS, type PlanId } from "@/lib/plans";
 import { NextRequest, NextResponse } from "next/server";
-
-async function checkAdmin() {
-  const { userId } = await auth();
-  if (!userId) return false;
-  return isAnyAdmin(user?.publicMetadata as Record<string, unknown>);
-}
+import { assertAnyAdmin } from "@/lib/admin-server";
 
 // GET — lista pagamentos Pix pendentes
 export async function GET() {
-  if (!(await checkAdmin())) {
+  if (!await assertAnyAdmin()) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
