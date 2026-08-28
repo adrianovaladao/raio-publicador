@@ -1,5 +1,5 @@
 export const dynamic = "force-dynamic";
-import { clerkClient } from "@clerk/nextjs/server";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 import { getPrisma } from "@/lib/prisma";
 import { PLANS, type PlanId } from "@/lib/plans";
 import { NextRequest, NextResponse } from "next/server";
