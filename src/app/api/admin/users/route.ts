@@ -48,6 +48,7 @@ export async function GET() {
       stripeCustomerId: sub.stripeCustomerId ?? null,
       stripeSubscriptionId: sub.stripeSubscriptionId ?? null,
       currentPeriodEnd: sub.currentPeriodEnd?.toISOString() ?? null,
+      isMarkable: !!(cu?.publicMetadata as Record<string, unknown>)?.isMarkable,
     };
   });
 
@@ -72,7 +73,7 @@ export async function PATCH(req: NextRequest) {
   if (!await assertRaioAdmin())
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const { clerkId, creditsTotal, creditsUsed, plan, status, stripeCustomerId, stripeSubscriptionId } = await req.json() as {
+  const { clerkId, creditsTotal, creditsUsed, plan, status, stripeCustomerId, stripeSubscriptionId, isMarkable } = await req.json() as {
     clerkId: string;
     creditsTotal?: number;
     creditsUsed?: number;
@@ -80,9 +81,21 @@ export async function PATCH(req: NextRequest) {
     status?: string;
     stripeCustomerId?: string | null;
     stripeSubscriptionId?: string | null;
+    isMarkable?: boolean;
   };
 
   if (!clerkId) return NextResponse.json({ error: "clerkId obrigatório" }, { status: 400 });
+
+  const clerk = await clerkClient();
+
+  // Update Clerk publicMetadata for isMarkable tag
+  if (isMarkable !== undefined) {
+    const cu = await clerk.users.getUser(clerkId);
+    const existing = (cu.publicMetadata ?? {}) as Record<string, unknown>;
+    await clerk.users.updateUserMetadata(clerkId, {
+      publicMetadata: { ...existing, isMarkable },
+    });
+  }
 
   const data: Record<string, unknown> = {};
   if (creditsTotal != null) data.creditsTotal = creditsTotal;
@@ -92,10 +105,9 @@ export async function PATCH(req: NextRequest) {
   if (stripeCustomerId !== undefined) data.stripeCustomerId = stripeCustomerId || null;
   if (stripeSubscriptionId !== undefined) data.stripeSubscriptionId = stripeSubscriptionId || null;
 
-  const updated = await getPrisma().subscription.update({
-    where: { ownerId: clerkId },
-    data,
-  });
+  const updated = Object.keys(data).length > 0
+    ? await getPrisma().subscription.update({ where: { ownerId: clerkId }, data })
+    : null;
 
   return NextResponse.json({ ok: true, updated });
 }

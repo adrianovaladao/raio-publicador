@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
 import { auth, currentUser, clerkClient } from "@clerk/nextjs/server";
 import { getPrisma } from "@/lib/prisma";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { isMaster } from "@/lib/admin";
 
 async function assertRaioAdmin() {
@@ -60,4 +60,17 @@ export async function GET() {
   });
 
   return NextResponse.json({ rows });
+}
+
+// DELETE /api/admin/clientes — remove fiscal profile(s) by ownerId
+export async function DELETE(req: NextRequest) {
+  if (!await assertRaioAdmin())
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  const { ownerIds } = await req.json() as { ownerIds: string[] };
+  if (!Array.isArray(ownerIds) || ownerIds.length === 0)
+    return NextResponse.json({ error: "ownerIds obrigatório" }, { status: 400 });
+
+  const { count } = await getPrisma().fiscalProfile.deleteMany({ where: { ownerId: { in: ownerIds } } });
+  return NextResponse.json({ deleted: count });
 }

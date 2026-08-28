@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useUser } from "@clerk/nextjs";
 import { isMaster } from "@/lib/admin";
-import { RefreshCw, Search, Building2, User, Copy, Check, ChevronDown, ChevronRight } from "lucide-react";
+import { RefreshCw, Search, Building2, User, Copy, Check, ChevronDown, ChevronRight, Trash2 } from "lucide-react";
 
 interface ClientRow {
   ownerId: string;
@@ -95,7 +95,7 @@ function DetailPanel({ row }: { row: ClientRow }) {
 
   return (
     <tr>
-      <td colSpan={7} style={{ padding: 0, background: "var(--bg)", borderBottom: "1px solid var(--line)" }}>
+      <td colSpan={9} style={{ padding: 0, background: "var(--bg)", borderBottom: "1px solid var(--line)" }}>
         <div style={{ padding: "20px 20px 20px 52px" }}>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "14px 24px" }}>
             {fields.map(({ label, value, copy, mono }) => (
@@ -124,6 +124,7 @@ export default function ClientesPage() {
   const [search, setSearch]     = useState("");
   const [filter, setFilter]     = useState<"ALL" | "PF" | "PJ">("ALL");
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -134,6 +135,18 @@ export default function ClientesPage() {
   }, []);
 
   useEffect(() => { load(); }, [load, tick]);
+
+  async function handleDelete(ownerId: string) {
+    if (!confirm("Excluir perfil fiscal deste cliente? Esta ação não pode ser desfeita.")) return;
+    setDeleting(ownerId);
+    await fetch("/api/admin/clientes", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ownerIds: [ownerId] }),
+    });
+    setRows(prev => prev.filter(r => r.ownerId !== ownerId));
+    setDeleting(null);
+  }
 
   if (!master) return (
     <div className="content scroll"><div className="content-inner"><p className="muted">Acesso restrito.</p></div></div>
@@ -212,6 +225,7 @@ export default function ClientesPage() {
                     <th>Plano</th>
                     <th>Status</th>
                     <th>Cadastro</th>
+                    <th style={{ width: 48 }} />
                   </tr>
                 </thead>
                 <tbody>
@@ -255,6 +269,17 @@ export default function ClientesPage() {
                             : <span className="muted">—</span>}
                         </td>
                         <td style={{ fontSize: 12, color: "var(--stone)" }}>{fmtDate(row.createdAt)}</td>
+                        <td onClick={e => e.stopPropagation()} style={{ textAlign: "center" }}>
+                          <button
+                            title="Excluir perfil fiscal"
+                            onClick={() => handleDelete(row.ownerId)}
+                            disabled={deleting === row.ownerId}
+                            className="btn btn-ghost btn-sm"
+                            style={{ padding: "5px 8px", color: "var(--red)" }}
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </td>
                       </tr>
                       {isOpen && <DetailPanel key={`${row.ownerId}-detail`} row={row} />}
                       </>

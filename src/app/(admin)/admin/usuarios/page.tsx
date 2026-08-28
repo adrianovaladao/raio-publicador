@@ -26,6 +26,7 @@ interface UserRow {
   stripeCustomerId: string | null;
   stripeSubscriptionId: string | null;
   currentPeriodEnd: string | null;
+  isMarkable: boolean;
 }
 
 interface UserDetail {
@@ -79,6 +80,7 @@ function EditModal({ user, onClose, onSaved }: { user: UserRow; onClose: () => v
   const [status, setStatus]                     = useState(user.status);
   const [stripeCustomerId, setStripeCustomerId] = useState(user.stripeCustomerId ?? "");
   const [stripeSubId, setStripeSubId]           = useState(user.stripeSubscriptionId ?? "");
+  const [isMarkable, setIsMarkable]             = useState(user.isMarkable);
   const [saving, setSaving]                     = useState(false);
   const [error, setError]                       = useState("");
 
@@ -95,6 +97,7 @@ function EditModal({ user, onClose, onSaved }: { user: UserRow; onClose: () => v
         status,
         stripeCustomerId: stripeCustomerId.trim() || null,
         stripeSubscriptionId: stripeSubId.trim() || null,
+        isMarkable,
       }),
     });
     if (res.ok) { onSaved(); onClose(); }
@@ -157,6 +160,15 @@ function EditModal({ user, onClose, onSaved }: { user: UserRow; onClose: () => v
                 </div>
               </div>
             </div>
+            <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", padding: "12px 0 0", borderTop: "1px solid var(--border)" }}>
+              <input
+                type="checkbox"
+                checked={isMarkable}
+                onChange={e => setIsMarkable(e.target.checked)}
+                style={{ width: 16, height: 16, cursor: "pointer", accentColor: "var(--ink)" }}
+              />
+              <span style={{ fontSize: 13 }}>Usuário da <strong>Markable</strong></span>
+            </label>
           </div>
           {error && <p style={{ color: "var(--red)", fontSize: 13, marginTop: 12 }}>{error}</p>}
         </div>
@@ -362,6 +374,7 @@ export default function AdminUsuarios() {
   const [tick, setTick]         = useState(0);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkDel, setBulkDel]   = useState(false);
+  const [filterTag, setFilterTag] = useState<"ALL" | "subscribers" | "markable" | "voucher">("ALL");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -386,6 +399,9 @@ export default function AdminUsuarios() {
       if (q && !fmtName(r).toLowerCase().includes(q) && !r.email.toLowerCase().includes(q)) return false;
       if (filterStatus !== "ALL" && r.status !== filterStatus) return false;
       if (filterPlan   !== "ALL" && r.plan   !== filterPlan)   return false;
+      if (filterTag === "subscribers" && !(r.plan !== "VOUCHER" && r.status === "ACTIVE")) return false;
+      if (filterTag === "markable" && !r.isMarkable) return false;
+      if (filterTag === "voucher" && r.plan !== "VOUCHER") return false;
       return true;
     })
     .sort((a, b) => {
@@ -457,6 +473,42 @@ export default function AdminUsuarios() {
             </button>
           </div>
         )}
+
+        {/* Tag chips */}
+        <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
+          {([
+            { key: "ALL",         label: "Todos" },
+            { key: "subscribers", label: "Assinantes" },
+            { key: "markable",    label: "Markable" },
+            { key: "voucher",     label: "Voucher" },
+          ] as const).map(({ key, label }) => {
+            const count =
+              key === "ALL" ? rows.length :
+              key === "subscribers" ? rows.filter(r => r.plan !== "VOUCHER" && r.status === "ACTIVE").length :
+              key === "markable" ? rows.filter(r => r.isMarkable).length :
+              rows.filter(r => r.plan === "VOUCHER").length;
+            const active = filterTag === key;
+            return (
+              <button
+                key={key}
+                onClick={() => setFilterTag(key)}
+                style={{
+                  padding: "5px 14px",
+                  borderRadius: 20,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  border: active ? "1.5px solid var(--ink)" : "1.5px solid var(--border)",
+                  background: active ? "var(--ink)" : "var(--bg)",
+                  color: active ? "#fff" : "var(--stone)",
+                  transition: "all .15s",
+                }}
+              >
+                {label} <span style={{ fontWeight: 400, opacity: 0.7 }}>{count}</span>
+              </button>
+            );
+          })}
+        </div>
 
         <div style={{ display: "flex", gap: 10, marginBottom: 18, flexWrap: "wrap" }}>
           <input
@@ -539,7 +591,12 @@ export default function AdminUsuarios() {
                             <ChevronRight size={14} style={{ color: "var(--stone)", transition: "transform .2s", transform: isExp ? "rotate(90deg)" : "rotate(0deg)" }} />
                           </td>
                           <td className="title-cell">
-                            {fmtName(row)}
+                            <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                              {fmtName(row)}
+                              {row.isMarkable && (
+                                <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", padding: "1px 5px", borderRadius: 4, background: "#FEF3C7", color: "#92400E" }}>Markable</span>
+                              )}
+                            </span>
                             <span className="ph">{row.email}</span>
                           </td>
                           <td>
