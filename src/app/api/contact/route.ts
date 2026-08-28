@@ -1,46 +1,51 @@
-export const dynamic = "force-dynamic";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-export async function POST(req: Request) {
-  const { name, email, company, phone, volume, msg } = await req.json() as {
-    name: string; email: string; company: string; phone: string; volume: string; msg?: string;
-  };
+export async function POST(req: NextRequest) {
+  try {
+    const { name, email, company, phone, volume, msg } = await req.json() as {
+      name: string;
+      email: string;
+      company: string;
+      phone?: string;
+      volume?: string;
+      msg?: string;
+    };
 
-  if (!name || !email || !company) {
-    return NextResponse.json({ error: "Campos obrigatórios ausentes." }, { status: 400 });
-  }
+    if (!name?.trim() || !email?.trim() || !company?.trim()) {
+      return NextResponse.json({ error: "Campos obrigatórios ausentes." }, { status: 400 });
+    }
 
-  await resend.emails.send({
-    from: "Raio Publicador <noreply@raiopublicador.com.br>",
-    to: "adrianovaladao@raiopublicador.com.br",
-    replyTo: email,
-    subject: `📩 Novo contato comercial — ${company}`,
-    html: `
-      <div style="font-family:'Helvetica Neue',Arial,sans-serif;max-width:560px;margin:0 auto;background:#f4f4f0;padding:32px 16px">
-        <div style="background:#000;padding:24px 32px;border-radius:12px 12px 0 0">
-          <img src="https://raiopublicador.com.br/assets/logo/raio-logo-email.png" alt="Raio Publicador" height="34" style="height:34px;width:auto;display:block">
-        </div>
-        <div style="background:#fff;padding:32px;border-radius:0 0 12px 12px">
-          <h2 style="margin:0 0 24px;font-size:20px;color:#0a0a0a">Novo contato comercial</h2>
-          <table style="width:100%;border-collapse:collapse;font-size:14px;color:#333">
-            <tr><td style="padding:8px 0;color:#888;width:140px">Nome</td><td style="padding:8px 0;font-weight:600">${name}</td></tr>
-            <tr><td style="padding:8px 0;color:#888">E-mail</td><td style="padding:8px 0"><a href="mailto:${email}" style="color:#c97b00">${email}</a></td></tr>
-            <tr><td style="padding:8px 0;color:#888">Empresa</td><td style="padding:8px 0;font-weight:600">${company}</td></tr>
-            <tr><td style="padding:8px 0;color:#888">Telefone</td><td style="padding:8px 0">${phone || "—"}</td></tr>
-            <tr><td style="padding:8px 0;color:#888">Volume estimado</td><td style="padding:8px 0">${volume}</td></tr>
-            ${msg ? `<tr><td style="padding:8px 0;color:#888;vertical-align:top">Mensagem</td><td style="padding:8px 0">${msg}</td></tr>` : ""}
+    await resend.emails.send({
+      from: "Raio Publicador <contato@raiopublicador.com.br>",
+      to: "contato@raiopublicador.com.br",
+      replyTo: email,
+      subject: `[Time Comercial] Novo lead: ${company}`,
+      html: `
+        <div style="font-family: sans-serif; max-width: 600px; color: #1a1a1a;">
+          <h2 style="margin-bottom: 4px;">Novo lead — Time Comercial</h2>
+          <p style="color: #888; font-size: 13px; margin-top: 0;">Mensagem recebida pelo formulário do site</p>
+          <hr style="border: none; border-top: 1px solid #e8e8e4; margin: 20px 0;" />
+          <table style="width: 100%; border-collapse: collapse; font-size: 15px;">
+            <tr><td style="padding: 8px 0; color: #555; width: 160px;">Nome</td><td style="padding: 8px 0; font-weight: 600;">${name}</td></tr>
+            <tr><td style="padding: 8px 0; color: #555;">E-mail</td><td style="padding: 8px 0;"><a href="mailto:${email}" style="color: #FAB500;">${email}</a></td></tr>
+            <tr><td style="padding: 8px 0; color: #555;">Empresa</td><td style="padding: 8px 0;">${company}</td></tr>
+            ${phone ? `<tr><td style="padding: 8px 0; color: #555;">Telefone</td><td style="padding: 8px 0;">${phone}</td></tr>` : ""}
+            ${volume ? `<tr><td style="padding: 8px 0; color: #555;">Volume estimado</td><td style="padding: 8px 0;">${volume}</td></tr>` : ""}
           </table>
-          <div style="margin-top:28px">
-            <a href="mailto:${email}" style="display:inline-block;padding:12px 24px;background:#FBBF24;color:#000;font-weight:700;text-decoration:none;border-radius:8px;font-size:14px">Responder para ${name}</a>
-          </div>
+          ${msg ? `
+          <div style="margin-top: 20px; padding: 16px; background: #f9f9f7; border-radius: 8px; border-left: 3px solid #FAB500;">
+            <p style="margin: 0; font-size: 15px; line-height: 1.6; white-space: pre-wrap;">${msg}</p>
+          </div>` : ""}
         </div>
-        <p style="text-align:center;font-size:11px;color:#999;margin-top:16px">Raio Publicador · raiopublicador.com.br</p>
-      </div>
-    `,
-  });
+      `,
+    });
 
-  return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    console.error("Contact form error:", err);
+    return NextResponse.json({ error: "Erro ao enviar mensagem." }, { status: 500 });
+  }
 }
