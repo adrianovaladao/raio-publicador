@@ -48,7 +48,7 @@ export async function GET() {
 
 // POST — confirmar ou rejeitar
 export async function POST(req: NextRequest) {
-  if (!(await checkAdmin())) {
+  if (!await assertAnyAdmin()) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   const { userId } = await auth();

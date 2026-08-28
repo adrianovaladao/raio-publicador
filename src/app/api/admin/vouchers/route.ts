@@ -15,8 +15,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const { userId } = await auth();
-  if (!userId || !(await checkAdmin(userId))) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!await assertAnyAdmin()) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { code, credits, maxUses, description, expiresAt } = await req.json() as {
     code: string; credits: number; maxUses?: number; description?: string; expiresAt?: string;
