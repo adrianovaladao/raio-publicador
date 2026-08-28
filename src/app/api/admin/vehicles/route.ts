@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 import { auth } from "@clerk/nextjs/server";
 import { getPrisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { assertAnyAdmin } from "@/lib/admin";
+import { assertAnyAdmin } from "@/lib/admin-server";
 import { createNotification } from "@/lib/notify";
 
 export async function GET() {

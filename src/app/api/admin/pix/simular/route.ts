@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic";
 import { auth } from "@clerk/nextjs/server";
-import { assertAnyAdmin } from "@/lib/admin";
+import { assertAnyAdmin } from "@/lib/admin-server";
 import { getPrisma } from "@/lib/prisma";
 import { PLANS, type PlanId } from "@/lib/plans";
 import { NextRequest, NextResponse } from "next/server";

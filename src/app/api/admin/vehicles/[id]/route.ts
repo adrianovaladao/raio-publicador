@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 import { auth } from "@clerk/nextjs/server";
 import { getPrisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { assertAnyAdmin } from "@/lib/admin";
+import { assertAnyAdmin } from "@/lib/admin-server";
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!await assertMaster())

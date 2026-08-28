@@ -3,7 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { getPrisma } from "@/lib/prisma";
 import { getStripe } from "@/lib/stripe";
 import { NextRequest, NextResponse } from "next/server";
-import { assertMaster } from "@/lib/admin";
+import { assertMaster } from "@/lib/admin-server";
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ clerkId: string }> }) {
   if (!await assertMaster())

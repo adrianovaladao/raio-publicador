@@ -1,5 +1,5 @@
 export const dynamic = "force-dynamic";
-import { assertMaster } from "@/lib/admin";
+import { assertMaster } from "@/lib/admin-server";
 import { getPrisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 

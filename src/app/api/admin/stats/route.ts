@@ -3,7 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { getPrisma } from "@/lib/prisma";
 import { PLANS, type PlanId } from "@/lib/plans";
 import { NextResponse } from "next/server";
-import { assertAnyAdmin } from "@/lib/admin";
+import { assertAnyAdmin } from "@/lib/admin-server";
 
 export async function GET() {
   if (!await assertMaster())

@@ -3,7 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { getPrisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-import { assertMaster } from "@/lib/admin";
+import { assertMaster } from "@/lib/admin-server";
 
 const VEHICLES = [
   { name: "Isso é Brasil", domain: "issoebrasil.com.br", category: "Variedades", tier: "C", reach: 10000 },

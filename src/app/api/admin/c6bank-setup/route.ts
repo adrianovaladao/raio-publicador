@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic";
 import { auth } from "@clerk/nextjs/server";
-import { assertAnyAdmin } from "@/lib/admin";
+import { assertAnyAdmin } from "@/lib/admin-server";
 import { registrarWebhook } from "@/lib/c6bank";
 import { NextRequest, NextResponse } from "next/server";
 

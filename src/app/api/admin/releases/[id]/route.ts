@@ -10,7 +10,7 @@ import {
   sendReleasePublishedWithLinksEmail,
 } from "@/lib/email";
 
-import { assertAnyAdmin } from "@/lib/admin";
+import { assertAnyAdmin } from "@/lib/admin-server";
 import { createNotification } from "@/lib/notify";
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {

@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { getPrisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { assertAnyAdmin } from "@/lib/admin";
+import { assertAnyAdmin } from "@/lib/admin-server";
 
 export async function GET() {
   const { userId } = await auth();

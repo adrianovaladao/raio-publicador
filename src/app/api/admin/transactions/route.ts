@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 import { auth } from "@clerk/nextjs/server";
 import { getPrisma } from "@/lib/prisma";
 import { getStripe } from "@/lib/stripe";
-import { assertAnyAdmin } from "@/lib/admin";
+import { assertAnyAdmin } from "@/lib/admin-server";
 import { NextResponse } from "next/server";
 
 const PLAN_LABELS: Record<string, string> = { BASIC: "Básico", ADVANCED: "Avançado", PROFESSIONAL: "Profissional", VOUCHER: "Voucher" };
