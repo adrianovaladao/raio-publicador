@@ -1,12 +1,11 @@
 export const dynamic = "force-dynamic";
-import { auth, currentUser, clerkClient } from "@clerk/nextjs/server";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
-import { isMaster, type AdminRole } from "@/lib/admin";
+import { assertMaster, type AdminRole } from "@/lib/admin";
 
 async function assertMaster() {
   const { userId } = await auth();
   if (!userId) return false;
-  const user = await currentUser();
   return isMaster(user?.publicMetadata as Record<string, unknown>);
 }
 

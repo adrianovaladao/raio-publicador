@@ -1,19 +1,12 @@
 export const dynamic = "force-dynamic";
-import { auth, currentUser, clerkClient } from "@clerk/nextjs/server";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 import { getPrisma } from "@/lib/prisma";
 import { PLANS, type PlanId } from "@/lib/plans";
 import { NextRequest, NextResponse } from "next/server";
-import { isMaster } from "@/lib/admin";
-
-async function assertRaioAdmin() {
-  const { userId } = await auth();
-  if (!userId) return false;
-  const user = await currentUser();
-  return isMaster(user?.publicMetadata as Record<string, unknown>);
-}
+import { assertMaster } from "@/lib/admin";
 
 export async function GET() {
-  if (!await assertRaioAdmin())
+  if (!await assertMaster())
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const prisma = getPrisma();
@@ -57,7 +50,7 @@ export async function GET() {
 
 // DELETE /api/admin/users — remove subscriptions for given clerkIds
 export async function DELETE(req: NextRequest) {
-  if (!await assertRaioAdmin())
+  if (!await assertMaster())
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { clerkIds } = await req.json() as { clerkIds: string[] };
@@ -70,7 +63,7 @@ export async function DELETE(req: NextRequest) {
 
 // PATCH /api/admin/users — adjust credits or plan for a user
 export async function PATCH(req: NextRequest) {
-  if (!await assertRaioAdmin())
+  if (!await assertMaster())
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { clerkId, creditsTotal, creditsUsed, plan, status, stripeCustomerId, stripeSubscriptionId, isMarkable } = await req.json() as {

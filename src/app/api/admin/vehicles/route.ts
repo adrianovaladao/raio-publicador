@@ -1,19 +1,12 @@
 export const dynamic = "force-dynamic";
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 import { getPrisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { isAnyAdmin } from "@/lib/admin";
+import { assertAnyAdmin } from "@/lib/admin";
 import { createNotification } from "@/lib/notify";
 
-async function assertRaioAdmin() {
-  const { userId } = await auth();
-  if (!userId) return false;
-  const user = await currentUser();
-  return isAnyAdmin(user?.publicMetadata as Record<string, unknown>);
-}
-
 export async function GET() {
-  if (!await assertRaioAdmin())
+  if (!await assertMaster())
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const vehicles = await getPrisma().vehicle.findMany({ orderBy: { name: "asc" } });
@@ -21,7 +14,7 @@ export async function GET() {
 }
 
 export async function DELETE(req: Request) {
-  if (!await assertRaioAdmin())
+  if (!await assertMaster())
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { ids } = await req.json() as { ids: string[] };
@@ -33,7 +26,7 @@ export async function DELETE(req: Request) {
 }
 
 export async function POST(req: Request) {
-  if (!await assertRaioAdmin())
+  if (!await assertMaster())
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { name, domain, site, location, category, tier, reach, logoUrl } = await req.json();

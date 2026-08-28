@@ -1,14 +1,13 @@
 export const dynamic = "force-dynamic";
-import { auth, currentUser, clerkClient } from "@clerk/nextjs/server";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 import { getPrisma } from "@/lib/prisma";
-import { isAnyAdmin } from "@/lib/admin";
+import { assertAnyAdmin } from "@/lib/admin";
 import { PLANS, type PlanId } from "@/lib/plans";
 import { NextRequest, NextResponse } from "next/server";
 
 async function checkAdmin() {
   const { userId } = await auth();
   if (!userId) return false;
-  const user = await currentUser();
   return isAnyAdmin(user?.publicMetadata as Record<string, unknown>);
 }
 

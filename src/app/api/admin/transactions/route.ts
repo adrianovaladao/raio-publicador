@@ -1,22 +1,15 @@
 export const dynamic = "force-dynamic";
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 import { getPrisma } from "@/lib/prisma";
 import { getStripe } from "@/lib/stripe";
-import { isAnyAdmin } from "@/lib/admin";
+import { assertAnyAdmin } from "@/lib/admin";
 import { NextResponse } from "next/server";
-
-async function assertRaioAdmin() {
-  const { userId } = await auth();
-  if (!userId) return false;
-  const user = await currentUser();
-  return isAnyAdmin(user?.publicMetadata as Record<string, unknown>);
-}
 
 const PLAN_LABELS: Record<string, string> = { BASIC: "Básico", ADVANCED: "Avançado", PROFESSIONAL: "Profissional", VOUCHER: "Voucher" };
 const PRICE_TO_PLAN: Record<number, string> = { 100000: "Básico", 300000: "Avançado", 500000: "Profissional" };
 
 export async function GET() {
-  if (!await assertRaioAdmin())
+  if (!await assertMaster())
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const prisma = getPrisma();

@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic";
-import { auth, currentUser } from "@clerk/nextjs/server";
-import { isAnyAdmin } from "@/lib/admin";
+import { auth } from "@clerk/nextjs/server";
+import { assertAnyAdmin } from "@/lib/admin";
 import { getPrisma } from "@/lib/prisma";
 import { PLANS, type PlanId } from "@/lib/plans";
 import { NextRequest, NextResponse } from "next/server";
@@ -13,8 +13,7 @@ import { NextRequest, NextResponse } from "next/server";
 export async function POST(req: NextRequest) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const user = await currentUser();
-  if (!isAnyAdmin(user?.publicMetadata as Record<string, unknown>)) {
+  if (!await assertAnyAdmin()) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

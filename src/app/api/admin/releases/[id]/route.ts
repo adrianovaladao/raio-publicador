@@ -1,5 +1,5 @@
 export const dynamic = "force-dynamic";
-import { auth, currentUser, clerkClient } from "@clerk/nextjs/server";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 import { getPrisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { ReleaseStatus } from "@prisma/client";
@@ -10,18 +10,11 @@ import {
   sendReleasePublishedWithLinksEmail,
 } from "@/lib/email";
 
-import { isAnyAdmin } from "@/lib/admin";
+import { assertAnyAdmin } from "@/lib/admin";
 import { createNotification } from "@/lib/notify";
 
-async function assertAdmin() {
-  const { userId } = await auth();
-  if (!userId) return false;
-  const me = await currentUser();
-  return isAnyAdmin(me?.publicMetadata as Record<string, unknown>);
-}
-
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  if (!await assertAdmin()) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!await assertAnyAdmin()) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { id } = await params;
   const body = await req.json() as {
@@ -111,7 +104,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 }
 
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
-  if (!await assertAdmin()) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!await assertAnyAdmin()) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { id } = await params;
   const prisma = getPrisma();

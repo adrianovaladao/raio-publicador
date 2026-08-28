@@ -1,5 +1,5 @@
 export const dynamic = "force-dynamic";
-import { currentUser } from "@clerk/nextjs/server";
+import { assertMaster } from "@/lib/admin";
 import { getPrisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
@@ -59,8 +59,7 @@ const TIER_C_VEHICLES = [
 ];
 
 export async function POST() {
-  const user = await currentUser();
-  if (user?.publicMetadata?.raioAdmin !== true) {
+  if (!await assertMaster()) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

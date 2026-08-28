@@ -1,19 +1,12 @@
 export const dynamic = "force-dynamic";
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 import { getPrisma } from "@/lib/prisma";
 import { getStripe } from "@/lib/stripe";
 import { NextRequest, NextResponse } from "next/server";
-import { isMaster } from "@/lib/admin";
-
-async function assertRaioAdmin() {
-  const { userId } = await auth();
-  if (!userId) return false;
-  const user = await currentUser();
-  return isMaster(user?.publicMetadata as Record<string, unknown>);
-}
+import { assertMaster } from "@/lib/admin";
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ clerkId: string }> }) {
-  if (!await assertRaioAdmin())
+  if (!await assertMaster())
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { clerkId } = await params;

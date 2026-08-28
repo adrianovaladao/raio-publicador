@@ -1,16 +1,9 @@
 export const dynamic = "force-dynamic";
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 import { getPrisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-import { isMaster } from "@/lib/admin";
-
-async function assertRaioAdmin() {
-  const { userId } = await auth();
-  if (!userId) return false;
-  const user = await currentUser();
-  return isMaster(user?.publicMetadata as Record<string, unknown>);
-}
+import { assertMaster } from "@/lib/admin";
 
 const VEHICLES = [
   { name: "Isso é Brasil", domain: "issoebrasil.com.br", category: "Variedades", tier: "C", reach: 10000 },
@@ -58,7 +51,7 @@ const VEHICLES = [
 ];
 
 export async function POST() {
-  if (!await assertRaioAdmin())
+  if (!await assertMaster())
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const prisma = getPrisma();
