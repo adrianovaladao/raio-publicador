@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import Image from "next/image";
 import { useRouter, useParams } from "next/navigation";
 import {
   ArrowLeft, ArrowRight, Check, Save,
@@ -224,10 +225,9 @@ function StepContent({
             <div className="card-head"><h3>Marca</h3></div>
             <div className="sc-body">
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <div style={{ width: 40, height: 40, borderRadius: 8, background: brand.color ?? "#1A1A1A", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", flexShrink: 0 }}>
+                <div style={{ position: "relative", width: 40, height: 40, borderRadius: 8, background: brand.color ?? "#1A1A1A", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", flexShrink: 0 }}>
                   {brand.logoUrl
-                    // eslint-disable-next-line @next/next/no-img-element
-                    ? <img src={brand.logoUrl} alt={brand.name} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                    ? <Image src={brand.logoUrl} alt={brand.name} fill style={{ objectFit: "contain" }} sizes="40px" />
                     : <span style={{ fontFamily: "var(--mono)", fontWeight: 700, fontSize: 14, color: "#fff" }}>{initials(brand.name)}</span>}
                 </div>
                 <div>
@@ -455,8 +455,8 @@ function StepVehicles({ selected, setSelected, vehicles, sub, onUpgrade, onBuyCr
                 style={isDisabled ? { opacity: 0.35, cursor: "not-allowed", pointerEvents: "none" } : undefined}
               >
                 <div className="cbx">{isSel && <Check size={13} />}</div>
-                <div className="logo" style={{ background: TIER_COLORS_MAP[v.tier], color: TIER_FG_MAP[v.tier] ?? "#fff", overflow: "hidden" }}>
-                  {v.logoUrl ? <img src={v.logoUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : initials(v.name)}
+                <div className="logo" style={{ background: TIER_COLORS_MAP[v.tier], color: TIER_FG_MAP[v.tier] ?? "#fff", overflow: "hidden", position: "relative" }}>
+                  {v.logoUrl ? <Image src={v.logoUrl} alt="" fill style={{ objectFit: "cover" }} sizes="32px" /> : initials(v.name)}
                 </div>
                 <div>
                   <div className="nm">{v.name}</div>
@@ -515,8 +515,8 @@ function StepVehicles({ selected, setSelected, vehicles, sub, onUpgrade, onBuyCr
           <div className="sel-list scroll">
             {selVehicles.map(v => (
               <div className="sel-item" key={v.id}>
-                <div style={{ background: TIER_COLORS_MAP[v.tier], width: 22, height: 22, borderRadius: 6, display: "grid", placeItems: "center", fontSize: 9, fontFamily: "var(--mono)", fontWeight: 700, color: TIER_FG_MAP[v.tier] ?? "#fff", flex: "none", overflow: "hidden" }}>
-                  {v.logoUrl ? <img src={v.logoUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : initials(v.name)}
+                <div style={{ position: "relative", background: TIER_COLORS_MAP[v.tier], width: 22, height: 22, borderRadius: 6, display: "grid", placeItems: "center", fontSize: 9, fontFamily: "var(--mono)", fontWeight: 700, color: TIER_FG_MAP[v.tier] ?? "#fff", flex: "none", overflow: "hidden" }}>
+                  {v.logoUrl ? <Image src={v.logoUrl} alt="" fill style={{ objectFit: "cover" }} sizes="22px" /> : initials(v.name)}
                 </div>
                 <span className="nm">{v.name}</span>
                 <span className="tk">{TIER_TOKENS_MAP[v.tier] ?? 0}</span>
@@ -617,10 +617,9 @@ function StepSchedule({
         <div className="card-pad">
           {brand && (
             <div className="review-brand">
-              <span className="bc-av" style={{ background: brand.color ?? "#1A1A1A", overflow: "hidden", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
+              <span className="bc-av" style={{ position: "relative", background: brand.color ?? "#1A1A1A", overflow: "hidden", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
                 {brand.logoUrl
-                  // eslint-disable-next-line @next/next/no-img-element
-                  ? <img src={brand.logoUrl} alt={brand.name} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                  ? <Image src={brand.logoUrl} alt={brand.name} fill style={{ objectFit: "contain" }} sizes="48px" />
                   : initials(brand.name)}
               </span>
               <div className="bc-meta">

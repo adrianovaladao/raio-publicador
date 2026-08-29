@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useRef, useEffect, Suspense } from "react";
+import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { useUser, useReverification } from "@clerk/nextjs";
-import Image from "next/image";
 import { extractDominantColor, extractDominantColorFromUrl } from "@/lib/color";
 import {
   UserCircle, Settings2, Users, Building2, CreditCard, Bell,
@@ -1104,9 +1104,8 @@ function BrandAv({ name, color, logoUrl, size = 36 }: { name: string | null | un
   const bg = color ?? "#1A1A1A";
   if (logoUrl) {
     return (
-      <span style={{ width: size, height: size, borderRadius: 8, overflow: "hidden", display: "inline-flex", alignItems: "center", justifyContent: "center", background: bg, flexShrink: 0 }}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={logoUrl} alt={name ?? ""} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+      <span style={{ position: "relative", width: size, height: size, borderRadius: 8, overflow: "hidden", display: "inline-flex", alignItems: "center", justifyContent: "center", background: bg, flexShrink: 0 }}>
+        <Image src={logoUrl} alt={name ?? ""} fill style={{ objectFit: "contain" }} sizes={`${size}px`} />
       </span>
     );
   }
@@ -2038,10 +2037,10 @@ function VehicleModal({ initial, onSave, onClose }: {
             <label>Logo</label>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <div
-                style={{ width: 48, height: 48, borderRadius: 10, background: TIER_COLORS_ADM[tier] ?? "#ccc", color: TIER_FG_ADM[tier] ?? "#fff", display: "grid", placeItems: "center", fontFamily: "var(--mono)", fontWeight: 700, fontSize: 14, overflow: "hidden", flexShrink: 0 }}
+                style={{ position: "relative", width: 48, height: 48, borderRadius: 10, background: TIER_COLORS_ADM[tier] ?? "#ccc", color: TIER_FG_ADM[tier] ?? "#fff", display: "grid", placeItems: "center", fontFamily: "var(--mono)", fontWeight: 700, fontSize: 14, overflow: "hidden", flexShrink: 0 }}
               >
                 {logoUrl
-                  ? <img src={logoUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  ? <Image src={logoUrl} alt="" fill style={{ objectFit: "cover" }} sizes="48px" />
                   : vAdmInitials(name || "?")}
               </div>
               <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={e => { const f = e.target.files?.[0]; if (f) handleLogoUpload(f); }} />
@@ -2226,9 +2225,9 @@ function VeiculosPanel({ onToast }: { onToast: (m: string) => void }) {
                 <tr key={v.id}>
                   <td>
                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                      <div style={{ width: 32, height: 32, borderRadius: 8, background: TIER_COLORS_ADM[v.tier] ?? "#ccc", color: TIER_FG_ADM[v.tier] ?? "#fff", display: "grid", placeItems: "center", fontFamily: "var(--mono)", fontWeight: 700, fontSize: 11, flexShrink: 0, overflow: "hidden" }}>
+                      <div style={{ position: "relative", width: 32, height: 32, borderRadius: 8, background: TIER_COLORS_ADM[v.tier] ?? "#ccc", color: TIER_FG_ADM[v.tier] ?? "#fff", display: "grid", placeItems: "center", fontFamily: "var(--mono)", fontWeight: 700, fontSize: 11, flexShrink: 0, overflow: "hidden" }}>
                         {v.logoUrl
-                          ? <img src={v.logoUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                          ? <Image src={v.logoUrl} alt="" fill style={{ objectFit: "cover" }} sizes="32px" />
                           : vAdmInitials(v.name)}
                       </div>
                       <div>

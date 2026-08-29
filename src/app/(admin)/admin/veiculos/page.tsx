@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 import { useUser } from "@clerk/nextjs";
 import {
   Plus, Upload, SlidersHorizontal, X, Pencil, Trash2,
@@ -99,8 +100,8 @@ function VehicleModal({ initial, onSave, onClose }: {
           <div>
             <label style={labelStyle}>Logo</label>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <div style={{ width: 48, height: 48, borderRadius: 10, background: TIER_COLORS[tier] ?? "#ccc", color: TIER_FG[tier] ?? "#fff", display: "grid", placeItems: "center", fontFamily: "var(--mono)", fontWeight: 700, fontSize: 14, overflow: "hidden", flexShrink: 0 }}>
-                {logoUrl ? <img src={logoUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : initials(name || "?")}
+              <div style={{ position: "relative", width: 48, height: 48, borderRadius: 10, background: TIER_COLORS[tier] ?? "#ccc", color: TIER_FG[tier] ?? "#fff", display: "grid", placeItems: "center", fontFamily: "var(--mono)", fontWeight: 700, fontSize: 14, overflow: "hidden", flexShrink: 0 }}>
+                {logoUrl ? <Image src={logoUrl} alt="" fill style={{ objectFit: "cover" }} sizes="48px" /> : initials(name || "?")}
               </div>
               <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={e => { const f = e.target.files?.[0]; if (f) handleLogoUpload(f); }} />
               <button className="btn btn-ghost btn-sm" disabled={uploading} onClick={() => fileRef.current?.click()}>
@@ -459,8 +460,8 @@ export default function AdminVeiculos() {
                     </td>
                     <td style={{ ...tdS, background: selected.has(v.id) ? "var(--cream)" : "" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        <div style={{ width: 34, height: 34, borderRadius: 8, background: TIER_COLORS[v.tier] ?? "#ccc", color: TIER_FG[v.tier] ?? "#fff", display: "grid", placeItems: "center", fontFamily: "var(--mono)", fontWeight: 700, fontSize: 11, flexShrink: 0, overflow: "hidden" }}>
-                          {v.logoUrl ? <img src={v.logoUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : initials(v.name)}
+                        <div style={{ position: "relative", width: 34, height: 34, borderRadius: 8, background: TIER_COLORS[v.tier] ?? "#ccc", color: TIER_FG[v.tier] ?? "#fff", display: "grid", placeItems: "center", fontFamily: "var(--mono)", fontWeight: 700, fontSize: 11, flexShrink: 0, overflow: "hidden" }}>
+                          {v.logoUrl ? <Image src={v.logoUrl} alt="" fill style={{ objectFit: "cover" }} sizes="34px" /> : initials(v.name)}
                         </div>
                         <div>
                           <div style={{ fontWeight: 600 }}>{v.name}</div>

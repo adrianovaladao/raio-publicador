@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import Image from "next/image";
 import { useUser } from "@clerk/nextjs";
 import { Crown, FileText, Trash2, ChevronDown, AlertTriangle, Clock, ExternalLink, Send, Copy, Download, Check, Calendar, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { exportDocx, exportPdf } from "@/lib/export-release";
@@ -353,7 +354,7 @@ function ReleaseActions({ release, onSaved, onDeleted }: {
         {images.length > 0 && (
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 10 }}>
             {images.map((src, i) => (
-              <img key={i} src={src} alt="" style={{ height: 72, width: "auto", borderRadius: 6, border: "1px solid #eee", objectFit: "cover" }} />
+              <div key={i} style={{ position: "relative", height: 72, width: 120, borderRadius: 6, border: "1px solid #eee", overflow: "hidden", flexShrink: 0 }}><Image src={src} alt="" fill style={{ objectFit: "cover" }} sizes="120px" /></div>
             ))}
           </div>
         )}
@@ -547,7 +548,7 @@ function ReleaseCard({ r, expanded, setExpanded, selected, toggleSelect, onSaved
           style={{ width: 15, height: 15, flexShrink: 0, cursor: "pointer" }}
         />
         {r.imageUrl && (
-          <img src={r.imageUrl} alt="" style={{ width: 44, height: 44, borderRadius: 6, objectFit: "cover", flexShrink: 0, border: "1px solid #eee" }} />
+          <div style={{ position: "relative", width: 44, height: 44, borderRadius: 6, flexShrink: 0, border: "1px solid #eee", overflow: "hidden" }}><Image src={r.imageUrl} alt="" fill style={{ objectFit: "cover" }} sizes="44px" /></div>
         )}
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 4 }}>

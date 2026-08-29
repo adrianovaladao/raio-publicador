@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
 import { useUser } from "@clerk/nextjs";
 import { PLANS, type PlanId } from "@/lib/plans";
 import { isMaster } from "@/lib/admin";
@@ -243,7 +244,7 @@ function UserDetailPanel({ row }: { row: UserRow }) {
                       <div key={b.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                           {b.logoUrl
-                            ? <img src={b.logoUrl} alt="" style={{ width: 22, height: 22, borderRadius: 4, objectFit: "contain", border: "1px solid #eee" }} />
+                            ? <div style={{ position: "relative", width: 22, height: 22, borderRadius: 4, border: "1px solid #eee", overflow: "hidden", flexShrink: 0 }}><Image src={b.logoUrl} alt="" fill style={{ objectFit: "contain" }} sizes="22px" /></div>
                             : <span style={{ width: 22, height: 22, borderRadius: 4, background: b.color ?? "#eee", display: "inline-block", flexShrink: 0 }} />
                           }
                           <span style={{ fontSize: 13, fontWeight: 600 }}>{b.name}</span>
