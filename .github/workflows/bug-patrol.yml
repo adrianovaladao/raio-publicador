@@ -1,0 +1,129 @@
+name: Bug Patrol (4x/dia)
+
+on:
+  schedule:
+    # Roda às 06:00, 12:00, 18:00 e 00:00 (horário de Brasília = UTC-3)
+    - cron: "0 3,9,15,21 * * *"
+  workflow_dispatch: # permite rodar manualmente pelo GitHub
+
+jobs:
+  bug-patrol:
+    name: Analisar e corrigir bugs
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: TypeScript check
+        id: tsc
+        run: |
+          npx tsc --noEmit 2>&1 | tee /tmp/tsc-output.txt
+          echo "exit_code=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
+        continue-on-error: true
+
+      - name: ESLint check
+        id: lint
+        run: |
+          npx next lint --format json 2>/dev/null | tee /tmp/lint-output.json || \
+          npx next lint 2>&1 | tee /tmp/lint-output.txt
+        continue-on-error: true
+
+      - name: Verificar se há erros
+        id: check
+        run: |
+          TSC_ERRORS=$(grep -c "error TS" /tmp/tsc-output.txt 2>/dev/null || echo "0")
+          echo "tsc_errors=$TSC_ERRORS" >> "$GITHUB_OUTPUT"
+          echo "=== TypeScript: $TSC_ERRORS erro(s) ==="
+          cat /tmp/tsc-output.txt || true
+
+      - name: Instalar Claude CLI
+        if: steps.check.outputs.tsc_errors != '0'
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Corrigir bugs com Claude
+        if: steps.check.outputs.tsc_errors != '0'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          CLAUDE_SKIP_GIT_CHECK: "true"
+        run: |
+          TSC_OUTPUT=$(cat /tmp/tsc-output.txt)
+          claude --print --dangerously-skip-permissions \
+            "Você é um engenheiro sênior revisando o projeto Raio Publicador (Next.js 15, TypeScript, Prisma, Clerk). \
+            O comando 'npx tsc --noEmit' encontrou os seguintes erros: \
+            $TSC_OUTPUT \
+            Analise cada erro, identifique a causa raiz e corrija todos os arquivos afetados. \
+            Regras: \
+            1. Não altere testes, migrations ou arquivos de configuração. \
+            2. Não quebre funcionalidades existentes. \
+            3. Prefira correções cirúrgicas — não refatore código que não é necessário. \
+            4. Após as correções, rode 'npx tsc --noEmit' mentalmente para confirmar que os erros somem. \
+            Faça as correções diretamente nos arquivos."
+
+      - name: Verificar se o build passa após correções
+        if: steps.check.outputs.tsc_errors != '0'
+        run: npx tsc --noEmit
+        continue-on-error: true
+
+      - name: Criar branch e PR com as correções
+        if: steps.check.outputs.tsc_errors != '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "Bug Patrol Bot"
+          git config user.email "bot@raiopublicador.com.br"
+
+          BRANCH="bug-patrol/$(date +'%Y-%m-%d-%H%M')"
+          git checkout -b "$BRANCH"
+
+          if git diff --quiet; then
+            echo "Nenhuma alteração feita — nenhum PR necessário."
+            exit 0
+          fi
+
+          git add -A
+          git commit -m "fix(auto): correções automáticas de TypeScript [Bug Patrol $(date +'%Y-%m-%d %H:%M')]"
+          git push origin "$BRANCH"
+
+          TSC_ERRORS="${{ steps.check.outputs.tsc_errors }}"
+          gh pr create \
+            --title "🤖 Bug Patrol: $TSC_ERRORS erro(s) de TypeScript corrigidos" \
+            --body "## Correções automáticas — Bug Patrol
+
+          **Rodou em:** $(date +'%d/%m/%Y às %H:%M')
+          **Erros encontrados:** $TSC_ERRORS
+
+          ### Saída do TypeScript antes das correções
+          \`\`\`
+          $(cat /tmp/tsc-output.txt | head -50)
+          \`\`\`
+
+          > Revise as alterações antes de fazer merge. Este PR foi criado automaticamente pelo workflow Bug Patrol." \
+            --base main \
+            --head "$BRANCH" \
+            --label "bug,automated"
+
+      - name: Resumo
+        run: |
+          echo "### Bug Patrol concluído" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Data/Hora:** $(date +'%d/%m/%Y %H:%M')" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Erros TypeScript:** ${{ steps.check.outputs.tsc_errors }}" >> "$GITHUB_STEP_SUMMARY"
+          if [ "${{ steps.check.outputs.tsc_errors }}" != "0" ]; then
+            echo "- **Ação:** PR criado com correções automáticas" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "- **Ação:** Nenhum erro encontrado ✅" >> "$GITHUB_STEP_SUMMARY"
+          fi
