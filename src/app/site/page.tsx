@@ -420,8 +420,8 @@ function Testimonials() {
               <p className="q">&ldquo;{t.q}&rdquo;</p>
               <div className="by">
                 {"photo" in t && t.photo ? (
-                  <div className="av" style={{ padding: 0, overflow: "hidden" }}>
-                    <img src={t.photo as string} alt={t.nm} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  <div className="av" style={{ padding: 0, overflow: "hidden", position: "relative" }}>
+                    <Image src={t.photo as string} alt={t.nm} fill style={{ objectFit: "cover" }} sizes="48px" />
                   </div>
                 ) : (
                   <div className="av">{t.av}</div>

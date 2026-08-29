@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { useEscapeKey } from "@/hooks/useEscapeKey";
 import { ArrowUpDown, ArrowUp, ArrowDown, SlidersHorizontal, X, Clock } from "lucide-react";
 
@@ -272,9 +273,9 @@ export default function VeiculosPage() {
                   <tr key={v.id} style={{ cursor: "default" }}>
                     <td>
                       <div className="row" style={{ gap: 12 }}>
-                        <div style={{ background: TIER_COLORS[v.tier], width: 32, height: 32, borderRadius: 8, display: "grid", placeItems: "center", fontFamily: "var(--mono)", fontWeight: 700, fontSize: 11, color: TIER_FG[v.tier] ?? "#fff", flex: "none", overflow: "hidden" }}>
+                        <div style={{ background: TIER_COLORS[v.tier], width: 32, height: 32, borderRadius: 8, display: "grid", placeItems: "center", fontFamily: "var(--mono)", fontWeight: 700, fontSize: 11, color: TIER_FG[v.tier] ?? "#fff", flex: "none", overflow: "hidden", position: "relative" }}>
                           {v.logoUrl
-                            ? <img src={v.logoUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                            ? <Image src={v.logoUrl} alt="" fill style={{ objectFit: "cover" }} sizes="32px" />
                             : initials(v.name)}
                         </div>
                         <div>

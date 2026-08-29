@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import Image from "next/image";
 import { useUser } from "@clerk/nextjs";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -243,10 +244,10 @@ function Brand({ go, data, setData }: { go: (s: Stage) => void; data: OnbData; s
       <div className="onb-form">
         <div className="fgrid">
           <div className="logo-up">
-            <div className="logo-slot" onClick={() => !data.logoUrl && fileRef.current?.click()}>
+            <div className="logo-slot" onClick={() => !data.logoUrl && fileRef.current?.click()} style={{ position: "relative" }}>
               {data.logoUrl ? (
                 <>
-                  <img src={data.logoUrl} alt="logo" style={{ width: "100%", height: "100%", objectFit: "contain", padding: 8 }} />
+                  <Image src={data.logoUrl} alt="logo" fill style={{ objectFit: "contain", padding: 8 }} sizes="120px" />
                   <button
                     className="logo-del"
                     onClick={e => { e.stopPropagation(); setData({ ...data, logoUrl: "" }); if (fileRef.current) fileRef.current.value = ""; }}

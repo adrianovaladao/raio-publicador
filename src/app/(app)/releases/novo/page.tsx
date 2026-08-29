@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 
 import {
@@ -167,9 +168,9 @@ function NewBrandModal({ onClose, onCreate, onLimitReached }: { onClose: () => v
         <div className="m-body">
           {/* Preview */}
           <div className="nb-preview">
-            <div style={{ width: 40, height: 40, borderRadius: 8, background: color, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", flexShrink: 0, cursor: "pointer" }} onClick={() => fileRef.current?.click()}>
+            <div style={{ width: 40, height: 40, borderRadius: 8, background: color, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", flexShrink: 0, cursor: "pointer", position: "relative" }} onClick={() => fileRef.current?.click()}>
               {logoPreview
-                ? <img src={logoPreview} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                ? <Image src={logoPreview} alt="" fill style={{ objectFit: "contain" }} sizes="40px" />
                 : <span style={{ fontFamily: "var(--mono)", fontWeight: 700, fontSize: 14, color: "#fff" }}>{initials(name) || "?"}</span>}
             </div>
             <div style={{ flex: 1 }}>
@@ -297,7 +298,7 @@ function StepBrand({ selected, onSelect, brands, brandsLimit, onAddBrand, onLimi
             >
               <div className="thumb" style={{ background: b.color ?? "#1A1A1A", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 {b.logoUrl
-                  ? <img src={b.logoUrl} alt={b.name} style={{ width: "60%", height: "60%", objectFit: "contain" }} />
+                  ? <div style={{ position: "relative", width: "60%", height: "60%" }}><Image src={b.logoUrl} alt={b.name} fill style={{ objectFit: "contain" }} sizes="80px" /></div>
                   : <span style={{ fontFamily: "var(--mono)", fontWeight: 700, fontSize: 32, color: "rgba(255,255,255,0.9)", letterSpacing: "-0.02em" }}>{initials(b.name)}</span>
                 }
                 {selected?.id === b.id && (
@@ -349,8 +350,8 @@ function StepBrand({ selected, onSelect, brands, brandsLimit, onAddBrand, onLimi
                   onClick={() => onSelect(b)}
                 >
                   <td className="title-cell" style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <div style={{ width: 28, height: 28, borderRadius: 8, background: b.color ?? "#1A1A1A", display: "grid", placeItems: "center", fontFamily: "var(--mono)", fontWeight: 700, fontSize: 11, color: "#fff", flex: "none", overflow: "hidden" }}>
-                      {b.logoUrl ? <img src={b.logoUrl} alt={b.name} style={{ width: "100%", height: "100%", objectFit: "contain" }} /> : initials(b.name)}
+                    <div style={{ width: 28, height: 28, borderRadius: 8, background: b.color ?? "#1A1A1A", display: "grid", placeItems: "center", fontFamily: "var(--mono)", fontWeight: 700, fontSize: 11, color: "#fff", flex: "none", overflow: "hidden", position: "relative" }}>
+                      {b.logoUrl ? <Image src={b.logoUrl} alt={b.name} fill style={{ objectFit: "contain" }} sizes="28px" /> : initials(b.name)}
                     </div>
                     {b.name}
                     {selected?.id === b.id && <Check size={14} color="var(--coral)" style={{ marginLeft: "auto" }} />}
@@ -700,8 +701,8 @@ function StepVehicles({ selected, setSelected, vehicles, sub, onUpgrade, onBuyCr
                 style={isDisabled ? { opacity: 0.45, cursor: "pointer" } : undefined}
               >
                 <div className="cbx">{isSel && <Check size={13} />}</div>
-                <div className="logo" style={{ background: TIER_COLORS_MAP[v.tier], color: TIER_FG_MAP[v.tier] ?? "#fff", overflow: "hidden" }}>
-                  {v.logoUrl ? <img src={v.logoUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : initials(v.name)}
+                <div className="logo" style={{ background: TIER_COLORS_MAP[v.tier], color: TIER_FG_MAP[v.tier] ?? "#fff", overflow: "hidden", position: "relative" }}>
+                  {v.logoUrl ? <Image src={v.logoUrl} alt="" fill style={{ objectFit: "cover" }} sizes="32px" /> : initials(v.name)}
                 </div>
                 <div>
                   <div className="nm">{v.name}</div>
@@ -760,8 +761,8 @@ function StepVehicles({ selected, setSelected, vehicles, sub, onUpgrade, onBuyCr
           <div className="sel-list scroll">
             {selVehicles.map(v => (
               <div className="sel-item" key={v.id}>
-                <div style={{ background: TIER_COLORS_MAP[v.tier], width: 22, height: 22, borderRadius: 6, display: "grid", placeItems: "center", fontSize: 9, fontFamily: "var(--mono)", fontWeight: 700, color: TIER_FG_MAP[v.tier] ?? "#fff", flex: "none", overflow: "hidden" }}>
-                  {v.logoUrl ? <img src={v.logoUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : initials(v.name)}
+                <div style={{ background: TIER_COLORS_MAP[v.tier], width: 22, height: 22, borderRadius: 6, display: "grid", placeItems: "center", fontSize: 9, fontFamily: "var(--mono)", fontWeight: 700, color: TIER_FG_MAP[v.tier] ?? "#fff", flex: "none", overflow: "hidden", position: "relative" }}>
+                  {v.logoUrl ? <Image src={v.logoUrl} alt="" fill style={{ objectFit: "cover" }} sizes="22px" /> : initials(v.name)}
                 </div>
                 <span className="nm">{v.name}</span>
                 <span className="tk">{TIER_TOKENS_MAP[v.tier] ?? 0}</span>
@@ -1346,8 +1347,8 @@ function StepReview({ content, selected, when, setWhen, brand, vehicles, datePic
         <div className="card-pad" style={{ paddingBottom: 20 }}>
           {brand && (
             <div className="review-brand">
-              <span className="bc-av" style={{ background: brand.color ?? "#1A1A1A", overflow: "hidden", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
-                {brand.logoUrl ? <img src={brand.logoUrl} alt={brand.name} style={{ width: "100%", height: "100%", objectFit: "contain" }} /> : initials(brand.name)}
+              <span className="bc-av" style={{ background: brand.color ?? "#1A1A1A", overflow: "hidden", display: "inline-flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
+                {brand.logoUrl ? <Image src={brand.logoUrl} alt={brand.name} fill style={{ objectFit: "contain" }} sizes="48px" /> : initials(brand.name)}
               </span>
               <div className="bc-meta">
                 <span className="bc-lbl">Marca</span>
