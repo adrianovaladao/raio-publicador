@@ -44,7 +44,7 @@ function Origem() {
   return (
     <section className="section" style={{ background: "#1F1F1F" }}>
       <div className="wrap" style={{ maxWidth: 800 }}>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "48px 64px", alignItems: "start" }}>
+        <div className="sobre-origem-grid">
 
           <div className="reveal">
             <span className="eyebrow" style={{ marginBottom: 16, display: "block" }}>A oportunidade que nos motivou</span>
@@ -110,16 +110,7 @@ function QuemEstaPorTras() {
         </div>
 
         {/* Markable */}
-        <div className="reveal" style={{
-          display: "grid",
-          gridTemplateColumns: "auto 1fr",
-          gap: "32px 48px",
-          alignItems: "center",
-          padding: "40px 44px",
-          background: "rgba(255,255,255,0.03)",
-          border: "1px solid rgba(255,255,255,0.07)",
-          borderRadius: 20,
-        }}>
+        <div className="reveal sobre-markable-card">
           <div style={{ textAlign: "center" }}>
             <Image
               src="/assets/logo/markable-sobre.svg"

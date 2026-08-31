@@ -57,7 +57,7 @@ export default function PrivacidadePage() {
 
         <Section title="3. Por que usamos seus dados">
           <p>Cada finalidade tem uma base legal correspondente na LGPD:</p>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14, marginTop: 4 }}>
+          <div className="table-scroll"><table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14, marginTop: 4 }}>
             <thead>
               <tr style={{ background: "#f0eeea" }}>
                 <th style={{ padding: "8px 12px", textAlign: "left", fontWeight: 700, borderBottom: "2px solid #e0ddd8" }}>Finalidade</th>
@@ -79,7 +79,7 @@ export default function PrivacidadePage() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         </Section>
 
         <Section title="4. Inteligência artificial e seus dados">
