@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { RaioLockup } from "@/components/logo/RaioLockup";
+import { SiteNav } from "@/components/site/SiteNav";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -7,21 +7,20 @@ export const metadata: Metadata = {
   description: "Quais cookies o Raio Publicador usa, para que servem e como gerenciá-los.",
 };
 
+const prose: React.CSSProperties = {
+  fontSize: "clamp(14px, 3.5vw, 15px)",
+  color: "rgba(255,255,255,0.7)",
+  lineHeight: 1.8,
+};
+
 export default function CookiesPage() {
   return (
-    <div style={{ minHeight: "100vh", background: "#f9f9f7", fontFamily: "'Helvetica Neue', Arial, sans-serif" }}>
-      <header style={{ background: "#000", padding: "20px 0" }}>
-        <div style={{ maxWidth: 760, margin: "0 auto", padding: "0 24px" }}>
-          <Link href="/" style={{ display: "inline-flex", alignItems: "center" }}>
-            <RaioLockup height={28} variant="dark" />
-          </Link>
-        </div>
-      </header>
-
-      <main style={{ maxWidth: 760, margin: "0 auto", padding: "56px 24px 80px" }}>
-        <p style={{ fontSize: 13, color: "#888", marginBottom: 8 }}>Vigência a partir de: agosto de 2026</p>
-        <h1 style={{ fontSize: 36, fontWeight: 800, color: "#1a1a1a", marginBottom: 16, lineHeight: 1.2 }}>Política de Cookies</h1>
-        <p style={{ fontSize: 16, color: "#555", lineHeight: 1.7, marginBottom: 40, borderLeft: "3px solid #FAB500", paddingLeft: 16 }}>
+    <>
+      <SiteNav />
+      <main style={{ maxWidth: 760, margin: "0 auto", padding: "clamp(80px,12vw,96px) 24px 80px" }}>
+        <p style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", marginBottom: 8 }}>Vigência a partir de: agosto de 2026</p>
+        <h1 style={{ fontSize: "clamp(28px,7vw,40px)", fontWeight: 800, color: "rgba(255,255,255,0.95)", marginBottom: 16, lineHeight: 1.2 }}>Política de Cookies</h1>
+        <p style={{ ...prose, marginBottom: 40, borderLeft: "3px solid #FAB500", paddingLeft: 16 }}>
           Cookies são pequenos arquivos que o navegador salva no seu dispositivo quando você visita um site. Utilizamos cookies essenciais para o funcionamento da plataforma e, mediante consentimento quando aplicável, cookies de análise para compreender como o Raio Publicador é utilizado e aprimorar a experiência dos usuários.
         </p>
 
@@ -32,7 +31,7 @@ export default function CookiesPage() {
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14, minWidth: 540 }}>
               <thead>
-                <tr style={{ background: "#f0eeea" }}>
+                <tr style={{ background: "rgba(255,255,255,0.06)" }}>
                   <th style={th}>Cookie</th>
                   <th style={th}>Origem</th>
                   <th style={th}>Função</th>
@@ -56,7 +55,7 @@ export default function CookiesPage() {
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14, minWidth: 540 }}>
               <thead>
-                <tr style={{ background: "#f0eeea" }}>
+                <tr style={{ background: "rgba(255,255,255,0.06)" }}>
                   <th style={th}>Cookie</th>
                   <th style={th}>Origem</th>
                   <th style={th}>Função</th>
@@ -102,16 +101,16 @@ export default function CookiesPage() {
 
         <Section title="6. Atualizações nesta Política">
           <p>Esta Política poderá ser atualizada para refletir alterações na plataforma, nos fornecedores utilizados, na legislação aplicável ou nas práticas de tratamento de dados. Alterações relevantes serão comunicadas pelos meios disponíveis na plataforma quando necessário. A versão vigente estará sempre disponível nesta página, com indicação da data de atualização.</p>
-          <p>Dúvidas: <a href="mailto:raiopublicador@gmail.com" style={{ color: "#1a1a1a", fontWeight: 600 }}>raiopublicador@gmail.com</a></p>
+          <p>Dúvidas: <a href="mailto:contato@raiopublicador.com.br" style={{ color: "rgba(255,255,255,0.9)", fontWeight: 600 }}>contato@raiopublicador.com.br</a></p>
         </Section>
 
-        <div style={{ marginTop: 48, paddingTop: 24, borderTop: "1px solid #e8e8e4", display: "flex", gap: 24, flexWrap: "wrap" }}>
-          <Link href="/termos" style={{ fontSize: 14, color: "#555", textDecoration: "none" }}>Termos de Uso →</Link>
-          <Link href="/privacidade" style={{ fontSize: 14, color: "#555", textDecoration: "none" }}>Política de Privacidade →</Link>
-          <Link href="/" style={{ fontSize: 14, color: "#888", textDecoration: "none", marginLeft: "auto" }}>← Voltar para o início</Link>
+        <div style={{ marginTop: 48, paddingTop: 24, borderTop: "1px solid rgba(255,255,255,0.1)", display: "flex", gap: 24, flexWrap: "wrap" }}>
+          <Link href="/termos" style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", textDecoration: "none" }}>Termos de Uso →</Link>
+          <Link href="/privacidade" style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", textDecoration: "none" }}>Política de Privacidade →</Link>
+          <Link href="/" style={{ fontSize: 14, color: "rgba(255,255,255,0.35)", textDecoration: "none", marginLeft: "auto" }}>← Voltar para o início</Link>
         </div>
       </main>
-    </div>
+    </>
   );
 }
 
@@ -119,17 +118,18 @@ const th: React.CSSProperties = {
   padding: "8px 12px",
   textAlign: "left",
   fontWeight: 700,
-  borderBottom: "2px solid #e0ddd8",
+  borderBottom: "2px solid rgba(255,255,255,0.15)",
   whiteSpace: "nowrap",
+  color: "rgba(255,255,255,0.85)",
 };
 
 function Row({ name, origin, desc, val }: { name: string; origin: string; desc: string; val: string }) {
   return (
-    <tr style={{ borderBottom: "1px solid #eee" }}>
-      <td style={{ padding: "8px 12px", fontFamily: "monospace", fontSize: 13, color: "#333", whiteSpace: "nowrap" }}>{name}</td>
-      <td style={{ padding: "8px 12px", color: "#555", whiteSpace: "nowrap" }}>{origin}</td>
-      <td style={{ padding: "8px 12px", color: "#444" }}>{desc}</td>
-      <td style={{ padding: "8px 12px", color: "#666", whiteSpace: "nowrap" }}>{val}</td>
+    <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+      <td style={{ padding: "8px 12px", fontFamily: "monospace", fontSize: 13, color: "rgba(255,255,255,0.8)", whiteSpace: "nowrap" }}>{name}</td>
+      <td style={{ padding: "8px 12px", color: "rgba(255,255,255,0.6)", whiteSpace: "nowrap" }}>{origin}</td>
+      <td style={{ padding: "8px 12px", color: "rgba(255,255,255,0.65)" }}>{desc}</td>
+      <td style={{ padding: "8px 12px", color: "rgba(255,255,255,0.5)", whiteSpace: "nowrap" }}>{val}</td>
     </tr>
   );
 }
@@ -137,8 +137,8 @@ function Row({ name, origin, desc, val }: { name: string; origin: string; desc: 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section style={{ marginBottom: 40 }}>
-      <h2 style={{ fontSize: 17, fontWeight: 700, color: "#1a1a1a", marginBottom: 12, paddingBottom: 8, borderBottom: "1px solid #eee" }}>{title}</h2>
-      <div style={{ fontSize: 15, color: "#444", lineHeight: 1.8, display: "flex", flexDirection: "column", gap: 10 }}>
+      <h2 style={{ fontSize: "clamp(15px,4vw,17px)", fontWeight: 700, color: "rgba(255,255,255,0.9)", marginBottom: 12, paddingBottom: 8, borderBottom: "1px solid rgba(255,255,255,0.1)" }}>{title}</h2>
+      <div style={{ fontSize: "clamp(13px,3.5vw,15px)", color: "rgba(255,255,255,0.65)", lineHeight: 1.8, display: "flex", flexDirection: "column", gap: 10 }}>
         {children}
       </div>
     </section>

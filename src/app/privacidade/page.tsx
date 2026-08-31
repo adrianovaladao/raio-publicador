@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { RaioLockup } from "@/components/logo/RaioLockup";
+import { SiteNav } from "@/components/site/SiteNav";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -7,27 +7,26 @@ export const metadata: Metadata = {
   description: "Como o Raio Publicador trata, armazena e protege seus dados pessoais.",
 };
 
+const prose: React.CSSProperties = {
+  fontSize: "clamp(14px, 3.5vw, 15px)",
+  color: "rgba(255,255,255,0.7)",
+  lineHeight: 1.8,
+};
+
 export default function PrivacidadePage() {
   return (
-    <div style={{ minHeight: "100vh", background: "#f9f9f7", fontFamily: "'Helvetica Neue', Arial, sans-serif" }}>
-      <header style={{ background: "#000", padding: "20px 0" }}>
-        <div style={{ maxWidth: 760, margin: "0 auto", padding: "0 24px" }}>
-          <Link href="/" style={{ display: "inline-flex", alignItems: "center" }}>
-            <RaioLockup height={28} variant="dark" />
-          </Link>
-        </div>
-      </header>
-
-      <main style={{ maxWidth: 760, margin: "0 auto", padding: "56px 24px 80px" }}>
-        <p style={{ fontSize: 13, color: "#888", marginBottom: 8 }}>Vigência a partir de: agosto de 2026</p>
-        <h1 style={{ fontSize: 36, fontWeight: 800, color: "#1a1a1a", marginBottom: 16, lineHeight: 1.2 }}>Política de Privacidade</h1>
-        <p style={{ fontSize: 16, color: "#555", lineHeight: 1.7, marginBottom: 40, borderLeft: "3px solid #FAB500", paddingLeft: 16 }}>
+    <>
+      <SiteNav />
+      <main style={{ maxWidth: 760, margin: "0 auto", padding: "clamp(80px,12vw,96px) 24px 80px" }}>
+        <p style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", marginBottom: 8 }}>Vigência a partir de: agosto de 2026</p>
+        <h1 style={{ fontSize: "clamp(28px,7vw,40px)", fontWeight: 800, color: "rgba(255,255,255,0.95)", marginBottom: 16, lineHeight: 1.2 }}>Política de Privacidade</h1>
+        <p style={{ ...prose, marginBottom: 40, borderLeft: "3px solid #FAB500", paddingLeft: 16 }}>
           Privacidade não é burocracia &mdash; é respeito. Aqui explicamos, sem rodeios, o que coletamos, por que coletamos e o que fazemos com os seus dados. Este documento é regido pela <strong>Lei Geral de Proteção de Dados (Lei nº 13.709/2018)</strong>.
         </p>
 
         <Section title="1. Quem responde pelos seus dados">
           <p>A controladora dos seus dados pessoais é a <strong>RAIO PUBLICADOR TECNOLOGIA DE COMUNICACAO LTDA</strong>, CNPJ 68.372.169/0001-06, com sede em São Paulo &ndash; SP. Sempre que &ldquo;Raio&rdquo;, &ldquo;nós&rdquo; ou &ldquo;nosso&rdquo; aparecerem nesta Política, é a ela que nos referimos.</p>
-          <p>Para dúvidas relacionadas à privacidade, proteção de dados ou exercício dos direitos previstos nesta Política, entre em contato pelo e-mail: <a href="mailto:raiopublicador@gmail.com" style={{ color: "#1a1a1a", fontWeight: 600 }}>raiopublicador@gmail.com</a></p>
+          <p>Para dúvidas relacionadas à privacidade, proteção de dados ou exercício dos direitos previstos nesta Política, entre em contato pelo e-mail: <a href="mailto:contato@raiopublicador.com.br" style={{ color: "rgba(255,255,255,0.9)", fontWeight: 600 }}>contato@raiopublicador.com.br</a></p>
         </Section>
 
         <Section title="2. O que coletamos e em qual momento">
@@ -51,7 +50,7 @@ export default function PrivacidadePage() {
           <p><strong>Automaticamente, durante a navegação:</strong></p>
           <ul>
             <li>Dados de navegação e interação com a plataforma, como páginas visitadas, cliques e duração da sessão, por meio de ferramentas de análise, quando autorizadas pelo Usuário e conforme descrito na Política de Cookies.</li>
-            <li>Cookies de sessão e autenticação (ver nossa <Link href="/cookies" style={{ color: "#1a1a1a", fontWeight: 600 }}>Política de Cookies</Link>)</li>
+            <li>Cookies de sessão e autenticação (ver nossa <Link href="/cookies" style={{ color: "rgba(255,255,255,0.9)", fontWeight: 600 }}>Política de Cookies</Link>)</li>
           </ul>
           <p><strong>Dados fornecidos pelo Usuário sobre terceiros:</strong> ao utilizar a plataforma, o Usuário poderá inserir informações relacionadas a membros de sua equipe ou terceiros mencionados nos conteúdos submetidos à publicação, como nomes, cargos, imagens, depoimentos e outras informações. Nesses casos, o Usuário declara possuir autorização ou outra base legal adequada para o tratamento e compartilhamento desses dados.</p>
         </Section>
@@ -129,7 +128,7 @@ export default function PrivacidadePage() {
         </Section>
 
         <Section title="8. Seus direitos como titular">
-          <p>A LGPD garante a você os seguintes direitos, que podem ser exercidos a qualquer momento pelo e-mail <a href="mailto:contato@raiopublicador.com.br" style={{ color: "#1a1a1a", fontWeight: 600 }}>contato@raiopublicador.com.br</a>:</p>
+          <p>A LGPD garante a você os seguintes direitos, que podem ser exercidos a qualquer momento pelo e-mail <a href="mailto:contato@raiopublicador.com.br" style={{ color: "rgba(255,255,255,0.9)", fontWeight: 600 }}>contato@raiopublicador.com.br</a>:</p>
           <ul>
             <li><strong>Confirmação e acesso</strong> &mdash; saber se processamos seus dados e obter uma cópia</li>
             <li><strong>Correção</strong> &mdash; atualizar dados incompletos, inexatos ou desatualizados</li>
@@ -153,25 +152,25 @@ export default function PrivacidadePage() {
         </Section>
 
         <Section title="11. Documentos relacionados">
-          <p>Esta Política de Privacidade deve ser lida em conjunto com os <Link href="/termos" style={{ color: "#1a1a1a", fontWeight: 600 }}>Termos de Uso</Link> e a <Link href="/cookies" style={{ color: "#1a1a1a", fontWeight: 600 }}>Política de Cookies</Link> do Raio Publicador, disponíveis na plataforma.</p>
+          <p>Esta Política de Privacidade deve ser lida em conjunto com os <Link href="/termos" style={{ color: "rgba(255,255,255,0.9)", fontWeight: 600 }}>Termos de Uso</Link> e a <Link href="/cookies" style={{ color: "rgba(255,255,255,0.9)", fontWeight: 600 }}>Política de Cookies</Link> do Raio Publicador, disponíveis na plataforma.</p>
           <p>Esses documentos apresentam informações complementares sobre as condições de utilização do serviço, tratamento de dados pessoais e tecnologias utilizadas durante a navegação.</p>
         </Section>
 
-        <div style={{ marginTop: 48, paddingTop: 24, borderTop: "1px solid #e8e8e4", display: "flex", gap: 24, flexWrap: "wrap" }}>
-          <Link href="/termos" style={{ fontSize: 14, color: "#555", textDecoration: "none" }}>Termos de Uso →</Link>
-          <Link href="/cookies" style={{ fontSize: 14, color: "#555", textDecoration: "none" }}>Política de Cookies →</Link>
-          <Link href="/" style={{ fontSize: 14, color: "#888", textDecoration: "none", marginLeft: "auto" }}>← Voltar para o início</Link>
+        <div style={{ marginTop: 48, paddingTop: 24, borderTop: "1px solid rgba(255,255,255,0.1)", display: "flex", gap: 24, flexWrap: "wrap" }}>
+          <Link href="/termos" style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", textDecoration: "none" }}>Termos de Uso →</Link>
+          <Link href="/cookies" style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", textDecoration: "none" }}>Política de Cookies →</Link>
+          <Link href="/" style={{ fontSize: 14, color: "rgba(255,255,255,0.35)", textDecoration: "none", marginLeft: "auto" }}>← Voltar para o início</Link>
         </div>
       </main>
-    </div>
+    </>
   );
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section style={{ marginBottom: 40 }}>
-      <h2 style={{ fontSize: 17, fontWeight: 700, color: "#1a1a1a", marginBottom: 12, paddingBottom: 8, borderBottom: "1px solid #eee" }}>{title}</h2>
-      <div style={{ fontSize: 15, color: "#444", lineHeight: 1.8, display: "flex", flexDirection: "column", gap: 10 }}>
+      <h2 style={{ fontSize: "clamp(15px,4vw,17px)", fontWeight: 700, color: "rgba(255,255,255,0.9)", marginBottom: 12, paddingBottom: 8, borderBottom: "1px solid rgba(255,255,255,0.1)" }}>{title}</h2>
+      <div style={{ fontSize: "clamp(13px,3.5vw,15px)", color: "rgba(255,255,255,0.65)", lineHeight: 1.8, display: "flex", flexDirection: "column", gap: 10 }}>
         {children}
       </div>
     </section>

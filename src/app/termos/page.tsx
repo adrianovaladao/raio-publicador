@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { RaioLockup } from "@/components/logo/RaioLockup";
+import { SiteNav } from "@/components/site/SiteNav";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -7,22 +7,21 @@ export const metadata: Metadata = {
   description: "Termos e condições de uso da plataforma Raio Publicador.",
 };
 
+const prose: React.CSSProperties = {
+  fontSize: "clamp(14px, 3.5vw, 15px)",
+  color: "rgba(255,255,255,0.7)",
+  lineHeight: 1.8,
+};
+
 export default function TermosPage() {
   return (
-    <div style={{ minHeight: "100vh", background: "#f9f9f7", fontFamily: "'Helvetica Neue', Arial, sans-serif" }}>
-      <header style={{ background: "#000", padding: "20px 0" }}>
-        <div style={{ maxWidth: 760, margin: "0 auto", padding: "0 24px" }}>
-          <Link href="/" style={{ display: "inline-flex", alignItems: "center" }}>
-            <RaioLockup height={28} variant="dark" />
-          </Link>
-        </div>
-      </header>
-
-      <main style={{ maxWidth: 760, margin: "0 auto", padding: "56px 24px 80px" }}>
-        <p style={{ fontSize: 13, color: "#888", marginBottom: 8 }}>Vigência a partir de: agosto de 2026</p>
-        <h1 style={{ fontSize: 36, fontWeight: 800, color: "#1a1a1a", marginBottom: 16, lineHeight: 1.2 }}>Termos de Uso</h1>
-        <p style={{ fontSize: 16, color: "#555", lineHeight: 1.7, marginBottom: 40, borderLeft: "3px solid #FAB500", paddingLeft: 16 }}>
-          Estes Termos regem o uso da plataforma Raio Publicador. Leia com atenção — ao criar uma conta ou assinar um plano, você concorda com tudo o que está aqui. Se tiver dúvidas, escreva para <a href="mailto:raiopublicador@gmail.com" style={{ color: "#1a1a1a", fontWeight: 600 }}>raiopublicador@gmail.com</a> antes de prosseguir.
+    <>
+      <SiteNav />
+      <main style={{ maxWidth: 760, margin: "0 auto", padding: "clamp(80px,12vw,96px) 24px 80px" }}>
+        <p style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", marginBottom: 8 }}>Vigência a partir de: agosto de 2026</p>
+        <h1 style={{ fontSize: "clamp(28px,7vw,40px)", fontWeight: 800, color: "rgba(255,255,255,0.95)", marginBottom: 16, lineHeight: 1.2 }}>Termos de Uso</h1>
+        <p style={{ ...prose, marginBottom: 40, borderLeft: "3px solid #FAB500", paddingLeft: 16 }}>
+          Estes Termos regem o uso da plataforma Raio Publicador. Leia com atenção — ao criar uma conta ou assinar um plano, você concorda com tudo o que está aqui. Se tiver dúvidas, escreva para <a href="mailto:contato@raiopublicador.com.br" style={{ color: "rgba(255,255,255,0.9)", fontWeight: 600 }}>contato@raiopublicador.com.br</a> antes de prosseguir.
         </p>
 
         <Section title="1. O que é o Raio Publicador">
@@ -144,25 +143,25 @@ export default function TermosPage() {
         </Section>
 
         <Section title="19. Atendimento e contato">
-          <p>Dúvidas, solicitações, comunicações relacionadas à conta, exercício de direitos ou questões referentes a estes Termos poderão ser encaminhadas pelos canais oficiais de atendimento disponibilizados na plataforma ou pelo e-mail: <a href="mailto:raiopublicador@gmail.com" style={{ color: "#1a1a1a", fontWeight: 600 }}>raiopublicador@gmail.com</a></p>
+          <p>Dúvidas, solicitações, comunicações relacionadas à conta, exercício de direitos ou questões referentes a estes Termos poderão ser encaminhadas pelos canais oficiais de atendimento disponibilizados na plataforma ou pelo e-mail: <a href="mailto:contato@raiopublicador.com.br" style={{ color: "rgba(255,255,255,0.9)", fontWeight: 600 }}>contato@raiopublicador.com.br</a></p>
           <p>Para fins de comunicação relacionada à conta, o Usuário é responsável por manter seus dados cadastrais e endereço eletrônico atualizados.</p>
         </Section>
 
-        <div style={{ marginTop: 48, paddingTop: 24, borderTop: "1px solid #e8e8e4", display: "flex", gap: 24, flexWrap: "wrap" }}>
-          <Link href="/privacidade" style={{ fontSize: 14, color: "#555", textDecoration: "none" }}>Política de Privacidade →</Link>
-          <Link href="/cookies" style={{ fontSize: 14, color: "#555", textDecoration: "none" }}>Política de Cookies →</Link>
-          <Link href="/" style={{ fontSize: 14, color: "#888", textDecoration: "none", marginLeft: "auto" }}>← Voltar para o início</Link>
+        <div style={{ marginTop: 48, paddingTop: 24, borderTop: "1px solid rgba(255,255,255,0.1)", display: "flex", gap: 24, flexWrap: "wrap" }}>
+          <Link href="/privacidade" style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", textDecoration: "none" }}>Política de Privacidade →</Link>
+          <Link href="/cookies" style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", textDecoration: "none" }}>Política de Cookies →</Link>
+          <Link href="/" style={{ fontSize: 14, color: "rgba(255,255,255,0.35)", textDecoration: "none", marginLeft: "auto" }}>← Voltar para o início</Link>
         </div>
       </main>
-    </div>
+    </>
   );
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section style={{ marginBottom: 40 }}>
-      <h2 style={{ fontSize: 17, fontWeight: 700, color: "#1a1a1a", marginBottom: 12, paddingBottom: 8, borderBottom: "1px solid #eee" }}>{title}</h2>
-      <div style={{ fontSize: 15, color: "#444", lineHeight: 1.8, display: "flex", flexDirection: "column", gap: 10 }}>
+      <h2 style={{ fontSize: "clamp(15px,4vw,17px)", fontWeight: 700, color: "rgba(255,255,255,0.9)", marginBottom: 12, paddingBottom: 8, borderBottom: "1px solid rgba(255,255,255,0.1)" }}>{title}</h2>
+      <div style={{ fontSize: "clamp(13px,3.5vw,15px)", color: "rgba(255,255,255,0.65)", lineHeight: 1.8, display: "flex", flexDirection: "column", gap: 10 }}>
         {children}
       </div>
     </section>
