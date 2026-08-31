@@ -113,7 +113,6 @@ function useReveal() {
 
 // ─── Nav ──────────────────────────────────────────────────────────────────────
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function Nav({ onContact }: { onContact: () => void }) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);

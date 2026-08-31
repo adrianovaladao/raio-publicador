@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect } from "react";
 import { ArrowRight, ExternalLink } from "lucide-react";
 import { SiteNav } from "@/components/site/SiteNav";
 import { RaioLockup } from "@/components/logo/RaioLockup";
