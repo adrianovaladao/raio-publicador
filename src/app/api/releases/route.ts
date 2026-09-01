@@ -49,6 +49,11 @@ export async function POST(req: NextRequest) {
     if (!sub || ["PAST_DUE", "CANCELLED", "INACTIVE"].includes(sub.status)) {
       return NextResponse.json({ error: "Assinatura inativa. Regularize seu plano para agendar releases." }, { status: 403 });
     }
+    const creditsNeeded = body.creditsUsed ?? 0;
+    const creditsAvailable = sub.creditsTotal - sub.creditsUsed;
+    if (creditsNeeded > 0 && creditsAvailable < creditsNeeded) {
+      return NextResponse.json({ error: "Créditos insuficientes para agendar este release." }, { status: 402 });
+    }
   }
 
   const creditsToDebit = body.status === "SCHEDULED" ? (body.creditsUsed ?? 0) : 0;
