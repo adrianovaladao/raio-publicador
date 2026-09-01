@@ -262,7 +262,7 @@ export default function VouchersAdminPage() {
             <table className="tbl">
               <thead>
                 <tr>
-                  {(["code", "credits", "usedCount", "description", "expiresAt", "createdAt"] as SortKey[]).map((col, i) => {
+                  {(["code", "credits", "usedCount", "description", "expiresAt", "createdAt"] as SortKey[]).map((col) => {
                     const labels: Record<SortKey, string> = { code: "Código", credits: "Créditos", usedCount: "Usos", description: "Descrição", expiresAt: "Validade", createdAt: "Criado em" };
                     return (
                       <th key={col} style={{ cursor: "pointer", userSelect: "none", whiteSpace: "nowrap" }} onClick={() => toggleSort(col)}>
