@@ -615,3 +615,41 @@ export async function sendPixPendingEmail(opts: {
     html,
   });
 }
+
+// ─── Admin: Release agendado por cliente ───────────────────────────────────────
+export async function sendAdminReleaseScheduledEmail(opts: {
+  clientName: string;
+  clientEmail: string;
+  releaseTitle: string;
+  scheduledAt: Date;
+  vehicleNames: string[];
+  releaseId: string;
+  creditsUsed: number;
+}) {
+  const date = opts.scheduledAt.toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" });
+  const vehicleList = opts.vehicleNames.length > 0
+    ? opts.vehicleNames.map(n => `<li style="padding:2px 0;color:#1a1a1a">${n}</li>`).join("")
+    : `<li style="color:#888">—</li>`;
+
+  const html = base(`
+    ${h1("📅 Novo release agendado")}
+    ${p("Um cliente acabou de agendar um release na plataforma.")}
+    <table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0;background:#f9f9f7;border-radius:8px">
+      <tr><td style="padding:10px 14px;color:#888;width:140px">Cliente</td><td style="padding:10px 14px;color:#1a1a1a;font-weight:600">${opts.clientName}</td></tr>
+      <tr style="border-top:1px solid #eee"><td style="padding:10px 14px;color:#888">E-mail</td><td style="padding:10px 14px"><a href="mailto:${opts.clientEmail}" style="color:#000">${opts.clientEmail}</a></td></tr>
+      <tr style="border-top:1px solid #eee"><td style="padding:10px 14px;color:#888">Release</td><td style="padding:10px 14px;color:#1a1a1a;font-weight:600">${opts.releaseTitle}</td></tr>
+      <tr style="border-top:1px solid #eee"><td style="padding:10px 14px;color:#888">Agendado para</td><td style="padding:10px 14px;color:#1a1a1a">${date} (Brasília)</td></tr>
+      <tr style="border-top:1px solid #eee"><td style="padding:10px 14px;color:#888;vertical-align:top">Veículos</td><td style="padding:10px 14px"><ul style="margin:0;padding:0 0 0 16px">${vehicleList}</ul></td></tr>
+      <tr style="border-top:1px solid #eee"><td style="padding:10px 14px;color:#888">Créditos debitados</td><td style="padding:10px 14px;color:#1a1a1a">${opts.creditsUsed.toLocaleString("pt-BR")}</td></tr>
+    </table>
+    ${btn("Abrir release", `${APP_URL}/releases/${opts.releaseId}`)}
+  `);
+
+  const ADMIN_EMAIL = process.env.ADMIN_NOTIFICATION_EMAIL ?? "raiopublicador@gmail.com";
+  return getResend().emails.send({
+    from: FROM,
+    to: ADMIN_EMAIL,
+    subject: `📅 Release agendado — ${opts.clientName}: ${opts.releaseTitle}`,
+    html,
+  });
+}

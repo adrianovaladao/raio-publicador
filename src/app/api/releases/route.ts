@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { getPrisma } from "@/lib/prisma";
-import { sendReleaseScheduledEmail, sendLowCreditsEmail, sendZeroCreditsEmail } from "@/lib/email";
+import { sendReleaseScheduledEmail, sendAdminReleaseScheduledEmail, sendLowCreditsEmail, sendZeroCreditsEmail } from "@/lib/email";
 import { NextRequest, NextResponse } from "next/server";
 import { ReleaseStatus } from "@prisma/client";
 import { applyRateLimit, rateLimiters, getIp } from "@/lib/ratelimit";
@@ -102,6 +102,17 @@ export async function POST(req: NextRequest) {
       }).catch(err => {
         console.error("[email] erro ao enviar release agendado para", email, err);
       });
+
+      // Notificação admin — release agendado por cliente
+      sendAdminReleaseScheduledEmail({
+        clientName:    firstName,
+        clientEmail:   email,
+        releaseTitle:  body.title,
+        scheduledAt:   body.scheduledAt ? new Date(body.scheduledAt) : new Date(),
+        vehicleNames,
+        releaseId:     release.id,
+        creditsUsed:   creditsToDebit,
+      }).catch(err => console.error("[email] erro notif admin release agendado", err));
 
       // Créditos baixos ou zerados após débito
       const remaining = (sub.creditsTotal - sub.creditsUsed) - creditsToDebit;
