@@ -1,7 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { Plus, Trash2, RefreshCw, Tag, Copy, Check } from "lucide-react";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { Plus, Trash2, RefreshCw, Tag, Copy, Check, ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
+
+type SortKey = "code" | "credits" | "usedCount" | "description" | "expiresAt" | "createdAt";
+type SortDir = "asc" | "desc";
 
 interface Voucher {
   id: string;
@@ -18,6 +21,8 @@ export default function VouchersAdminPage() {
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
   const [loading, setLoading]   = useState(true);
   const [deleting, setDeleting]   = useState<string | null>(null);
+  const [sortKey, setSortKey]   = useState<SortKey>("expiresAt");
+  const [sortDir, setSortDir]   = useState<SortDir>("asc");
   const [copied, setCopied]       = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; code: string } | null>(null);
 
@@ -82,6 +87,43 @@ export default function VouchersAdminPage() {
 
   function isExpired(iso: string | null) {
     return !!iso && new Date(iso) < new Date();
+  }
+
+  function toggleSort(key: SortKey) {
+    if (sortKey === key) {
+      setSortDir(d => d === "asc" ? "desc" : "asc");
+    } else {
+      setSortKey(key);
+      setSortDir("asc");
+    }
+  }
+
+  const sorted = useMemo(() => {
+    return [...vouchers].sort((a, b) => {
+      let av: string | number, bv: string | number;
+      if (sortKey === "credits" || sortKey === "usedCount") {
+        av = sortKey === "usedCount" ? a.usedCount / Math.max(a.maxUses, 1) : a.credits;
+        bv = sortKey === "usedCount" ? b.usedCount / Math.max(b.maxUses, 1) : b.credits;
+      } else if (sortKey === "expiresAt" || sortKey === "createdAt") {
+        // nulls last for expiresAt (sem validade = infinito = vai pro final)
+        const dateA = a[sortKey] ? new Date(a[sortKey]!).getTime() : Infinity;
+        const dateB = b[sortKey] ? new Date(b[sortKey]!).getTime() : Infinity;
+        av = dateA; bv = dateB;
+      } else {
+        av = (a[sortKey] ?? "").toString().toLowerCase();
+        bv = (b[sortKey] ?? "").toString().toLowerCase();
+      }
+      if (av < bv) return sortDir === "asc" ? -1 : 1;
+      if (av > bv) return sortDir === "asc" ? 1 : -1;
+      return 0;
+    });
+  }, [vouchers, sortKey, sortDir]);
+
+  function SortIcon({ col }: { col: SortKey }) {
+    if (sortKey !== col) return <ChevronsUpDown size={12} style={{ opacity: 0.3, marginLeft: 4, flexShrink: 0 }} />;
+    return sortDir === "asc"
+      ? <ChevronUp size={12} style={{ marginLeft: 4, flexShrink: 0 }} />
+      : <ChevronDown size={12} style={{ marginLeft: 4, flexShrink: 0 }} />;
   }
 
   return (
@@ -220,17 +262,21 @@ export default function VouchersAdminPage() {
             <table className="tbl">
               <thead>
                 <tr>
-                  <th>Código</th>
-                  <th>Créditos</th>
-                  <th>Usos</th>
-                  <th>Descrição</th>
-                  <th>Validade</th>
-                  <th>Criado em</th>
+                  {(["code", "credits", "usedCount", "description", "expiresAt", "createdAt"] as SortKey[]).map((col, i) => {
+                    const labels: Record<SortKey, string> = { code: "Código", credits: "Créditos", usedCount: "Usos", description: "Descrição", expiresAt: "Validade", createdAt: "Criado em" };
+                    return (
+                      <th key={col} style={{ cursor: "pointer", userSelect: "none", whiteSpace: "nowrap" }} onClick={() => toggleSort(col)}>
+                        <span style={{ display: "inline-flex", alignItems: "center" }}>
+                          {labels[col]}<SortIcon col={col} />
+                        </span>
+                      </th>
+                    );
+                  })}
                   <th style={{ textAlign: "center" }}>Ações</th>
                 </tr>
               </thead>
               <tbody>
-                {vouchers.map(v => (
+                {sorted.map(v => (
                   <tr key={v.id}>
                     <td className="title-cell">
                       <button
