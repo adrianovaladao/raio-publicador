@@ -17,6 +17,9 @@ const isPublicRoute = createRouteMatcher([
   "/api/vouchers/validate",
   "/api/feed/(.*)",
   "/api/contact",
+  "/api/clerk/webhook",
+  "/api/webhooks/clerk",
+  "/api/webhooks/c6bank",
 ]);
 
 const BETA_PASSWORD = process.env.BETA_PASSWORD;
@@ -94,8 +97,16 @@ export default clerkMiddleware(async (auth, req) => {
       return betaGatePage(req, true);
     }
 
-    // Only the Stripe webhook bypasses the gate — everything else requires the password
-    if (!pathname.startsWith("/api/stripe/webhook") && !pathname.startsWith("/api/feed/") && !pathname.startsWith("/api/contact") && !isBetaUnlocked(req)) {
+    // Webhooks externos bypassam o beta gate — nunca devem receber HTML de senha
+    const isWebhookBypass =
+      pathname.startsWith("/api/stripe/webhook") ||
+      pathname.startsWith("/api/feed/") ||
+      pathname.startsWith("/api/contact") ||
+      pathname.startsWith("/api/clerk/webhook") ||
+      pathname.startsWith("/api/webhooks/clerk") ||
+      pathname.startsWith("/api/webhooks/c6bank");
+
+    if (!isWebhookBypass && !isBetaUnlocked(req)) {
       return betaGatePage(req);
     }
   }
