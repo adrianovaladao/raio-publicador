@@ -10,9 +10,28 @@ export const metadata = {
   },
 };
 
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "AboutPage",
+  "@id": "https://raiopublicador.com.br/sobre",
+  "url": "https://raiopublicador.com.br/sobre",
+  "name": "Sobre o Raio Publicador",
+  "description": "Conheça a origem do Raio Publicador, a plataforma brasileira de publicação garantida criada pela Markable Comunicação.",
+  "publisher": {
+    "@type": "Organization",
+    "@id": "https://raiopublicador.com.br/#org",
+    "name": "Raio Publicador",
+    "url": "https://raiopublicador.com.br",
+  },
+};
+
 export default function SobreLayout({ children }: { children: React.ReactNode }) {
   return (
     <div data-theme="dark" className="site-root">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {children}
     </div>
   );

@@ -32,6 +32,7 @@ function betaGatePage(req: NextRequest, error = false) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
   <title>Raio — Acesso Restrito</title>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
@@ -61,7 +62,10 @@ function betaGatePage(req: NextRequest, error = false) {
   </div>
 </body>
 </html>`;
-  return new NextResponse(html, { status: error ? 401 : 200, headers: { "Content-Type": "text/html" } });
+  return new NextResponse(html, {
+    status: error ? 401 : 200,
+    headers: { "Content-Type": "text/html", "X-Robots-Tag": "noindex,nofollow" },
+  });
 }
 
 export default clerkMiddleware(async (auth, req) => {

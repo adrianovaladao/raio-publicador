@@ -28,9 +28,69 @@ function WhatsAppFab() {
   );
 }
 
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://raiopublicador.com.br/#app",
+      "name": "Raio Publicador",
+      "url": "https://raiopublicador.com.br",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web",
+      "description": "Plataforma brasileira de publicação garantida e branded content. Publique releases em mais de 50 portais de notícias com 100% de garantia de publicação.",
+      "offers": {
+        "@type": "AggregateOffer",
+        "priceCurrency": "BRL",
+        "lowPrice": "1000",
+        "offerCount": "3",
+        "offers": [
+          { "@type": "Offer", "name": "Básico", "price": "1000", "priceCurrency": "BRL" },
+          { "@type": "Offer", "name": "Profissional", "price": "2000", "priceCurrency": "BRL" },
+          { "@type": "Offer", "name": "Agência", "price": "4000", "priceCurrency": "BRL" },
+        ],
+      },
+      "publisher": { "@id": "https://raiopublicador.com.br/#org" },
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://raiopublicador.com.br/#org",
+      "name": "Raio Publicador",
+      "url": "https://raiopublicador.com.br",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://raiopublicador.com.br/assets/logo/raio-lockup-dark.svg",
+      },
+      "sameAs": ["https://markable.com.br"],
+      "parentOrganization": {
+        "@type": "Organization",
+        "name": "Markable Comunicação",
+        "url": "https://markable.com.br",
+      },
+      "description": "Plataforma de publicação garantida em portais de notícias criada pela Markable Comunicação.",
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "customer support",
+        "email": "contato@raiopublicador.com.br",
+      },
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://raiopublicador.com.br/#website",
+      "url": "https://raiopublicador.com.br",
+      "name": "Raio Publicador",
+      "publisher": { "@id": "https://raiopublicador.com.br/#org" },
+    },
+  ],
+};
+
 export default function SiteLayout({ children }: { children: React.ReactNode }) {
   return (
     <div data-theme="dark" className="site-root">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {children}
       <WhatsAppFab />
       <BlurOnBack />

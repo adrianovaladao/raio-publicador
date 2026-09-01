@@ -5,8 +5,13 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: "*",
-        allow: ["/", "/site", "/sobre", "/termos", "/privacidade", "/cookies"],
-        disallow: ["/dashboard", "/releases", "/veiculos", "/calendario", "/configuracoes", "/admin", "/boas-vindas", "/pix", "/convite", "/logout"],
+        allow: ["/", "/sobre", "/termos", "/privacidade", "/cookies"],
+        disallow: [
+          "/dashboard", "/releases", "/veiculos", "/calendario",
+          "/configuracoes", "/admin", "/boas-vindas", "/pix",
+          "/convite", "/logout", "/site",
+          "/__beta_auth",
+        ],
       },
     ],
     sitemap: "https://raiopublicador.com.br/sitemap.xml",
