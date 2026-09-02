@@ -632,7 +632,7 @@ function ReleaseCard({ r, expanded, setExpanded, selected, toggleSelect, onSaved
             <span style={{ fontWeight: 500, color: "#555" }}>{r.author.name}</span>
             <span>{r.author.email}</span>
             <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
-              <Clock size={11} /> {fmtDate(r.scheduledAt ?? r.createdAt)}
+              <Clock size={11} /> {fmtDate(r.createdAt)}
             </span>
             <span>{r.vehicleNames.length} veículo{r.vehicleNames.length !== 1 ? "s" : ""}</span>
             <span style={{ fontFamily: "var(--mono)", fontSize: 11, color: "#bbb" }}>{r.shortId}</span>
