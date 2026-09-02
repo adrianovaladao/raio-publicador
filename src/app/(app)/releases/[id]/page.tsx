@@ -750,8 +750,6 @@ export default function EditReleasePage() {
   const [deleting,   setDeleting]   = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [showBuyCreditsModal, setShowBuyCreditsModal] = useState(false);
-  const [dupWarning,  setDupWarning]  = useState<{ matchTitle: string } | null>(null);
-  const [dupChecking, setDupChecking] = useState(false);
   const [err,        setErr]        = useState("");
   const [toast,      setToast]      = useState<string | null>(null);
   const [sub, setSub] = useState({ credits: 0, creditsUsed: 0, plan: null as string | null, status: null as string | null });
@@ -1160,22 +1158,8 @@ useEffect(() => {
           const cancelBtn = <button className="btn btn-quiet btn-sm" onClick={() => router.back()}>Cancelar</button>;
           const backBtn = step > 0 ? <button className="btn btn-ghost btn-sm" onClick={() => setStep(s => s - 1)}><ArrowLeft size={16} /> Voltar</button> : null;
           const nextBtn = step < last ? (
-            <button className="btn btn-dark btn-sm" disabled={!canNext || dupChecking} onClick={async () => {
-              if (step === 0) {
-                setDupChecking(true);
-                try {
-                  const res = await fetch("/api/releases/check-duplicate", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ title, subtitle, body, excludeId: id }),
-                  });
-                  const data = await res.json() as { duplicate: boolean; matchTitle?: string };
-                  if (data.duplicate) { setDupWarning({ matchTitle: data.matchTitle ?? "outro release" }); return; }
-                } finally { setDupChecking(false); }
-              }
-              setStep(s => s + 1);
-            }}>
-              {dupChecking ? "Verificando…" : <>Continuar <ArrowRight size={16} /></>}
+            <button className="btn btn-dark btn-sm" disabled={!canNext} onClick={() => setStep(s => s + 1)}>
+              <>Continuar <ArrowRight size={16} /></>
             </button>
           ) : (
             <button className="btn btn-primary btn-sm" disabled={!title.trim() || !schedDate || saving} onClick={save}>
@@ -1242,30 +1226,6 @@ useEffect(() => {
         })()}
       </div>
 
-      {dupWarning && (
-        <div className="overlay" onClick={() => setDupWarning(null)}>
-          <div className="modal" style={{ maxWidth: 480 }} onClick={e => e.stopPropagation()}>
-            <div className="m-head">
-              <h3 style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <span style={{ fontSize: 22 }}>🚫</span> Conteúdo idêntico detectado
-              </h3>
-            </div>
-            <div className="m-body" style={{ fontSize: 14, lineHeight: 1.6 }}>
-              <p>O título, subtítulo e corpo deste release são <strong>idênticos</strong> ao release:</p>
-              <div style={{ margin: "12px 0", padding: "10px 14px", background: "var(--cream)", borderRadius: 8, fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>
-                &ldquo;{dupWarning.matchTitle}&rdquo;
-              </div>
-              <p>Veículos de grande alcance rejeitam conteúdo duplicado. Para prosseguir, você precisa alterar o <strong>título</strong>, o <strong>subtítulo</strong> <em>e</em> o <strong>corpo do release</strong> — todos os três devem ser diferentes do original.</p>
-              <p style={{ marginTop: 10, padding: "10px 14px", background: "#FFF7ED", borderRadius: 8, fontSize: 13, color: "#92400E" }}>💡 Use a <strong>IA</strong> para reescrever o conteúdo com um novo ângulo.</p>
-            </div>
-            <div className="m-foot" style={{ justifyContent: "flex-end" }}>
-              <button className="btn btn-primary btn-sm" onClick={() => setDupWarning(null)}>
-                Entendi, vou editar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {showDelete && (
         <DeleteModal
