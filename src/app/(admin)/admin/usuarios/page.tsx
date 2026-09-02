@@ -225,7 +225,7 @@ function UserDetailPanel({ row }: { row: UserRow }) {
                   </div>
                   {row.voucherCode && (
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <span style={{ fontSize: 13, color: "var(--stone)" }}>Voucher utilizado</span>
+                      <span style={{ fontSize: 13, color: "var(--stone)" }}>Voucher</span>
                       <span style={{ fontSize: 12, fontWeight: 700, fontFamily: "monospace", letterSpacing: "0.04em", background: "#F3F4F6", color: "#374151", padding: "2px 8px", borderRadius: 5 }}>{row.voucherCode}</span>
                     </div>
                   )}
