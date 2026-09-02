@@ -51,6 +51,8 @@ export async function GET(
   const { searchParams } = req.nextUrl;
   const token  = searchParams.get("token") ?? "";
   const format = searchParams.get("format") ?? "rss"; // "rss" | "json"
+  const limitParam = searchParams.get("limit");
+  const limit = limitParam ? Math.min(Math.max(1, parseInt(limitParam, 10) || 50), 500) : 50;
 
   // Valida veículo e token
   const expectedToken = VEHICLE_TOKENS[veiculo.toLowerCase()];
@@ -81,7 +83,7 @@ export async function GET(
       brand: { select: { name: true } },
     },
     orderBy: { publishedAt: "desc" },
-    take: 50,
+    take: limit,
   });
 
   const isFolhapress = veiculo.toLowerCase() === "folhapress";
