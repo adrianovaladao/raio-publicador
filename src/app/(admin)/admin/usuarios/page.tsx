@@ -409,7 +409,7 @@ export default function AdminUsuarios() {
       if (filterPlan   !== "ALL" && r.plan   !== filterPlan)   return false;
       if (filterTag === "subscribers" && !(r.plan !== "VOUCHER" && r.status === "ACTIVE")) return false;
       if (filterTag === "markable" && !r.isMarkable) return false;
-      if (filterTag === "voucher" && r.plan !== "VOUCHER") return false;
+      if (filterTag === "voucher" && (r.plan !== "VOUCHER" || r.isMarkable)) return false;
       return true;
     })
     .sort((a, b) => {
@@ -494,7 +494,7 @@ export default function AdminUsuarios() {
               key === "ALL" ? rows.length :
               key === "subscribers" ? rows.filter(r => r.plan !== "VOUCHER" && r.status === "ACTIVE").length :
               key === "markable" ? rows.filter(r => r.isMarkable).length :
-              rows.filter(r => r.plan === "VOUCHER").length;
+              rows.filter(r => r.plan === "VOUCHER" && !r.isMarkable).length;
             const active = filterTag === key;
             return (
               <button
