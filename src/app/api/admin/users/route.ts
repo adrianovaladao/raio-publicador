@@ -17,6 +17,17 @@ export async function GET() {
     orderBy: { createdAt: "desc" },
   });
 
+  // Fetch voucher redemptions (one per user at most — first redemption wins)
+  const redemptions = await prisma.voucherRedemption.findMany({
+    where: { userId: { in: subs.map(s => s.ownerId) } },
+    include: { voucher: { select: { code: true } } },
+    orderBy: { createdAt: "asc" },
+  });
+  const voucherMap = new Map<string, string>();
+  for (const r of redemptions) {
+    if (!voucherMap.has(r.userId)) voucherMap.set(r.userId, r.voucher.code);
+  }
+
   // Fetch Clerk users for all ownerIds in parallel (batched)
   const clerkUsers = await clerk.users.getUserList({ limit: 500 });
 
@@ -42,6 +53,7 @@ export async function GET() {
       stripeSubscriptionId: sub.stripeSubscriptionId ?? null,
       currentPeriodEnd: sub.currentPeriodEnd?.toISOString() ?? null,
       isMarkable: !!(cu?.publicMetadata as Record<string, unknown>)?.isMarkable,
+      voucherCode: voucherMap.get(sub.ownerId) ?? null,
     };
   });
 

@@ -28,6 +28,7 @@ interface UserRow {
   stripeSubscriptionId: string | null;
   currentPeriodEnd: string | null;
   isMarkable: boolean;
+  voucherCode: string | null;
 }
 
 interface UserDetail {
@@ -222,6 +223,12 @@ function UserDetailPanel({ row }: { row: UserRow }) {
                     <span style={{ fontSize: 13, color: "var(--stone)" }}>Plano</span>
                     <span style={{ padding: "3px 8px", borderRadius: 6, fontSize: 11, fontWeight: 700, background: planC.bg, color: planC.fg }}>{row.planLabel}</span>
                   </div>
+                  {row.voucherCode && (
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <span style={{ fontSize: 13, color: "var(--stone)" }}>Voucher utilizado</span>
+                      <span style={{ fontSize: 12, fontWeight: 700, fontFamily: "monospace", letterSpacing: "0.04em", background: "#F3F4F6", color: "#374151", padding: "2px 8px", borderRadius: 5 }}>{row.voucherCode}</span>
+                    </div>
+                  )}
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <span style={{ fontSize: 13, color: "var(--stone)" }}>Status</span>
                     <span style={{ padding: "3px 8px", borderRadius: 6, fontSize: 11, fontWeight: 700, background: statC.bg, color: statC.fg }}>{STATUS_LABEL[row.status] ?? row.status}</span>
