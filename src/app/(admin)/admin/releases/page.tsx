@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import { useUser } from "@clerk/nextjs";
-import { Crown, FileText, Trash2, ChevronDown, AlertTriangle, Clock, ExternalLink, Send, Copy, Download, Check, Calendar, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { Crown, FileText, Trash2, ChevronDown, AlertTriangle, Clock, ExternalLink, Send, Copy, Download, Check, Calendar, ChevronLeft, ChevronRight, X, Archive } from "lucide-react";
 import { exportDocx, exportPdf } from "@/lib/export-release";
 import { isAnyAdmin } from "@/lib/admin";
 
@@ -123,6 +123,7 @@ interface ReleaseRow {
   status: string;
   scheduledAt: string | null;
   publishedAt: string | null;
+  archivedAt: string | null;
   createdAt: string;
   vehicles: string[];
   vehicleNames: VehicleRef[];
@@ -181,17 +182,20 @@ function extractImages(html: string): string[] {
 }
 
 // ── Painel de ações ───────────────────────────────────────────────────────────
-function ReleaseActions({ release, onSaved, onDeleted }: {
+function ReleaseActions({ release, onSaved, onDeleted, onArchived }: {
   release: ReleaseRow;
   onSaved: () => void;
   onDeleted: () => void;
+  onArchived: () => void;
 }) {
   const [newStatus, setNewStatus] = useState(release.status);
   const [notes, setNotes] = useState(release.adminNotes ?? "");
   const [vehicleUrls, setVehicleUrls] = useState<Record<string, string>>(release.publishedVehicleUrls ?? {});
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [archiving, setArchiving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [confirmArchive, setConfirmArchive] = useState(false);
   const [err, setErr] = useState("");
   const [ok, setOk] = useState("");
   const [copied, setCopied] = useState(false);
@@ -244,6 +248,28 @@ function ReleaseActions({ release, onSaved, onDeleted }: {
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Erro ao excluir");
       setDeleting(false);
+    }
+  }
+
+  async function handleArchive() {
+    setArchiving(true); setErr("");
+    try {
+      const res = await fetch(`/api/admin/releases/${release.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ archive: !release.archivedAt }),
+      });
+      if (!res.ok) {
+        let msg = `Erro ${res.status}`;
+        try { const d = await res.json(); msg = d.error ?? msg; } catch {}
+        throw new Error(msg);
+      }
+      setConfirmArchive(false);
+      onArchived();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Erro ao arquivar");
+    } finally {
+      setArchiving(false);
     }
   }
 
@@ -302,6 +328,7 @@ function ReleaseActions({ release, onSaved, onDeleted }: {
   const isNeedsRevision = newStatus === "NEEDS_REVISION";
   const needsNotes = isNeedsRevision;
   const images = extractImages(release.body);
+  const isPublished = release.status === "PUBLISHED";
 
   return (
     <div style={{ borderTop: "1px solid #f0f0f0", padding: "20px 20px", background: "#fafafa" }}>
@@ -505,11 +532,38 @@ function ReleaseActions({ release, onSaved, onDeleted }: {
           </>
         )}
 
-        {!confirmDelete ? (
-          <button onClick={() => setConfirmDelete(true)} className="btn btn-ghost btn-sm" style={{ color: "#D94F4F", marginLeft: "auto" }}>
+        {/* Arquivar release — só para publicados */}
+        {isPublished && !confirmArchive && !confirmDelete && (
+          <button
+            onClick={() => setConfirmArchive(true)}
+            className="btn btn-ghost btn-sm"
+            style={{ color: "#6B7280", display: "flex", alignItems: "center", gap: 6 }}
+          >
+            <Archive size={14} /> {release.archivedAt ? "Desarquivar release" : "Arquivar release"}
+          </button>
+        )}
+        {isPublished && confirmArchive && (
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <span style={{ fontSize: 12, color: "#374151", fontWeight: 600 }}>
+              {release.archivedAt ? "Desarquivar este release?" : "Arquivar este release?"}
+            </span>
+            <button onClick={() => setConfirmArchive(false)} className="btn btn-ghost btn-sm">Cancelar</button>
+            <button
+              onClick={handleArchive}
+              disabled={archiving}
+              className="btn btn-sm"
+              style={{ background: "#6B7280", color: "#fff", border: "none", display: "flex", alignItems: "center", gap: 6 }}
+            >
+              <Archive size={13} /> {archiving ? "Aguarde…" : (release.archivedAt ? "Desarquivar" : "Arquivar")}
+            </button>
+          </div>
+        )}
+
+        {!confirmDelete && !confirmArchive ? (
+          <button onClick={() => setConfirmDelete(true)} className="btn btn-ghost btn-sm" style={{ color: "#D94F4F", marginLeft: "auto", display: "flex", alignItems: "center", gap: 6 }}>
             <Trash2 size={14} /> Excluir release
           </button>
-        ) : (
+        ) : confirmDelete ? (
           <div style={{ marginLeft: "auto", display: "flex", gap: 8, alignItems: "center" }}>
             <span style={{ fontSize: 12, color: "#D94F4F", fontWeight: 600 }}>Confirma exclusão?</span>
             <button onClick={() => setConfirmDelete(false)} className="btn btn-ghost btn-sm">Cancelar</button>
@@ -517,14 +571,14 @@ function ReleaseActions({ release, onSaved, onDeleted }: {
               {deleting ? "Excluindo…" : "Excluir"}
             </button>
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );
 }
 
 // ── Release Card ──────────────────────────────────────────────────────────────
-function ReleaseCard({ r, expanded, setExpanded, selected, toggleSelect, onSaved, onDeleted }: {
+function ReleaseCard({ r, expanded, setExpanded, selected, toggleSelect, onSaved, onDeleted, onArchived }: {
   r: ReleaseRow;
   expanded: string | null;
   setExpanded: (id: string | null) => void;
@@ -532,6 +586,7 @@ function ReleaseCard({ r, expanded, setExpanded, selected, toggleSelect, onSaved
   toggleSelect: (id: string, e: { stopPropagation: () => void }) => void;
   onSaved: () => void;
   onDeleted: () => void;
+  onArchived: () => void;
 }) {
   const isExpanded = expanded === r.id;
   return (
@@ -554,6 +609,11 @@ function ReleaseCard({ r, expanded, setExpanded, selected, toggleSelect, onSaved
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 4 }}>
             <span style={{ fontWeight: 700, fontSize: 14, color: "#1a1a1a" }}>{r.title}</span>
             <StatusBadge status={r.status} />
+            {r.archivedAt && (
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, color: "#6B7280", background: "#F3F4F6", borderRadius: 99, padding: "2px 8px" }}>
+                <Archive size={10} /> Arquivado
+              </span>
+            )}
             {r.brand && (
               <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, color: "#555", background: "#f5f5f3", borderRadius: 99, padding: "2px 9px" }}>
                 {r.brand.color && <span style={{ width: 8, height: 8, borderRadius: "50%", background: r.brand.color, flexShrink: 0 }} />}
@@ -574,7 +634,7 @@ function ReleaseCard({ r, expanded, setExpanded, selected, toggleSelect, onSaved
         <ChevronDown size={16} style={{ color: "#bbb", flexShrink: 0, transform: isExpanded ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
       </div>
       {isExpanded && (
-        <ReleaseActions release={r} onSaved={onSaved} onDeleted={onDeleted} />
+        <ReleaseActions release={r} onSaved={onSaved} onDeleted={onDeleted} onArchived={onArchived} />
       )}
     </div>
   );
@@ -587,7 +647,7 @@ export default function AdminReleasesPage() {
 
   const [releases, setReleases] = useState<ReleaseRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<"queue" | "published">("queue");
+  const [tab, setTab] = useState<"queue" | "published" | "archived">("queue");
   const [q, setQ] = useState("");
   const [dateFilter, setDateFilter] = useState("");
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -679,18 +739,25 @@ export default function AdminReleasesPage() {
     .sort((a, b) => new Date(a.scheduledAt ?? a.createdAt).getTime() - new Date(b.scheduledAt ?? b.createdAt).getTime());
 
   const publishedReleases = releases
-    .filter(r => r.status === "PUBLISHED")
+    .filter(r => r.status === "PUBLISHED" && !r.archivedAt)
     .filter(searchFilter)
     .filter(r => dateFilterFn(r, r.publishedAt))
     .sort((a, b) => new Date(b.publishedAt ?? b.createdAt).getTime() - new Date(a.publishedAt ?? a.createdAt).getTime());
 
+  const archivedReleases = releases
+    .filter(r => r.status === "PUBLISHED" && !!r.archivedAt)
+    .filter(searchFilter)
+    .filter(r => dateFilterFn(r, r.archivedAt ?? r.publishedAt))
+    .sort((a, b) => new Date(b.archivedAt ?? b.publishedAt ?? b.createdAt).getTime() - new Date(a.archivedAt ?? a.publishedAt ?? a.createdAt).getTime());
+
   const queueGroups = groupByDate(queueReleases, r => dateKey(r.scheduledAt, r.createdAt));
   const publishedGroups = groupByDate(publishedReleases, r => dateKey(r.publishedAt, r.createdAt));
+  const archivedGroups = groupByDate(archivedReleases, r => dateKey(r.archivedAt ?? r.publishedAt, r.createdAt));
 
-  const activeList = tab === "queue" ? queueReleases : publishedReleases;
+  const activeList = tab === "queue" ? queueReleases : tab === "published" ? publishedReleases : archivedReleases;
+  const activeGroups = tab === "queue" ? queueGroups : tab === "published" ? publishedGroups : archivedGroups;
+
   const needsAction = releases.filter(r => ["SCHEDULED", "IN_PUBLICATION"].includes(r.status)).length;
-
-  const activeGroups = tab === "queue" ? queueGroups : publishedGroups;
 
   return (
     <div className="content scroll">
@@ -711,7 +778,11 @@ export default function AdminReleasesPage() {
 
         {/* Tabs */}
         <div style={{ display: "flex", gap: 2, background: "#f0f0ee", borderRadius: 10, padding: 3, alignSelf: "flex-start", marginBottom: 20 }}>
-          {([["queue", "Fila de publicação", queueReleases.length], ["published", "Publicados", publishedReleases.length]] as const).map(([t, label, count]) => (
+          {([
+            ["queue",     "Fila de publicação",     queueReleases.length],
+            ["published", "Publicados",              publishedReleases.length],
+            ["archived",  "Publicados e arquivados", archivedReleases.length],
+          ] as const).map(([t, label, count]) => (
             <button
               key={t}
               onClick={() => { setTab(t); setSelected(new Set()); setDateFilter(""); }}
@@ -780,7 +851,9 @@ export default function AdminReleasesPage() {
         ) : activeGroups.length === 0 ? (
           <div className="card empty">
             <FileText size={34} />
-            <div className="t">{tab === "queue" ? "Nenhuma release na fila" : "Nenhuma release publicado"}</div>
+            <div className="t">
+              {tab === "queue" ? "Nenhuma release na fila" : tab === "published" ? "Nenhuma release publicado" : "Nenhuma release arquivado"}
+            </div>
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 40, paddingBottom: 64 }}>
@@ -792,7 +865,19 @@ export default function AdminReleasesPage() {
                   <div style={{ flex: 1, height: 1, background: "#e8e8e8" }} />
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                  {group.items.map(r => <ReleaseCard key={r.id} r={r} expanded={expanded} setExpanded={setExpanded} selected={selected} toggleSelect={toggleSelect} onSaved={load} onDeleted={() => { setExpanded(null); load(); }} />)}
+                  {group.items.map(r => (
+                    <ReleaseCard
+                      key={r.id}
+                      r={r}
+                      expanded={expanded}
+                      setExpanded={setExpanded}
+                      selected={selected}
+                      toggleSelect={toggleSelect}
+                      onSaved={load}
+                      onDeleted={() => { setExpanded(null); load(); }}
+                      onArchived={() => { setExpanded(null); load(); }}
+                    />
+                  ))}
                 </div>
               </div>
             ))}

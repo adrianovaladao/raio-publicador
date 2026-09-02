@@ -22,6 +22,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     adminNotes?: string;
     publishedVehicleUrls?: Record<string, string>;
     notifyUser?: boolean;
+    archive?: boolean;   // true = arquivar, false = desarquivar
   };
 
   const prisma = getPrisma();
@@ -36,6 +37,8 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if (body.adminNotes !== undefined) updateData.adminNotes = body.adminNotes;
   if (body.publishedVehicleUrls !== undefined) updateData.publishedVehicleUrls = body.publishedVehicleUrls;
   if (body.status === "PUBLISHED") updateData.publishedAt = new Date();
+  if (body.archive === true)  updateData.archivedAt = new Date();
+  if (body.archive === false) updateData.archivedAt = null;
 
   const release = await prisma.release.update({ where: { id }, data: updateData });
 

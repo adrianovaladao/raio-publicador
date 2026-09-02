@@ -39,6 +39,7 @@ model Release {
   status               ReleaseStatus @default(DRAFT)
   scheduledAt          DateTime?
   publishedAt          DateTime?
+  archivedAt           DateTime?
   creditsUsed          Int           @default(0)
   aiCreditsUsed        Int           @default(0)
   imageUrl             String?
