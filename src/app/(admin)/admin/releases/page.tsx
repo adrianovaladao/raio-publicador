@@ -166,8 +166,15 @@ function StatusBadge({ status }: { status: string }) {
 function fmtDate(iso: string | null) {
   if (!iso) return "—";
   const d = new Date(iso);
-  const mm = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"][d.getMonth()];
-  return `${String(d.getDate()).padStart(2,"0")} ${mm} ${d.getFullYear()} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+  const brt = new Intl.DateTimeFormat("pt-BR", {
+    timeZone: "America/Sao_Paulo",
+    day: "2-digit", month: "short", year: "numeric",
+    hour: "2-digit", minute: "2-digit", hour12: false,
+  }).formatToParts(d);
+  const p = Object.fromEntries(brt.map(x => [x.type, x.value]));
+  const mm = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+  const mesIdx = d.toLocaleDateString("en-US", { timeZone: "America/Sao_Paulo", month: "numeric" });
+  return `${p.day} ${mm[Number(mesIdx) - 1]} ${p.year} ${p.hour}:${p.minute}`;
 }
 
 function htmlToText(html: string): string {
