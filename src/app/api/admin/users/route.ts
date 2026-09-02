@@ -21,7 +21,7 @@ export async function GET() {
   const redemptions = await prisma.voucherRedemption.findMany({
     where: { userId: { in: subs.map(s => s.ownerId) } },
     include: { voucher: { select: { code: true } } },
-    orderBy: { createdAt: "asc" },
+    orderBy: { redeemedAt: "asc" },
   });
   const voucherMap = new Map<string, string>();
   for (const r of redemptions) {
