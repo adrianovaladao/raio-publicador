@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { DM_Sans, Roboto_Serif } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ptBR } from "@clerk/localizations";
+import Script from "next/script";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -75,7 +76,16 @@ export default function RootLayout({
   return (
     <ClerkProvider publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY} localization={ptBR}>
       <html lang="pt-BR" className={`${dmSans.variable} ${robotoSerif.variable}`} style={{ height: "100%" }}>
-        <body style={{ height: "100%", margin: 0 }}>{children}</body>
+        <body style={{ height: "100%", margin: 0 }}>
+          {children}
+          <Script src="https://www.googletagmanager.com/gtag/js?id=G-KE9FSKDMY1" strategy="afterInteractive" />
+          <Script id="google-analytics" strategy="afterInteractive">{`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-KE9FSKDMY1');
+          `}</Script>
+        </body>
       </html>
     </ClerkProvider>
   );
