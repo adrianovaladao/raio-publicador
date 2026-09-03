@@ -1199,7 +1199,7 @@ select.input {
     position: relative;
   }
   .mn-item svg { width: 20px; height: 20px; flex: none; }
-  .mn-item span { line-height: 1; }
+  .mn-item span { line-height: 1.2; text-align: center; }
   .mn-item.active { color: var(--ink); }
   .mn-item.active svg { color: var(--coral); }
   .mn-item:hover { color: var(--ink); }
