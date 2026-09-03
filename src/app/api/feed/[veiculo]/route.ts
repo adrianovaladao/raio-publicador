@@ -8,7 +8,7 @@ const prisma = getPrisma();
 const VEHICLE_TOKENS: Record<string, string> = {
   folhapress: process.env.FEED_TOKEN_FOLHAPRESS ?? "",
   ig:         process.env.FEED_TOKEN_IG ?? "",
-  oglobo:     process.env.FEED_TOKEN_OGLOBO ?? "",
+  agenciaoglobo: process.env.FEED_TOKEN_OGLOBO ?? "",
 };
 
 function xmlEscape(str: string) {
@@ -89,7 +89,7 @@ export async function GET(
 
   const isFolhapress = veiculo.toLowerCase() === "folhapress";
   const isIG         = veiculo.toLowerCase() === "ig";
-  const isOGlobo     = veiculo.toLowerCase() === "oglobo";
+  const isOGlobo     = veiculo.toLowerCase() === "agenciaoglobo";
 
   if (format === "json") {
     const items = releases.map(r => isFolhapress
