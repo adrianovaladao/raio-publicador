@@ -1106,3 +1106,144 @@ select.input {
   border-top-color: var(--ink);
 }
 .clock-wrap:hover .clock-tip { display: block; }
+
+/* ============================================================
+   MOBILE — AppShell responsivo (≤768px)
+   ============================================================ */
+
+/* Bottom nav — escondido no desktop */
+.mobile-nav { display: none; }
+
+/* Créditos compactos na topbar — escondido no desktop */
+.topbar-credits-pill { display: none; }
+
+@media (max-width: 768px) {
+  /* ── Layout raiz ── */
+  .app {
+    height: 100dvh;
+    zoom: 1;
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 1fr) 58px;
+  }
+  .app > * { overflow: visible; }
+
+  /* ── Sidebar some ── */
+  .sidebar { display: none; }
+
+  /* ── Área principal ocupa tudo ── */
+  .main { height: 100%; overflow: hidden; }
+
+  /* ── Topbar adaptada ── */
+  .topbar { padding: 0 14px; gap: 10px; height: 56px; }
+  .topbar .crumb .t { font-size: 16px; }
+  .topbar-who { display: none; }
+
+  /* Pill de créditos na topbar (mobile) */
+  .topbar-credits-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(250, 181, 0, 0.12);
+    border: 1px solid rgba(250, 181, 0, 0.28);
+    border-radius: 99px;
+    padding: 5px 11px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--coral-ink);
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background .15s;
+    flex: none;
+  }
+  .topbar-credits-pill svg { width: 12px; height: 12px; flex: none; }
+  .topbar-credits-pill:hover { background: rgba(250, 181, 0, 0.22); }
+
+  /* ── Bottom Nav ── */
+  .mobile-nav {
+    display: flex;
+    align-items: stretch;
+    background: var(--paper);
+    border-top: 1px solid var(--line);
+    z-index: 50;
+    overflow: hidden;
+  }
+
+  .mn-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 6px 4px 8px;
+    background: none;
+    border: none;
+    font-size: 9px;
+    font-family: var(--mono);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--stone);
+    cursor: pointer;
+    text-decoration: none;
+    transition: color .14s;
+    position: relative;
+  }
+  .mn-item svg { width: 20px; height: 20px; flex: none; }
+  .mn-item span { line-height: 1; }
+  .mn-item.active { color: var(--ink); }
+  .mn-item.active svg { color: var(--coral); }
+  .mn-item:hover { color: var(--ink); }
+
+  /* Botão central "Criar" */
+  .mn-create {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 4px 4px 8px;
+    background: none;
+    border: none;
+    font-size: 9px;
+    font-family: var(--mono);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--coral);
+    cursor: pointer;
+    text-decoration: none;
+    font-weight: 700;
+  }
+  .mn-create .mn-ic {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--coral);
+    color: var(--ink);
+    display: grid;
+    place-items: center;
+    box-shadow: 0 4px 12px rgba(250, 181, 0, 0.45);
+    transition: transform .12s, box-shadow .12s;
+  }
+  .mn-create .mn-ic svg { width: 18px; height: 18px; }
+  .mn-create:active .mn-ic { transform: scale(0.94); box-shadow: 0 2px 6px rgba(250, 181, 0, 0.3); }
+
+  /* Badge do item de releases */
+  .mn-item .mn-badge {
+    position: absolute;
+    top: 4px;
+    right: calc(50% - 14px);
+    background: var(--coral);
+    color: var(--ink);
+    font-size: 9px;
+    font-weight: 700;
+    border-radius: 99px;
+    padding: 1px 5px;
+    line-height: 1.4;
+    min-width: 16px;
+    text-align: center;
+  }
+
+  /* Scroll do conteúdo abaixo da topbar */
+  .content { padding: 20px 16px; }
+}

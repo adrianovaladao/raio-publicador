@@ -615,6 +615,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
           <div className="spacer" />
 
+          {/* Créditos compactos — visível apenas no mobile via CSS */}
+          <button
+            className="topbar-credits-pill"
+            onClick={() => setShowPlans(true)}
+            title="Ver créditos e planos"
+          >
+            <Zap size={12} />
+            {left.toLocaleString("pt-BR")}
+          </button>
+
           {/* Usuário na topbar */}
           <button className="topbar-user" onClick={() => router.push("/configuracoes")} title="Perfil e configurações">
             {user?.hasImage
@@ -665,6 +675,41 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
         {children}
       </div>
+
+      {/* ── BOTTOM NAV — visível apenas no mobile via CSS ── */}
+      <nav className="mobile-nav">
+        {NAV_ITEMS.map(({ href, icon: Icon, label }) => {
+          const active = pathname === href || pathname.startsWith(href + "/");
+          const badge = href === "/releases" && releaseCount ? String(releaseCount) : null;
+          return (
+            <Link key={href} href={href} className={`mn-item${active ? " active" : ""}`}>
+              <Icon size={20} />
+              {badge && <span className="mn-badge">{badge}</span>}
+              <span>{label === "Biblioteca" ? "Releases" : label}</span>
+            </Link>
+          );
+        })}
+        <Link
+          href="/releases/novo"
+          className="mn-create"
+          onClick={e => {
+            if (pathname === "/releases/novo") {
+              e.preventDefault();
+              window.location.href = "/releases/novo";
+            }
+          }}
+        >
+          <span className="mn-ic"><FileText size={18} /></span>
+          <span>Criar</span>
+        </Link>
+        <Link
+          href="/configuracoes"
+          className={`mn-item${pathname.startsWith("/configuracoes") ? " active" : ""}`}
+        >
+          <Settings size={20} />
+          <span>Config.</span>
+        </Link>
+      </nav>
 
       {/* ── MODAIS ── */}
       {showPlans && <PlansModal onClose={() => setShowPlans(false)} sub={sub} onSuccess={msg => { setToast(msg); setShowPlans(false); fetchSub(); }} onBuyCredits={() => { setShowPlans(false); setShowBuyCredits(true); }} />}
