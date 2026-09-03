@@ -156,3 +156,7 @@ select.in option { background: var(--ink-2); color: var(--tx); }
 }
 .whatsapp-fab:hover { transform: scale(1.08); box-shadow: 0 6px 24px rgba(0,0,0,0.35); }
 @media (max-width: 760px) { .whatsapp-fab { bottom: 80px; right: 16px; } }
+
+/* Clerk CAPTCHA: oculta texto de status interno (ex: 'signed_out') */
+#clerk-captcha { font-size: 0 !important; color: transparent !important; }
+#clerk-captcha > * { font-size: initial; color: initial; }
