@@ -662,7 +662,7 @@ function StepVehicles({ selected, setSelected, vehicles, sub, onUpgrade, onBuyCr
           </div>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 20px", borderBottom: "1px solid var(--line)" }}>
+        <div className="veh-sort-bar" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 20px", borderBottom: "1px solid var(--line)" }}>
           <span className="eyebrow">{filtered.length} veículos</span>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <button style={sortBtnStyle("name")} onClick={() => handleSort("name")}>

@@ -242,7 +242,7 @@ export default function VeiculosPage() {
 
         {/* Tabela */}
         <div className="card">
-          <table className="tbl">
+          <table className="tbl veh-tbl">
             <thead>
               <tr>
                 <th style={{ ...thStyle("name"), width: "36%" }} onClick={() => handleSort("name")}>
