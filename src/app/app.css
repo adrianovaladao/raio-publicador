@@ -1289,7 +1289,7 @@ select.input {
   .tier-cards-grid { grid-template-columns: 1fr !important; gap: 10px !important; }
 
   /* ── Veículos: barra de sort oculta, veh-row simplificado ── */
-  .veh-sort-bar { display: none; }
+  .veh-sort-bar { display: none !important; }
   .veh-row { grid-template-columns: 26px 38px 1fr; gap: 10px; padding: 12px 16px; }
   .veh-row .reach { display: none; }
   .veh-row .cost { display: none; }
