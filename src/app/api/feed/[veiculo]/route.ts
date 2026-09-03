@@ -8,6 +8,7 @@ const prisma = getPrisma();
 const VEHICLE_TOKENS: Record<string, string> = {
   folhapress: process.env.FEED_TOKEN_FOLHAPRESS ?? "",
   ig:         process.env.FEED_TOKEN_IG ?? "",
+  oglobo:     process.env.FEED_TOKEN_OGLOBO ?? "",
 };
 
 function xmlEscape(str: string) {
@@ -88,11 +89,12 @@ export async function GET(
 
   const isFolhapress = veiculo.toLowerCase() === "folhapress";
   const isIG         = veiculo.toLowerCase() === "ig";
+  const isOGlobo     = veiculo.toLowerCase() === "oglobo";
 
   if (format === "json") {
     const items = releases.map(r => isFolhapress
       ? { title: r.title, summary: r.summary ?? "", body: htmlToPlainText(r.body) }
-      : isIG
+      : (isIG || isOGlobo)
       ? {
           guid:        r.id,
           title:       r.title,
@@ -133,7 +135,7 @@ export async function GET(
       <link>${baseUrl}/releases/${r.id}</link>
     </item>`;
 
-    if (isIG) {
+    if (isIG || isOGlobo) {
       const description = xmlEscape(htmlToPlainText(r.summary ?? r.body).slice(0, 500));
       const categoryTag = `<category>${xmlEscape(r.brand.name)}</category>`;
       const mediaContent = r.imageUrl
@@ -167,7 +169,7 @@ export async function GET(
     </item>`;
   }).join("\n");
 
-  const igNamespaces = isIG
+  const igNamespaces = (isIG || isOGlobo)
     ? ` xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:media="http://search.yahoo.com/mrss/" xmlns:dc="http://purl.org/dc/elements/1.1/"`
     : "";
 
