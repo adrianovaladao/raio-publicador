@@ -1114,6 +1114,9 @@ select.input {
 /* Bottom nav — escondido no desktop */
 .mobile-nav { display: none; }
 
+/* Badge de status inline na tabela — visível só no mobile */
+.dash-status-mobile { display: none; }
+
 /* Créditos compactos na topbar — escondido no desktop */
 .topbar-credits-pill { display: none; }
 
@@ -1276,6 +1279,11 @@ select.input {
   /* ── Dashboard cards: impede overflow ── */
   .dash-stats,
   .dash-grid { overflow-x: auto; }
+
+  /* ── Dashboard: tabela releases recentes — oculta STATUS, DATA, CRÉDITOS ── */
+  .dash-col-hide { display: none; }
+  .dash-status-mobile { display: inline-flex; margin-top: 4px; font-size: 9px; }
+  /* No desktop o badge inline fica oculto */
 
   /* ── Veículos: cards A/B/C colapsam para linha única horizontal ── */
   .tier-cards-grid { grid-template-columns: 1fr !important; gap: 10px !important; }

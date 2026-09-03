@@ -575,23 +575,26 @@ export default function DashboardPage() {
                   Nenhuma release criada para essa marca ainda.
                 </div>
               ) : (
-                <table className="tbl">
+                <table className="tbl dash-recent-tbl">
                   <thead>
                     <tr>
                       <th style={{ width: "55%" }}>Release</th>
-                      <th>Status</th>
-                      <th style={{ textAlign: "right" }}>Data</th>
-                      <th style={{ textAlign: "right" }}>Créditos</th>
+                      <th className="dash-col-hide">Status</th>
+                      <th className="dash-col-hide" style={{ textAlign: "right" }}>Data</th>
+                      <th className="dash-col-hide" style={{ textAlign: "right" }}>Créditos</th>
                     </tr>
                   </thead>
                   <tbody>
                     {activeBrand.recentReleases.map(r => (
                       <tr key={r.id} style={{ cursor: "pointer" }} className="tbl-row-hover"
                         onClick={() => router.push(`/releases/${r.id}`)}>
-                        <td className="title-cell">{r.title.length > 60 ? r.title.slice(0, 60) + "…" : r.title}</td>
-                        <td><span className={`badge-status ${r.status}`}>{STATUS_LABEL[r.status] ?? r.status}</span></td>
-                        <td className="muted num" style={{ textAlign: "right" }}>{fmtDate(r.date)}</td>
-                        <td className="num" style={{ textAlign: "right" }}>
+                        <td className="title-cell">
+                          <div>{r.title.length > 60 ? r.title.slice(0, 60) + "…" : r.title}</div>
+                          <span className={`badge-status ${r.status} dash-status-mobile`}>{STATUS_LABEL[r.status] ?? r.status}</span>
+                        </td>
+                        <td className="dash-col-hide"><span className={`badge-status ${r.status}`}>{STATUS_LABEL[r.status] ?? r.status}</span></td>
+                        <td className="dash-col-hide muted num" style={{ textAlign: "right" }}>{fmtDate(r.date)}</td>
+                        <td className="dash-col-hide num" style={{ textAlign: "right" }}>
                           {r.creditsUsed > 0
                             ? <span style={{ fontSize: 12, fontWeight: 600, color: "var(--coral-ink)", background: "var(--amber-soft)", padding: "2px 8px", borderRadius: 99 }}>{r.creditsUsed} cr</span>
                             : <span style={{ fontSize: 12, color: "var(--stone)" }}>—</span>}
