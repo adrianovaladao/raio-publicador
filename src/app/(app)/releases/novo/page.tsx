@@ -1116,7 +1116,7 @@ function PolicyModal({ onAccept, onClose }: { onAccept: () => void; onClose: () 
 
         {/* 3-col grid */}
         <div style={{ overflowY: "auto", padding: "24px 28px" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+          <div className="pol-cols" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
             {columns.map(col => (
               <div key={col.label} style={{ border: "1px solid var(--line-2)", borderRadius: "var(--r-lg)", overflow: "hidden", display: "flex", flexDirection: "column" }}>
                 {/* Column header */}

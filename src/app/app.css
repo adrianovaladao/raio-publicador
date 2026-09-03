@@ -1244,6 +1244,47 @@ select.input {
     text-align: center;
   }
 
-  /* Scroll do conteúdo abaixo da topbar */
-  .content { padding: 20px 16px; }
+  /* ── Scroll e overflow ── */
+  .content { padding: 20px 16px; overflow-x: hidden; }
+  .main { overflow-x: hidden; }
+
+  /* ── Grids que precisam colapsar ── */
+  .composer-grid,
+  .edit-layout,
+  .edit-layout-top,
+  .edit-layout-bottom,
+  .veh-layout { grid-template-columns: 1fr !important; }
+
+  .lib-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  .plans-row { grid-template-columns: 1fr !important; }
+  .roles-legend { grid-template-columns: 1fr !important; }
+
+  /* ── Settings nav: remove sticky para não sobrepor conteúdo ── */
+  .settings-layout { gap: 0; }
+  .set-nav { position: static; flex-direction: row; flex-wrap: wrap; gap: 4px; padding: 12px 0 16px; border-bottom: 1px solid var(--line); margin-bottom: 20px; }
+  .set-nav-group { flex-direction: row; flex-wrap: wrap; gap: 4px; }
+  .set-nav-label { display: none; }
+  .set-nav-item { font-size: 13px; padding: 7px 12px; border-radius: 99px; white-space: nowrap; }
+  .set-nav-item.active { background: var(--ink); }
+
+  /* ── Política editorial: grid de 3 colunas → 1 ── */
+  .pol-cols { grid-template-columns: 1fr !important; }
+
+  /* ── Tabelas: scroll horizontal ── */
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  /* ── Dashboard cards: impede overflow ── */
+  .dash-stats,
+  .dash-grid { overflow-x: auto; }
+
+  /* ── Chat (SupportWidget): oculto no mobile ── */
+  .support-fab { display: none !important; }
+  .support-widget { display: none !important; }
+
+  /* ── Toast: acima da bottom nav ── */
+  .toast-wrap { bottom: 78px; }
+
+  /* ── Modal: padding menor ── */
+  .overlay { padding: 16px; }
+  .modal { border-radius: var(--r); }
 }
