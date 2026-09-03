@@ -1175,9 +1175,6 @@ select.input {
     height: 58px;
   }
 
-  /* Empurra conteúdo para não ficar atrás da nav fixa */
-  .content { padding-bottom: 78px; }
-
   .mn-item {
     flex: 1;
     display: flex;
@@ -1255,7 +1252,7 @@ select.input {
   }
 
   /* ── Scroll e overflow ── */
-  .content { padding: 20px 16px; overflow-x: hidden; }
+  .content { padding-top: 20px; padding-left: 16px; padding-right: 16px; padding-bottom: 78px; overflow-x: hidden; }
   .main { overflow-x: hidden; }
 
   /* ── Grids que precisam colapsar ── */
