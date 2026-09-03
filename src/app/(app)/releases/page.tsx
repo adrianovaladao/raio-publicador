@@ -314,7 +314,7 @@ export default function ReleasesPage() {
           </div>
         ) : mode === "list" ? (
           <div className="card">
-            <table className="tbl">
+            <table className="tbl releases-list-tbl">
               <thead>
                 <tr>
                   <th style={{ ...thStyle("title"), width: "42%" }} onClick={() => handleSort("title")}>{thInner("Release", "title")}</th>

@@ -1399,7 +1399,7 @@ function MarcasPanel({ onToast, isCancelled }: { onToast: (m: string) => void; i
             <p style={{ fontSize: 14, color: "var(--stone)", margin: 0 }}>Nenhuma marca cadastrada ainda.</p>
           </div>
         ) : (
-          <table className="tbl">
+          <table className="tbl brands-tbl">
             <thead>
               <tr>
                 <th style={{ width: "45%" }}>Marca</th>
@@ -1751,7 +1751,7 @@ function CreditHistory() {
           <div className="card-pad muted" style={{ textAlign: "center", padding: 32 }}>Nenhuma movimentação encontrada.</div>
         ) : (
           <div style={{ overflowX: "auto" }}>
-            <table className="tbl">
+            <table className="tbl credits-tbl">
               <thead>
                 <tr>
                   <th>Data</th>
@@ -1846,7 +1846,7 @@ function TransactionHistory() {
           <div className="card-pad muted" style={{ textAlign: "center", padding: 32 }}>Nenhuma transação encontrada.</div>
         ) : (
           <div style={{ overflowX: "auto" }}>
-            <table className="tbl">
+            <table className="tbl billing-tbl">
               <thead>
                 <tr>
                   <th>Data</th>
@@ -2207,7 +2207,7 @@ function VeiculosPanel({ onToast }: { onToast: (m: string) => void }) {
         {loading ? (
           <div style={{ padding: "48px", textAlign: "center", color: "var(--stone)" }}>Carregando…</div>
         ) : (
-          <table className="tbl">
+          <table className="tbl settings-veh-tbl">
             <thead>
               <tr>
                 <th style={{ ...thStyle("name"), width: "34%" }} onClick={() => handleSort("name")}>{thInner("Veículo", "name")}</th>

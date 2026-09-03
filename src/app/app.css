@@ -1327,4 +1327,51 @@ select.input {
   /* ── Modal: padding menor ── */
   .overlay { padding: 16px; }
   .modal { border-radius: var(--r); }
+
+  /* ── Lista de releases: oculta Status(2), Data(3), Autor(4), Marca(5), Créditos(6) ── */
+  .releases-list-tbl thead th:nth-child(2),
+  .releases-list-tbl thead th:nth-child(3),
+  .releases-list-tbl thead th:nth-child(4),
+  .releases-list-tbl thead th:nth-child(5),
+  .releases-list-tbl thead th:nth-child(6),
+  .releases-list-tbl tbody td:nth-child(2),
+  .releases-list-tbl tbody td:nth-child(3),
+  .releases-list-tbl tbody td:nth-child(4),
+  .releases-list-tbl tbody td:nth-child(5),
+  .releases-list-tbl tbody td:nth-child(6) { display: none; }
+
+  /* ── Time/membros: oculta Função(2), Marcas(3), Status(4) ── */
+  .team-tbl thead th:nth-child(2),
+  .team-tbl thead th:nth-child(3),
+  .team-tbl thead th:nth-child(4),
+  .team-tbl tbody td:nth-child(2),
+  .team-tbl tbody td:nth-child(3),
+  .team-tbl tbody td:nth-child(4) { display: none; }
+
+  /* ── Marcas: oculta Segmento(2), Site(3) ── */
+  .brands-tbl thead th:nth-child(2),
+  .brands-tbl thead th:nth-child(3),
+  .brands-tbl tbody td:nth-child(2),
+  .brands-tbl tbody td:nth-child(3) { display: none; }
+
+  /* ── Extrato de créditos: oculta Usado para(3) ── */
+  .credits-tbl thead th:nth-child(3),
+  .credits-tbl tbody td:nth-child(3) { display: none; }
+
+  /* ── Cobranças/billing: oculta Tipo(2), Descrição(3) ── */
+  .billing-tbl thead th:nth-child(2),
+  .billing-tbl thead th:nth-child(3),
+  .billing-tbl tbody td:nth-child(2),
+  .billing-tbl tbody td:nth-child(3) { display: none; }
+
+  /* ── Veículos (config): oculta Editoria(2), Alcance(4), Créditos(5) ── */
+  .settings-veh-tbl thead th:nth-child(2),
+  .settings-veh-tbl thead th:nth-child(4),
+  .settings-veh-tbl thead th:nth-child(5),
+  .settings-veh-tbl tbody td:nth-child(2),
+  .settings-veh-tbl tbody td:nth-child(4),
+  .settings-veh-tbl tbody td:nth-child(5) { display: none; }
+
+  /* ── Search inputs: largura adaptativa ── */
+  .search { width: 100% !important; max-width: 100%; }
 }
