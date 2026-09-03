@@ -313,61 +313,107 @@ export default function ReleasesPage() {
             <div className="h">Ajuste os filtros ou crie um novo release.</div>
           </div>
         ) : mode === "list" ? (
-          <div className="card">
-            <table className="tbl releases-list-tbl">
-              <thead>
-                <tr>
-                  <th style={{ ...thStyle("title"), width: "42%" }} onClick={() => handleSort("title")}>{thInner("Release", "title")}</th>
-                  <th style={thStyle("status")} onClick={() => handleSort("status")}>{thInner("Status", "status")}</th>
-                  <th style={thStyle("date")} onClick={() => handleSort("date")}>{thInner("Data", "date")}</th>
-                  <th style={thStyle("author")} onClick={() => handleSort("author")}>{thInner("Autor", "author")}</th>
-                  <th style={{ ...thStyle("cat"), textAlign: "right" }} onClick={() => handleSort("cat")}>{thInner("Marca", "cat")}</th>
-                  <th style={{ ...thStyle("creditsUsed"), textAlign: "right", minWidth: 90 }} onClick={() => handleSort("creditsUsed")}>{thInner("Créditos", "creditsUsed")}</th>
-                  <th style={{ width: 40 }} />
-                </tr>
-              </thead>
-              <tbody>
-                {list.map(r => (
-                  <tr key={r.id} style={{ cursor: "pointer" }} onClick={() => router.push(`/releases/${r.id}`)}>
-                    <td className="title-cell">
-                      {r.title.length > 70 ? r.title.slice(0, 70) + "…" : r.title}
-                      <span className="ph">{r.cat}</span>
-                    </td>
-                    <td><StatusBadge status={r.status} /></td>
-                    <td className="muted num">{fmtDate(r.date)}</td>
-                    <td className="muted">{r.author}</td>
-                    <td className="num" style={{ textAlign: "right", fontWeight: 600 }}>{r.cat}</td>
-                    <td className="num" style={{ textAlign: "right" }}>
-                      {r.creditsUsed > 0
-                        ? <span style={{ fontSize: 12, fontWeight: 600, color: "var(--coral-ink)", background: "var(--amber-soft)", padding: "2px 8px", borderRadius: 99 }}>{r.creditsUsed} cr</span>
-                        : <span style={{ fontSize: 12, color: "var(--stone)" }}>—</span>}
-                    </td>
-                    <td onClick={e => e.stopPropagation()} style={{ whiteSpace: "nowrap" }}>
-                      {r.status === "scheduled" && (
-                        <button
-                          onClick={() => duplicateRelease(r.id)}
-                          disabled={duplicating === r.id}
-                          style={{ background: "none", border: "none", cursor: "pointer", padding: "4px 6px", color: "var(--stone)", borderRadius: 6, display: "inline-flex", alignItems: "center" }}
-                          title="Duplicar como rascunho"
-                        >
-                          <Copy size={15} />
-                        </button>
-                      )}
-                      {(r.status === "draft" || r.status === "scheduled") && (
-                        <button
-                          onClick={() => setConfirmId(r.id)}
-                          style={{ background: "none", border: "none", cursor: "pointer", padding: "4px 6px", color: "var(--stone)", borderRadius: 6, display: "inline-flex", alignItems: "center" }}
-                          title="Excluir rascunho"
-                        >
-                          <Trash2 size={15} />
-                        </button>
-                      )}
-                    </td>
+          <>
+            {/* ── Tabela desktop ── */}
+            <div className="card releases-list-desktop">
+              <table className="tbl releases-list-tbl">
+                <thead>
+                  <tr>
+                    <th style={{ ...thStyle("title"), width: "42%" }} onClick={() => handleSort("title")}>{thInner("Release", "title")}</th>
+                    <th style={thStyle("status")} onClick={() => handleSort("status")}>{thInner("Status", "status")}</th>
+                    <th style={thStyle("date")} onClick={() => handleSort("date")}>{thInner("Data", "date")}</th>
+                    <th style={thStyle("author")} onClick={() => handleSort("author")}>{thInner("Autor", "author")}</th>
+                    <th style={{ ...thStyle("cat"), textAlign: "right" }} onClick={() => handleSort("cat")}>{thInner("Marca", "cat")}</th>
+                    <th style={{ ...thStyle("creditsUsed"), textAlign: "right", minWidth: 90 }} onClick={() => handleSort("creditsUsed")}>{thInner("Créditos", "creditsUsed")}</th>
+                    <th style={{ width: 40 }} />
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {list.map(r => (
+                    <tr key={r.id} style={{ cursor: "pointer" }} onClick={() => router.push(`/releases/${r.id}`)}>
+                      <td className="title-cell">
+                        {r.title.length > 70 ? r.title.slice(0, 70) + "…" : r.title}
+                        <span className="ph">{r.cat}</span>
+                      </td>
+                      <td><StatusBadge status={r.status} /></td>
+                      <td className="muted num">{fmtDate(r.date)}</td>
+                      <td className="muted">{r.author}</td>
+                      <td className="num" style={{ textAlign: "right", fontWeight: 600 }}>{r.cat}</td>
+                      <td className="num" style={{ textAlign: "right" }}>
+                        {r.creditsUsed > 0
+                          ? <span style={{ fontSize: 12, fontWeight: 600, color: "var(--coral-ink)", background: "var(--amber-soft)", padding: "2px 8px", borderRadius: 99 }}>{r.creditsUsed} cr</span>
+                          : <span style={{ fontSize: 12, color: "var(--stone)" }}>—</span>}
+                      </td>
+                      <td onClick={e => e.stopPropagation()} style={{ whiteSpace: "nowrap" }}>
+                        {r.status === "scheduled" && (
+                          <button
+                            onClick={() => duplicateRelease(r.id)}
+                            disabled={duplicating === r.id}
+                            style={{ background: "none", border: "none", cursor: "pointer", padding: "4px 6px", color: "var(--stone)", borderRadius: 6, display: "inline-flex", alignItems: "center" }}
+                            title="Duplicar como rascunho"
+                          >
+                            <Copy size={15} />
+                          </button>
+                        )}
+                        {(r.status === "draft" || r.status === "scheduled") && (
+                          <button
+                            onClick={() => setConfirmId(r.id)}
+                            style={{ background: "none", border: "none", cursor: "pointer", padding: "4px 6px", color: "var(--stone)", borderRadius: 6, display: "inline-flex", alignItems: "center" }}
+                            title="Excluir rascunho"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* ── Cards mobile ── */}
+            <div className="releases-mobile-list">
+              {list.map(r => (
+                <div
+                  key={r.id}
+                  className="rmc-card"
+                  onClick={() => router.push(`/releases/${r.id}`)}
+                >
+                  {/* Thumbnail */}
+                  <div className="rmc-thumb">
+                    {r.imageUrl
+                      // eslint-disable-next-line @next/next/no-img-element
+                      ? <img src={r.imageUrl} alt="" />
+                      : <div className="rmc-thumb-placeholder" style={{ background: r.brandColor ?? "var(--cream)" }}>
+                          <span>{r.cat?.slice(0, 2).toUpperCase()}</span>
+                        </div>
+                    }
+                  </div>
+
+                  {/* Conteúdo */}
+                  <div className="rmc-body">
+                    <div className="rmc-meta">
+                      <span className="rmc-date">{fmtDate(r.date)}</span>
+                      <StatusBadge status={r.status} />
+                    </div>
+                    <div className="rmc-title">{r.title}</div>
+                    <div className="rmc-brand">{r.cat}</div>
+                  </div>
+
+                  {/* Ações */}
+                  {(r.status === "draft" || r.status === "scheduled") && (
+                    <button
+                      className="rmc-del"
+                      onClick={e => { e.stopPropagation(); setConfirmId(r.id); }}
+                      title="Excluir"
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </>
         ) : (
           <div className="lib-grid">
             {list.map(r => (
