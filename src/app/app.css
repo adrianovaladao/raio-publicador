@@ -1313,6 +1313,10 @@ select.input {
   .veh-tbl tbody td:nth-child(6),
   .veh-tbl tbody td:nth-child(7) { display: none; }
 
+  /* Categoria (col 5) alinha à direita */
+  .veh-tbl thead th:nth-child(5),
+  .veh-tbl tbody td:nth-child(5) { text-align: right; }
+
   /* Barra de filtro/busca dos veículos: empilha */
   .veh-list .vh-toolbar { gap: 8px; padding: 12px 14px; }
   .veh-list .vh-toolbar .search { width: 100%; flex: 1 1 100%; }
