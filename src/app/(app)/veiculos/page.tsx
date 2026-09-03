@@ -194,7 +194,7 @@ export default function VeiculosPage() {
         </div>
 
         {/* Cards de tier */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 24, width: "100%" }}>
+        <div className="tier-cards-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 24, width: "100%" }}>
           {TIER_INFO.map(ti => (
             <div className="card kpi" key={ti.t} style={{ padding: 20 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>

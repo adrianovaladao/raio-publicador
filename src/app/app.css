@@ -1277,6 +1277,9 @@ select.input {
   .dash-stats,
   .dash-grid { overflow-x: auto; }
 
+  /* ── Veículos: cards A/B/C colapsam para linha única horizontal ── */
+  .tier-cards-grid { grid-template-columns: 1fr !important; gap: 10px !important; }
+
   /* ── Veículos: barra de sort oculta, veh-row simplificado ── */
   .veh-sort-bar { display: none; }
   .veh-row { grid-template-columns: 26px 38px 1fr; gap: 10px; padding: 12px 16px; }
