@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { Plus, Trash2, RefreshCw, Tag, Copy, Check, ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
+import { Plus, Trash2, RefreshCw, Tag, Copy, Check, ChevronUp, ChevronDown, ChevronsUpDown, Search, X } from "lucide-react";
 
 type SortKey = "code" | "credits" | "usedCount" | "description" | "expiresAt" | "createdAt";
 type SortDir = "asc" | "desc";
@@ -25,6 +25,7 @@ export default function VouchersAdminPage() {
   const [sortDir, setSortDir]   = useState<SortDir>("asc");
   const [copied, setCopied]       = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; code: string } | null>(null);
+  const [search, setSearch] = useState("");
 
   function copyCode(code: string) {
     navigator.clipboard.writeText(code);
@@ -98,8 +99,17 @@ export default function VouchersAdminPage() {
     }
   }
 
+  const filtered = useMemo(() => {
+    if (!search.trim()) return vouchers;
+    const q = search.trim().toLowerCase();
+    return vouchers.filter(v =>
+      v.code.toLowerCase().includes(q) ||
+      (v.description ?? "").toLowerCase().includes(q)
+    );
+  }, [vouchers, search]);
+
   const sorted = useMemo(() => {
-    return [...vouchers].sort((a, b) => {
+    return [...filtered].sort((a, b) => {
       let av: string | number, bv: string | number;
       if (sortKey === "credits" || sortKey === "usedCount") {
         av = sortKey === "usedCount" ? a.usedCount / Math.max(a.maxUses, 1) : a.credits;
@@ -117,7 +127,7 @@ export default function VouchersAdminPage() {
       if (av > bv) return sortDir === "asc" ? 1 : -1;
       return 0;
     });
-  }, [vouchers, sortKey, sortDir]);
+  }, [filtered, sortKey, sortDir]);
 
   function SortIcon({ col }: { col: SortKey }) {
     if (sortKey !== col) return <ChevronsUpDown size={12} style={{ opacity: 0.3, marginLeft: 4, flexShrink: 0 }} />;
@@ -249,14 +259,35 @@ export default function VouchersAdminPage() {
           </form>
         </div>
 
+        {/* Search */}
+        <div style={{ marginBottom: 16, position: "relative" }}>
+          <Search size={14} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "var(--stone)", pointerEvents: "none" }} />
+          <input
+            className="input"
+            placeholder="Buscar por código ou descrição…"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            style={{ paddingLeft: 34, paddingRight: search ? 32 : undefined }}
+          />
+          {search && (
+            <button
+              onClick={() => setSearch("")}
+              style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--stone)", display: "flex", padding: 2 }}
+              title="Limpar"
+            >
+              <X size={14} />
+            </button>
+          )}
+        </div>
+
         {/* List */}
         <div className="card">
           {loading ? (
             <div className="card empty"><div className="muted">Carregando…</div></div>
-          ) : vouchers.length === 0 ? (
+          ) : sorted.length === 0 ? (
             <div className="card empty" style={{ flexDirection: "column", gap: 10 }}>
               <Tag size={28} style={{ opacity: 0.25 }} />
-              <div className="muted">Nenhum voucher criado ainda.</div>
+              <div className="muted">{search ? `Nenhum voucher encontrado para "${search}".` : "Nenhum voucher criado ainda."}</div>
             </div>
           ) : (
             <table className="tbl admin-vouchers-tbl">
