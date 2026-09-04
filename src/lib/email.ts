@@ -672,7 +672,7 @@ export async function sendAdminReleaseResubmittedEmail(opts: {
     ${btn("Revisar release →", `${APP_URL}/releases/${opts.releaseId}`)}
   `);
 
-  const ADMIN_EMAIL = process.env.ADMIN_NOTIFICATION_EMAIL ?? "raiopublicador@gmail.com";
+  const ADMIN_EMAIL = process.env.ADMIN_NOTIFICATION_EMAIL ?? "adrianovaladao@raiopublicador.com.br";
   return getResend().emails.send({
     from: FROM,
     to: ADMIN_EMAIL,
