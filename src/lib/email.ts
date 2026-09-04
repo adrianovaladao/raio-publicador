@@ -653,3 +653,30 @@ export async function sendAdminReleaseScheduledEmail(opts: {
     html,
   });
 }
+
+// ─── Admin: Release resubmetido após revisão ───────────────────────────────────
+export async function sendAdminReleaseResubmittedEmail(opts: {
+  clientName: string;
+  clientEmail: string;
+  releaseTitle: string;
+  releaseId: string;
+}) {
+  const html = base(`
+    ${h1("🔄 Release corrigido e resubmetido")}
+    ${p("Um cliente corrigiu o release conforme solicitado e o resubmeteu para revisão.")}
+    <table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0;background:#f9f9f7;border-radius:8px">
+      <tr><td style="padding:10px 14px;color:#888;width:140px">Cliente</td><td style="padding:10px 14px;color:#1a1a1a;font-weight:600">${opts.clientName}</td></tr>
+      <tr style="border-top:1px solid #eee"><td style="padding:10px 14px;color:#888">E-mail</td><td style="padding:10px 14px"><a href="mailto:${opts.clientEmail}" style="color:#000">${opts.clientEmail}</a></td></tr>
+      <tr style="border-top:1px solid #eee"><td style="padding:10px 14px;color:#888">Release</td><td style="padding:10px 14px;color:#1a1a1a;font-weight:600">${opts.releaseTitle}</td></tr>
+    </table>
+    ${btn("Revisar release →", `${APP_URL}/releases/${opts.releaseId}`)}
+  `);
+
+  const ADMIN_EMAIL = process.env.ADMIN_NOTIFICATION_EMAIL ?? "raiopublicador@gmail.com";
+  return getResend().emails.send({
+    from: FROM,
+    to: ADMIN_EMAIL,
+    subject: `🔄 Release resubmetido — ${opts.clientName}: ${opts.releaseTitle}`,
+    html,
+  });
+}

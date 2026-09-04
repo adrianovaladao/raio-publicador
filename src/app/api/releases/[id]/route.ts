@@ -4,7 +4,7 @@ import { getPrisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { ReleaseStatus } from "@prisma/client";
 import { clerkClient } from "@clerk/nextjs/server";
-import { sendAdminNewReleaseEmail, sendReleaseScheduledEmail } from "@/lib/email";
+import { sendAdminNewReleaseEmail, sendReleaseScheduledEmail, sendAdminReleaseResubmittedEmail } from "@/lib/email";
 
 const EDIT_LOCKED_STATUSES: ReleaseStatus[] = ["IN_REVIEW", "IN_PUBLICATION", "PUBLISHED"];
 
@@ -34,6 +34,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   }
 
   const becomingScheduled   = body.status === "SCHEDULED" && prev?.status !== "SCHEDULED";
+  const resubmittingAfterRevision = body.status === "SCHEDULED" && prev?.status === "NEEDS_REVISION";
 
   if (becomingScheduled) {
     const sub = await prisma.subscription.findUnique({ where: { ownerId: userId }, select: { status: true } });
@@ -115,6 +116,24 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       }
     } catch (err) {
       console.error("Admin notification email failed:", err);
+    }
+  }
+
+  // Notify admin when a release is resubmitted after NEEDS_REVISION
+  if (resubmittingAfterRevision) {
+    try {
+      const clerk = await clerkClient();
+      const user = await clerk.users.getUser(userId);
+      const userName = [user.firstName, user.lastName].filter(Boolean).join(" ") || user.emailAddresses[0]?.emailAddress || userId;
+      const userEmail = user.emailAddresses[0]?.emailAddress || "";
+      await sendAdminReleaseResubmittedEmail({
+        clientName: userName,
+        clientEmail: userEmail,
+        releaseTitle: body.title ?? prev?.title ?? "Sem título",
+        releaseId: id,
+      });
+    } catch (err) {
+      console.error("Resubmission notification email failed:", err);
     }
   }
 
