@@ -78,12 +78,12 @@ export default function RootLayout({
       <html lang="pt-BR" className={`${dmSans.variable} ${robotoSerif.variable}`} style={{ height: "100%" }}>
         <body style={{ height: "100%", margin: 0 }}>
           {children}
-          <Script src="https://www.googletagmanager.com/gtag/js?id=G-KE9FSKDMY1" strategy="afterInteractive" />
+          <Script src="https://www.googletagmanager.com/gtag/js?id=G-C40W3MP2R7" strategy="afterInteractive" />
           <Script id="google-analytics" strategy="afterInteractive">{`
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
-            gtag('config', 'G-KE9FSKDMY1');
+            gtag('config', 'G-C40W3MP2R7');
           `}</Script>
         </body>
       </html>
