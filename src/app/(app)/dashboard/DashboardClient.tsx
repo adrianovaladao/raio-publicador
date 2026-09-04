@@ -86,13 +86,22 @@ function BrandAvatar({ name, color, logoUrl, size = 28 }: { name: string | null 
 async function uploadLogo(file: File): Promise<string> {
   const form = new FormData();
   form.append("file", file);
-  const res = await fetch("/api/upload", { method: "POST", body: form });
-  const text = await res.text();
-  let data: { url?: string; error?: string } = {};
-  try { data = JSON.parse(text); } catch { /* ignore */ }
-  if (!res.ok) throw new Error(data.error ?? `Erro ${res.status} no upload`);
-  if (!data.url) throw new Error("Upload falhou: URL não retornada");
-  return data.url;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 20_000); // 20s timeout
+  try {
+    const res = await fetch("/api/upload", { method: "POST", body: form, signal: controller.signal });
+    const text = await res.text();
+    let data: { url?: string; error?: string } = {};
+    try { data = JSON.parse(text); } catch { /* ignore */ }
+    if (!res.ok) throw new Error(data.error ?? `Erro ${res.status} no upload`);
+    if (!data.url) throw new Error("Upload falhou: URL não retornada");
+    return data.url;
+  } catch (e) {
+    if (e instanceof Error && e.name === "AbortError") throw new Error("Upload demorou demais. Tente uma imagem menor.");
+    throw e;
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 // ── EditBrandModal ────────────────────────────────────────────────────────────
