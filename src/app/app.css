@@ -1480,3 +1480,85 @@ select.input {
     align-items: center;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   ADMIN — MOBILE
+   ═══════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  /* Oculta sidebar, ajusta grid */
+  .admin-shell-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .admin-sidebar {
+    display: none !important;
+  }
+  .admin-main {
+    padding-bottom: 72px;
+  }
+
+  /* Bottom nav */
+  .admin-mobile-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: #111;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    z-index: 100;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+  .admin-mn-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    color: rgba(255,255,255,0.4);
+    text-decoration: none;
+    font-size: 10px;
+    font-weight: 500;
+    text-align: center;
+    transition: color 0.15s;
+  }
+  .admin-mn-item.active {
+    color: #fff;
+  }
+
+}
+
+/* Desktop: oculta bottom nav */
+@media (min-width: 769px) {
+  .admin-mobile-nav { display: none; }
+}
+
+/* ─── Correção colunas admin mobile ─────────────────────────────── */
+@media (max-width: 768px) {
+  /* Usuários: oculta Plano(4), Status(5), Cadastro(7), Último acesso(8), Renovação(9) */
+  .admin-usuarios-tbl thead th:nth-child(4),
+  .admin-usuarios-tbl thead th:nth-child(5),
+  .admin-usuarios-tbl thead th:nth-child(7),
+  .admin-usuarios-tbl thead th:nth-child(8),
+  .admin-usuarios-tbl thead th:nth-child(9),
+  .admin-usuarios-tbl tbody td:nth-child(4),
+  .admin-usuarios-tbl tbody td:nth-child(5),
+  .admin-usuarios-tbl tbody td:nth-child(7),
+  .admin-usuarios-tbl tbody td:nth-child(8),
+  .admin-usuarios-tbl tbody td:nth-child(9) { display: none; }
+
+  /* Vouchers: oculta Descrição(4), Validade(5), Criado em(6) */
+  .admin-vouchers-tbl thead th:nth-child(4),
+  .admin-vouchers-tbl thead th:nth-child(5),
+  .admin-vouchers-tbl thead th:nth-child(6),
+  .admin-vouchers-tbl tbody td:nth-child(4),
+  .admin-vouchers-tbl tbody td:nth-child(5),
+  .admin-vouchers-tbl tbody td:nth-child(6) { display: none; }
+
+  /* Padding das páginas admin no mobile */
+  .admin-page-content {
+    padding: 16px 12px 80px;
+  }
+}

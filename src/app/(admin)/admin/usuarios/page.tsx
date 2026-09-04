@@ -544,7 +544,7 @@ export default function AdminUsuarios() {
             <div className="card empty"><div className="muted">Carregando…</div></div>
           ) : (
             <div style={{ overflowX: "auto" }}>
-              <table className="tbl">
+              <table className="tbl admin-usuarios-tbl">
                 <thead>
                   <tr>
                     <th style={{ width: 40 }}>

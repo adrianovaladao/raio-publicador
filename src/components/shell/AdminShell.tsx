@@ -32,11 +32,18 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     router.replace("/login");
   }
 
+  const MOBILE_NAV = [
+    { href: "/admin/releases", icon: FileText, label: "Releases" },
+    { href: "/admin/usuarios", icon: Users,    label: "Usuários",  masterOnly: true },
+    { href: "/admin/vouchers", icon: Tag,       label: "Vouchers",  masterOnly: true },
+    { href: "/admin/veiculos", icon: Rss,       label: "Veículos" },
+  ].filter(item => !("masterOnly" in item) || !item.masterOnly || master);
+
   return (
     <div style={{ zoom: 1.15, height: "calc(100vh / 1.15)", overflow: "hidden" }}>
-    <div style={{ display: "grid", gridTemplateColumns: "220px 1fr", height: "100%", background: "var(--bg)" }}>
+    <div style={{ display: "grid", gridTemplateColumns: "220px 1fr", height: "100%", background: "var(--bg)" }} className="admin-shell-grid">
       {/* ── Sidebar ── */}
-      <aside style={{
+      <aside className="admin-sidebar" style={{
         display: "flex", flexDirection: "column",
         background: "#111", color: "#fff",
         borderRight: "1px solid rgba(255,255,255,0.07)",
@@ -138,10 +145,23 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* ── Main ── */}
-      <main style={{ overflow: "auto", background: "var(--bg)" }}>
+      <main style={{ overflow: "auto", background: "var(--bg)" }} className="admin-main">
         {children}
       </main>
     </div>
+
+    {/* ── Mobile bottom nav ── */}
+    <nav className="admin-mobile-nav">
+      {MOBILE_NAV.map(({ href, icon: Icon, label }) => {
+        const active = pathname.startsWith(href);
+        return (
+          <Link key={href} href={href} className={`admin-mn-item${active ? " active" : ""}`}>
+            <Icon size={20} />
+            <span>{label}</span>
+          </Link>
+        );
+      })}
+    </nav>
     </div>
   );
 }

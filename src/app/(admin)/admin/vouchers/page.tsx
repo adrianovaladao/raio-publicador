@@ -259,7 +259,7 @@ export default function VouchersAdminPage() {
               <div className="muted">Nenhum voucher criado ainda.</div>
             </div>
           ) : (
-            <table className="tbl">
+            <table className="tbl admin-vouchers-tbl">
               <thead>
                 <tr>
                   {(["code", "credits", "usedCount", "description", "expiresAt", "createdAt"] as SortKey[]).map((col) => {
