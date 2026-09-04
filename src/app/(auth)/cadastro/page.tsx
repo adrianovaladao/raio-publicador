@@ -599,8 +599,8 @@ function CadastroInner() {
               </Link>
             </div>
           )}
+          <p className="auth-secure">🔒 <b>Seus dados estão protegidos.</b> Cadastro rápido e 100% seguro.</p>
         </div>
-        <p className="auth-secure">🔒 <b>Seus dados estão protegidos.</b> Cadastro rápido e 100% seguro.</p>
       </div>
     </div>
   );
