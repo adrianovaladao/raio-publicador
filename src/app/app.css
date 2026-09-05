@@ -1297,25 +1297,31 @@ select.input {
 
   /* ── Veículos: barra de sort oculta, veh-row simplificado ── */
   .veh-sort-bar { display: none !important; }
+  /* cbx | logo | info — custo fica inline no .meta, reach oculto */
   .veh-row { grid-template-columns: 26px 38px 1fr; gap: 10px; padding: 12px 16px; }
   .veh-row .reach { display: none; }
+  /* custo: oculta coluna separada; créditos ficam inline no .meta via .meta-cr */
   .veh-row .cost { display: none; }
+  .veh-row .meta-cr { display: inline-flex; align-items: center; gap: 3px; font-family: var(--mono); font-size: 10px; font-weight: 700; color: var(--coral-ink); }
 
-  /* Tabela de veículos: oculta Estado (2), Site (3), Editoria (4), Alcance (6), Créditos (7) */
+  /* Tabela de veículos: oculta Estado (2), Site (3), Editoria (4), Alcance (6) — mantém Créditos (7) */
   .veh-tbl thead th:nth-child(2),
   .veh-tbl thead th:nth-child(3),
   .veh-tbl thead th:nth-child(4),
   .veh-tbl thead th:nth-child(6),
-  .veh-tbl thead th:nth-child(7),
   .veh-tbl tbody td:nth-child(2),
   .veh-tbl tbody td:nth-child(3),
   .veh-tbl tbody td:nth-child(4),
-  .veh-tbl tbody td:nth-child(6),
-  .veh-tbl tbody td:nth-child(7) { display: none; }
+  .veh-tbl tbody td:nth-child(6) { display: none; }
+  /* Oculta o ícone de relógio em mobile (tooltip não funciona) */
+  .veh-tbl .clock-wrap { display: none; }
 
   /* Categoria (col 5) alinha à direita */
   .veh-tbl thead th:nth-child(5),
   .veh-tbl tbody td:nth-child(5) { text-align: right; }
+
+  /* ── Confirmação de agendado/publicado: stats em grade 2×2 ── */
+  .confirm-stats { grid-template-columns: repeat(2, 1fr) !important; }
 
   /* Barra de filtro/busca dos veículos: empilha */
   .veh-list .vh-toolbar { gap: 8px; padding: 12px 14px; }

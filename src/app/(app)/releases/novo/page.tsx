@@ -709,6 +709,7 @@ function StepVehicles({ selected, setSelected, vehicles, sub, onUpgrade, onBuyCr
                   <div className="meta">
                     <span className={`tier t-${v.tier.toLowerCase()}`}>{v.tier}</span>
                     <span className="dom">{v.domain}</span>
+                    <span className="meta-cr">{tkn} ⚡</span>
                   </div>
                 </div>
                 <div className="reach">
@@ -1668,21 +1669,21 @@ export default function NovoReleasePage() {
             </p>
 
             {/* Stats */}
-            <div style={{ display: "flex", gap: 12, justifyContent: "center", marginBottom: 36 }}>
-              <div className="card" style={{ flex: 1, padding: "16px 20px", textAlign: "center" }}>
-                <div style={{ fontFamily: "var(--mono)", fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 6 }}>Veículos</div>
+            <div className="confirm-stats" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, justifyContent: "center", marginBottom: 36 }}>
+              <div className="card" style={{ padding: "16px 12px", textAlign: "center" }}>
+                <div style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 6 }}>Veículos</div>
                 <div style={{ fontWeight: 800, fontSize: 28, letterSpacing: "-0.03em" }}>{selVehicles.length}</div>
               </div>
-              <div className="card" style={{ flex: 1, padding: "16px 20px", textAlign: "center" }}>
-                <div style={{ fontFamily: "var(--mono)", fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 6 }}>Alcance</div>
-                <div style={{ fontWeight: 800, fontSize: 22, letterSpacing: "-0.03em", whiteSpace: "nowrap" }}>{fmtReach(selReach)}</div>
+              <div className="card" style={{ padding: "16px 12px", textAlign: "center" }}>
+                <div style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 6 }}>Alcance</div>
+                <div style={{ fontWeight: 800, fontSize: 20, letterSpacing: "-0.03em" }}>{fmtReach(selReach)}</div>
               </div>
-              <div className="card" style={{ flex: 1, padding: "16px 20px", textAlign: "center" }}>
-                <div style={{ fontFamily: "var(--mono)", fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 6 }}>Marca</div>
-                <div style={{ fontWeight: 800, fontSize: 16, letterSpacing: "-0.02em", marginTop: 6 }}>{brand?.name ?? "—"}</div>
+              <div className="card" style={{ padding: "16px 12px", textAlign: "center" }}>
+                <div style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 6 }}>Marca</div>
+                <div style={{ fontWeight: 800, fontSize: 15, letterSpacing: "-0.02em", marginTop: 6 }}>{brand?.name ?? "—"}</div>
               </div>
-              <div className="card" style={{ flex: 1, padding: "16px 20px", textAlign: "center" }}>
-                <div style={{ fontFamily: "var(--mono)", fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 6 }}>Créditos usados</div>
+              <div className="card" style={{ padding: "16px 12px", textAlign: "center" }}>
+                <div style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 6 }}>Créditos</div>
                 <div style={{ fontWeight: 800, fontSize: 28, letterSpacing: "-0.03em", color: "var(--coral-ink)" }}>{selTokens}</div>
               </div>
             </div>
