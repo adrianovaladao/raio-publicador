@@ -12,7 +12,6 @@ export async function GET(req: NextRequest) {
 
   const email = req.nextUrl.searchParams.get("email") ?? "cleannowacar@gmail.com";
   const stripe = getStripe();
-  const prisma = getPrisma();
 
   const customers = await stripe.customers.list({ email, limit: 5 });
   if (customers.data.length === 0) {
