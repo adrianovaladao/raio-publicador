@@ -212,8 +212,8 @@ export default function CheckoutConfirmClient({ initialPlanId, allPlans }: Props
       const data = await res.json() as { url?: string; error?: string };
       if (!res.ok || !data.url) { setError(data.error ?? "Erro ao iniciar pagamento."); setStep("confirm"); return; }
       window.location.href = data.url;
-    } catch {
-      setError("Falha de conexão. Tente novamente.");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Falha de conexão. Tente novamente.");
       setStep("confirm");
     } finally {
       setLoading(false);

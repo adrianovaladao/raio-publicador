@@ -56,7 +56,6 @@ export async function POST(req: NextRequest) {
     currency: "brl",
     payment_method_types: ["card"],
     billing_address_collection: "required",
-    tax_id_collection: { enabled: true },
     line_items: [
       { price: plan.stripePriceId, quantity: 1 },
       {
