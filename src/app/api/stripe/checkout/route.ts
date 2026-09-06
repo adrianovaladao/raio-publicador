@@ -23,11 +23,14 @@ export async function POST(req: NextRequest) {
   const stripe = getStripe();
   const prisma = getPrisma();
 
-  const sub = await prisma.subscription.findUnique({ where: { ownerId: userId } });
+  const [sub, fiscalProfile] = await Promise.all([
+    prisma.subscription.findUnique({ where: { ownerId: userId } }),
+    prisma.fiscalProfile.findUnique({ where: { ownerId: userId } }),
+  ]);
 
+  // Cria ou recupera o Customer no Stripe
   let customerId = sub?.stripeCustomerId ?? undefined;
   if (!customerId) {
-    // Search for existing Stripe customer by email+clerkId to avoid duplicates
     const existing = await stripe.customers.list({ email, limit: 100 });
     const match = existing.data.find(c => c.metadata?.clerkId === userId);
     if (match) {
@@ -36,9 +39,50 @@ export async function POST(req: NextRequest) {
       const customer = await stripe.customers.create({ email, metadata: { clerkId: userId } });
       customerId = customer.id;
     }
-    // Always persist the customerId so future checkouts reuse it
     if (sub) {
       await prisma.subscription.update({ where: { ownerId: userId }, data: { stripeCustomerId: customerId } });
+    }
+  }
+
+  // Sincroniza dados fiscais no Customer do Stripe (nome, endereço, CPF/CNPJ)
+  // Feito aqui porque o Customer pode não existir ainda quando o formulário fiscal é submetido
+  if (fiscalProfile) {
+    const name = fiscalProfile.personType === "PF"
+      ? (fiscalProfile.fullName ?? "")
+      : (fiscalProfile.companyName ?? "");
+
+    const taxNumber = fiscalProfile.personType === "PF"
+      ? (fiscalProfile.cpf ?? "").replace(/\D/g, "")
+      : (fiscalProfile.cnpj ?? "").replace(/\D/g, "");
+
+    // Atualiza nome e endereço
+    await stripe.customers.update(customerId, {
+      name,
+      address: {
+        line1: `${fiscalProfile.street}, ${fiscalProfile.number}${fiscalProfile.complement ? `, ${fiscalProfile.complement}` : ""}`,
+        line2: fiscalProfile.district,
+        city: fiscalProfile.city,
+        state: fiscalProfile.state,
+        postal_code: fiscalProfile.cep.replace(/\D/g, ""),
+        country: "BR",
+      },
+    });
+
+    // Adiciona Tax ID (CPF ou CNPJ) — remove anteriores para evitar duplicatas
+    if (taxNumber) {
+      try {
+        const existingTaxIds = await stripe.customers.listTaxIds(customerId);
+        for (const tid of existingTaxIds.data) {
+          await stripe.customers.deleteTaxId(customerId, tid.id).catch(() => {});
+        }
+        const taxType = fiscalProfile.personType === "PF" ? "br_cpf" : "br_cnpj";
+        await stripe.customers.createTaxId(customerId, {
+          type: taxType as "br_cpf" | "br_cnpj",
+          value: taxNumber,
+        });
+      } catch (e) {
+        console.error("[checkout] Erro ao sincronizar Tax ID no Stripe:", e);
+      }
     }
   }
 
