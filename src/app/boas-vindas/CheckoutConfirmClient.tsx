@@ -100,7 +100,8 @@ function formatCEP(v: string) {
 
 export default function CheckoutConfirmClient({ initialPlanId, allPlans }: Props) {
   const [selectedId, setSelectedId] = useState(initialPlanId);
-  const [step, setStep] = useState<Step>("confirm");
+  // Fluxo: fiscal → confirm → (Stripe Checkout externo) → sucesso
+  const [step, setStep] = useState<Step>("fiscal");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showBackWarning, setShowBackWarning] = useState(false);
@@ -111,7 +112,7 @@ export default function CheckoutConfirmClient({ initialPlanId, allPlans }: Props
   const [fiscalError, setFiscalError] = useState("");
   const [fiscalSaving, setFiscalSaving] = useState(false);
 
-  // Load existing fiscal profile
+  // Pré-carrega perfil fiscal existente
   useEffect(() => {
     fetch("/api/fiscal-profile")
       .then(r => r.json())
@@ -157,14 +158,9 @@ export default function CheckoutConfirmClient({ initialPlanId, allPlans }: Props
     finally { setCepLoading(false); }
   }
 
-  function startPayment() {
-    setStep("fiscal");
-    setFiscalError("");
-  }
-
+  // Passo 1 → 2: valida, salva no banco e sincroniza no Stripe, depois vai para confirmação
   async function handleFiscalSubmit() {
     setFiscalError("");
-    // Validation
     if (fiscal.personType === "PF") {
       if (!fiscal.fullName.trim()) return setFiscalError("Informe o nome completo.");
       if (fiscal.cpf.replace(/\D/g, "").length !== 11) return setFiscalError("CPF inválido.");
@@ -196,10 +192,11 @@ export default function CheckoutConfirmClient({ initialPlanId, allPlans }: Props
       setFiscalSaving(false);
     }
 
-    // Proceed to payment
-    await proceedToStripe();
+    // Dados salvos e enviados ao Stripe → vai para tela de confirmação
+    setStep("confirm");
   }
 
+  // Passo 2 → Stripe Checkout externo
   async function proceedToStripe() {
     setLoading(true);
     setError("");
@@ -210,11 +207,10 @@ export default function CheckoutConfirmClient({ initialPlanId, allPlans }: Props
         body: JSON.stringify({ planId: selectedId }),
       });
       const data = await res.json() as { url?: string; error?: string };
-      if (!res.ok || !data.url) { setError(data.error ?? "Erro ao iniciar pagamento."); setStep("confirm"); return; }
+      if (!res.ok || !data.url) { setError(data.error ?? "Erro ao iniciar pagamento."); return; }
       window.location.href = data.url;
     } catch (e) {
       setError(e instanceof Error ? e.message : "Falha de conexão. Tente novamente.");
-      setStep("confirm");
     } finally {
       setLoading(false);
     }
@@ -222,7 +218,7 @@ export default function CheckoutConfirmClient({ initialPlanId, allPlans }: Props
 
   function selectPlan(id: string) {
     setSelectedId(id);
-    setTimeout(() => setStep("confirm"), 120);
+    setTimeout(() => setStep("fiscal"), 120);
   }
 
   return (
@@ -387,14 +383,33 @@ export default function CheckoutConfirmClient({ initialPlanId, allPlans }: Props
                   );
                 })()}
 
+                {/* Resumo dos dados fiscais preenchidos */}
+                <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: "14px 16px", textAlign: "left", marginBottom: 16 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--tx-3)" }}>Dados para nota fiscal</span>
+                    <button onClick={() => setStep("fiscal")} style={{ background: "none", border: "none", fontSize: 12, color: "var(--coral)", cursor: "pointer", padding: 0, fontWeight: 600 }}>Editar</button>
+                  </div>
+                  <div style={{ fontSize: 13.5, color: "var(--tx-2)", lineHeight: 1.6 }}>
+                    <div style={{ fontWeight: 600, color: "var(--tx)" }}>
+                      {fiscal.personType === "PF" ? fiscal.fullName : fiscal.companyName}
+                      <span style={{ marginLeft: 8, fontSize: 11, fontWeight: 400, color: "var(--tx-3)", fontFamily: "var(--mono)" }}>
+                        {fiscal.personType === "PF" ? fiscal.cpf : fiscal.cnpj}
+                      </span>
+                    </div>
+                    <div style={{ color: "var(--tx-3)", fontSize: 12.5 }}>
+                      {fiscal.street}, {fiscal.number}{fiscal.complement ? `, ${fiscal.complement}` : ""} · {fiscal.district} · {fiscal.city}/{fiscal.state} · {fiscal.cep}
+                    </div>
+                  </div>
+                </div>
+
                 {error && <p style={{ color: "var(--red, #c0392b)", fontSize: 13, marginBottom: 16 }}>{error}</p>}
 
-                <button className="btn btn-primary btn-lg" onClick={() => startPayment()} disabled={loading}
+                <button className="btn btn-primary btn-lg" onClick={() => proceedToStripe()} disabled={loading}
                   style={{ width: "100%", justifyContent: "center", marginBottom: 8 }}>
                   {loading ? "Redirecionando…" : <><span>Pagar com cartão</span><ArrowRight size={17} /></>}
                 </button>
 
-                <button onClick={() => window.location.href = "/#planos"}
+                <button onClick={() => window.location.href = "/site#planos"}
                   style={{ display: "block", width: "100%", padding: "11px 0", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, fontSize: 14, fontWeight: 600, color: "var(--tx-2)", cursor: "pointer", fontFamily: "inherit", marginBottom: 8 }}>
                   Cancelar
                 </button>
@@ -411,7 +426,7 @@ export default function CheckoutConfirmClient({ initialPlanId, allPlans }: Props
               </div>
             )}
 
-            {/* ── STEP: FISCAL ── */}
+            {/* ── STEP: FISCAL (primeiro passo) ── */}
             {step === "fiscal" && (
               <div>
                 <div className="onb-head">
@@ -419,7 +434,7 @@ export default function CheckoutConfirmClient({ initialPlanId, allPlans }: Props
                     <FileText size={22} style={{ color: "var(--coral)" }} />
                   </div>
                   <h1>Dados para <em>nota fiscal</em></h1>
-                  <p className="sub">Necessários para emissão da NFS-e após a confirmação do pagamento.</p>
+                  <p className="sub">Preencha antes de prosseguir. Necessários para emissão da NFS-e.</p>
                 </div>
 
                 {/* Tipo de pessoa */}
@@ -523,12 +538,12 @@ export default function CheckoutConfirmClient({ initialPlanId, allPlans }: Props
 
                 <button type="submit" className="btn btn-primary btn-lg" disabled={fiscalSaving}
                   style={{ width: "100%", justifyContent: "center", marginTop: 14, marginBottom: 8 }}>
-                  {fiscalSaving ? "Salvando…" : <><span>Continuar para pagamento</span><ArrowRight size={17} /></>}
+                  {fiscalSaving ? "Salvando…" : <><span>Revisar e confirmar</span><ArrowRight size={17} /></>}
                 </button>
 
-                <button type="button" onClick={() => setStep("confirm")}
+                <button type="button" onClick={() => window.location.href = "/site#planos"}
                   style={{ background: "none", border: "none", fontSize: 13.5, color: "var(--tx-3)", cursor: "pointer", padding: "4px 8px", display: "flex", alignItems: "center", gap: 5, margin: "0 auto" }}>
-                  <ArrowLeft size={13} /> Voltar
+                  <ArrowLeft size={13} /> Cancelar
                 </button>
                 </form>
               </div>
