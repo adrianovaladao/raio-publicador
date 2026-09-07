@@ -66,7 +66,9 @@ export async function POST(req: NextRequest) {
   await stripe.customers.update(customerId, {
     name,
     address: {
-      line1: `${fiscalProfile.street}, ${fiscalProfile.number}${fiscalProfile.complement ? `, ${fiscalProfile.complement}` : ""}`,
+      // line1 = Logradouro (apenas rua + número, sem complemento — NFe.io usa como campo Logradouro, que tem maxLength ~50)
+      // line2 = Bairro (NFe.io mapeia para o campo Bairro da NFS-e)
+      line1: `${fiscalProfile.street}, ${fiscalProfile.number}`,
       line2: fiscalProfile.district,
       city: fiscalProfile.city,
       state: fiscalProfile.state,
