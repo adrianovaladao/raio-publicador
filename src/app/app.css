@@ -1302,7 +1302,7 @@ select.input {
   .veh-row .reach { display: none; }
   /* custo: oculta coluna separada; créditos ficam inline no .meta via .meta-cr */
   .veh-row .cost { display: none; }
-  .veh-row .meta-cr { display: inline-flex; align-items: center; gap: 3px; font-family: var(--mono); font-size: 10px; font-weight: 700; color: var(--coral-ink); }
+  .veh-row .meta-cr { display: inline-flex; align-items: center; gap: 3px; font-family: var(--mono); font-size: 10px; font-weight: 700; color: var(--coral-ink); margin-left: auto; }
 
   /* Tabela de veículos: oculta Estado (2), Site (3), Editoria (4), Alcance (6) — mantém Créditos (7) */
   .veh-tbl thead th:nth-child(2),
@@ -1320,8 +1320,10 @@ select.input {
   .veh-tbl thead th:nth-child(5),
   .veh-tbl tbody td:nth-child(5) { text-align: right; }
 
-  /* ── Confirmação de agendado/publicado: stats em grade 2×2 ── */
+  /* ── Confirmação de agendado/publicado: stats em grade 2×2 e botões empilhados ── */
   .confirm-stats { grid-template-columns: repeat(2, 1fr) !important; }
+  .confirm-actions { flex-direction: column !important; gap: 10px !important; }
+  .confirm-actions .btn { width: 100%; justify-content: center; }
 
   /* Barra de filtro/busca dos veículos: empilha */
   .veh-list .vh-toolbar { gap: 8px; padding: 12px 14px; }

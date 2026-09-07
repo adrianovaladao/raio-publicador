@@ -1689,7 +1689,7 @@ export default function NovoReleasePage() {
             </div>
 
             {/* Ações */}
-            <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
+            <div className="confirm-actions" style={{ display: "flex", gap: 12, justifyContent: "center" }}>
               <button className="btn btn-ghost" onClick={() => router.push("/releases")}>
                 Ver biblioteca
               </button>
