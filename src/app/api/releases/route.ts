@@ -17,6 +17,8 @@ export async function GET(req: NextRequest) {
 
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  // Retorna TODOS os releases do usuário — sem filtrar por archivedAt.
+  // O arquivamento feito pelo admin é exclusivo da fila interna; o cliente sempre vê seus releases.
   const releases = await getPrisma().release.findMany({
     where: { brand: { ownerId: userId } },
     include: { brand: { select: { name: true, color: true, logoUrl: true } } },

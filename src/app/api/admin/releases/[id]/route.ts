@@ -112,13 +112,14 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
   const { id } = await params;
   const prisma = getPrisma();
 
-  // Return credits if release was scheduled
   const release = await prisma.release.findUnique({
     where: { id },
-    select: { status: true, creditsUsed: true, authorId: true },
+    select: { status: true, creditsUsed: true, authorId: true, archivedAt: true },
   });
   if (!release) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
+  // Soft-delete: arquiva o release em vez de apagar do banco.
+  // O usuário continua vendo seus próprios releases; o admin remove da fila ativa.
   const creditsToReturn = ["SCHEDULED", "IN_REVIEW", "IN_PUBLICATION"].includes(release.status)
     ? release.creditsUsed ?? 0
     : 0;
@@ -131,7 +132,7 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
     : 0;
 
   await prisma.$transaction([
-    prisma.release.delete({ where: { id } }),
+    prisma.release.update({ where: { id }, data: { archivedAt: new Date() } }),
     ...(safeReturn > 0 ? [prisma.subscription.update({
       where: { ownerId: release.authorId },
       data: { creditsUsed: { decrement: safeReturn } },
