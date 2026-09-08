@@ -461,10 +461,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       .then(r => r.json())
       .then((d: Partial<SubInfo>) => {
         const status = d.status ?? null;
-        // Sem assinatura ativa → redireciona para completar o cadastro
+        // Somente ACTIVE e PAST_DUE têm acesso — qualquer outro status redireciona
         // Admins (raioAdmin) não são redirecionados
         const isAdmin = !!(user?.publicMetadata as Record<string, unknown>)?.raioAdmin;
-        if (!isAdmin && (!status || status === "INACTIVE")) {
+        const hasAccess = status === "ACTIVE" || status === "PAST_DUE";
+        if (!isAdmin && !hasAccess) {
           window.location.href = "/boas-vindas";
           return;
         }
