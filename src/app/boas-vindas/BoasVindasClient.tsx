@@ -585,9 +585,9 @@ export default function BoasVindasPage() {
         <main className="onb-body">
           <div style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}>
             {screen}
-            {/* Card de resumo fiscal — só aparece se veio do checkout e preencheu dados */}
-            {fromCheckout && fiscal && step !== "done" && (
-              <div style={{ width: "100%", maxWidth: step === "tour" ? 860 : 480 }}>
+            {/* Card de resumo fiscal — só na tela de boas-vindas (welcome), não nas demais */}
+            {fromCheckout && fiscal && step === "welcome" && (
+              <div style={{ width: "100%", maxWidth: 480 }}>
                 <FiscalSummaryCard fiscal={fiscal} onEdit={() => go("fiscal")} />
               </div>
             )}
