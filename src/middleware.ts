@@ -20,8 +20,7 @@ const isPublicRoute = createRouteMatcher([
   "/api/clerk/webhook",
   "/api/webhooks/clerk",
   "/api/webhooks/c6bank",
-  "/api/admin/test-stripe-customer",
-  "/api/admin/provision-user",
+
 ]);
 
 const BETA_PASSWORD = process.env.BETA_PASSWORD;
