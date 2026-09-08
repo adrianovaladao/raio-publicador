@@ -460,10 +460,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     fetch("/api/stripe/subscription")
       .then(r => r.json())
       .then((d: Partial<SubInfo>) => {
-        setSub({ plan: d.plan ?? null, status: d.status ?? null, label: d.label ?? "—", priceCents: d.priceCents ?? null, credits: d.credits ?? 0, creditsUsed: d.creditsUsed ?? 0 });
+        const status = d.status ?? null;
+        // Sem assinatura ativa → redireciona para completar o cadastro
+        // Admins (raioAdmin) não são redirecionados
+        const isAdmin = !!(user?.publicMetadata as Record<string, unknown>)?.raioAdmin;
+        if (!isAdmin && (!status || status === "INACTIVE")) {
+          window.location.href = "/boas-vindas";
+          return;
+        }
+        setSub({ plan: d.plan ?? null, status, label: d.label ?? "—", priceCents: d.priceCents ?? null, credits: d.credits ?? 0, creditsUsed: d.creditsUsed ?? 0 });
       })
       .catch(() => {});
-  }, []);
+  }, [user]);
 
   const fetchReleaseCount = useCallback(() => {
     fetch("/api/dashboard")
