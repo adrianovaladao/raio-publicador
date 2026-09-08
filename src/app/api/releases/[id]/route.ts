@@ -33,16 +33,21 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     return NextResponse.json({ error: "Este release não pode ser editado no status atual." }, { status: 403 });
   }
 
-  const becomingScheduled   = body.status === "SCHEDULED" && prev?.status !== "SCHEDULED";
+  // Primeiro agendamento: somente a partir de DRAFT → debita tudo
+  const becomingScheduled = body.status === "SCHEDULED" && prev?.status === "DRAFT";
+
+  // Reenvio após revisão: NEEDS_REVISION → SCHEDULED → debita/devolve apenas o DELTA de veículos
   const resubmittingAfterRevision = body.status === "SCHEDULED" && prev?.status === "NEEDS_REVISION";
 
-  if (becomingScheduled) {
+  if (becomingScheduled || resubmittingAfterRevision) {
     const sub = await prisma.subscription.findUnique({ where: { ownerId: userId }, select: { status: true } });
     if (!sub || ["PAST_DUE", "CANCELLED", "INACTIVE"].includes(sub.status)) {
       return NextResponse.json({ error: "Assinatura inativa. Regularize seu plano para agendar releases." }, { status: 403 });
     }
   }
-  const leavingScheduled    = prev?.status === "SCHEDULED" && body.status !== undefined && body.status !== "SCHEDULED";
+
+  const leavingScheduled = prev?.status === "SCHEDULED" && body.status !== undefined && body.status !== "SCHEDULED";
+
   const updateData = {
     ...(body.title       !== undefined && { title:       body.title }),
     ...(body.body        !== undefined && { body:        body.body }),
@@ -55,9 +60,11 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     ...(body.status      !== undefined && { status:      body.status as ReleaseStatus }),
   };
 
-  // When staying SCHEDULED but vehicle selection changes, adjust the credit delta
-  const stayingScheduled = prev?.status === "SCHEDULED" && (body.status === "SCHEDULED" || body.status === undefined);
-  const creditDelta = stayingScheduled && body.creditsUsed !== undefined
+  // Delta de créditos: ao permanecer SCHEDULED com veículos alterados,
+  // ou ao reenviar após revisão (NEEDS_REVISION → SCHEDULED) — créditos nunca foram devolvidos nesse fluxo
+  const needsDelta = (prev?.status === "SCHEDULED" && (body.status === "SCHEDULED" || body.status === undefined))
+    || resubmittingAfterRevision;
+  const creditDelta = needsDelta && body.creditsUsed !== undefined
     ? (body.creditsUsed ?? 0) - (prev?.creditsUsed ?? 0)
     : 0;
 
