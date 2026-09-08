@@ -26,7 +26,7 @@ export default function LoginPage() {
         .then(r => r.json())
         .then((d: { status?: string }) => {
           const hasAccess = d.status === "ACTIVE" || d.status === "PAST_DUE";
-          router.replace(hasAccess ? "/dashboard" : "/boas-vindas");
+          router.replace(hasAccess ? "/dashboard" : "/");
         })
         .catch(() => router.replace("/dashboard"));
     }
@@ -66,7 +66,7 @@ export default function LoginPage() {
       const subRes = await fetch("/api/stripe/subscription");
       const sub = await subRes.json() as { status?: string };
       const hasAccess = sub.status === "ACTIVE" || sub.status === "PAST_DUE";
-      router.replace(hasAccess ? "/dashboard" : "/boas-vindas");
+      router.replace(hasAccess ? "/dashboard" : "/");
     } catch {
       router.replace("/dashboard");
     }

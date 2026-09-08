@@ -466,7 +466,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         const isAdmin = !!(user?.publicMetadata as Record<string, unknown>)?.raioAdmin;
         const hasAccess = status === "ACTIVE" || status === "PAST_DUE";
         if (!isAdmin && !hasAccess) {
-          window.location.href = "/boas-vindas";
+          window.location.href = "/";
           return;
         }
         setSub({ plan: d.plan ?? null, status, label: d.label ?? "—", priceCents: d.priceCents ?? null, credits: d.credits ?? 0, creditsUsed: d.creditsUsed ?? 0 });
