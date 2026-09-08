@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 import { ArrowRight, ArrowLeft, Check, X, Coins, Building2, Users, Newspaper, Zap, FileText } from "lucide-react";
 import { RaioLockup } from "@/components/logo/RaioLockup";
 import "./onboarding.css";
@@ -104,7 +103,6 @@ export default function CheckoutConfirmClient({ initialPlanId, allPlans }: Props
   const [step, setStep] = useState<Step>("fiscal");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [showBackWarning, setShowBackWarning] = useState(false);
   const [showExitModal, setShowExitModal] = useState(false);
 
   // Fiscal form state
