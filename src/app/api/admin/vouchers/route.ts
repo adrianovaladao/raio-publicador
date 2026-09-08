@@ -8,13 +8,45 @@ export async function GET() {
 
   try {
     const vouchers = await getPrisma().voucher.findMany({
+      select: {
+        id: true,
+        code: true,
+        credits: true,
+        maxUses: true,
+        usedCount: true,
+        description: true,
+        expiresAt: true,
+        archivedAt: true,
+        createdAt: true,
+        _count: { select: { redemptions: true } },
+      },
       orderBy: { createdAt: "desc" },
-      include: { _count: { select: { redemptions: true } } },
     });
     return NextResponse.json(vouchers);
   } catch (err) {
-    console.error("[vouchers GET] Erro Prisma:", err);
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    // Fallback: se archivedAt ainda não existe no banco, busca sem esse campo
+    console.warn("[vouchers GET] Tentando fallback sem archivedAt:", String(err));
+    try {
+      const vouchers = await getPrisma().voucher.findMany({
+        select: {
+          id: true,
+          code: true,
+          credits: true,
+          maxUses: true,
+          usedCount: true,
+          description: true,
+          expiresAt: true,
+          createdAt: true,
+          _count: { select: { redemptions: true } },
+        },
+        orderBy: { createdAt: "desc" },
+      });
+      // Injeta archivedAt: null para compatibilidade com a UI
+      return NextResponse.json(vouchers.map(v => ({ ...v, archivedAt: null })));
+    } catch (err2) {
+      console.error("[vouchers GET] Erro Prisma fallback:", err2);
+      return NextResponse.json({ error: String(err2) }, { status: 500 });
+    }
   }
 }
 
