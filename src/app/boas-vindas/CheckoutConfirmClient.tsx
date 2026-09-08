@@ -132,6 +132,15 @@ export default function CheckoutConfirmClient({ initialPlanId, allPlans }: Props
     return () => window.removeEventListener("popstate", handlePopState);
   }, []);
 
+  // Warn before closing tab or navigating away
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, []);
+
   const plan = allPlans.find(p => p.id === selectedId) ?? allPlans[0];
 
   function setF(key: keyof FiscalData, value: string) {
@@ -222,8 +231,8 @@ export default function CheckoutConfirmClient({ initialPlanId, allPlans }: Props
   }
 
   return (
-    <div data-theme="dark" style={{ height: "100dvh", overflow: "hidden", background: "var(--ink)" }}>
-      <div className="onb" style={{ height: "100%" }}>
+    <div data-theme="dark" style={{ minHeight: "100dvh", overflowY: "auto", background: "var(--ink)" }}>
+      <div className="onb" style={{ minHeight: "100%" }}>
         <span className="bg-glow" />
         <header className="onb-top">
           <Link className="lock" href="/" style={{ display: "flex", alignItems: "center" }}>
