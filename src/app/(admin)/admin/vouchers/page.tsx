@@ -30,6 +30,7 @@ export default function VouchersAdminPage() {
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; code: string } | null>(null);
   const [search, setSearch]             = useState("");
   const [tab, setTab]                   = useState<Tab>("active");
+  const [loadError, setLoadError]       = useState("");
   const [creating, setCreating]         = useState(false);
   const [form, setForm]                 = useState({ code: "", credits: "100", maxUses: "1", description: "", expiresAt: "" });
   const [formError, setFormError]       = useState("");
@@ -42,10 +43,19 @@ export default function VouchersAdminPage() {
 
   const load = useCallback(async () => {
     setLoading(true);
+    setLoadError("");
     try {
       const res = await fetch("/api/admin/vouchers");
       const data = await res.json();
-      setVouchers(Array.isArray(data) ? data : []);
+      if (!res.ok) {
+        setLoadError(`Erro ao carregar vouchers: ${data?.error ?? res.status}`);
+        setVouchers([]);
+      } else {
+        setVouchers(Array.isArray(data) ? data : []);
+      }
+    } catch (e) {
+      setLoadError(`Falha de conexão: ${e instanceof Error ? e.message : String(e)}`);
+      setVouchers([]);
     } finally {
       setLoading(false);
     }
@@ -200,6 +210,12 @@ export default function VouchersAdminPage() {
             </button>
           </div>
         </div>
+
+        {loadError && (
+          <div style={{ background: "rgba(192,57,43,0.08)", border: "1px solid rgba(192,57,43,0.25)", borderRadius: 10, padding: "12px 16px", marginBottom: 20, fontSize: 13, color: "var(--red)" }}>
+            ⚠️ {loadError}
+          </div>
+        )}
 
         {/* Create form */}
         <div className="card" style={{ marginBottom: 24, padding: "20px 24px" }}>
