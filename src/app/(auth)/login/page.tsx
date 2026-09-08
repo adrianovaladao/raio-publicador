@@ -21,7 +21,15 @@ export default function LoginPage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (isSignedIn) router.replace("/dashboard");
+    if (isSignedIn) {
+      fetch("/api/stripe/subscription")
+        .then(r => r.json())
+        .then((d: { status?: string }) => {
+          const hasAccess = d.status === "ACTIVE" || d.status === "PAST_DUE";
+          router.replace(hasAccess ? "/dashboard" : "/boas-vindas");
+        })
+        .catch(() => router.replace("/dashboard"));
+    }
   }, [isSignedIn, router]);
 
   const [email, setEmail]       = useState("");
@@ -53,6 +61,17 @@ export default function LoginPage() {
     return clerk.client?.signIn;
   }
 
+  async function redirectAfterLogin() {
+    try {
+      const subRes = await fetch("/api/stripe/subscription");
+      const sub = await subRes.json() as { status?: string };
+      const hasAccess = sub.status === "ACTIVE" || sub.status === "PAST_DUE";
+      router.replace(hasAccess ? "/dashboard" : "/boas-vindas");
+    } catch {
+      router.replace("/dashboard");
+    }
+  }
+
   async function doTotp() {
     const si = getSignIn();
     if (!si) { setError("Aguarde e tente novamente."); return; }
@@ -61,7 +80,7 @@ export default function LoginPage() {
       const result = await si.attemptSecondFactor({ strategy: "totp", code: totpCode });
       if (result.status === "complete") {
         await clerk.setActive({ session: result.createdSessionId });
-        router.replace("/dashboard");
+        await redirectAfterLogin();
       } else {
         setError("Código inválido. Tente novamente.");
       }
@@ -93,7 +112,7 @@ export default function LoginPage() {
       const result = await si.attemptFirstFactor({ strategy: "reset_password_email_code", code: resetCode, password: resetPw });
       if (result.status === "complete") {
         await clerk.setActive({ session: result.createdSessionId });
-        router.replace("/dashboard");
+        await redirectAfterLogin();
       } else {
         setError("Não foi possível redefinir a senha. Tente novamente.");
       }
@@ -115,7 +134,7 @@ export default function LoginPage() {
         if (remember) localStorage.setItem("raio_remember_email", email);
         else localStorage.removeItem("raio_remember_email");
         await clerk.setActive({ session: result.createdSessionId });
-        router.replace("/dashboard");
+        await redirectAfterLogin();
         return;
       }
 
@@ -134,7 +153,7 @@ export default function LoginPage() {
           clerk.client?.lastActiveSessionId;
         if (sessionId) {
           await clerk.setActive({ session: sessionId });
-          router.replace("/dashboard");
+          await redirectAfterLogin();
           return;
         }
         setError("Não foi possível verificar o dispositivo. Tente novamente.");

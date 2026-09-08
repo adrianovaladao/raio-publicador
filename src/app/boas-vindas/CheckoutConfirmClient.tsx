@@ -105,6 +105,7 @@ export default function CheckoutConfirmClient({ initialPlanId, allPlans }: Props
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showBackWarning, setShowBackWarning] = useState(false);
+  const [showExitModal, setShowExitModal] = useState(false);
 
   // Fiscal form state
   const [fiscal, setFiscal] = useState<FiscalData>(EMPTY_FISCAL);
@@ -120,13 +121,12 @@ export default function CheckoutConfirmClient({ initialPlanId, allPlans }: Props
       .catch(() => {});
   }, []);
 
-  // Intercept browser back button
+  // Intercept browser back button — exibe modal de confirmação
   useEffect(() => {
     window.history.pushState(null, "", window.location.href);
     const handlePopState = () => {
       window.history.pushState(null, "", window.location.href);
-      setShowBackWarning(true);
-      setTimeout(() => setShowBackWarning(false), 5000);
+      setShowExitModal(true);
     };
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
@@ -235,19 +235,53 @@ export default function CheckoutConfirmClient({ initialPlanId, allPlans }: Props
       <div className="onb" style={{ minHeight: "100%" }}>
         <span className="bg-glow" />
         <header className="onb-top">
-          <Link className="lock" href="/" style={{ display: "flex", alignItems: "center" }}>
+          {/* Logo sem link — única ação permitida é preencher o formulário */}
+          <span className="lock" style={{ display: "flex", alignItems: "center" }}>
             <RaioLockup height={27} variant="dark" />
-          </Link>
+          </span>
         </header>
-        {showBackWarning && (
+
+        {/* Modal de confirmação ao tentar sair */}
+        {showExitModal && (
           <div style={{
-            position: "fixed", top: 20, left: "50%", transform: "translateX(-50%)", zIndex: 999,
-            background: "rgba(250,181,0,0.95)", color: "#212121", borderRadius: 12,
-            padding: "12px 20px", fontSize: 13.5, fontWeight: 600, maxWidth: 420, width: "calc(100% - 40px)",
-            boxShadow: "0 4px 24px rgba(0,0,0,0.35)", display: "flex", alignItems: "center", gap: 10,
+            position: "fixed", inset: 0, zIndex: 1000,
+            background: "rgba(0,0,0,0.7)", display: "flex", alignItems: "center", justifyContent: "center",
+            padding: 20,
           }}>
-            <span style={{ fontSize: 18 }}>⚠️</span>
-            <span>Não use o botão Voltar do navegador — utilize os botões desta página para navegar sem perder seu cadastro.</span>
+            <div style={{
+              background: "#1e1e1e", borderRadius: 16, padding: "32px 28px",
+              maxWidth: 400, width: "100%", textAlign: "center",
+              boxShadow: "0 8px 40px rgba(0,0,0,0.6)",
+            }}>
+              <div style={{ fontSize: 36, marginBottom: 12 }}>⚠️</div>
+              <h3 style={{ fontSize: 18, fontWeight: 700, color: "#fff", marginBottom: 10 }}>
+                Tem certeza que quer sair?
+              </h3>
+              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.6)", lineHeight: 1.6, marginBottom: 28 }}>
+                Se você sair agora, todas as informações preenchidas serão perdidas e você precisará começar de novo.
+              </p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                <button
+                  onClick={() => setShowExitModal(false)}
+                  style={{
+                    padding: "13px 0", borderRadius: 10, border: "none", cursor: "pointer",
+                    background: "var(--coral)", color: "#1a1a1a", fontWeight: 700, fontSize: 15,
+                  }}
+                >
+                  Continuar preenchendo
+                </button>
+                <button
+                  onClick={() => { window.location.href = "/"; }}
+                  style={{
+                    padding: "13px 0", borderRadius: 10, border: "1px solid rgba(255,255,255,0.15)",
+                    cursor: "pointer", background: "transparent", color: "rgba(255,255,255,0.5)",
+                    fontWeight: 500, fontSize: 14,
+                  }}
+                >
+                  Sair mesmo assim
+                </button>
+              </div>
+            </div>
           </div>
         )}
         <main className="onb-body">
