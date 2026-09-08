@@ -196,6 +196,7 @@ model Voucher {
   usedCount   Int       @default(0)
   description String?
   expiresAt   DateTime?
+  archivedAt  DateTime?
   createdAt   DateTime  @default(now())
 
   redemptions VoucherRedemption[]
