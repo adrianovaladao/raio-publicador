@@ -23,18 +23,7 @@ export async function POST(req: NextRequest) {
   const stripe = getStripe();
   const prisma = getPrisma();
 
-  const [sub, fiscalProfile] = await Promise.all([
-    prisma.subscription.findUnique({ where: { ownerId: userId } }),
-    prisma.fiscalProfile.findUnique({ where: { ownerId: userId } }),
-  ]);
-
-  // Dados fiscais são obrigatórios para emissão de NF
-  if (!fiscalProfile) {
-    return NextResponse.json(
-      { error: "Preencha os dados para nota fiscal antes de continuar." },
-      { status: 400 }
-    );
-  }
+  const sub = await prisma.subscription.findUnique({ where: { ownerId: userId } });
 
   // Cria ou recupera o Customer no Stripe
   let customerId = sub?.stripeCustomerId ?? undefined;
@@ -49,41 +38,6 @@ export async function POST(req: NextRequest) {
     if (sub) {
       await prisma.subscription.update({ where: { ownerId: userId }, data: { stripeCustomerId: customerId } });
     }
-  }
-
-  // Monta dados fiscais
-  const name = fiscalProfile.personType === "PF"
-    ? (fiscalProfile.fullName ?? "")
-    : (fiscalProfile.companyName ?? "");
-
-  const taxNumber = fiscalProfile.personType === "PF"
-    ? (fiscalProfile.cpf ?? "").replace(/\D/g, "")
-    : (fiscalProfile.cnpj ?? "").replace(/\D/g, "");
-
-  const taxType = fiscalProfile.personType === "PF" ? "br_cpf" : "br_cnpj";
-
-  // Sincroniza nome e endereço no Customer — obrigatório, sem silenciar erros
-  await stripe.customers.update(customerId, {
-    name,
-    address: {
-      // line1 = Logradouro (apenas rua + número, sem complemento — NFe.io usa como campo Logradouro, que tem maxLength ~50)
-      // line2 = Bairro (NFe.io mapeia para o campo Bairro da NFS-e)
-      line1: `${fiscalProfile.street}, ${fiscalProfile.number}`,
-      line2: fiscalProfile.district,
-      city: fiscalProfile.city,
-      state: fiscalProfile.state,
-      postal_code: fiscalProfile.cep.replace(/\D/g, ""),
-      country: "BR",
-    },
-  });
-
-  // Sincroniza CPF/CNPJ — remove anteriores e adiciona o atual
-  if (taxNumber) {
-    const existingTaxIds = await stripe.customers.listTaxIds(customerId);
-    await Promise.all(
-      existingTaxIds.data.map(tid => stripe.customers.deleteTaxId(customerId!, tid.id))
-    );
-    await stripe.customers.createTaxId(customerId, { type: taxType as "br_cpf" | "br_cnpj", value: taxNumber });
   }
 
   const origin = req.nextUrl.origin;

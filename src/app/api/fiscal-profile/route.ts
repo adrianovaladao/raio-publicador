@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic";
 import { auth } from "@clerk/nextjs/server";
 import { getPrisma } from "@/lib/prisma";
+import { getStripe } from "@/lib/stripe";
 import { NextResponse } from "next/server";
 
 export async function GET() {
@@ -39,13 +40,57 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Razão social e CNPJ são obrigatórios para pessoa jurídica." }, { status: 400 });
   }
 
-  // Salva no banco — a sincronização com o Stripe acontece em /api/stripe/checkout,
-  // onde o Customer já existe com certeza.
-  const profile = await getPrisma().fiscalProfile.upsert({
+  const prisma = getPrisma();
+
+  // Salva no banco
+  const profile = await prisma.fiscalProfile.upsert({
     where: { ownerId: userId },
     update: { ...body },
     create: { ownerId: userId, ...body },
   });
+
+  // Sincroniza com o Stripe — só se o customer já existir (pós-pagamento)
+  // Sem FiscalProfile no momento do checkout, a sincronização acontece aqui.
+  try {
+    const sub = await prisma.subscription.findUnique({ where: { ownerId: userId } });
+    const customerId = sub?.stripeCustomerId;
+    if (customerId) {
+      const stripe = getStripe();
+      const name = body.personType === "PF"
+        ? (body.fullName ?? "")
+        : (body.companyName ?? "");
+      const taxNumber = body.personType === "PF"
+        ? (body.cpf ?? "").replace(/\D/g, "")
+        : (body.cnpj ?? "").replace(/\D/g, "");
+      const taxType = body.personType === "PF" ? "br_cpf" : "br_cnpj";
+
+      await stripe.customers.update(customerId, {
+        name,
+        address: {
+          line1: `${body.street}, ${body.number}`,
+          line2: body.district,
+          city: body.city,
+          state: body.state,
+          postal_code: body.cep.replace(/\D/g, ""),
+          country: "BR",
+        },
+      });
+
+      if (taxNumber) {
+        const existingTaxIds = await stripe.customers.listTaxIds(customerId);
+        await Promise.all(
+          existingTaxIds.data.map(tid => stripe.customers.deleteTaxId(customerId, tid.id))
+        );
+        await stripe.customers.createTaxId(customerId, {
+          type: taxType as "br_cpf" | "br_cnpj",
+          value: taxNumber,
+        });
+      }
+    }
+  } catch (err) {
+    // Sync com Stripe é best-effort — não bloqueia a resposta
+    console.error("[fiscal-profile] Stripe sync error:", err);
+  }
 
   return NextResponse.json(profile);
 }

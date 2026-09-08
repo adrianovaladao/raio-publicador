@@ -9,20 +9,35 @@ import {
   ArrowRight, ArrowLeft, Check, X, Sparkles, Rocket,
   ChevronDown, Tag, Megaphone,
   CheckCircle, Bold, Italic, Link as LinkIcon,
-  Coins, Image as ImageIcon,
+  Coins, Image as ImageIcon, FileText,
 } from "lucide-react";
 import { RaioLockup } from "@/components/logo/RaioLockup";
 import "./onboarding.css";
 
 // ─── tipos ────────────────────────────────────────────────────
-type Stage = "welcome" | "tour" | "brand" | "done";
+type Stage = "fiscal" | "welcome" | "tour" | "brand" | "done";
 
 interface OnbData {
   name: string; segment: string; site: string; contact: string; desc: string;
   logoUrl: string;
 }
 
-// ─── MINI MOCKS ───────────────────────────────────────────────
+interface FiscalData {
+  personType: "PF" | "PJ";
+  fullName: string; cpf: string;
+  companyName: string; cnpj: string;
+  cep: string; street: string; number: string;
+  complement: string; district: string; city: string; state: string;
+}
+
+const EMPTY_FISCAL: FiscalData = {
+  personType: "PJ", fullName: "", cpf: "",
+  companyName: "", cnpj: "",
+  cep: "", street: "", number: "", complement: "",
+  district: "", city: "", state: "",
+};
+
+// ─── MOCK SCREENS ─────────────────────────────────────────────
 function MockEditor() {
   return (
     <div className="mock">
@@ -102,12 +117,196 @@ const TOUR = [
   { n: "04", mock: <MockResults />,  t: <>Acompanhe <em>seus resultados</em></>,        d: "Monitore o status dos seus releases, veja e exporte links ativos para acompanhar o desempenho de cada matéria." },
 ];
 
+// Stages visíveis no stepper (fiscal não aparece — é pré-passo)
 const STAGES: { id: Stage; nm: string }[] = [
   { id: "welcome", nm: "Boas-vindas" },
   { id: "tour",    nm: "Tour" },
   { id: "brand",   nm: "Sua marca" },
   { id: "done",    nm: "Pronto" },
 ];
+
+// ─── Helpers de formatação fiscal ─────────────────────────────
+function formatCPF(v: string) {
+  return v.replace(/\D/g,"").slice(0,11).replace(/(\d{3})(\d)/,"$1.$2").replace(/(\d{3})(\d)/,"$1.$2").replace(/(\d{3})(\d{1,2})$/,"$1-$2");
+}
+function formatCNPJ(v: string) {
+  return v.replace(/\D/g,"").slice(0,14).replace(/(\d{2})(\d)/,"$1.$2").replace(/(\d{3})(\d)/,"$1.$2").replace(/(\d{3})(\d)/,"$1/$2").replace(/(\d{4})(\d{1,2})$/,"$1-$2");
+}
+function formatCEP(v: string) {
+  return v.replace(/\D/g,"").slice(0,8).replace(/(\d{5})(\d)/,"$1-$2");
+}
+function fiscalLabel(text: string, required = true) {
+  return (
+    <div style={{ fontSize: 12.5, fontWeight: 600, color: "rgba(255,255,255,0.5)", marginBottom: 5, textAlign: "left", letterSpacing: "0.03em" }}>
+      {text}{required && <span style={{ color: "var(--coral)" }}> *</span>}
+    </div>
+  );
+}
+
+// ─── ETAPA FISCAL (pós-pagamento) ─────────────────────────────
+function FiscalStep({ onDone }: { onDone: (f: FiscalData) => void }) {
+  const [fiscal, setFiscal] = useState<FiscalData>(EMPTY_FISCAL);
+  const [cepLoading, setCepLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState("");
+
+  // Pré-carrega se já existe (ex: usuário voltou)
+  useEffect(() => {
+    fetch("/api/fiscal-profile")
+      .then(r => r.json())
+      .then((d: FiscalData | null) => { if (d) setFiscal({ ...EMPTY_FISCAL, ...d }); })
+      .catch(() => {});
+  }, []);
+
+  const setF = (k: keyof FiscalData, v: string) => setFiscal(f => ({ ...f, [k]: v }));
+
+  async function lookupCEP(cep: string) {
+    const digits = cep.replace(/\D/g, "");
+    if (digits.length !== 8) return;
+    setCepLoading(true);
+    try {
+      const res = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
+      const data = await res.json() as { logradouro?: string; bairro?: string; localidade?: string; uf?: string; erro?: boolean };
+      if (!data.erro) setFiscal(f => ({ ...f, street: data.logradouro ?? f.street, district: data.bairro ?? f.district, city: data.localidade ?? f.city, state: data.uf ?? f.state }));
+    } catch { /* silently fail */ }
+    finally { setCepLoading(false); }
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setErr("");
+    if (fiscal.personType === "PF") {
+      if (!fiscal.fullName.trim()) return setErr("Informe o nome completo.");
+      if (fiscal.cpf.replace(/\D/g,"").length !== 11) return setErr("CPF inválido.");
+    } else {
+      if (!fiscal.companyName.trim()) return setErr("Informe a razão social.");
+      if (fiscal.cnpj.replace(/\D/g,"").length !== 14) return setErr("CNPJ inválido.");
+    }
+    if (fiscal.cep.replace(/\D/g,"").length !== 8) return setErr("CEP inválido.");
+    if (!fiscal.street.trim()) return setErr("Informe o logradouro.");
+    if (!fiscal.number.trim()) return setErr("Informe o número.");
+    if (!fiscal.district.trim()) return setErr("Informe o bairro.");
+    if (!fiscal.city.trim()) return setErr("Informe a cidade.");
+    if (!fiscal.state.trim()) return setErr("Informe o estado.");
+
+    setSaving(true);
+    try {
+      const res = await fetch("/api/fiscal-profile", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(fiscal),
+      });
+      if (!res.ok) {
+        const d = await res.json() as { error?: string };
+        return setErr(d.error ?? "Erro ao salvar dados fiscais.");
+      }
+      onDone(fiscal);
+    } catch {
+      setErr("Falha de conexão. Tente novamente.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="onb-card narrow" style={{ textAlign: "center" }}>
+      <style>{`
+        .fi { width:100%; padding:10px 13px; border-radius:9px; border:1.5px solid rgba(255,255,255,0.12); background:rgba(255,255,255,0.06); color:var(--tx); font-size:14px; outline:none; box-sizing:border-box; font-family:inherit; }
+        .fi:focus { border-color:rgba(250,181,0,0.5); }
+        .fi::placeholder { color:rgba(255,255,255,0.3); }
+        .ptab { flex:1; padding:9px 0; border-radius:8px; border:none; font-size:13.5px; font-weight:600; cursor:pointer; transition:background .15s,color .15s; font-family:inherit; }
+        .ptab.on { background:var(--coral); color:#1a1a1a; }
+        .ptab.off { background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.5); }
+      `}</style>
+      <div className="onb-head">
+        <div style={{ display:"inline-flex", alignItems:"center", justifyContent:"center", width:44, height:44, borderRadius:12, background:"rgba(250,181,0,0.12)", marginBottom:12 }}>
+          <FileText size={22} style={{ color:"var(--coral)" }} />
+        </div>
+        <h1>Dados para <em>nota fiscal</em></h1>
+        <p className="sub">Preencha antes de prosseguir. Necessários para emissão da NFS-e.</p>
+      </div>
+
+      <div style={{ display:"flex", gap:8, marginBottom:18, background:"rgba(255,255,255,0.04)", borderRadius:10, padding:4 }}>
+        <button type="button" className={`ptab ${fiscal.personType==="PJ"?"on":"off"}`} onClick={() => setF("personType","PJ")}>Pessoa Jurídica (PJ)</button>
+        <button type="button" className={`ptab ${fiscal.personType==="PF"?"on":"off"}`} onClick={() => setF("personType","PF")}>Pessoa Física (PF)</button>
+      </div>
+
+      <form onSubmit={handleSubmit} noValidate>
+        <div style={{ display:"flex", flexDirection:"column", gap:12, textAlign:"left" }}>
+          {fiscal.personType === "PJ" ? (
+            <>
+              <div>{fiscalLabel("Razão Social")}<input className="fi" placeholder="Nome da empresa conforme CNPJ" value={fiscal.companyName} onChange={e => setF("companyName",e.target.value)} /></div>
+              <div>{fiscalLabel("CNPJ")}<input className="fi" placeholder="00.000.000/0000-00" value={fiscal.cnpj} onChange={e => setF("cnpj",formatCNPJ(e.target.value))} inputMode="numeric" /></div>
+            </>
+          ) : (
+            <>
+              <div>{fiscalLabel("Nome Completo")}<input className="fi" placeholder="Seu nome completo" value={fiscal.fullName} onChange={e => setF("fullName",e.target.value)} /></div>
+              <div>{fiscalLabel("CPF")}<input className="fi" placeholder="000.000.000-00" value={fiscal.cpf} onChange={e => setF("cpf",formatCPF(e.target.value))} inputMode="numeric" /></div>
+            </>
+          )}
+
+          <div style={{ borderTop:"1px solid rgba(255,255,255,0.08)", paddingTop:12 }}>
+            <div style={{ fontSize:11, fontWeight:700, letterSpacing:"0.08em", textTransform:"uppercase", color:"rgba(255,255,255,0.35)", marginBottom:12 }}>Endereço</div>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr auto", gap:8, marginBottom:12 }}>
+              <div>
+                {fiscalLabel("CEP")}
+                <input className="fi" placeholder="00000-000" value={fiscal.cep} inputMode="numeric"
+                  onChange={e => { const v=formatCEP(e.target.value); setF("cep",v); if(v.replace(/\D/g,"").length===8) lookupCEP(v); }} />
+              </div>
+              <div style={{ display:"flex", alignItems:"flex-end" }}>
+                {cepLoading && <div style={{ fontSize:12, color:"rgba(255,255,255,0.35)", paddingBottom:11 }}>buscando…</div>}
+              </div>
+            </div>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 100px", gap:8, marginBottom:12 }}>
+              <div>{fiscalLabel("Logradouro")}<input className="fi" placeholder="Rua, Av., etc." value={fiscal.street} onChange={e => setF("street",e.target.value)} /></div>
+              <div>{fiscalLabel("Número")}<input className="fi" placeholder="123" value={fiscal.number} onChange={e => setF("number",e.target.value)} /></div>
+            </div>
+            <div style={{ marginBottom:12 }}>{fiscalLabel("Complemento",false)}<input className="fi" placeholder="Apto, sala, bloco (opcional)" value={fiscal.complement} onChange={e => setF("complement",e.target.value)} /></div>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginBottom:12 }}>
+              <div>{fiscalLabel("Bairro")}<input className="fi" placeholder="Bairro" value={fiscal.district} onChange={e => setF("district",e.target.value)} /></div>
+              <div>{fiscalLabel("Cidade")}<input className="fi" placeholder="Cidade" value={fiscal.city} onChange={e => setF("city",e.target.value)} /></div>
+            </div>
+            <div style={{ maxWidth:100 }}>{fiscalLabel("Estado")}<input className="fi" placeholder="SP" maxLength={2} value={fiscal.state} onChange={e => setF("state",e.target.value.toUpperCase())} /></div>
+          </div>
+        </div>
+
+        {err && <p style={{ color:"#e05c5c", fontSize:13, marginTop:12, textAlign:"left" }}>{err}</p>}
+
+        <div style={{ marginTop:16, padding:"12px 14px", borderRadius:10, background:"rgba(250,181,0,0.07)", border:"1px solid rgba(250,181,0,0.2)", display:"flex", gap:10, alignItems:"flex-start", textAlign:"left" }}>
+          <FileText size={15} style={{ color:"var(--coral)", flexShrink:0, marginTop:1 }} />
+          <span style={{ fontSize:12.5, color:"rgba(255,255,255,0.45)", lineHeight:1.55 }}>
+            <b style={{ color:"rgba(255,255,255,0.65)" }}>Emissão da nota fiscal:</b> a NFS-e será emitida após o período de 7 dias previsto para cancelamento (Art. 49, CDC). Os dados preenchidos aqui são utilizados exclusivamente para este fim.
+          </span>
+        </div>
+
+        <button type="submit" className="btn btn-primary btn-lg" disabled={saving}
+          style={{ width:"100%", justifyContent:"center", marginTop:14, marginBottom:8 }}>
+          {saving ? "Salvando…" : <><span>Confirmar e criar uma marca</span><ArrowRight size={17} /></>}
+        </button>
+      </form>
+    </div>
+  );
+}
+
+// ─── Card de resumo fiscal (mostrado abaixo do wizard) ─────────
+function FiscalSummaryCard({ fiscal, onEdit }: { fiscal: FiscalData; onEdit: () => void }) {
+  const name = fiscal.personType === "PF" ? fiscal.fullName : fiscal.companyName;
+  const doc  = fiscal.personType === "PF" ? fiscal.cpf : fiscal.cnpj;
+  const addr = [fiscal.street, fiscal.number, fiscal.complement, fiscal.district, `${fiscal.city}/${fiscal.state}`, fiscal.cep]
+    .filter(Boolean).join(" · ");
+  return (
+    <div style={{ marginTop:16, background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:14, padding:"14px 16px" }}>
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
+        <span style={{ fontSize:11, fontWeight:700, letterSpacing:"0.1em", textTransform:"uppercase", color:"rgba(255,255,255,0.35)" }}>Dados para nota fiscal</span>
+        <button onClick={onEdit} style={{ background:"none", border:"none", fontSize:12, color:"var(--coral)", cursor:"pointer", padding:0, fontWeight:600 }}>Editar</button>
+      </div>
+      <div style={{ fontSize:13.5, lineHeight:1.6 }}>
+        <span style={{ fontWeight:600, color:"var(--tx)" }}>{name}</span>
+        {doc && <span style={{ marginLeft:8, fontSize:11, color:"rgba(255,255,255,0.35)" }}>{doc}</span>}
+      </div>
+      <div style={{ fontSize:12.5, color:"rgba(255,255,255,0.4)" }}>{addr}</div>
+    </div>
+  );
+}
 
 // ─── BOAS-VINDAS ──────────────────────────────────────────────
 function Welcome({ go, firstName }: { go: (s: Stage) => void; firstName: string }) {
@@ -188,50 +387,28 @@ function Brand({ go, data, setData }: { go: (s: Stage) => void; data: OnbData; s
     const file = e.target.files?.[0];
     if (!file) return;
     logoFileRef.current = file;
-    const url = URL.createObjectURL(file);
-    setData({ ...data, logoUrl: url });
+    setData({ ...data, logoUrl: URL.createObjectURL(file) });
   }
 
   async function saveBrand() {
-    setSaving(true);
-    setErr("");
+    setSaving(true); setErr("");
     try {
       let logoUrl: string | undefined;
       if (logoFileRef.current) {
         const form = new FormData();
         form.append("file", logoFileRef.current);
         const upRes = await fetch("/api/upload", { method: "POST", body: form });
-        if (upRes.ok) {
-          const { url } = await upRes.json();
-          logoUrl = url;
-        }
+        if (upRes.ok) { const { url } = await upRes.json(); logoUrl = url; }
       }
-
       const res = await fetch("/api/brands", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: data.name.trim(),
-          segment: data.segment,
-          site: data.site.trim() || undefined,
-          contact: data.contact.trim() || undefined,
-          description: data.desc.trim() || undefined,
-          logoUrl,
-        }),
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: data.name.trim(), segment: data.segment, site: data.site.trim() || undefined, contact: data.contact.trim() || undefined, description: data.desc.trim() || undefined, logoUrl }),
       });
       const text = await res.text();
-      if (!res.ok) {
-        let msg = `Erro ${res.status}`;
-        try { msg = JSON.parse(text)?.error ?? msg; } catch { /* ignore */ }
-        setErr(msg);
-        return;
-      }
+      if (!res.ok) { let msg = `Erro ${res.status}`; try { msg = JSON.parse(text)?.error ?? msg; } catch { /* ignore */ } setErr(msg); return; }
       go("done");
-    } catch {
-      setErr("Falha de conexão. Verifique e tente novamente.");
-    } finally {
-      setSaving(false);
-    }
+    } catch { setErr("Falha de conexão. Verifique e tente novamente."); }
+    finally { setSaving(false); }
   }
 
   return (
@@ -248,13 +425,7 @@ function Brand({ go, data, setData }: { go: (s: Stage) => void; data: OnbData; s
               {data.logoUrl ? (
                 <>
                   <Image src={data.logoUrl} alt="logo" fill style={{ objectFit: "contain", padding: 8 }} sizes="120px" />
-                  <button
-                    className="logo-del"
-                    onClick={e => { e.stopPropagation(); setData({ ...data, logoUrl: "" }); if (fileRef.current) fileRef.current.value = ""; }}
-                    title="Remover imagem"
-                  >
-                    <X size={13} />
-                  </button>
+                  <button className="logo-del" onClick={e => { e.stopPropagation(); setData({ ...data, logoUrl: "" }); if (fileRef.current) fileRef.current.value = ""; }} title="Remover imagem"><X size={13} /></button>
                 </>
               ) : (
                 <ImageIcon size={32} style={{ color: "var(--tx-4)" }} />
@@ -337,44 +508,55 @@ export default function BoasVindasPage() {
   const { user } = useUser();
   const firstName = user?.firstName || "";
   const searchParams = useSearchParams();
-  const [step, setStep] = useState<Stage>("welcome");
-  const [data, setData] = useState<OnbData>({
-    name: "", segment: "Franquias", site: "", contact: "", desc: "", logoUrl: "",
-  });
+  const fromCheckout = searchParams.get("checkout") === "success";
 
+  // Pré-passo fiscal só existe quando vem do checkout
+  const [step, setStep] = useState<Stage>(fromCheckout ? "fiscal" : "welcome");
+  const [fiscal, setFiscal] = useState<FiscalData | null>(null);
+  const [data, setData] = useState<OnbData>({ name: "", segment: "Franquias", site: "", contact: "", desc: "", logoUrl: "" });
+
+  // Stages visíveis no stepper (fiscal não entra)
   const idx = STAGES.findIndex(s => s.id === step);
   const go = (s: Stage) => { setStep(s); try { window.scrollTo(0, 0); } catch { /* ignore */ } };
 
-  // Resgate de voucher: o código chega via ?vc=base64(code) do cadastro.
-  // A sessão já está estável neste ponto (navegação completa), então o resgate funciona.
+  // Resgate de voucher
   useEffect(() => {
     const vc = searchParams.get("vc");
     if (!vc) return;
     let code = "";
     try { code = atob(vc); } catch { return; }
     if (!code) return;
-
-    const redeem = async () => {
-      try {
-        await fetch("/api/vouchers/redeem", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ code }),
-        });
-        // Sucesso ou já resgatado (400) — em ambos os casos não fazemos nada especial.
-        // O usuário verá os créditos ao atualizar a página.
-      } catch { /* ignora — usuário pode resgatar em configurações */ }
-    };
-    redeem();
+    fetch("/api/vouchers/redeem", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code }) }).catch(() => {});
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // ── Tela de dados fiscais (pré-passo, sem stepper) ──────────
+  if (step === "fiscal") {
+    return (
+      <div data-theme="dark" style={{ minHeight: "100vh", background: "var(--ink)" }}>
+        <div className="onb">
+          <span className="bg-glow" />
+          <header className="onb-top">
+            <span className="lock" style={{ display: "flex", alignItems: "center" }}>
+              <RaioLockup height={27} variant="dark" />
+            </span>
+          </header>
+          <main className="onb-body">
+            <FiscalStep onDone={f => { setFiscal(f); go("welcome"); }} />
+          </main>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Wizard principal (welcome/tour/brand/done) ───────────────
   let screen;
   switch (step) {
     case "welcome": screen = <Welcome go={go} firstName={firstName} />; break;
     case "tour":    screen = <Tour go={go} />; break;
     case "brand":   screen = <Brand go={go} data={data} setData={setData} />; break;
     case "done":    screen = <Done data={data} />; break;
+    default:        screen = null;
   }
 
   return (
@@ -400,7 +582,17 @@ export default function BoasVindasPage() {
           <div className="spacer" />
           <Link href="/dashboard" className="skip">Pular <X size={15} /></Link>
         </header>
-        <main className="onb-body">{screen}</main>
+        <main className="onb-body">
+          <div style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}>
+            {screen}
+            {/* Card de resumo fiscal — só aparece se veio do checkout e preencheu dados */}
+            {fromCheckout && fiscal && step !== "done" && (
+              <div style={{ width: "100%", maxWidth: step === "tour" ? 860 : 480 }}>
+                <FiscalSummaryCard fiscal={fiscal} onEdit={() => go("fiscal")} />
+              </div>
+            )}
+          </div>
+        </main>
       </div>
     </div>
   );
