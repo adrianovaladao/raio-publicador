@@ -9,12 +9,16 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const { id } = await params;
   const { archive } = await req.json() as { archive: boolean };
 
-  const voucher = await getPrisma().voucher.update({
-    where: { id },
-    data: { archivedAt: archive ? new Date() : null },
-  });
-
-  return NextResponse.json(voucher);
+  try {
+    const voucher = await getPrisma().voucher.update({
+      where: { id },
+      data: { archivedAt: archive ? new Date() : null },
+    });
+    return NextResponse.json(voucher);
+  } catch (err) {
+    console.error("[vouchers PATCH] Erro Prisma:", err);
+    return NextResponse.json({ error: String(err) }, { status: 500 });
+  }
 }
 
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {

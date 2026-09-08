@@ -6,12 +6,16 @@ import { assertAnyAdmin } from "@/lib/admin-server";
 export async function GET() {
   if (!await assertAnyAdmin()) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const vouchers = await getPrisma().voucher.findMany({
-    orderBy: { createdAt: "desc" },
-    include: { _count: { select: { redemptions: true } } },
-  });
-
-  return NextResponse.json(vouchers);
+  try {
+    const vouchers = await getPrisma().voucher.findMany({
+      orderBy: { createdAt: "desc" },
+      include: { _count: { select: { redemptions: true } } },
+    });
+    return NextResponse.json(vouchers);
+  } catch (err) {
+    console.error("[vouchers GET] Erro Prisma:", err);
+    return NextResponse.json({ error: String(err) }, { status: 500 });
+  }
 }
 
 export async function POST(req: Request) {
