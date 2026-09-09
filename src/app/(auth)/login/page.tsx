@@ -24,9 +24,9 @@ export default function LoginPage() {
     if (isSignedIn) {
       fetch("/api/stripe/subscription")
         .then(r => r.json())
-        .then((d: { status?: string }) => {
+        .then((d: { status?: string; everPaid?: boolean }) => {
           const hasAccess = d.status === "ACTIVE" || d.status === "PAST_DUE";
-          router.replace(hasAccess ? "/dashboard" : "/");
+          router.replace(hasAccess || d.everPaid ? "/dashboard" : "/");
         })
         .catch(() => router.replace("/dashboard"));
     }
@@ -64,9 +64,12 @@ export default function LoginPage() {
   async function redirectAfterLogin() {
     try {
       const subRes = await fetch("/api/stripe/subscription");
-      const sub = await subRes.json() as { status?: string };
+      const sub = await subRes.json() as { status?: string; everPaid?: boolean };
       const hasAccess = sub.status === "ACTIVE" || sub.status === "PAST_DUE";
-      router.replace(hasAccess ? "/dashboard" : "/");
+      // Quem já pagou alguma vez (cancelados incluídos) vai para o dashboard.
+      // Quem nunca pagou vai para a landing para escolher um plano.
+      const dest = hasAccess || sub.everPaid ? "/dashboard" : "/";
+      router.replace(dest);
     } catch {
       router.replace("/dashboard");
     }

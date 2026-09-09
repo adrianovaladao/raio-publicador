@@ -17,7 +17,7 @@ import { useSearchParams } from "next/navigation";
 
 // ─── Subscription data ────────────────────────────────────────────────────────
 
-interface SubInfo { plan: string | null; status: string | null; label: string; priceCents: number | null; credits: number; creditsUsed: number; }
+interface SubInfo { plan: string | null; status: string | null; everPaid: boolean; label: string; priceCents: number | null; credits: number; creditsUsed: number; }
 
 const APP_PLANS = [
   { id: "BASIC",        name: "Básico",       amt: "1.000", credits: "200 créditos",   feats: ["Até 2 marcas", "1 editor + 1 revisor",  "Centenas de veículos", "Até 2 publicações em portais categoria A"] },
@@ -454,22 +454,24 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [unreadCount, setUnreadCount] = useState(0);
   const [toast, setToast] = useState<string | null>(null);
   const [releaseCount, setReleaseCount] = useState<number | null>(null);
-  const [sub, setSub] = useState<SubInfo>({ plan: null, status: null, label: "—", priceCents: null, credits: 0, creditsUsed: 0 });
+  const [sub, setSub] = useState<SubInfo>({ plan: null, status: null, everPaid: false, label: "—", priceCents: null, credits: 0, creditsUsed: 0 });
 
   const fetchSub = useCallback(() => {
     fetch("/api/stripe/subscription")
       .then(r => r.json())
       .then((d: Partial<SubInfo>) => {
         const status = d.status ?? null;
-        // Somente ACTIVE e PAST_DUE têm acesso — qualquer outro status redireciona
-        // Admins (raioAdmin) não são redirecionados
+        const everPaid = d.everPaid ?? false;
         const isAdmin = !!(user?.publicMetadata as Record<string, unknown>)?.raioAdmin;
         const hasAccess = status === "ACTIVE" || status === "PAST_DUE";
-        if (!isAdmin && !hasAccess) {
+        // Só redireciona quem NUNCA pagou (nunca passou pelo Stripe).
+        // Quem cancelou ou tem plano inativo mas já pagou fica na plataforma
+        // com UI de "Sem plano" — nunca jogado para fora.
+        if (!isAdmin && !hasAccess && !everPaid) {
           window.location.href = "/";
           return;
         }
-        setSub({ plan: d.plan ?? null, status, label: d.label ?? "—", priceCents: d.priceCents ?? null, credits: d.credits ?? 0, creditsUsed: d.creditsUsed ?? 0 });
+        setSub({ plan: d.plan ?? null, status, everPaid, label: d.label ?? "—", priceCents: d.priceCents ?? null, credits: d.credits ?? 0, creditsUsed: d.creditsUsed ?? 0 });
       })
       .catch(() => {});
   }, [user]);
@@ -521,7 +523,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   const pct  = sub.credits > 0 ? Math.round((sub.creditsUsed / sub.credits) * 100) : 0;
   const left = sub.credits - sub.creditsUsed;
+  // isCancelled: sem plano ativo — mas o usuário pode ainda ter pago antes
   const isCancelled = sub.status === "CANCELLED" || sub.status === "INACTIVE" || sub.status === null;
+  // neverPaid: nunca passou pelo Stripe — acesso mais restrito (AppShell não deve existir neste caso, mas por segurança)
+  const neverPaid = isCancelled && !sub.everPaid;
 
   return (
     <div className="app">
@@ -558,7 +563,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             {NAV_ITEMS.map(({ href, icon: Icon, label }) => {
               const active = pathname === href || pathname.startsWith(href + "/");
               const badge = href === "/releases" && releaseCount ? String(releaseCount) : null;
-              if (isCancelled) return (
+              // Cancelados que já pagaram navegam livremente — só bloqueamos quem nunca pagou
+              if (neverPaid) return (
                 <span key={href} className="sb-item" style={{ opacity: 0.35, cursor: "not-allowed", pointerEvents: "none" }}>
                   <Icon size={18} /><span>{label}</span>
                 </span>
@@ -596,21 +602,33 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
           <div className="bar"><i style={{ width: `${pct}%` }} /></div>
           <div className="hint">{pct}% usados · renova em {(() => { const d = new Date(); const r = new Date(d.getFullYear(), d.getMonth()+1, 1); return `${String(r.getDate()).padStart(2,"0")}/${String(r.getMonth()+1).padStart(2,"0")}/${r.getFullYear()}`; })()}</div>
-          {sub.plan && (
+          {isCancelled ? (
+            /* Sem plano ativo: só botão de escolher plano */
             <div
-              style={{ marginTop: 8, padding: "6px 10px", borderRadius: 8, background: "rgba(255,255,255,0.12)", fontSize: 12, fontWeight: 600, color: "#fff", textAlign: "center", cursor: "pointer" }}
+              style={{ marginTop: 8, padding: "7px 10px", borderRadius: 8, background: "var(--coral)", fontSize: 12, fontWeight: 700, color: "#1a1a1a", textAlign: "center", cursor: "pointer" }}
               onClick={e => { e.stopPropagation(); setShowPlans(true); }}
             >
-              Ver planos
+              Escolher um plano
             </div>
-          )}
-          {sub.plan && !isCancelled && sub.plan !== "VOUCHER" && (
-            <div
-              style={{ marginTop: 6, padding: "6px 10px", borderRadius: 8, background: "#000", border: "1px solid #000", fontSize: 12, fontWeight: 600, color: "#fff", textAlign: "center", cursor: "pointer" }}
-              onClick={e => { e.stopPropagation(); setShowBuyCredits(true); }}
-            >
-              + Comprar créditos avulsos
-            </div>
+          ) : (
+            <>
+              {sub.plan && (
+                <div
+                  style={{ marginTop: 8, padding: "6px 10px", borderRadius: 8, background: "rgba(255,255,255,0.12)", fontSize: 12, fontWeight: 600, color: "#fff", textAlign: "center", cursor: "pointer" }}
+                  onClick={e => { e.stopPropagation(); setShowPlans(true); }}
+                >
+                  Ver planos
+                </div>
+              )}
+              {sub.plan && sub.plan !== "VOUCHER" && (
+                <div
+                  style={{ marginTop: 6, padding: "6px 10px", borderRadius: 8, background: "#000", border: "1px solid #000", fontSize: 12, fontWeight: 600, color: "#fff", textAlign: "center", cursor: "pointer" }}
+                  onClick={e => { e.stopPropagation(); setShowBuyCredits(true); }}
+                >
+                  + Comprar créditos avulsos
+                </div>
+              )}
+            </>
           )}
         </button>
 

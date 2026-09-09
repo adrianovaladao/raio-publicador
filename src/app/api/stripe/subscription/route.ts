@@ -12,9 +12,13 @@ export async function GET() {
   if (!sub) return NextResponse.json({ plan: null, status: null, brandsLimit: null });
 
   const planMeta = PLANS[sub.plan as keyof typeof PLANS] ?? null;
+  // everPaid = true se o usuário já passou pelo Stripe em algum momento
+  // Usado para distinguir "nunca pagou" (bloquear acesso) de "cancelou" (manter acesso)
+  const everPaid = !!(sub.stripeCustomerId || sub.stripeSubscriptionId);
   return NextResponse.json({
     plan: sub.plan,
     status: sub.status,
+    everPaid,
     brandsLimit: planMeta?.brandsLimit ?? null,
     editorsLimit: planMeta?.editorsLimit ?? null,
     reviewersLimit: planMeta?.reviewersLimit ?? null,
