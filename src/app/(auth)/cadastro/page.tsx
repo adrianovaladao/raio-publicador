@@ -90,10 +90,18 @@ function CadastroInner() {
     window.location.href = plan ? `/boas-vindas?plan=${plan}` : "/boas-vindas";
   }
 
-  function redeemAndProceed() {
+  async function redeemAndProceed() {
     const code = voucherCode.trim();
-    // NÃO tentamos resgatar aqui — a sessão pode não estar propagada ainda.
-    // Passamos o código pelo URL para boas-vindas onde a sessão já estará ativa.
+    // A sessão já está ativa na memória (setActive foi chamado antes).
+    // Resgatamos o voucher aqui — o cookie Clerk já foi setado e o fetch o inclui.
+    // Se falhar, navegamos mesmo assim (boas-vindas tentará de novo via URL param).
+    try {
+      await fetch("/api/vouchers/redeem", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code }),
+      });
+    } catch { /* best-effort — navega de qualquer jeito */ }
     window.location.href = `/boas-vindas?checkout=voucher&vc=${encodeURIComponent(btoa(code))}`;
   }
 
@@ -305,11 +313,13 @@ function CadastroInner() {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const stillMissing: string[] = (result as any).missingFields ?? missing;
         if (stillMissing.includes("password") || stillMissing.includes("password_digest")) {
+          // Senha rejeitada: volta ao signup para o usuário escolher outra senha
           setStep("signup");
           setError("Sua senha foi recusada por ser muito comum. Por favor, escolha uma senha diferente.");
         } else {
-          setStep("signup");
-          setError("Não foi possível concluir o cadastro. Por favor, tente novamente com outra senha.");
+          // Outros erros: não voltar ao signup (causaria perda de contexto de voucher)
+          // Mostrar erro no próprio step de verificação e deixar usuário tentar de novo
+          setError("Não foi possível concluir o cadastro. Por favor, recarregue a página e tente novamente.");
         }
       }
     } catch (err: unknown) {

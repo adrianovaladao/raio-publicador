@@ -26,7 +26,9 @@ export default function LoginPage() {
         .then(r => r.json())
         .then((d: { status?: string; everPaid?: boolean }) => {
           const hasAccess = d.status === "ACTIVE" || d.status === "PAST_DUE";
-          router.replace(hasAccess || d.everPaid ? "/dashboard" : "/");
+          // Quem já pagou ou tem plano ativo → dashboard
+          // Quem nunca pagou (novo usuário) → boas-vindas para completar o onboarding
+          router.replace(hasAccess || d.everPaid ? "/dashboard" : "/boas-vindas");
         })
         .catch(() => router.replace("/dashboard"));
     }
@@ -68,7 +70,7 @@ export default function LoginPage() {
       const hasAccess = sub.status === "ACTIVE" || sub.status === "PAST_DUE";
       // Quem já pagou alguma vez (cancelados incluídos) vai para o dashboard.
       // Quem nunca pagou vai para a landing para escolher um plano.
-      const dest = hasAccess || sub.everPaid ? "/dashboard" : "/";
+      const dest = hasAccess || sub.everPaid ? "/dashboard" : "/boas-vindas";
       router.replace(dest);
     } catch {
       router.replace("/dashboard");
