@@ -249,9 +249,10 @@ function CadastroInner() {
     setLoading(true);
     setError("");
     try {
-      // Always prefer the live signUp from window.Clerk to avoid stale closure
+      // Prioriza clerkSuRef.current (o objeto real em que prepareEmailAddressVerification foi chamado).
+      // window.Clerk.client.signUp pode estar num estado diferente após reload.
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const clerkSu = (window as any).Clerk?.client?.signUp ?? clerkSuRef.current ?? signUp;
+      const clerkSu = clerkSuRef.current ?? (window as any).Clerk?.client?.signUp ?? signUp;
       if (!clerkSu) { setError("Tente novamente."); return; }
       let result = await clerkSu.attemptEmailAddressVerification({ code });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -325,17 +326,30 @@ function CadastroInner() {
     } catch (err: unknown) {
       const e = err as { errors?: { longMessage?: string; message?: string; code?: string }[] };
       const code = e?.errors?.[0]?.code || "";
-      // If email is already verified, the session may already exist
-      if (code === "verification_already_verified" || code === "form_identifier_already_used") {
+      // Verificação já concluída ou cliente em estado inválido — tenta usar sessão existente
+      if (
+        code === "verification_already_verified" ||
+        code === "form_identifier_already_used" ||
+        code === "client_state_invalid"
+      ) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const sessionId = (window as any).Clerk?.client?.activeSessions?.[0]?.id;
-        if (sessionId) {
+        const sessionId = (window as any).Clerk?.client?.activeSessions?.[0]?.id
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const sa = setActive ?? (window as any).Clerk?.setActive;
-          await sa({ session: sessionId });
-          await goToCheckout();
-          return;
+          ?? (window as any).Clerk?.session?.id;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const sa = setActive ?? (window as any).Clerk?.setActive;
+        if (sessionId && sa) {
+          try {
+            await sa({ session: sessionId });
+            // Preserva o fluxo de voucher mesmo ao recuperar a sessão
+            const proceed = isVoucherFlow && voucherState === "valid" ? redeemAndProceed : goToCheckout;
+            await proceed();
+            return;
+          } catch { /* sem sessão recuperável — mostra erro */ }
         }
+        // Nenhuma sessão ativa: orienta recarregar
+        setError("Sua sessão expirou ou o código já foi usado. Recarregue a página e tente novamente.");
+        return;
       }
       const msg = e?.errors?.[0]?.longMessage || e?.errors?.[0]?.message || "";
       setError(translateClerkError(msg) || msg || code || "Código inválido.");
