@@ -1410,8 +1410,8 @@ function StepReview({ content, selected, when, setWhen, brand, vehicles, datePic
           </div>
         </div>
 
-        {/* Validação com IA */}
-        <div className="card side-card" style={{ marginTop: 12 }}>
+        {/* Validação com IA — suspenso temporariamente (usuários confundiam com bloqueio de conteúdo) */}
+        {false && <div className="card side-card" style={{ marginTop: 12 }}>
           <div className="card-head">
             <h3>Validação <em>editorial</em></h3>
             <div style={{ position: "relative", display: "inline-flex" }} className="ai-info-wrap">
@@ -1465,7 +1465,7 @@ function StepReview({ content, selected, when, setWhen, brand, vehicles, datePic
               </div>
             )}
           </div>
-        </div>
+        </div>}
 
         {navSlot && <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 16 }}>{navSlot}</div>}
       </div>
