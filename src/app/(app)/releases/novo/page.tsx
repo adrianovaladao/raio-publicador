@@ -1444,7 +1444,7 @@ function StepReview({ content, selected, when, setWhen, brand, vehicles, datePic
                   </div>
                 ) : (
                   <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                    {policyIssues.map((issue, i) => (
+                    {(policyIssues ?? []).map((issue, i) => (
                       <div key={i} style={{
                         padding: "10px 12px", borderRadius: 8, fontSize: 12, lineHeight: 1.5,
                         background: issue.severity === "error" ? "#FDECEA" : "#FEF3DC",
