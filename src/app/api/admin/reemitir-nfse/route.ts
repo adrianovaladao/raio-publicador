@@ -28,13 +28,18 @@ async function nfeGet(path: string) {
 }
 
 async function nfePost(path: string, body: object) {
+  // NFe.io usa Basic auth com a key como username e senha vazia
+  const basicAuth = Buffer.from(`${NFEIO_KEY}:`).toString("base64");
   const res = await fetch(`${NFEIO_BASE}${path}`, {
     method: "POST",
-    headers: { Authorization: `Bearer ${NFEIO_KEY}`, "Content-Type": "application/json" },
+    headers: {
+      Authorization: `Basic ${basicAuth}`,
+      "Content-Type": "application/json",
+    },
     body: JSON.stringify(body),
   });
   const text = await res.text();
-  if (!res.ok) throw new Error(`NFe.io POST ${path} → ${res.status}: ${text}`);
+  if (!res.ok) throw new Error(`NFe.io POST ${path} → ${res.status}: ${text.slice(0, 800)}`);
   return JSON.parse(text);
 }
 
