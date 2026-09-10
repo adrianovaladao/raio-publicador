@@ -1573,7 +1573,7 @@ function CobrancaPanel({ onToast, isCancelled }: { onToast: (m: string) => void;
         </div>
       </div>
 
-      <BillingData onToast={onToast} />
+      <FiscalProfileData onToast={onToast} />
 
       <TransactionHistory />
     </div>
@@ -1582,115 +1582,215 @@ function CobrancaPanel({ onToast, isCancelled }: { onToast: (m: string) => void;
 
 // ─── Billing Data ─────────────────────────────────────────────────────────────
 
-interface BillingInfo { name: string; email: string; taxId: string; address: string; }
+// ─── helpers fiscais ─────────────────────────────────────────────────────────
+function fmtCPF(v: string)  { return v.replace(/\D/g,"").slice(0,11).replace(/(\d{3})(\d)/,"$1.$2").replace(/(\d{3})(\d)/,"$1.$2").replace(/(\d{3})(\d{1,2})$/,"$1-$2"); }
+function fmtCNPJ(v: string) { return v.replace(/\D/g,"").slice(0,14).replace(/(\d{2})(\d)/,"$1.$2").replace(/(\d{3})(\d)/,"$1.$2").replace(/(\d{3})(\d)/,"$1/$2").replace(/(\d{4})(\d{1,2})$/,"$1-$2"); }
+function fmtCEP(v: string)  { return v.replace(/\D/g,"").slice(0,8).replace(/(\d{5})(\d)/,"$1-$2"); }
 
-function BillingData({ onToast }: { onToast: (m: string) => void }) {
-  const [data, setData] = useState<BillingInfo>({ name: "", email: "", taxId: "", address: "" });
+interface FiscalProfile {
+  personType: "PF" | "PJ";
+  fullName?: string; cpf?: string;
+  companyName?: string; cnpj?: string;
+  cep: string; street: string; number: string;
+  complement?: string; district: string; city: string; state: string;
+}
+
+const EMPTY_FISCAL: FiscalProfile = {
+  personType: "PF", fullName: "", cpf: "",
+  companyName: "", cnpj: "",
+  cep: "", street: "", number: "", complement: "", district: "", city: "", state: "",
+};
+
+function FiscalProfileData({ onToast }: { onToast: (m: string) => void }) {
+  const [profile, setProfile] = useState<FiscalProfile | null>(null);
   const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState({ name: "", email: "", taxId: "", line1: "", line2: "", city: "", state: "", postalCode: "" });
+  const [form, setForm] = useState<FiscalProfile>(EMPTY_FISCAL);
+  const [cepLoading, setCepLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/stripe/billing")
+    fetch("/api/fiscal-profile")
       .then(r => r.json())
-      .then((d: BillingInfo) => { setData(d); setLoading(false); })
+      .then((d: FiscalProfile | null) => { setProfile(d); setLoading(false); })
       .catch(() => setLoading(false));
   }, []);
 
   function openEdit() {
-    const parts = data.address.split("·").map(s => s.trim());
-    const [street, cityState] = parts;
-    const [city, state] = (cityState ?? "").split(",").map(s => s.trim());
-    setForm({ name: data.name, email: data.email, taxId: data.taxId, line1: street ?? "", line2: "", city: city ?? "", state: state ?? "", postalCode: "" });
+    setForm(profile ? { ...EMPTY_FISCAL, ...profile } : EMPTY_FISCAL);
+    setErr("");
     setEditing(true);
   }
 
+  const setF = (k: keyof FiscalProfile, v: string) => setForm(f => ({ ...f, [k]: v }));
+
+  async function lookupCEP(cep: string) {
+    const digits = cep.replace(/\D/g, "");
+    if (digits.length !== 8) return;
+    setCepLoading(true);
+    try {
+      const res = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
+      const data = await res.json() as { logradouro?: string; bairro?: string; localidade?: string; uf?: string; erro?: boolean };
+      if (!data.erro) setForm(f => ({ ...f, street: data.logradouro ?? f.street, district: data.bairro ?? f.district, city: data.localidade ?? f.city, state: data.uf ?? f.state }));
+    } catch { /* silently fail */ }
+    finally { setCepLoading(false); }
+  }
+
   async function handleSave() {
+    setErr("");
+    if (form.personType === "PF") {
+      if (!form.fullName?.trim()) return setErr("Informe o nome completo.");
+      if ((form.cpf ?? "").replace(/\D/g,"").length !== 11) return setErr("CPF inválido.");
+    } else {
+      if (!form.companyName?.trim()) return setErr("Informe a razão social.");
+      if ((form.cnpj ?? "").replace(/\D/g,"").length !== 14) return setErr("CNPJ inválido.");
+    }
+    if (form.cep.replace(/\D/g,"").length !== 8) return setErr("CEP inválido.");
+    if (!form.street.trim()) return setErr("Informe o logradouro.");
+    if (!form.number.trim()) return setErr("Informe o número.");
+    if (!form.district.trim()) return setErr("Informe o bairro.");
+    if (!form.city.trim()) return setErr("Informe a cidade.");
+    if (!form.state.trim()) return setErr("Informe o estado.");
+
     setSaving(true);
     try {
-      const res = await fetch("/api/stripe/billing", {
-        method: "PATCH",
+      const res = await fetch("/api/fiscal-profile", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
-      if (!res.ok) throw new Error();
-      const addressStr = [form.line1, form.line2].filter(Boolean).join(", ") + (form.city ? ` · ${form.city}` : "") + (form.state ? `, ${form.state}` : "");
-      setData({ name: form.name, email: form.email, taxId: form.taxId, address: addressStr });
+      if (!res.ok) {
+        const d = await res.json() as { error?: string };
+        return setErr(d.error ?? "Erro ao salvar dados fiscais.");
+      }
+      setProfile(form);
       setEditing(false);
-      onToast("Dados de cobrança atualizados");
+      onToast("Dados fiscais atualizados");
     } catch {
-      onToast("Erro ao salvar. Tente novamente.");
+      setErr("Falha de conexão. Tente novamente.");
     } finally {
       setSaving(false);
     }
   }
 
-  const hasData = data.name || data.taxId || data.address;
+  const isPF = form.personType === "PF";
+
+  const summaryRows = profile ? [
+    profile.personType === "PF"
+      ? ["Nome", profile.fullName ?? ""]
+      : ["Razão social", profile.companyName ?? ""],
+    profile.personType === "PF"
+      ? ["CPF", profile.cpf ?? ""]
+      : ["CNPJ", profile.cnpj ?? ""],
+    ["Endereço", [profile.street, profile.number, profile.complement, profile.district, `${profile.city}/${profile.state}`, profile.cep].filter(Boolean).join(", ")],
+  ].filter(([, v]) => v) : [];
 
   return (
     <div className="card" style={{ marginTop: 16 }}>
       <div className="card-head">
-        <h3>Dados de cobrança</h3>
-        {!editing && <button className="link" onClick={openEdit}>Editar</button>}
+        <h3>Dados fiscais</h3>
+        {!editing && <button className="link" onClick={openEdit}>{profile ? "Editar" : "Adicionar"}</button>}
       </div>
       <div className="card-pad" style={{ paddingTop: 16 }}>
         {editing ? (
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            {/* Tipo de pessoa */}
+            <div className="field">
+              <label>Tipo</label>
+              <div className="row" style={{ gap: 8 }}>
+                {(["PF", "PJ"] as const).map(t => (
+                  <button key={t} type="button"
+                    className={`btn btn-sm ${form.personType === t ? "btn-primary" : "btn-ghost"}`}
+                    onClick={() => setF("personType", t)}>
+                    {t === "PF" ? "Pessoa Física" : "Pessoa Jurídica"}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Nome / Razão social */}
             <div className="set-grid2">
               <div className="field">
-                <label>Razão social / Nome</label>
-                <input className="input" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Ex.: Empresa Ltda." />
+                <label>{isPF ? "Nome completo" : "Razão social"} <span style={{ color: "var(--danger, #c0392b)" }}>*</span></label>
+                <input className="input"
+                  value={isPF ? (form.fullName ?? "") : (form.companyName ?? "")}
+                  onChange={e => setF(isPF ? "fullName" : "companyName", e.target.value)}
+                  placeholder={isPF ? "Ex.: João da Silva" : "Ex.: Empresa Ltda."} />
               </div>
               <div className="field">
-                <label>CNPJ / CPF</label>
-                <input className="input" value={form.taxId} onChange={e => setForm(f => ({ ...f, taxId: e.target.value }))} placeholder="00.000.000/0001-00" />
+                <label>{isPF ? "CPF" : "CNPJ"} <span style={{ color: "var(--danger, #c0392b)" }}>*</span></label>
+                <input className="input"
+                  value={isPF ? (form.cpf ?? "") : (form.cnpj ?? "")}
+                  inputMode="numeric"
+                  onChange={e => setF(isPF ? "cpf" : "cnpj", isPF ? fmtCPF(e.target.value) : fmtCNPJ(e.target.value))}
+                  placeholder={isPF ? "000.000.000-00" : "00.000.000/0001-00"} />
               </div>
             </div>
-            <div className="field">
-              <label>E-mail fiscal</label>
-              <input className="input" type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="financeiro@empresa.com.br" />
-            </div>
-            <div className="field">
-              <label>Endereço</label>
-              <input className="input" value={form.line1} onChange={e => setForm(f => ({ ...f, line1: e.target.value }))} placeholder="Rua / Av., número" />
-            </div>
+
+            {/* CEP — dispara ViaCEP */}
             <div className="set-grid2">
+              <div className="field">
+                <label>CEP <span style={{ color: "var(--danger, #c0392b)" }}>*</span></label>
+                <input className="input" value={form.cep} inputMode="numeric"
+                  placeholder="00000-000"
+                  onChange={e => { const v = fmtCEP(e.target.value); setF("cep", v); if (v.replace(/\D/g,"").length === 8) lookupCEP(v); }} />
+                {cepLoading && <span style={{ fontSize: 12, color: "var(--fg-muted)" }}>buscando…</span>}
+              </div>
+              <div className="field">
+                <label>Número <span style={{ color: "var(--danger, #c0392b)" }}>*</span></label>
+                <input className="input" value={form.number} onChange={e => setF("number", e.target.value)} placeholder="123" />
+              </div>
+            </div>
+
+            {/* Logradouro + Complemento */}
+            <div className="set-grid2">
+              <div className="field">
+                <label>Logradouro <span style={{ color: "var(--danger, #c0392b)" }}>*</span></label>
+                <input className="input" value={form.street} onChange={e => setF("street", e.target.value)} placeholder="Rua / Av. / Alameda…" />
+              </div>
               <div className="field">
                 <label>Complemento</label>
-                <input className="input" value={form.line2} onChange={e => setForm(f => ({ ...f, line2: e.target.value }))} placeholder="Sala, andar…" />
-              </div>
-              <div className="field">
-                <label>CEP</label>
-                <input className="input" value={form.postalCode} onChange={e => setForm(f => ({ ...f, postalCode: e.target.value }))} placeholder="00000-000" />
+                <input className="input" value={form.complement ?? ""} onChange={e => setF("complement", e.target.value)} placeholder="Sala, andar, apto…" />
               </div>
             </div>
+
+            {/* Bairro + Cidade + Estado */}
             <div className="set-grid2">
               <div className="field">
-                <label>Cidade</label>
-                <input className="input" value={form.city} onChange={e => setForm(f => ({ ...f, city: e.target.value }))} placeholder="São Paulo" />
+                <label>Bairro <span style={{ color: "var(--danger, #c0392b)" }}>*</span></label>
+                <input className="input" value={form.district} onChange={e => setF("district", e.target.value)} placeholder="Ex.: Centro" />
               </div>
               <div className="field">
-                <label>Estado</label>
-                <input className="input" value={form.state} onChange={e => setForm(f => ({ ...f, state: e.target.value }))} placeholder="SP" />
+                <label>Cidade <span style={{ color: "var(--danger, #c0392b)" }}>*</span></label>
+                <input className="input" value={form.city} onChange={e => setF("city", e.target.value)} placeholder="São Paulo" />
               </div>
             </div>
+            <div className="field" style={{ maxWidth: 120 }}>
+              <label>Estado <span style={{ color: "var(--danger, #c0392b)" }}>*</span></label>
+              <input className="input" value={form.state} onChange={e => setF("state", e.target.value.toUpperCase().slice(0,2))} placeholder="SP" maxLength={2} />
+            </div>
+
+            {err && <p style={{ fontSize: 13, color: "var(--danger, #c0392b)", margin: 0 }}>{err}</p>}
+
             <div className="row" style={{ gap: 10 }}>
-              <button className="btn btn-primary btn-sm" onClick={handleSave} disabled={saving}>{saving ? "Salvando…" : <><Check size={15} /> Salvar</>}</button>
+              <button className="btn btn-primary btn-sm" onClick={handleSave} disabled={saving}>
+                {saving ? "Salvando…" : <><Check size={15} /> Salvar</>}
+              </button>
               <button className="btn btn-quiet btn-sm" onClick={() => setEditing(false)}>Cancelar</button>
             </div>
           </div>
         ) : loading ? (
           <div className="muted">Carregando…</div>
-        ) : hasData ? (
+        ) : profile ? (
           <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-            {[["Razão social", data.name], ["CNPJ / CPF", data.taxId], ["E-mail fiscal", data.email], ["Endereço", data.address]].filter(([, v]) => v).map(([k, v]) => (
+            {summaryRows.map(([k, v]) => (
               <div className="billdata-row" key={k}><span className="bd-k">{k}</span><span className="bd-v">{v}</span></div>
             ))}
           </div>
         ) : (
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <span className="muted" style={{ fontSize: 13 }}>Nenhum dado de cobrança cadastrado.</span>
+            <span className="muted" style={{ fontSize: 13 }}>Nenhum dado fiscal cadastrado.</span>
             <button className="btn btn-ghost btn-sm" onClick={openEdit}>Adicionar</button>
           </div>
         )}
