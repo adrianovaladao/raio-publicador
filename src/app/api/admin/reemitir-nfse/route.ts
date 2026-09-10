@@ -20,16 +20,17 @@ const NFEIO_BASE   = "https://api.nfe.io/v1";
 
 async function nfeGet(path: string) {
   const res = await fetch(`${NFEIO_BASE}${path}`, {
-    headers: { Authorization: NFEIO_KEY },
+    headers: { Authorization: `Bearer ${NFEIO_KEY}` },
   });
-  if (!res.ok) throw new Error(`NFe.io GET ${path} → ${res.status}: ${await res.text()}`);
-  return res.json();
+  const text = await res.text();
+  if (!res.ok) throw new Error(`NFe.io GET ${path} → ${res.status}: ${text}`);
+  return JSON.parse(text);
 }
 
 async function nfePost(path: string, body: object) {
   const res = await fetch(`${NFEIO_BASE}${path}`, {
     method: "POST",
-    headers: { Authorization: NFEIO_KEY, "Content-Type": "application/json" },
+    headers: { Authorization: `Bearer ${NFEIO_KEY}`, "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
   const text = await res.text();
@@ -42,6 +43,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
+  try {
+    return await _handlePost(req);
+  } catch (err) {
+    console.error("[reemitir-nfse] Erro não tratado:", err);
+    return NextResponse.json({ error: String(err) }, { status: 500 });
+  }
+}
+
+async function _handlePost(req: Request) {
   const { dryRun = false } = await req.json().catch(() => ({})) as { dryRun?: boolean };
   const prisma = getPrisma();
   const stripe = getStripe();
