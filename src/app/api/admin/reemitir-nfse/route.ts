@@ -71,6 +71,13 @@ async function _handlePost(req: Request) {
   const { dryRun = false } = await req.json().catch(() => ({})) as { dryRun?: boolean };
   const prisma = getPrisma();
   const stripe = getStripe();
+  // Apenas estes dois destinatários, uma nota cada
+  const ALLOWED: Record<string, true> = {
+    "rodrigo@jvmc.com.br": true,
+    "fersouzafilho@gmail.com": true,
+  };
+  const emitted = new Set<string>(); // controla: apenas 1 nota por email
+
   const log: string[] = [];
 
   // 1. Lista notas com erro no NFe.io
@@ -83,6 +90,9 @@ async function _handlePost(req: Request) {
   for (const inv of invoices) {
     const email: string = inv.borrower?.email ?? "";
     if (!email) { log.push(`Pulando nota sem email: ${inv.id}`); continue; }
+
+    if (!ALLOWED[email]) { log.push(`Pulando (não autorizado): ${email}`); continue; }
+    if (emitted.has(email)) { log.push(`Pulando (já emitido uma nota): ${email}`); continue; }
 
     log.push(`\n→ ${email} | R$ ${inv.servicesAmount} | id: ${inv.id}`);
 
@@ -158,6 +168,7 @@ async function _handlePost(req: Request) {
       const result = await nfePost(`/companies/${COMPANY_ID}/serviceinvoices`, payload);
       log.push(`  ✓ Nova NFS-e: id=${result.id} status=${result.flowStatus ?? result.status}`);
       results.push({ email, status: "emitted", nfseId: result.id, flowStatus: result.flowStatus });
+      emitted.add(email);
     } catch (err) {
       log.push(`  ✗ Erro ao emitir: ${String(err)}`);
       results.push({ email, status: "error", error: String(err) });
