@@ -519,6 +519,22 @@ export default function BoasVindasPage() {
   const idx = STAGES.findIndex(s => s.id === step);
   const go = (s: Stage) => { setStep(s); try { window.scrollTo(0, 0); } catch { /* ignore */ } };
 
+  // Se vem do checkout e já tem FiscalProfile salvo, pula o pré-passo fiscal
+  useEffect(() => {
+    if (!fromCheckout) return;
+    fetch("/api/fiscal-profile")
+      .then(r => r.json())
+      .then((d: FiscalData | null) => {
+        if (d?.cep) {
+          // Já tem dados fiscais — carrega e pula direto para welcome
+          setFiscal(d);
+          setStep("welcome");
+        }
+      })
+      .catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Resgate de voucher
   useEffect(() => {
     const vc = searchParams.get("vc");
