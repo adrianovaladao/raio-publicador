@@ -73,26 +73,29 @@ export async function GET(req: NextRequest) {
       },
     };
 
-    // ── 2. Salva no Blob (privado) ───────────────────────────────────────────
+    // ── 2. Salva no Blob privado (store de backup dedicada) ─────────────────
+    const token = process.env.BACKUP_BLOB_READ_WRITE_TOKEN;
+    if (!token) throw new Error("BACKUP_BLOB_READ_WRITE_TOKEN não configurado");
+
     const filename = `backups/${today}.json`;
     const { url } = await put(
       filename,
       JSON.stringify(snapshot, null, 2),
-      { access: "private", contentType: "application/json", addRandomSuffix: false }
+      { access: "private", contentType: "application/json", addRandomSuffix: false, token }
     );
 
     // ── 3. Remove backups mais antigos que RETENTION_DAYS ───────────────────
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - RETENTION_DAYS);
 
-    const { blobs } = await list({ prefix: "backups/" });
+    const { blobs } = await list({ prefix: "backups/", token });
     const toDelete = blobs.filter(b => {
       // nome: "backups/2026-08-01.json"
       const dateStr = b.pathname.replace("backups/", "").replace(".json", "");
       return new Date(dateStr) < cutoff;
     });
 
-    await Promise.all(toDelete.map(b => del(b.url)));
+    await Promise.all(toDelete.map(b => del(b.url, { token })));
 
     const totals = Object.fromEntries(
       Object.entries(snapshot.tables).map(([t, v]) => [t, v.count])
