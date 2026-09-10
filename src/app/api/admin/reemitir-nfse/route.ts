@@ -15,7 +15,7 @@ import { NextResponse } from "next/server";
 import { assertAnyAdmin } from "@/lib/admin-server";
 
 const NFEIO_KEY    = "qzYyaJxTz7zgRs9sdxhIUpDPwWLIXqsVnHvX0NWNVcUk1cVkBqvaC4Z3zjbkT1kHfhK";
-const COMPANY_ID   = "acc_84505343a32c4f2cb10c3a1283c6c190";
+const COMPANY_ID   = "796880a7bfb7407db2201ffee964b4ef";
 const NFEIO_BASE   = "https://api.nfe.io/v1";
 
 async function nfeGet(path: string) {
