@@ -20,7 +20,7 @@ const NFEIO_BASE   = "https://api.nfe.io/v1";
 
 async function nfeGet(path: string) {
   const res = await fetch(`${NFEIO_BASE}${path}`, {
-    headers: { Authorization: `Bearer ${NFEIO_KEY}` },
+    headers: { Authorization: NFEIO_KEY },
   });
   const text = await res.text();
   if (!res.ok) throw new Error(`NFe.io GET ${path} → ${res.status}: ${text}`);
