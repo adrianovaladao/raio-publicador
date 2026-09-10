@@ -42,13 +42,10 @@ export async function POST(req: Request) {
   const planLabel = PLANS[sub.plan as keyof typeof PLANS]?.label ?? sub.plan;
 
   if (eligibleForRefund) {
-    // ── Pix: sem Stripe, apenas cancela e zera créditos ──────────────────
+    // ── Pix: sem Stripe, apenas cancela e congela créditos ───────────────
+    // Dados (brands, releases, perfil fiscal) são preservados.
+    // Créditos são congelados (zeramos total e usado) — voltam ao reativar.
     if (isPix) {
-      const brands = await prisma.brand.findMany({ where: { ownerId: userId }, select: { id: true } });
-      const brandIds = brands.map(b => b.id);
-      await prisma.release.deleteMany({ where: { brandId: { in: brandIds } } });
-      await prisma.brandMember.deleteMany({ where: { brandId: { in: brandIds } } });
-      await prisma.brand.deleteMany({ where: { ownerId: userId } });
       await prisma.subscription.update({
         where: { ownerId: userId },
         data: { status: "CANCELLED", creditsTotal: 0, creditsUsed: 0 },
@@ -56,7 +53,7 @@ export async function POST(req: Request) {
       if (email) await sendCancellationEmail(email, firstName, true, null, planLabel).catch(console.error);
       await createNotification(userId, "subscription_cancelled",
         "Assinatura cancelada",
-        `Seu Plano ${planLabel} foi cancelado. Para reembolso via Pix, entre em contato pelo suporte.`,
+        `Seu Plano ${planLabel} foi cancelado. Para reembolso via Pix, entre em contato pelo suporte. Seus dados e releases permanecem salvos.`,
         "/configuracoes?tab=cobranca",
       ).catch(console.error);
       return NextResponse.json({ ok: true, refunded: false, boletoRefund: false, periodEnd: null });
@@ -107,11 +104,8 @@ export async function POST(req: Request) {
     }
     await stripe.subscriptions.cancel(sub.stripeSubscriptionId!);
 
-    const brands = await prisma.brand.findMany({ where: { ownerId: userId }, select: { id: true } });
-    const brandIds = brands.map(b => b.id);
-    await prisma.release.deleteMany({ where: { brandId: { in: brandIds } } });
-    await prisma.brandMember.deleteMany({ where: { brandId: { in: brandIds } } });
-    await prisma.brand.deleteMany({ where: { ownerId: userId } });
+    // Dados (brands, releases, perfil fiscal) são preservados.
+    // Créditos congelados — voltam ao reativar com novo plano.
     await prisma.subscription.update({
       where: { ownerId: userId },
       data: { status: "CANCELLED", creditsTotal: 0, creditsUsed: 0 },
@@ -120,13 +114,13 @@ export async function POST(req: Request) {
     if (isBoleto && pixKey) {
       await createNotification(userId, "subscription_cancelled",
         "Reembolso via PIX solicitado",
-        `Chave PIX (${pixKeyType ?? "chave"}): ${pixKey}. O valor será transferido em até 5 dias úteis.`,
+        `Chave PIX (${pixKeyType ?? "chave"}): ${pixKey}. O valor será transferido em até 5 dias úteis. Seus dados e releases permanecem salvos.`,
         "/configuracoes?tab=cobranca",
       ).catch(console.error);
     } else {
       await createNotification(userId, "subscription_cancelled",
         "Assinatura cancelada e reembolso processado",
-        `Seu reembolso do Plano ${planLabel} foi processado. O valor será creditado em até 10 dias úteis.`,
+        `Seu reembolso do Plano ${planLabel} foi processado. O valor será creditado em até 10 dias úteis. Seus dados e releases permanecem salvos.`,
         "/configuracoes?tab=cobranca",
       ).catch(console.error);
     }
