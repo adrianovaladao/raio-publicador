@@ -74,6 +74,11 @@ export async function POST(req: Request) {
           postal_code: body.cep.replace(/\D/g, ""),
           country: "BR",
         },
+        // NFe.io lê borrowerFederalTaxNumber do metadata (não dos tax_ids nativos)
+        metadata: {
+          borrowerFederalTaxNumber: taxNumber,
+          borrowerName: name,
+        },
       });
 
       if (taxNumber) {
