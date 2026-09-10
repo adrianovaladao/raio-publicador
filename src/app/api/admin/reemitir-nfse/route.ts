@@ -51,6 +51,22 @@ export async function POST(req: Request) {
   }
 }
 
+// GET — diagnóstico: lista empresas disponíveis na conta NFe.io
+export async function GET() {
+  if (!await assertAnyAdmin()) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+  try {
+    const res = await fetch(`${NFEIO_BASE}/companies`, {
+      headers: { Authorization: NFEIO_KEY },
+    });
+    const text = await res.text();
+    return NextResponse.json({ status: res.status, body: text });
+  } catch (err) {
+    return NextResponse.json({ error: String(err) }, { status: 500 });
+  }
+}
+
 async function _handlePost(req: Request) {
   const { dryRun = false } = await req.json().catch(() => ({})) as { dryRun?: boolean };
   const prisma = getPrisma();
