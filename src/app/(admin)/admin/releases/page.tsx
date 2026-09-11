@@ -262,7 +262,9 @@ function ReleaseActions({ release, onSaved, onDeleted, onArchived }: {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...(statusChanged && { status: newStatus }),
+          // Ao notificar, sempre envia o status (mesmo sem mudança) para que
+          // a API possa disparar o email mesmo que o status já fosse PUBLISHED
+          ...((statusChanged || notify) && { status: newStatus }),
           adminNotes: notes || undefined,
           ...(Object.keys(vehicleUrls).length > 0 && { publishedVehicleUrls: vehicleUrls }),
           notifyUser: notify,

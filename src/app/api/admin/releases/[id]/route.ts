@@ -53,7 +53,12 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const release = await prisma.release.update({ where: { id }, data: updateData });
 
   // Fire notifications asynchronously — respond immediately so the client never times out
-  const shouldNotify = body.notifyUser !== false && body.status && body.status !== prev.status;
+  // Notifica se: status mudou OU admin clicou explicitamente em "Publicar e notificar" (notifyUser=true)
+  // Isso permite reenviar o email de publicação ao atualizar os links mesmo sem mudar o status
+  const shouldNotify = body.status && (
+    (body.notifyUser !== false && body.status !== prev.status) ||
+    body.notifyUser === true
+  );
   if (shouldNotify) {
     (async () => {
       try {
