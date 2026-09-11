@@ -4,6 +4,7 @@ import { getPrisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { ReleaseStatus } from "@prisma/client";
 import {
+  sendReleaseScheduledEmail,
   sendReleaseNeedsReviewEmail,
   sendReleaseRejectedEmail,
   sendReleaseInPublicationEmail,
@@ -23,6 +24,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     publishedVehicleUrls?: Record<string, string>;
     notifyUser?: boolean;
     archive?: boolean;   // true = arquivar, false = desarquivar
+    scheduledAt?: string; // ISO string; usado ao mover para SCHEDULED
     // edição de conteúdo pelo admin
     title?: string;
     summary?: string;
@@ -32,7 +34,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const prisma = getPrisma();
   const prev = await prisma.release.findUnique({
     where: { id },
-    select: { status: true, authorId: true, title: true, vehicles: true },
+    select: { status: true, authorId: true, title: true, vehicles: true, scheduledAt: true },
   });
   if (!prev) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
@@ -62,7 +64,20 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
         if (!email) return;
 
-        if (body.status === "NEEDS_REVISION") {
+        if (body.status === "SCHEDULED") {
+          const vehicleIds = prev.vehicles as string[];
+          const vehicleRows = vehicleIds.length > 0
+            ? await prisma.vehicle.findMany({ where: { id: { in: vehicleIds } }, select: { name: true } })
+            : [];
+          const vehicleNames = vehicleRows.map(v => v.name);
+          const scheduledAt = body.scheduledAt ? new Date(body.scheduledAt) : (prev.scheduledAt ?? new Date());
+          await sendReleaseScheduledEmail(email, firstName, prev.title, scheduledAt, vehicleNames, id);
+          createNotification(prev.authorId, "release_scheduled",
+            "Release agendado",
+            `"${prev.title}" foi aprovado e está agendado para publicação.`,
+            `/releases/${id}`,
+          ).catch(console.error);
+        } else if (body.status === "NEEDS_REVISION") {
           await sendReleaseNeedsReviewEmail(email, firstName, prev.title, body.adminNotes ?? "", id);
           createNotification(prev.authorId, "release_needs_revision",
             "Release precisa de revisão",
