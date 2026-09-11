@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import { useUser } from "@clerk/nextjs";
-import { Crown, FileText, Trash2, ChevronDown, AlertTriangle, Clock, ExternalLink, Send, Copy, Download, Check, Calendar, ChevronLeft, ChevronRight, X, Archive } from "lucide-react";
+import { Crown, FileText, Trash2, ChevronDown, AlertTriangle, Clock, ExternalLink, Send, Copy, Download, Check, Calendar, ChevronLeft, ChevronRight, X, Archive, Pencil } from "lucide-react";
 import { exportDocx, exportPdf } from "@/lib/export-release";
 import { isAnyAdmin } from "@/lib/admin";
 
@@ -208,6 +208,45 @@ function ReleaseActions({ release, onSaved, onDeleted, onArchived }: {
   const [ok, setOk] = useState("");
   const [copied, setCopied] = useState(false);
 
+  // ── Edição de conteúdo pelo admin ─────────────────────────────────────────
+  const [editingContent, setEditingContent] = useState(false);
+  const [editTitle, setEditTitle] = useState(release.title);
+  const [editSummary, setEditSummary] = useState(release.summary ?? "");
+  const [editBody, setEditBody] = useState(release.body);
+  const [savingContent, setSavingContent] = useState(false);
+  const editBodyRef = useRef<HTMLDivElement>(null);
+
+  function openContentEdit() {
+    setEditTitle(release.title);
+    setEditSummary(release.summary ?? "");
+    setEditBody(release.body);
+    setEditingContent(true);
+    // Popula o contenteditable após render
+    setTimeout(() => {
+      if (editBodyRef.current) editBodyRef.current.innerHTML = release.body;
+    }, 0);
+  }
+
+  async function saveContent() {
+    const bodyHtml = editBodyRef.current?.innerHTML ?? editBody;
+    setSavingContent(true); setErr(""); setOk("");
+    try {
+      const res = await fetch(`/api/admin/releases/${release.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: editTitle, summary: editSummary || null, body: bodyHtml }),
+      });
+      if (!res.ok) throw new Error(`Erro ${res.status}`);
+      setEditingContent(false);
+      setOk("Conteúdo salvo!");
+      onSaved();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Erro ao salvar conteúdo");
+    } finally {
+      setSavingContent(false);
+    }
+  }
+
   const statusChanged = newStatus !== release.status;
   const notesChanged = notes !== (release.adminNotes ?? "");
   const urlsChanged = JSON.stringify(vehicleUrls) !== JSON.stringify(release.publishedVehicleUrls ?? {});
@@ -348,6 +387,15 @@ function ReleaseActions({ release, onSaved, onDeleted, onArchived }: {
             Conteúdo da release
           </label>
           <div style={{ display: "flex", gap: 8 }}>
+            {!editingContent && (
+              <button
+                onClick={openContentEdit}
+                className="btn btn-ghost btn-sm"
+                style={{ fontSize: 12, display: "flex", alignItems: "center", gap: 5, color: "#555" }}
+              >
+                <Pencil size={13} /> Editar texto
+              </button>
+            )}
             <button
               onClick={handleCopyContent}
               className="btn btn-ghost btn-sm"
@@ -372,26 +420,78 @@ function ReleaseActions({ release, onSaved, onDeleted, onArchived }: {
             </button>
           </div>
         </div>
-        {release.summary && (
-          <div style={{ background: "#f8f8f8", border: "1.5px solid #e8e8e8", borderRadius: 8, padding: "10px 16px", fontSize: 13, lineHeight: 1.6, color: "#555", fontStyle: "italic", marginBottom: 8 }}>
-            <span style={{ fontWeight: 600, fontStyle: "normal", color: "#999", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.05em", display: "block", marginBottom: 4 }}>Subtítulo</span>
-            {release.summary}
+
+        {editingContent ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {/* Título */}
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 600, color: "#999", textTransform: "uppercase", letterSpacing: "0.05em", display: "block", marginBottom: 4 }}>Título</label>
+              <input
+                className="input"
+                value={editTitle}
+                onChange={e => setEditTitle(e.target.value)}
+                style={{ width: "100%", fontSize: 14, fontWeight: 600 }}
+              />
+            </div>
+            {/* Subtítulo */}
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 600, color: "#999", textTransform: "uppercase", letterSpacing: "0.05em", display: "block", marginBottom: 4 }}>Subtítulo (opcional)</label>
+              <input
+                className="input"
+                value={editSummary}
+                onChange={e => setEditSummary(e.target.value)}
+                placeholder="Subtítulo / lead…"
+                style={{ width: "100%", fontSize: 13, fontStyle: "italic" }}
+              />
+            </div>
+            {/* Corpo — contenteditable simples */}
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 600, color: "#999", textTransform: "uppercase", letterSpacing: "0.05em", display: "block", marginBottom: 4 }}>Corpo</label>
+              <div
+                ref={editBodyRef}
+                contentEditable
+                suppressContentEditableWarning
+                style={{
+                  background: "#fff", border: "1.5px solid #2563EB", borderRadius: 8,
+                  padding: "16px 20px", fontSize: 14, lineHeight: 1.7, color: "#1a1a1a",
+                  minHeight: 300, outline: "none", overflowY: "auto",
+                }}
+              />
+              <p style={{ fontSize: 11, color: "#aaa", marginTop: 4 }}>
+                Use Ctrl+B para negrito, Ctrl+I para itálico. A formatação HTML existente é preservada.
+              </p>
+            </div>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button className="btn btn-primary btn-sm" onClick={saveContent} disabled={savingContent}>
+                {savingContent ? "Salvando…" : <><Check size={13} /> Salvar conteúdo</>}
+              </button>
+              <button className="btn btn-ghost btn-sm" onClick={() => setEditingContent(false)}>Cancelar</button>
+            </div>
           </div>
-        )}
-        <div
-          style={{
-            background: "#fff", border: "1.5px solid #e8e8e8", borderRadius: 8,
-            padding: "16px 20px", fontSize: 14, lineHeight: 1.7, color: "#1a1a1a",
-            maxHeight: 400, overflowY: "auto",
-          }}
-          dangerouslySetInnerHTML={{ __html: release.body }}
-        />
-        {images.length > 0 && (
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 10 }}>
-            {images.map((src, i) => (
-              <div key={i} style={{ position: "relative", height: 72, width: 120, borderRadius: 6, border: "1px solid #eee", overflow: "hidden", flexShrink: 0 }}><Image src={src} alt="" fill style={{ objectFit: "cover" }} sizes="120px" /></div>
-            ))}
-          </div>
+        ) : (
+          <>
+            {release.summary && (
+              <div style={{ background: "#f8f8f8", border: "1.5px solid #e8e8e8", borderRadius: 8, padding: "10px 16px", fontSize: 13, lineHeight: 1.6, color: "#555", fontStyle: "italic", marginBottom: 8 }}>
+                <span style={{ fontWeight: 600, fontStyle: "normal", color: "#999", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.05em", display: "block", marginBottom: 4 }}>Subtítulo</span>
+                {release.summary}
+              </div>
+            )}
+            <div
+              style={{
+                background: "#fff", border: "1.5px solid #e8e8e8", borderRadius: 8,
+                padding: "16px 20px", fontSize: 14, lineHeight: 1.7, color: "#1a1a1a",
+                maxHeight: 400, overflowY: "auto",
+              }}
+              dangerouslySetInnerHTML={{ __html: release.body }}
+            />
+            {images.length > 0 && (
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 10 }}>
+                {images.map((src, i) => (
+                  <div key={i} style={{ position: "relative", height: 72, width: 120, borderRadius: 6, border: "1px solid #eee", overflow: "hidden", flexShrink: 0 }}><Image src={src} alt="" fill style={{ objectFit: "cover" }} sizes="120px" /></div>
+                ))}
+              </div>
+            )}
+          </>
         )}
       </div>
 
