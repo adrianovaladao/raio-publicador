@@ -56,7 +56,6 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     (body.notifyUser !== false && body.status !== prev.status) ||
     body.notifyUser === true
   );
-  if (shouldNotify) updateData.lastNotifiedAt = new Date();
   const release = await prisma.release.update({ where: { id }, data: updateData });
 
   // Fire notifications asynchronously — respond immediately so the client never times out

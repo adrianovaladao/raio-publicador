@@ -129,7 +129,6 @@ interface ReleaseRow {
   vehicles: string[];
   vehicleNames: VehicleRef[];
   adminNotes: string | null;
-  lastNotifiedAt: string | null;
   publishedVehicleUrls: Record<string, string> | null;
   creditsUsed: number;
   author: { name: string; email: string };
@@ -566,18 +565,6 @@ function ReleaseActions({ release, onSaved, onDeleted, onArchived }: {
           <div>
             <div style={{ fontSize: 11, color: "#aaa", marginBottom: 3, textTransform: "uppercase", letterSpacing: "0.08em" }}>Agendado para</div>
             <div style={{ fontSize: 13 }}>{fmtDate(release.scheduledAt)}</div>
-          </div>
-        )}
-        {release.lastNotifiedAt && (
-          <div style={{ gridColumn: "1 / -1" }}>
-            <div style={{
-              display: "inline-flex", alignItems: "center", gap: 6,
-              background: "#F0FDF4", border: "1px solid #BBF7D0",
-              borderRadius: 6, padding: "5px 10px", fontSize: 12, color: "#15803D",
-            }}>
-              <Check size={12} />
-              Usuário notificado por email em {new Date(release.lastNotifiedAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" })} às {new Date(release.lastNotifiedAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" })}
-            </div>
           </div>
         )}
         <div>
