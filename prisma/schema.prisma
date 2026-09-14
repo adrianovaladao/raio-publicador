@@ -45,6 +45,7 @@ model Release {
   imageUrl             String?
   vehicles             String[]
   adminNotes           String?
+  lastNotifiedAt       DateTime?
   publishedVehicleUrls Json?
   brandId              String
   authorId             String
