@@ -38,7 +38,7 @@ interface UserDetail {
   invoices: { id: string; date: number; amount: number; status: string; description: string }[];
 }
 
-type SortCol = "name" | "plan" | "status" | "credits" | "createdAt" | "lastSignIn";
+type SortCol = "name" | "plan" | "status" | "credits" | "createdAt" | "lastSignIn" | "currentPeriodEnd";
 type SortDir = "asc" | "desc";
 
 const STATUS_LABEL: Record<string, string> = {
@@ -419,7 +419,8 @@ export default function AdminUsuarios() {
       if (sortCol === "status")     { va = a.status; vb = b.status; }
       if (sortCol === "credits")    { va = a.creditsAvailable; vb = b.creditsAvailable; }
       if (sortCol === "createdAt")  { va = a.createdAt; vb = b.createdAt; }
-      if (sortCol === "lastSignIn") { va = a.lastSignInAt ?? 0; vb = b.lastSignInAt ?? 0; }
+      if (sortCol === "lastSignIn")       { va = a.lastSignInAt ?? 0; vb = b.lastSignInAt ?? 0; }
+      if (sortCol === "currentPeriodEnd") { va = a.currentPeriodEnd ?? ""; vb = b.currentPeriodEnd ?? ""; }
       if (va < vb) return sortDir === "asc" ? -1 : 1;
       if (va > vb) return sortDir === "asc" ? 1 : -1;
       return 0;
@@ -562,7 +563,8 @@ export default function AdminUsuarios() {
                       { col: "status" as SortCol,    label: "Status"        },
                       { col: "credits" as SortCol,   label: "Créditos"      },
                       { col: "createdAt" as SortCol, label: "Cadastro"      },
-                      { col: "lastSignIn" as SortCol,label: "Último acesso" },
+                      { col: "lastSignIn" as SortCol,        label: "Último acesso" },
+                      { col: "currentPeriodEnd" as SortCol,  label: "Renovação"     },
                     ].map(({ col, label }) => (
                       <th key={col} onClick={() => toggleSort(col)} style={{ cursor: "pointer", userSelect: "none" }}>
                         <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
@@ -570,7 +572,6 @@ export default function AdminUsuarios() {
                         </span>
                       </th>
                     ))}
-                    <th style={{ textAlign: "center" }}>Renovação</th>
                     <th style={{ textAlign: "center" }}>Ações</th>
                   </tr>
                 </thead>
