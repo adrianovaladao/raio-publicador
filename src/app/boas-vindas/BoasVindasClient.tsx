@@ -144,7 +144,7 @@ function fiscalLabel(text: string, required = true) {
 }
 
 // ─── ETAPA FISCAL (pós-pagamento) ─────────────────────────────
-function FiscalStep({ onDone, ctaLabel, hideCancelLink }: { onDone: (f: FiscalData) => void; ctaLabel?: string; hideCancelLink?: boolean }) {
+function FiscalStep({ onDone, ctaLabel }: { onDone: (f: FiscalData) => void; ctaLabel?: string }) {
   const [fiscal, setFiscal] = useState<FiscalData>(EMPTY_FISCAL);
   const [cepLoading, setCepLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -569,7 +569,7 @@ export default function BoasVindasPage() {
                 }
               }}
               ctaLabel={fromVoucher ? "Ir para o dashboard" : undefined}
-              hideCancelLink={fromVoucher ? true : undefined}
+
             />
           </main>
         </div>
