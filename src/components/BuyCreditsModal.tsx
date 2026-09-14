@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useEscapeKey } from "@/hooks/useEscapeKey";
-import { X, Zap } from "lucide-react";
+import { X, Zap, AlertTriangle } from "lucide-react";
 
 interface PackageDef { qty: number; label: string }
 
@@ -83,10 +83,17 @@ export function BuyCreditsModal({ currentPlan, onClose, returnUrl }: { currentPl
         </div>
 
         <div className="m-body" style={{ paddingTop: 8, paddingBottom: 24 }}>
-          <p style={{ fontSize: 13, color: "var(--stone)", marginBottom: 20 }}>
+          <p style={{ fontSize: 13, color: "var(--stone)", marginBottom: 16 }}>
             No seu plano, cada crédito custa <b style={{ color: "var(--ink)" }}>R$ {config.pricePerCr.toFixed(2).replace(".", ",")}</b>.
             Os créditos são adicionados imediatamente ao seu saldo.
           </p>
+
+          <div style={{ display: "flex", gap: 10, alignItems: "flex-start", background: "var(--amber-soft)", border: "1.5px solid var(--coral)", borderRadius: 10, padding: "12px 14px", marginBottom: 20 }}>
+            <AlertTriangle size={16} style={{ color: "var(--coral)", flexShrink: 0, marginTop: 1 }} />
+            <p style={{ fontSize: 13, color: "var(--ink)", margin: 0, lineHeight: 1.55 }}>
+              <b>Créditos avulsos vencem no fim do ciclo atual.</b> Eles não acumulam para o próximo período — use antes da renovação da sua assinatura.
+            </p>
+          </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: config.allowCustom ? 16 : 20 }}>
             {config.packages.map(pkg => {
@@ -159,7 +166,7 @@ export function BuyCreditsModal({ currentPlan, onClose, returnUrl }: { currentPl
           </button>
 
           <p style={{ fontSize: 12, color: "var(--stone)", textAlign: "center", marginTop: 12 }}>
-            Pagamento único via Stripe. Créditos válidos até o fim do ciclo de assinatura atual.
+            Pagamento único via Stripe.
           </p>
         </div>
       </div>
