@@ -17,7 +17,7 @@ import { useSearchParams } from "next/navigation";
 
 // ─── Subscription data ────────────────────────────────────────────────────────
 
-interface SubInfo { plan: string | null; status: string | null; everPaid: boolean; label: string; priceCents: number | null; credits: number; creditsUsed: number; }
+interface SubInfo { plan: string | null; status: string | null; everPaid: boolean; label: string; priceCents: number | null; credits: number; creditsUsed: number; currentPeriodEnd: string | null; }
 
 const APP_PLANS = [
   { id: "BASIC",        name: "Básico",       amt: "1.000", credits: "200 créditos",   feats: ["Até 2 marcas", "1 editor + 1 revisor",  "Centenas de veículos", "Até 2 publicações em portais categoria A"] },
@@ -454,7 +454,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [unreadCount, setUnreadCount] = useState(0);
   const [toast, setToast] = useState<string | null>(null);
   const [releaseCount, setReleaseCount] = useState<number | null>(null);
-  const [sub, setSub] = useState<SubInfo>({ plan: null, status: null, everPaid: false, label: "—", priceCents: null, credits: 0, creditsUsed: 0 });
+  const [sub, setSub] = useState<SubInfo>({ plan: null, status: null, everPaid: false, label: "—", priceCents: null, credits: 0, creditsUsed: 0, currentPeriodEnd: null });
+  const [showVoucherExpiringModal, setShowVoucherExpiringModal] = useState(false);
 
   const fetchSub = useCallback(() => {
     fetch("/api/stripe/subscription")
@@ -471,7 +472,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           window.location.href = "/";
           return;
         }
-        setSub({ plan: d.plan ?? null, status, everPaid, label: d.label ?? "—", priceCents: d.priceCents ?? null, credits: d.credits ?? 0, creditsUsed: d.creditsUsed ?? 0 });
+        const periodEnd = d.currentPeriodEnd ?? null;
+        setSub({ plan: d.plan ?? null, status, everPaid, label: d.label ?? "—", priceCents: d.priceCents ?? null, credits: d.credits ?? 0, creditsUsed: d.creditsUsed ?? 0, currentPeriodEnd: periodEnd });
+
+        // Modal de vencimento de voucher — exibe apenas no dia do vencimento, uma única vez
+        if (d.plan === "VOUCHER" && status === "ACTIVE" && periodEnd) {
+          const expiresDate = new Date(periodEnd).toISOString().slice(0, 10);
+          const today = new Date().toISOString().slice(0, 10);
+          const storageKey = `voucher_expiring_shown_${expiresDate}`;
+          try {
+            if (expiresDate === today && !localStorage.getItem(storageKey)) {
+              localStorage.setItem(storageKey, "1");
+              setShowVoucherExpiringModal(true);
+            }
+          } catch { /* localStorage indisponível */ }
+        }
       })
       .catch(() => {});
   }, [user]);
@@ -739,6 +754,30 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </nav>
 
       {/* ── MODAIS ── */}
+      {showVoucherExpiringModal && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+          <div style={{ background: "#fff", borderRadius: 16, padding: "40px 36px", maxWidth: 440, width: "100%", textAlign: "center", boxShadow: "0 20px 60px rgba(0,0,0,0.2)" }}>
+            <div style={{ fontSize: 40, marginBottom: 16 }}>⚡</div>
+            <h2 style={{ fontSize: 22, fontWeight: 700, margin: "0 0 12px", color: "#1a1a1a" }}>Seu acesso gratuito encerra hoje</h2>
+            <p style={{ fontSize: 14, color: "#555", lineHeight: 1.6, margin: "0 0 28px" }}>
+              Seu período de acesso gratuito ao Raio Publicador termina hoje. Para continuar publicando releases, escolha um plano.
+            </p>
+            <a
+              href="/site#planos"
+              style={{ display: "block", background: "#E6A817", color: "#fff", fontWeight: 700, fontSize: 15, padding: "14px 24px", borderRadius: 10, textDecoration: "none", marginBottom: 12 }}
+              onClick={() => setShowVoucherExpiringModal(false)}
+            >
+              Escolher um plano
+            </a>
+            <button
+              onClick={() => setShowVoucherExpiringModal(false)}
+              style={{ background: "none", border: "none", fontSize: 13, color: "#999", cursor: "pointer", padding: "8px 0" }}
+            >
+              Continuar sem plano por agora
+            </button>
+          </div>
+        </div>
+      )}
       {showPlans && <PlansModal onClose={() => setShowPlans(false)} sub={sub} onSuccess={msg => { setToast(msg); setShowPlans(false); fetchSub(); }} onBuyCredits={() => { setShowPlans(false); setShowBuyCredits(true); }} />}
       {showBuyCredits && sub.plan && sub.plan !== "VOUCHER" && (
         <BuyCreditsModal currentPlan={sub.plan} onClose={() => setShowBuyCredits(false)} />

@@ -680,3 +680,33 @@ export async function sendAdminReleaseResubmittedEmail(opts: {
     html,
   });
 }
+
+// ─── Voucher expirando ────────────────────────────────────────────────────────
+export async function sendVoucherExpiringEmail(
+  to: string,
+  firstName: string,
+  expiresAt: Date,
+  daysLeft: 1 | 3,
+) {
+  const date = expiresAt.toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric", timeZone: "America/Sao_Paulo" });
+
+  const urgency = daysLeft === 1
+    ? `Seu período de acesso gratuito ao Raio Publicador <strong>encerra amanhã, dia ${date}</strong>.`
+    : `Seu período de acesso gratuito ao Raio Publicador encerra em <strong>3 dias, no dia ${date}</strong>.`;
+
+  const subject = daysLeft === 1
+    ? "Seu acesso gratuito encerra amanhã — Raio Publicador"
+    : "Seu acesso gratuito encerra em 3 dias — Raio Publicador";
+
+  const html = base(`
+    ${h1(`${firstName},`)}
+    ${p(urgency)}
+    ${p("Para continuar publicando releases e aproveitando tudo que o Raio tem a oferecer, escolha um plano e mantenha seu acesso ativo.")}
+    ${btn("Escolher um plano", `${APP_URL}/site#planos`)}
+    <p style="margin:24px 0 0;font-size:12px;color:#999;line-height:1.6">
+      Nenhum valor será cobrado automaticamente. A escolha do plano e o pagamento são sempre feitos por você, quando e se quiser continuar.
+    </p>
+  `);
+
+  return getResend().emails.send({ from: FROM, to, subject, html });
+}

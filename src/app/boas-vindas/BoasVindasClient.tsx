@@ -144,7 +144,7 @@ function fiscalLabel(text: string, required = true) {
 }
 
 // ─── ETAPA FISCAL (pós-pagamento) ─────────────────────────────
-function FiscalStep({ onDone }: { onDone: (f: FiscalData) => void }) {
+function FiscalStep({ onDone, ctaLabel, hideCancelLink }: { onDone: (f: FiscalData) => void; ctaLabel?: string; hideCancelLink?: boolean }) {
   const [fiscal, setFiscal] = useState<FiscalData>(EMPTY_FISCAL);
   const [cepLoading, setCepLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -280,7 +280,7 @@ function FiscalStep({ onDone }: { onDone: (f: FiscalData) => void }) {
 
         <button type="submit" className="btn btn-primary btn-lg" disabled={saving}
           style={{ width:"100%", justifyContent:"center", marginTop:14, marginBottom:8 }}>
-          {saving ? "Salvando…" : <><span>Confirmar e criar uma marca</span><ArrowRight size={17} /></>}
+          {saving ? "Salvando…" : <><span>{ctaLabel ?? "Confirmar e criar uma marca"}</span><ArrowRight size={17} /></>}
         </button>
       </form>
     </div>
@@ -509,6 +509,7 @@ export default function BoasVindasPage() {
   const firstName = user?.firstName || "";
   const searchParams = useSearchParams();
   const fromCheckout = searchParams.get("checkout") === "success";
+  const fromVoucher  = fromCheckout && searchParams.get("from") === "voucher";
 
   // Pré-passo fiscal só existe quando vem do checkout
   const [step, setStep] = useState<Stage>(fromCheckout ? "fiscal" : "welcome");
@@ -558,7 +559,18 @@ export default function BoasVindasPage() {
             </span>
           </header>
           <main className="onb-body">
-            <FiscalStep onDone={f => { setFiscal(f); go("welcome"); }} />
+            <FiscalStep
+              onDone={f => {
+                setFiscal(f);
+                if (fromVoucher) {
+                  window.location.href = "/dashboard";
+                } else {
+                  go("welcome");
+                }
+              }}
+              ctaLabel={fromVoucher ? "Ir para o dashboard" : undefined}
+              hideCancelLink={fromVoucher ? true : undefined}
+            />
           </main>
         </div>
       </div>

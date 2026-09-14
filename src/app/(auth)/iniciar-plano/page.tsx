@@ -31,9 +31,11 @@ export default async function IniciarPlanoPage({
   ]);
 
   // If already has active paid subscription, skip checkout
-  if (sub && !["INACTIVE", "CANCELLED"].includes(sub.status)) {
+  // Exception: VOUCHER users can upgrade to a paid plan
+  if (sub && !["INACTIVE", "CANCELLED", "VOUCHER"].includes(sub.status) && sub.plan !== "VOUCHER") {
     redirect("/dashboard");
   }
+  const isVoucherUpgrade = sub?.plan === "VOUCHER";
 
   // Fiscal profile is required before payment — send to boas-vindas flow which collects it
   if (!fiscalProfile) {
@@ -53,7 +55,7 @@ export default async function IniciarPlanoPage({
     customer: customerId,
     currency: "brl",
     line_items: [{ price: plan.stripePriceId, quantity: 1 }],
-    success_url: `${origin}/boas-vindas?checkout=success`,
+    success_url: `${origin}/boas-vindas?checkout=success${isVoucherUpgrade ? "&from=voucher" : ""}`,
     cancel_url: `${origin}/site#planos`,
     locale: "pt-BR",
     metadata: { clerkId: userId, planId },
