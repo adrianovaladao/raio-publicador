@@ -1488,7 +1488,7 @@ export default function NovoReleasePage() {
       .catch(() => {});
     fetch("/api/team/me")
       .then(r => r.json())
-      .then((d: { role?: string } | null) => { if (d?.role === "EDITOR") setIsEditorMember(true); })
+      .then((d: { role?: string } | null) => { if (d?.role) setIsEditorMember(true); })
       .catch(() => {});
   }, []);
 

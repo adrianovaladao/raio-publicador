@@ -35,21 +35,19 @@ export async function POST(req: Request) {
   const ownerName = [owner.firstName, owner.lastName].filter(Boolean).join(" ") || "Alguém";
 
   // Enforce per-role limits based on subscription plan
-  const normalizedRole = role === "admin" ? "ADMIN" : role === "editor" ? "EDITOR" : "REVIEWER";
-  if (normalizedRole === "EDITOR" || normalizedRole === "REVIEWER") {
+  const normalizedRole = role === "admin" ? "ADMIN" : "EDITOR";
+  if (normalizedRole === "EDITOR") {
     const sub = await getPrisma().subscription.findUnique({ where: { ownerId: userId } });
     const planMeta = sub ? PLANS[sub.plan as keyof typeof PLANS] : null;
     if (planMeta) {
-      const limitKey = normalizedRole === "EDITOR" ? "editorsLimit" : "reviewersLimit";
-      const limit = planMeta[limitKey];
+      const limit = planMeta.editorsLimit;
       const [memberCount, inviteCount] = await Promise.all([
-        getPrisma().teamMember.count({ where: { ownerId: userId, role: normalizedRole, status: "ACTIVE" } }),
-        getPrisma().invite.count({ where: { ownerId: userId, role: normalizedRole, accepted: false } }),
+        getPrisma().teamMember.count({ where: { ownerId: userId, role: "EDITOR", status: "ACTIVE" } }),
+        getPrisma().invite.count({ where: { ownerId: userId, role: "EDITOR", accepted: false } }),
       ]);
       if (memberCount + inviteCount >= limit) {
-        const roleLabel = normalizedRole === "EDITOR" ? "editores" : "revisores";
         return NextResponse.json(
-          { error: `Limite de ${roleLabel} atingido para o plano ${planMeta.label} (máx. ${limit}).` },
+          { error: `Limite de editores atingido para o plano ${planMeta.label} (máx. ${limit}).` },
           { status: 403 }
         );
       }
@@ -76,7 +74,7 @@ export async function POST(req: Request) {
     },
   });
 
-  const roleLabel = role === "admin" ? "Administração" : role === "editor" ? "Edição" : "Revisão";
+  const roleLabel = role === "admin" ? "Administração" : "Edição";
   const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? "https://raiopublicador.com.br"}/convite/${invite.token}`;
 
   const { error: emailError } = await sendInviteEmail(email, ownerName, roleLabel, inviteUrl);

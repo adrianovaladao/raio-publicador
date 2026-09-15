@@ -35,7 +35,6 @@ export async function GET() {
     everPaid,
     brandsLimit: planMeta?.brandsLimit ?? null,
     editorsLimit: planMeta?.editorsLimit ?? null,
-    reviewersLimit: planMeta?.reviewersLimit ?? null,
     label: planMeta?.label ?? sub.plan,
     priceCents: planMeta?.priceCents ?? null,
     credits: sub.creditsTotal,

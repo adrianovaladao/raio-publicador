@@ -27,14 +27,11 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   const body = await req.json() as { status: string; creditsUsed: number; title?: string; body?: string; summary?: string; scheduledAt?: string | null; brandId?: string; imageUrl?: string | null; vehicles?: string[] };
   const prisma = getPrisma();
 
-  // Se for membro de equipe, créditos/assinatura são do dono da conta
+  // Se for membro de equipe (editor), créditos/assinatura são do dono da conta
   const member = await prisma.teamMember.findUnique({
     where: { clerkId: userId },
-    select: { ownerId: true, role: true, status: true },
+    select: { ownerId: true, status: true },
   });
-  if (member?.status === "ACTIVE" && member.role === "REVIEWER") {
-    return NextResponse.json({ error: "Revisores não podem editar releases." }, { status: 403 });
-  }
   const accountOwnerId = (member?.status === "ACTIVE") ? member.ownerId : userId;
 
   const prev = await prisma.release.findUnique({ where: { id }, select: { status: true, creditsUsed: true, title: true, scheduledAt: true, vehicles: true } });
@@ -167,11 +164,8 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
   // Se for membro de equipe (editor), créditos são do dono da conta
   const member = await prisma.teamMember.findUnique({
     where: { clerkId: userId },
-    select: { ownerId: true, role: true, status: true },
+    select: { ownerId: true, status: true },
   });
-  if (member?.status === "ACTIVE" && member.role === "REVIEWER") {
-    return NextResponse.json({ error: "Revisores não podem excluir releases." }, { status: 403 });
-  }
   const accountOwnerId = (member?.status === "ACTIVE") ? member.ownerId : userId;
 
   const release = await prisma.release.findUnique({ where: { id }, select: { status: true, creditsUsed: true } });

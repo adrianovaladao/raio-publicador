@@ -14,15 +14,13 @@ interface InviteInfo {
 }
 
 const ROLE_LABEL: Record<string, string> = {
-  EDITOR:   "Edição",
-  REVIEWER: "Revisão",
-  ADMIN:    "Administração",
+  EDITOR: "Edição",
+  ADMIN:  "Administração",
 };
 
 const ROLE_DESC: Record<string, string> = {
-  EDITOR:   "Você poderá criar e editar releases em nome da conta.",
-  REVIEWER: "Você poderá visualizar e comentar em releases da conta.",
-  ADMIN:    "Você terá acesso administrativo à conta.",
+  EDITOR: "Você poderá criar e editar releases em nome da conta.",
+  ADMIN:  "Você terá acesso administrativo à conta.",
 };
 
 export default function ConviteTokenPage({ params }: { params: Promise<{ token: string }> }) {

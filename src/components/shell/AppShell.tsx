@@ -20,9 +20,9 @@ import { useSearchParams } from "next/navigation";
 interface SubInfo { plan: string | null; status: string | null; everPaid: boolean; label: string; priceCents: number | null; credits: number; creditsUsed: number; currentPeriodEnd: string | null; }
 
 const APP_PLANS = [
-  { id: "BASIC",        name: "Básico",       amt: "1.000", credits: "200 créditos",   feats: ["Até 2 marcas", "1 editor + 1 revisor",  "Centenas de veículos", "Até 2 publicações em portais categoria A"] },
-  { id: "ADVANCED",     name: "Avançado",     amt: "3.000", credits: "1.000 créditos", feats: ["Até 5 marcas", "3 editores + 5 revisores", "Relatórios de desempenho", "Até 10 publicações em portais categoria A"], featured: true },
-  { id: "PROFESSIONAL", name: "Profissional", amt: "5.000", credits: "2.000 créditos", feats: ["Até 10 marcas", "5 editores + 10 revisores", "Relatórios + exportação", "Até 20 publicações em portais categoria A"] },
+  { id: "BASIC",        name: "Básico",       amt: "1.000", credits: "200 créditos",   feats: ["Até 2 marcas", "1 editor",  "Centenas de veículos", "Até 2 publicações em portais categoria A"] },
+  { id: "ADVANCED",     name: "Avançado",     amt: "3.000", credits: "1.000 créditos", feats: ["Até 5 marcas", "3 editores", "Relatórios de desempenho", "Até 10 publicações em portais categoria A"], featured: true },
+  { id: "PROFESSIONAL", name: "Profissional", amt: "5.000", credits: "2.000 créditos", feats: ["Até 10 marcas", "5 editores", "Relatórios + exportação", "Até 20 publicações em portais categoria A"] },
 ];
 
 const BRAND_COLORS = ["#C25E00","#2A6FDB","#2F8A5B","#6D3BD9","#0E7C86","#B0322E","#8A6500","#1A1A1A"];
@@ -456,7 +456,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [releaseCount, setReleaseCount] = useState<number | null>(null);
   const [sub, setSub] = useState<SubInfo>({ plan: null, status: null, everPaid: false, label: "—", priceCents: null, credits: 0, creditsUsed: 0, currentPeriodEnd: null });
   const [showVoucherExpiringModal, setShowVoucherExpiringModal] = useState(false);
-  const [teamMember, setTeamMember] = useState<{ role: string; ownerId: string; name: string; brandIds: string[] } | null>(null);
+  const [teamMember, setTeamMember] = useState<{ role: string; ownerId: string; name: string } | null>(null);
 
   const fetchSub = useCallback(() => {
     fetch("/api/stripe/subscription")
@@ -508,7 +508,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     fetch("/api/team/me")
       .then(r => r.json())
-      .then((d: { role: string; ownerId: string; name: string; brandIds: string[] } | null) => setTeamMember(d || null))
+      .then((d: { role: string; ownerId: string; name: string } | null) => setTeamMember(d || null))
       .catch(() => {});
   }, []);
 
@@ -549,10 +549,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const isCancelled = sub.status === "CANCELLED" || sub.status === "INACTIVE" || sub.status === null;
   // neverPaid: nunca passou pelo Stripe — acesso mais restrito (AppShell não deve existir neste caso, mas por segurança)
   const neverPaid = isCancelled && !sub.everPaid;
-  // Membros de equipe (editor/revisor)
-  const isEditor   = teamMember?.role === "EDITOR";
-  const isReviewer = teamMember?.role === "REVIEWER";
-  const isTeamMember = isEditor || isReviewer;
+  // Membros de equipe (editor)
+  const isEditor     = teamMember?.role === "EDITOR";
+  const isTeamMember = isEditor;
 
   return (
     <div className="app">
@@ -564,8 +563,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
         <div className="sb-mid scroll">
           <div style={{ padding: "16px 12px 2px" }}>
-            {isCancelled || isReviewer ? (
-              <button className="btn btn-primary btn-block btn-lg" disabled title={isReviewer ? "Revisores não criam releases" : "Assine um plano para criar releases"}>
+            {isCancelled ? (
+              <button className="btn btn-primary btn-block btn-lg" disabled title="Assine um plano para criar releases">
                 <FileText size={17} /> Criar release
               </button>
             ) : (

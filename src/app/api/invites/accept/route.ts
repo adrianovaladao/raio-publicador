@@ -64,7 +64,7 @@ export async function POST(req: Request) {
   await prisma.invite.update({ where: { token }, data: { accepted: true } });
 
   // Notify the workspace owner
-  const ROLE_LABELS: Record<string, string> = { EDITOR: "Editor", REVIEWER: "Revisor", ADMIN: "Administrador" };
+  const ROLE_LABELS: Record<string, string> = { EDITOR: "Editor", ADMIN: "Administrador" };
   await createNotification(invite.ownerId, "member_joined",
     "Novo membro na equipe",
     `${name} aceitou o convite e entrou como ${ROLE_LABELS[invite.role] ?? invite.role}.`,

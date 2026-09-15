@@ -36,9 +36,8 @@ interface Brand {
 // ─── Mock data ────────────────────────────────────────────────────────────────
 
 const ROLES: Record<string, { label: string; desc: string; color: string; bg: string }> = {
-  admin:    { label: "Administração", desc: "Acesso total: edita releases, gerencia pessoas, marcas e cobrança.", color: "#8A6500", bg: "#FCEFCB" },
-  editor:   { label: "Edição",        desc: "Escreve, revisa e agenda releases das marcas atribuídas.",          color: "#2A6FDB", bg: "#E6EEFB" },
-  reviewer: { label: "Revisão",       desc: "Acessa a lista de releases da marca e adiciona comentários.",        color: "#2F8A5B", bg: "#E3F2E9" },
+  admin:  { label: "Administração", desc: "Acesso total: edita releases, gerencia pessoas, marcas e cobrança.", color: "#8A6500", bg: "#FCEFCB" },
+  editor: { label: "Edição",        desc: "Escreve, revisa e agenda releases das marcas atribuídas.",          color: "#2A6FDB", bg: "#E6EEFB" },
 };
 
 const INVITE_ROLES = Object.fromEntries(Object.entries(ROLES).filter(([k]) => k !== "admin"));
@@ -814,50 +813,38 @@ function ContaPanel({ onToast }: { onToast: (m: string) => void }) {
 
 interface InviteRow { id: string; email: string; role: string; brandIds: string[]; sentAt: string }
 
-interface SlotsInfo { editorsUsed: number; editorsLimit: number; reviewersUsed: number; reviewersLimit: number; }
+interface SlotsInfo { editorsUsed: number; editorsLimit: number; }
 
 function InviteModal({ onClose, onSent }: { onClose: () => void; onSent: (inv: InviteRow) => void }) {
   const [email, setEmail] = useState("");
-  const [role, setRole]   = useState("editor");
-  const [brandId, setBrandId] = useState("");
   const [sending, setSending] = useState(false);
   const [err, setErr]     = useState("");
   const [slots, setSlots] = useState<SlotsInfo | null>(null);
-  const [brands, setBrands] = useState<{ id: string; name: string }[]>([]);
 
   useEffect(() => {
     Promise.all([
       fetch("/api/stripe/subscription").then(r => r.json()),
       fetch("/api/team/members").then(r => r.json()),
       fetch("/api/invites").then(r => r.json()),
-      fetch("/api/brands").then(r => r.json()),
-    ]).then(([sub, members, invites, brandsData]: [
-      { plan?: string; editorsLimit?: number; reviewersLimit?: number },
+    ]).then(([sub, members, invites]: [
+      { plan?: string; editorsLimit?: number },
       { role: string; status: string }[],
-      { role: string }[],
-      { id: string; name: string }[]
+      { role: string }[]
     ]) => {
-      const editorsUsed    = (members.filter(m => m.role === "EDITOR"   && m.status === "ACTIVE").length)
-                           + (invites.filter(i => i.role === "EDITOR").length);
-      const reviewersUsed  = (members.filter(m => m.role === "REVIEWER" && m.status === "ACTIVE").length)
-                           + (invites.filter(i => i.role === "REVIEWER").length);
-      setSlots({ editorsUsed, editorsLimit: sub.editorsLimit ?? 0, reviewersUsed, reviewersLimit: sub.reviewersLimit ?? 0 });
-      if (Array.isArray(brandsData)) {
-        setBrands(brandsData);
-        if (brandsData.length > 0) setBrandId(brandsData[0].id);
-      }
+      const editorsUsed = (members.filter(m => m.role === "EDITOR" && m.status === "ACTIVE").length)
+                        + (invites.filter(i => i.role === "EDITOR").length);
+      setSlots({ editorsUsed, editorsLimit: sub.editorsLimit ?? 0 });
     }).catch(() => {});
   }, []);
 
   async function send() {
     if (!email.trim()) { setErr("Informe o e-mail."); return; }
-    if (role === "reviewer" && !brandId) { setErr("Selecione uma marca para o revisor."); return; }
     setSending(true); setErr("");
     try {
       const res = await fetch("/api/invites", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim(), role, brandIds: role === "reviewer" ? [brandId] : [] }),
+        body: JSON.stringify({ email: email.trim(), role: "editor", brandIds: [] }),
       });
       const data = await res.json() as InviteRow & { error?: string };
       if (!res.ok) { setErr(data.error ?? `Erro ${res.status}`); return; }
@@ -867,67 +854,29 @@ function InviteModal({ onClose, onSent }: { onClose: () => void; onSent: (inv: I
     finally { setSending(false); }
   }
 
+  const atLimit = !!(slots && slots.editorsUsed >= slots.editorsLimit);
+
   return (
     <div className="overlay" onClick={onClose}>
       <div className="modal" onClick={e => e.stopPropagation()}>
-        <div className="m-head"><h3>Convidar para a <em>equipe</em></h3></div>
+        <div className="m-head"><h3>Convidar <em>editor</em></h3></div>
         <div className="m-body">
-          <div className="field"><label>E-mail</label><input className="input" type="email" placeholder="nome@empresa.com.br" autoFocus value={email} onChange={e => setEmail(e.target.value)} onKeyDown={e => e.key === "Enter" && send()} /></div>
-          <div className="field">
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-              <label style={{ margin: 0 }}>Função</label>
-              {slots && (
-                <span style={{ fontSize: 11, fontFamily: "var(--mono)", color: "var(--stone)", letterSpacing: "0.04em" }}>
-                  {slots.editorsUsed}/{slots.editorsLimit} editores · {slots.reviewersUsed}/{slots.reviewersLimit} revisores
-                </span>
-              )}
-            </div>
-            <div className="role-pick">
-              {Object.entries(INVITE_ROLES).map(([k, r]) => {
-                const atLimit = slots && (
-                  (k === "editor"   && slots.editorsUsed   >= slots.editorsLimit) ||
-                  (k === "reviewer" && slots.reviewersUsed >= slots.reviewersLimit)
-                );
-                return (
-                  <button key={k} className={`role-opt${role === k ? " on" : ""}${atLimit ? " disabled" : ""}`}
-                    onClick={() => { if (!atLimit) setRole(k); }}
-                    style={atLimit ? { opacity: 0.45, cursor: "not-allowed" } : undefined}
-                    title={atLimit ? "Limite do plano atingido" : undefined}
-                  >
-                    <span className="ro-radio" />
-                    <span><span className="ro-name">{r.label}</span><span className="ro-desc">{r.desc}</span></span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Brand picker — aparece apenas para revisor */}
-          {role === "reviewer" && (
-            <div className="field" style={{ marginTop: 4 }}>
-              <label>Marca atribuída</label>
-              {brands.length === 0 ? (
-                <p style={{ fontSize: 13, color: "var(--stone)", margin: "4px 0 0" }}>Nenhuma marca cadastrada ainda.</p>
-              ) : (
-                <select
-                  className="input"
-                  value={brandId}
-                  onChange={e => setBrandId(e.target.value)}
-                  style={{ appearance: "auto" }}
-                >
-                  {brands.map(b => (
-                    <option key={b.id} value={b.id}>{b.name}</option>
-                  ))}
-                </select>
-              )}
-            </div>
+          <div className="field"><label>E-mail</label><input className="input" type="email" placeholder="nome@empresa.com.br" autoFocus value={email} onChange={e => setEmail(e.target.value)} onKeyDown={e => e.key === "Enter" && !atLimit && send()} /></div>
+          {slots && (
+            <p style={{ fontSize: 12, color: "var(--stone)", margin: "-4px 0 12px", fontFamily: "var(--mono)", letterSpacing: "0.04em" }}>
+              {slots.editorsUsed}/{slots.editorsLimit} editores utilizados
+            </p>
           )}
-
+          {atLimit && (
+            <p style={{ fontSize: 13, color: "var(--red,#c0392b)", margin: "0 0 12px", fontWeight: 500 }}>
+              Limite de editores atingido para o plano atual.
+            </p>
+          )}
           {err && <p style={{ color: "var(--red,#c0392b)", fontSize: 13, margin: "0 0 12px", fontWeight: 500 }}>{err}</p>}
         </div>
         <div className="m-foot">
           <button className="btn btn-quiet btn-sm" onClick={onClose}>Cancelar</button>
-          <button className="btn btn-primary btn-sm" onClick={send} disabled={sending}><Send size={15} /> {sending ? "Enviando…" : "Enviar convite"}</button>
+          <button className="btn btn-primary btn-sm" onClick={send} disabled={sending || atLimit}><Send size={15} /> {sending ? "Enviando…" : "Enviar convite"}</button>
         </div>
       </div>
     </div>
@@ -1065,7 +1014,7 @@ function EquipePanel({ onToast, isCancelled }: { onToast: (m: string) => void; i
                       <div className="menu-backdrop" onClick={() => setMenu(null)} />
                       <div className="row-menu">
                         <div style={{ padding: "6px 14px 4px", fontSize: 11, color: "var(--stone)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", textAlign: "left" }}>Função</div>
-                        {["admin","editor","reviewer"].map(r => (
+                        {["admin","editor"].map(r => (
                           <button key={r} onClick={() => { updateMember(m.id, { role: r }); setMenu(null); onToast("Função atualizada"); }} style={{ display: "flex", alignItems: "center", gap: 8 }}>
                             {m.role.toLowerCase() === r && <Check size={13} />}
                             <span style={{ marginLeft: m.role.toLowerCase() === r ? 0 : 21 }}>{ROLES[r]?.label ?? r}</span>

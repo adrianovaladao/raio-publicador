@@ -11,14 +11,10 @@ export async function GET() {
     const prisma = getPrisma();
     const member = await prisma.teamMember.findUnique({
       where: { clerkId: userId },
-      select: { ownerId: true, role: true, status: true, brands: { select: { brandId: true } } },
+      select: { ownerId: true, status: true },
     });
     const accountOwnerId = (member?.status === "ACTIVE") ? member.ownerId : userId;
-    // Revisores só veem as marcas associadas; editores veem todas do dono
-    const brandFilter = (member?.status === "ACTIVE" && member.role === "REVIEWER" && member.brands.length > 0)
-      ? { id: { in: member.brands.map(b => b.brandId) } }
-      : {};
-    const brands = await prisma.brand.findMany({ where: { ownerId: accountOwnerId, ...brandFilter }, orderBy: { name: "asc" } });
+    const brands = await prisma.brand.findMany({ where: { ownerId: accountOwnerId }, orderBy: { name: "asc" } });
     return NextResponse.json(brands);
   } catch (e) {
     console.error("[GET /api/brands]", e);
@@ -32,7 +28,7 @@ export async function POST(req: Request) {
   try {
     const prisma = getPrisma();
 
-    // Editores e revisores não podem criar marcas
+    // Editores não podem criar marcas
     const member = await prisma.teamMember.findUnique({
       where: { clerkId: userId },
       select: { role: true, status: true },

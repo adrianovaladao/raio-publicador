@@ -13,7 +13,6 @@ interface PlanData {
   credits: number;
   brandsLimit: number;
   editorsLimit: number;
-  reviewersLimit: number;
   tierAIncluded: number;
 }
 
@@ -30,7 +29,7 @@ function PlanFeatures({ plan }: { plan: PlanData }) {
     { icon: Coins,     text: `${plan.credits.toLocaleString("pt-BR")} créditos mensais` },
     { icon: Building2, text: `Até ${plan.brandsLimit === 1 ? "uma" : plan.brandsLimit === 2 ? "duas" : plan.brandsLimit} marca${plan.brandsLimit > 1 ? "s" : ""}` },
     { icon: Newspaper, text: `Até ${plan.tierAIncluded} publicações em portais categoria A` },
-    { icon: Users,     text: `${plan.editorsLimit} editor${plan.editorsLimit > 1 ? "es" : ""} · ${plan.reviewersLimit} revisor${plan.reviewersLimit > 1 ? "es" : ""}` },
+    { icon: Users,     text: `${plan.editorsLimit} editor${plan.editorsLimit > 1 ? "es" : ""}` },
   ];
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -259,7 +258,7 @@ export default function CheckoutConfirmClient({ initialPlanId, allPlans }: Props
                       `Até ${p.tierAIncluded} publicações em portais categoria A`,
                       "Acesso completo aos 50 portais parceiros",
                       "Calendário e agendamento de publicações",
-                      `${p.editorsLimit} editor${p.editorsLimit > 1 ? "es" : ""} · ${p.reviewersLimit} revisor${p.reviewersLimit > 1 ? "es" : ""}`,
+                      `${p.editorsLimit} editor${p.editorsLimit > 1 ? "es" : ""}`,
                     ];
                     return (
                       <div key={p.id} className={`onb-plan-card${isFeatured ? " featured" : ""}`} onClick={() => selectPlan(p.id)}>

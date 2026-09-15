@@ -11,18 +11,14 @@ export async function GET() {
   const prisma = getPrisma();
   const member = await prisma.teamMember.findUnique({
     where: { clerkId: userId },
-    select: { ownerId: true, role: true, status: true, brands: { select: { brandId: true } } },
+    select: { ownerId: true, status: true },
   });
   const accountOwnerId = (member?.status === "ACTIVE") ? member.ownerId : userId;
-  // Revisores só veem marcas associadas
-  const brandFilter = (member?.status === "ACTIVE" && member.role === "REVIEWER" && member.brands.length > 0)
-    ? { id: { in: member.brands.map(b => b.brandId) } }
-    : {};
 
   const [brands, releases] = await Promise.all([
-    prisma.brand.findMany({ where: { ownerId: accountOwnerId, ...brandFilter }, orderBy: { name: "asc" } }),
+    prisma.brand.findMany({ where: { ownerId: accountOwnerId }, orderBy: { name: "asc" } }),
     prisma.release.findMany({
-      where: { brand: { ownerId: accountOwnerId, ...brandFilter } },
+      where: { brand: { ownerId: accountOwnerId } },
       select: { id: true, status: true, brandId: true, creditsUsed: true, title: true, createdAt: true, scheduledAt: true, publishedAt: true },
       orderBy: { createdAt: "desc" },
     }),

@@ -18,23 +18,18 @@ export async function GET(req: NextRequest) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  // Se for membro de equipe, usa o ownerId do dono da conta
+  // Se for membro de equipe (editor), usa o ownerId do dono da conta
   const prisma = getPrisma();
   const member = await prisma.teamMember.findUnique({
     where: { clerkId: userId },
-    select: { ownerId: true, role: true, status: true, brands: { select: { brandId: true } } },
+    select: { ownerId: true, status: true },
   });
   const accountOwnerId = (member?.status === "ACTIVE") ? member.ownerId : userId;
-
-  // Revisores só veem releases das marcas às quais foram associados
-  const brandFilter = (member?.status === "ACTIVE" && member.role === "REVIEWER" && member.brands.length > 0)
-    ? { id: { in: member.brands.map(b => b.brandId) } }
-    : {};
 
   // Retorna TODOS os releases do usuário — sem filtrar por archivedAt.
   // O arquivamento feito pelo admin é exclusivo da fila interna; o cliente sempre vê seus releases.
   const releases = await prisma.release.findMany({
-    where: { brand: { ownerId: accountOwnerId, ...brandFilter } },
+    where: { brand: { ownerId: accountOwnerId } },
     include: { brand: { select: { name: true, color: true, logoUrl: true } } },
     orderBy: { createdAt: "desc" },
   });
@@ -59,11 +54,8 @@ export async function POST(req: NextRequest) {
   // Se for membro de equipe (editor), créditos e assinatura são do dono da conta
   const member = await prisma.teamMember.findUnique({
     where: { clerkId: userId },
-    select: { ownerId: true, role: true, status: true },
+    select: { ownerId: true, status: true },
   });
-  if (member?.status === "ACTIVE" && member.role === "REVIEWER") {
-    return NextResponse.json({ error: "Revisores não podem criar releases." }, { status: 403 });
-  }
   const accountOwnerId = (member?.status === "ACTIVE") ? member.ownerId : userId;
 
   const sub = await prisma.subscription.findUnique({

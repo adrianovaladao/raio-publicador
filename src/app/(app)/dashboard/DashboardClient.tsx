@@ -356,26 +356,11 @@ function NewBrandModal({ onClose, onSave }: { onClose: () => void; onSave: () =>
 
 // ── BrandSwitcher ─────────────────────────────────────────────────────────────
 
-function DashBrandSwitcher({ brands, brandsLimit, activeIdx, setActiveIdx, onNewBrand, onUpgrade, isCancelled, isReviewer }: { brands: Brand[]; brandsLimit: number | null; activeIdx: number; setActiveIdx: (i: number) => void; onNewBrand: () => void; onUpgrade: () => void; isCancelled?: boolean; isReviewer?: boolean }) {
+function DashBrandSwitcher({ brands, brandsLimit, activeIdx, setActiveIdx, onNewBrand, onUpgrade, isCancelled }: { brands: Brand[]; brandsLimit: number | null; activeIdx: number; setActiveIdx: (i: number) => void; onNewBrand: () => void; onUpgrade: () => void; isCancelled?: boolean }) {
   const [open, setOpen] = useState(false);
 
   if (brands.length === 0) return null;
   const active = brands[activeIdx] ?? brands[0];
-
-  // Revisores com apenas 1 marca: mostra só o badge sem dropdown
-  if (isReviewer && brands.length === 1) {
-    return (
-      <div className="tb-brandsel">
-        <div className="tbb-btn" style={{ cursor: "default" }}>
-          <BrandAvatar name={active.name} color={active.color} logoUrl={active.logoUrl} size={26} />
-          <span className="tbb-meta">
-            <span className="tbb-lbl">Marca ativa</span>
-            <span className="tbb-nm">{active.name}</span>
-          </span>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="tb-brandsel" style={{ position: "relative" }}>
@@ -403,9 +388,7 @@ function DashBrandSwitcher({ brands, brandsLimit, activeIdx, setActiveIdx, onNew
                 {i === activeIdx && <Check size={15} />}
               </button>
             ))}
-            {/* Revisores não podem criar marcas */}
-            {!isReviewer && (
-              <button
+            <button
                 className="tbb-opt tbb-new"
                 disabled={isCancelled}
                 onClick={() => {
@@ -422,7 +405,6 @@ function DashBrandSwitcher({ brands, brandsLimit, activeIdx, setActiveIdx, onNew
                   <span className="tbb-nm">Nova marca</span>
                 </span>
               </button>
-            )}
           </div>
         </>
       )}
@@ -503,8 +485,6 @@ export default function DashboardPage() {
   const [brandsLimit, setBrandsLimit] = useState<number | null>(null);
   const [subStatus, setSubStatus] = useState<string | null>(null);
   const [activeIdx, setActiveIdx] = useState(0);
-  const [isReviewer, setIsReviewer] = useState(false);
-
   useEffect(() => {
     fetch("/api/stripe/subscription")
       .then(r => r.json())
@@ -512,10 +492,6 @@ export default function DashboardPage() {
         setBrandsLimit(d.brandsLimit ?? null);
         setSubStatus(d.status ?? null);
       })
-      .catch(() => {});
-    fetch("/api/team/me")
-      .then(r => r.json())
-      .then((d: { role?: string } | null) => { if (d?.role === "REVIEWER") setIsReviewer(true); })
       .catch(() => {});
   }, []);
 
@@ -576,7 +552,7 @@ export default function DashboardPage() {
             </p>
           </div>
           <div className="actions">
-            {hasBrands && <DashBrandSwitcher brands={brands} brandsLimit={brandsLimit} activeIdx={activeIdx} setActiveIdx={setActiveIdx} isCancelled={subStatus === "CANCELLED"} onNewBrand={() => setShowNew(true)} onUpgrade={() => window.dispatchEvent(new CustomEvent("open-plans"))} isReviewer={isReviewer} />}
+            {hasBrands && <DashBrandSwitcher brands={brands} brandsLimit={brandsLimit} activeIdx={activeIdx} setActiveIdx={setActiveIdx} isCancelled={subStatus === "CANCELLED"} onNewBrand={() => setShowNew(true)} onUpgrade={() => window.dispatchEvent(new CustomEvent("open-plans"))} />}
           </div>
         </div>
 
