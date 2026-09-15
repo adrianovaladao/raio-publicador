@@ -29,7 +29,7 @@ export default function LoginPage() {
       fetch("/api/stripe/subscription")
         .then(r => r.json())
         .then((d: { status?: string; everPaid?: boolean; isTeamMember?: boolean }) => {
-          if (d.isTeamMember) { router.replace("/dashboard"); return; }
+          if (d.isTeamMember || d.isAdmin) { router.replace("/dashboard"); return; }
           const hasAccess = d.status === "ACTIVE" || d.status === "PAST_DUE";
           router.replace(hasAccess || d.everPaid ? "/dashboard" : "/boas-vindas");
         })
@@ -72,9 +72,9 @@ export default function LoginPage() {
     if (redirectUrl) { router.replace(redirectUrl); return; }
     try {
       const subRes = await fetch("/api/stripe/subscription");
-      const sub = await subRes.json() as { status?: string; everPaid?: boolean; isTeamMember?: boolean };
-      // Membros de equipe vão direto para o dashboard
-      if (sub.isTeamMember) { router.replace("/dashboard"); return; }
+      const sub = await subRes.json() as { status?: string; everPaid?: boolean; isTeamMember?: boolean; isAdmin?: boolean };
+      // Membros de equipe e admins internos vão direto para o dashboard
+      if (sub.isTeamMember || sub.isAdmin) { router.replace("/dashboard"); return; }
       const hasAccess = sub.status === "ACTIVE" || sub.status === "PAST_DUE";
       // Quem já pagou alguma vez (cancelados incluídos) vai para o dashboard.
       // Quem nunca pagou vai para a landing para escolher um plano.

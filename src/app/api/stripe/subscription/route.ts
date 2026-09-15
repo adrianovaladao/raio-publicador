@@ -18,7 +18,12 @@ export async function GET() {
   const isTeamMember = member?.status === "ACTIVE";
 
   const sub = await prisma.subscription.findUnique({ where: { ownerId: accountOwnerId } });
-  if (!sub) return NextResponse.json({ plan: null, status: null, brandsLimit: null });
+  if (!sub) {
+    // Sem subscription no banco — verifica se é conta interna/admin (ADMIN_USER_IDS)
+    const adminIds = (process.env.ADMIN_USER_IDS ?? "").split(",").map(s => s.trim()).filter(Boolean);
+    const isAdmin = adminIds.length > 0 && adminIds.includes(userId);
+    return NextResponse.json({ plan: null, status: null, brandsLimit: null, isAdmin });
+  }
 
   const planMeta = PLANS[sub.plan as keyof typeof PLANS] ?? null;
   // everPaid = true se o usuário já passou pelo Stripe em algum momento
