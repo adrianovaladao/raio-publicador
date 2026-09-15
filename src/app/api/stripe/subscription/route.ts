@@ -8,7 +8,16 @@ export async function GET() {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const sub = await getPrisma().subscription.findUnique({ where: { ownerId: userId } });
+  // Se for membro de equipe, retorna assinatura do dono da conta (somente leitura)
+  const prisma = getPrisma();
+  const member = await prisma.teamMember.findUnique({
+    where: { clerkId: userId },
+    select: { ownerId: true, status: true },
+  });
+  const accountOwnerId = (member?.status === "ACTIVE") ? member.ownerId : userId;
+  const isTeamMember = member?.status === "ACTIVE";
+
+  const sub = await prisma.subscription.findUnique({ where: { ownerId: accountOwnerId } });
   if (!sub) return NextResponse.json({ plan: null, status: null, brandsLimit: null });
 
   const planMeta = PLANS[sub.plan as keyof typeof PLANS] ?? null;
@@ -28,5 +37,6 @@ export async function GET() {
     creditsUsed: sub.creditsUsed,
     currentPeriodStart: sub.currentPeriodStart?.toISOString() ?? null,
     currentPeriodEnd: sub.currentPeriodEnd?.toISOString() ?? null,
+    isTeamMember: isTeamMember ?? false,
   });
 }

@@ -8,7 +8,17 @@ export async function GET() {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   try {
-    const brands = await getPrisma().brand.findMany({ where: { ownerId: userId }, orderBy: { name: "asc" } });
+    const prisma = getPrisma();
+    const member = await prisma.teamMember.findUnique({
+      where: { clerkId: userId },
+      select: { ownerId: true, role: true, status: true, brands: { select: { brandId: true } } },
+    });
+    const accountOwnerId = (member?.status === "ACTIVE") ? member.ownerId : userId;
+    // Revisores só veem as marcas associadas; editores veem todas do dono
+    const brandFilter = (member?.status === "ACTIVE" && member.role === "REVIEWER" && member.brands.length > 0)
+      ? { id: { in: member.brands.map(b => b.brandId) } }
+      : {};
+    const brands = await prisma.brand.findMany({ where: { ownerId: accountOwnerId, ...brandFilter }, orderBy: { name: "asc" } });
     return NextResponse.json(brands);
   } catch (e) {
     console.error("[GET /api/brands]", e);
@@ -21,6 +31,15 @@ export async function POST(req: Request) {
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   try {
     const prisma = getPrisma();
+
+    // Editores e revisores não podem criar marcas
+    const member = await prisma.teamMember.findUnique({
+      where: { clerkId: userId },
+      select: { role: true, status: true },
+    });
+    if (member?.status === "ACTIVE") {
+      return NextResponse.json({ error: "Membros de equipe não podem criar marcas." }, { status: 403 });
+    }
 
     const sub = await prisma.subscription.findUnique({ where: { ownerId: userId } });
     if (!sub || sub.status === "CANCELLED" || (sub.status === "INACTIVE" && sub.creditsTotal === 0)) {

@@ -456,19 +456,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [releaseCount, setReleaseCount] = useState<number | null>(null);
   const [sub, setSub] = useState<SubInfo>({ plan: null, status: null, everPaid: false, label: "—", priceCents: null, credits: 0, creditsUsed: 0, currentPeriodEnd: null });
   const [showVoucherExpiringModal, setShowVoucherExpiringModal] = useState(false);
+  const [teamMember, setTeamMember] = useState<{ role: string; ownerId: string; name: string; brandIds: string[] } | null>(null);
 
   const fetchSub = useCallback(() => {
     fetch("/api/stripe/subscription")
       .then(r => r.json())
-      .then((d: Partial<SubInfo>) => {
+      .then((d: Partial<SubInfo> & { isTeamMember?: boolean }) => {
         const status = d.status ?? null;
         const everPaid = d.everPaid ?? false;
         const isAdmin = !!(user?.publicMetadata as Record<string, unknown>)?.raioAdmin;
         const hasAccess = status === "ACTIVE" || status === "PAST_DUE";
         // Só redireciona quem NUNCA pagou (nunca passou pelo Stripe).
-        // Quem cancelou ou tem plano inativo mas já pagou fica na plataforma
-        // com UI de "Sem plano" — nunca jogado para fora.
-        if (!isAdmin && !hasAccess && !everPaid) {
+        // Membros de equipe (isTeamMember) têm acesso via conta do dono — não redirecionar.
+        if (!isAdmin && !d.isTeamMember && !hasAccess && !everPaid) {
           window.location.href = "/";
           return;
         }
@@ -502,6 +502,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     fetch("/api/notifications")
       .then(r => r.json())
       .then((d: { read: boolean }[]) => setUnreadCount(Array.isArray(d) ? d.filter(n => !n.read).length : 0))
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    fetch("/api/team/me")
+      .then(r => r.json())
+      .then((d: { role: string; ownerId: string; name: string; brandIds: string[] } | null) => setTeamMember(d || null))
       .catch(() => {});
   }, []);
 
@@ -542,6 +549,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const isCancelled = sub.status === "CANCELLED" || sub.status === "INACTIVE" || sub.status === null;
   // neverPaid: nunca passou pelo Stripe — acesso mais restrito (AppShell não deve existir neste caso, mas por segurança)
   const neverPaid = isCancelled && !sub.everPaid;
+  // Membros de equipe (editor/revisor)
+  const isEditor   = teamMember?.role === "EDITOR";
+  const isReviewer = teamMember?.role === "REVIEWER";
+  const isTeamMember = isEditor || isReviewer;
 
   return (
     <div className="app">
@@ -553,8 +564,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
         <div className="sb-mid scroll">
           <div style={{ padding: "16px 12px 2px" }}>
-            {isCancelled ? (
-              <button className="btn btn-primary btn-block btn-lg" disabled title="Assine um plano para criar releases">
+            {isCancelled || isReviewer ? (
+              <button className="btn btn-primary btn-block btn-lg" disabled title={isReviewer ? "Revisores não criam releases" : "Assine um plano para criar releases"}>
                 <FileText size={17} /> Criar release
               </button>
             ) : (
@@ -592,10 +603,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 </Link>
               );
             })}
-            <Link href="/configuracoes" className={`sb-item${pathname.startsWith("/configuracoes") ? " active" : ""}`}>
-              <Settings size={18} />
-              <span>Gerenciamento</span>
-            </Link>
+            {isTeamMember ? (
+              // Membros de equipe só acessam perfil e suporte dentro de configuracoes
+              <Link href="/configuracoes?tab=perfil" className={`sb-item${pathname.startsWith("/configuracoes") ? " active" : ""}`}>
+                <Settings size={18} />
+                <span>Perfil</span>
+              </Link>
+            ) : (
+              <Link href="/configuracoes" className={`sb-item${pathname.startsWith("/configuracoes") ? " active" : ""}`}>
+                <Settings size={18} />
+                <span>Gerenciamento</span>
+              </Link>
+            )}
             {user?.publicMetadata?.raioAdmin === true && (
               <Link href="/admin" className={`sb-item${pathname.startsWith("/admin") ? " active" : ""}`}>
                 <ShieldCheck size={18} />
@@ -605,8 +624,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </nav>
         </div>
 
-        {/* Widget de créditos — clicável → PlansModal */}
-        <button className="credits" onClick={() => setShowPlans(true)} title="Ver planos e créditos">
+        {/* Widget de créditos — clicável → PlansModal (membros de equipe: somente leitura) */}
+        <button className="credits" onClick={() => !isTeamMember && setShowPlans(true)} title={isTeamMember ? "Saldo de créditos da conta" : "Ver planos e créditos"} style={isTeamMember ? { cursor: "default" } : undefined}>
           <div className="top">
             <span className="lbl">Créditos</span>
             <span className="credits-plan">{isCancelled ? "Sem plano" : sub.label}</span>
@@ -617,7 +636,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
           <div className="bar"><i style={{ width: `${pct}%` }} /></div>
           <div className="hint">{pct}% usados · renova em {(() => { const d = new Date(); const r = new Date(d.getFullYear(), d.getMonth()+1, 1); return `${String(r.getDate()).padStart(2,"0")}/${String(r.getMonth()+1).padStart(2,"0")}/${r.getFullYear()}`; })()}</div>
-          {isCancelled ? (
+          {!isTeamMember && (isCancelled ? (
             /* Sem plano ativo: só botão de escolher plano */
             <div
               style={{ marginTop: 8, padding: "7px 10px", borderRadius: 8, background: "var(--coral)", fontSize: 12, fontWeight: 700, color: "#1a1a1a", textAlign: "center", cursor: "pointer" }}
@@ -644,7 +663,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 </div>
               )}
             </>
-          )}
+          ))}
         </button>
 
       </aside>
@@ -660,15 +679,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           {/* Créditos compactos — visível apenas no mobile via CSS */}
           <button
             className="topbar-credits-pill"
-            onClick={() => setShowPlans(true)}
-            title="Ver créditos e planos"
+            onClick={() => !isTeamMember && setShowPlans(true)}
+            title={isTeamMember ? "Saldo de créditos" : "Ver créditos e planos"}
+            style={isTeamMember ? { cursor: "default" } : undefined}
           >
             <Zap size={12} />
             {left.toLocaleString("pt-BR")}
           </button>
 
           {/* Usuário na topbar */}
-          <button className="topbar-user" onClick={() => router.push("/configuracoes")} title="Perfil e configurações">
+          <button className="topbar-user" onClick={() => router.push(isTeamMember ? "/configuracoes?tab=perfil" : "/configuracoes")} title="Perfil e configurações">
             {user?.hasImage
               // eslint-disable-next-line @next/next/no-img-element
               ? <img src={user.imageUrl} alt={fullName} className="topbar-av" style={{ objectFit: "cover" }} />

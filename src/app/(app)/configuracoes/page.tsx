@@ -2501,6 +2501,7 @@ function ConfiguracoesInner() {
   const [tab, setTab] = useState(initialTab);
   const [toast, setToast] = useState<string | null>(null);
   const [isCancelled, setIsCancelled] = useState(false);
+  const [isTeamMember, setIsTeamMember] = useState(false);
   const { user } = useUser();
   const isRaioAdmin = user?.publicMetadata?.raioAdmin === true;
 
@@ -2509,11 +2510,23 @@ function ConfiguracoesInner() {
       .then(r => r.json())
       .then((d: { status?: string }) => { setIsCancelled(d.status === "CANCELLED"); })
       .catch(() => {});
+    fetch("/api/team/me")
+      .then(r => r.json())
+      .then((d: { role: string } | null) => setIsTeamMember(!!d))
+      .catch(() => {});
   }, []);
 
-  const GROUPS = isRaioAdmin
-    ? [...BASE_GROUPS, { label: "Raio", items: [{ id: "veiculos", icon: Rss, label: "Veículos" }] }]
-    : BASE_GROUPS;
+  // Membros de equipe só veem Perfil, Notificações e Suporte
+  const TEAM_MEMBER_GROUPS = [
+    { label: "Você", items: [{ id: "perfil", icon: UserCircle, label: "Perfil" }, { id: "notificacoes", icon: Bell, label: "Notificações" }] },
+    { label: "Suporte", items: [{ id: "suporte", icon: MessageCircle, label: "Histórico de suporte" }] },
+  ];
+
+  const GROUPS = isTeamMember
+    ? TEAM_MEMBER_GROUPS
+    : isRaioAdmin
+      ? [...BASE_GROUPS, { label: "Raio", items: [{ id: "veiculos", icon: Rss, label: "Veículos" }] }]
+      : BASE_GROUPS;
 
   function showToast(msg: string) {
     setToast(msg);
