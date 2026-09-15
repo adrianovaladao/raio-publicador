@@ -9,17 +9,25 @@ export async function GET() {
 
   try {
     const clerk = await clerkClient();
-    const clerkUser = await clerk.users.getUser(userId);
-    const fullName = [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(" ");
-    const ownerName = fullName || (clerkUser.emailAddresses[0]?.emailAddress ?? "Eu");
+
+    // Se for membro de equipe, usa o ownerId para buscar autores do dono
+    const self = await getPrisma().teamMember.findUnique({
+      where: { clerkId: userId },
+      select: { ownerId: true, status: true },
+    });
+    const accountOwnerId = (self?.status === "ACTIVE") ? self.ownerId : userId;
+
+    const ownerClerkUser = await clerk.users.getUser(accountOwnerId);
+    const fullName = [ownerClerkUser.firstName, ownerClerkUser.lastName].filter(Boolean).join(" ");
+    const ownerName = fullName || (ownerClerkUser.emailAddresses[0]?.emailAddress ?? "Eu");
 
     const members = await getPrisma().teamMember.findMany({
-      where: { ownerId: userId, status: "ACTIVE" },
+      where: { ownerId: accountOwnerId, status: "ACTIVE" },
       orderBy: { name: "asc" },
     });
 
     const authors = [
-      { id: userId, name: ownerName },
+      { id: accountOwnerId, name: ownerName },
       ...members.map(m => ({ id: m.id, name: m.name })),
     ];
 

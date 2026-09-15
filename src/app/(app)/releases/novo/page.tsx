@@ -231,7 +231,7 @@ function NewBrandModal({ onClose, onCreate, onLimitReached }: { onClose: () => v
   );
 }
 
-function StepBrand({ selected, onSelect, brands, brandsLimit, onAddBrand, onLimitReached, isCancelled, navSlot }: {
+function StepBrand({ selected, onSelect, brands, brandsLimit, onAddBrand, onLimitReached, isCancelled, isEditor, navSlot }: {
   selected: Brand | null;
   onSelect: (b: Brand) => void;
   brands: Brand[];
@@ -239,6 +239,7 @@ function StepBrand({ selected, onSelect, brands, brandsLimit, onAddBrand, onLimi
   onAddBrand: (b: Brand) => void;
   onLimitReached?: () => void;
   isCancelled?: boolean;
+  isEditor?: boolean;
   navSlot?: React.ReactNode;
 }) {
   const [mode, setMode] = useState<"grid" | "list">("grid");
@@ -319,7 +320,7 @@ function StepBrand({ selected, onSelect, brands, brandsLimit, onAddBrand, onLimi
           ))}
 
           {/* Card "Nova marca" */}
-          {!isCancelled && <div
+          {!isCancelled && !isEditor && <div
             className="lib-card-new"
             onClick={handleNewBrand}
           >
@@ -362,7 +363,7 @@ function StepBrand({ selected, onSelect, brands, brandsLimit, onAddBrand, onLimi
                 </tr>
               ))}
               {/* Linha "Nova marca" */}
-              {!isCancelled && <tr style={{ cursor: "pointer", background: "var(--cream)" }} onClick={handleNewBrand}>
+              {!isCancelled && !isEditor && <tr style={{ cursor: "pointer", background: "var(--cream)" }} onClick={handleNewBrand}>
                 <td style={{ display: "flex", alignItems: "center", gap: 10, color: "var(--stone)" }}>
                   <div style={{ width: 28, height: 28, borderRadius: 8, border: "1.5px dashed var(--sand)", display: "grid", placeItems: "center", flex: "none" }}>
                     <Plus size={14} color="var(--stone)" />
@@ -1478,11 +1479,16 @@ function StepReview({ content, selected, when, setWhen, brand, vehicles, datePic
 export default function NovoReleasePage() {
   const router  = useRouter();
   const [ownerName, setOwnerName] = useState("");
+  const [isEditorMember, setIsEditorMember] = useState(false);
 
   useEffect(() => {
     fetch("/api/team")
       .then(r => r.json())
       .then((data: { id: string; name: string }[]) => { if (data[0]) setOwnerName(data[0].name); })
+      .catch(() => {});
+    fetch("/api/team/me")
+      .then(r => r.json())
+      .then((d: { role?: string } | null) => { if (d?.role === "EDITOR") setIsEditorMember(true); })
       .catch(() => {});
   }, []);
 
@@ -1819,7 +1825,7 @@ export default function NovoReleasePage() {
             ? <>{cancelBtn}{nextBtn}</>
             : <>{backBtn}{nextBtn}</>;
 
-          if (step === 0) return <StepBrand selected={brand} onSelect={setBrand} brands={brands} brandsLimit={sub.brandsLimit} onAddBrand={b => setBrands(prev => [...prev, b])} onLimitReached={() => { window.dispatchEvent(new CustomEvent("open-plans")); }} isCancelled={sub.status === "CANCELLED"} navSlot={navSlot} />;
+          if (step === 0) return <StepBrand selected={brand} onSelect={setBrand} brands={brands} brandsLimit={sub.brandsLimit} onAddBrand={b => setBrands(prev => [...prev, b])} onLimitReached={() => { window.dispatchEvent(new CustomEvent("open-plans")); }} isCancelled={sub.status === "CANCELLED"} isEditor={isEditorMember} navSlot={navSlot} />;
           if (step === 1) return <StepContent content={content} setContent={setContent} brand={brand} ownerName={ownerName} onAIUsed={handleAIUsed} onNoPlan={(sub.plan === "VOUCHER" || !sub.plan || sub.status === "CANCELLED" || sub.status === "INACTIVE") ? () => window.dispatchEvent(new CustomEvent("open-plans")) : undefined} navSlot={navSlot} />;
           if (step === 2) return <StepVehicles selected={selected} setSelected={setSelected} vehicles={vehicles} sub={sub} onBuyCredits={(sub.plan === "VOUCHER" || sub.status === "CANCELLED" || sub.status === "INACTIVE") ? undefined : () => { try { sessionStorage.setItem("raio_draft_vehicles", JSON.stringify(selected)); sessionStorage.setItem("raio_draft_brand", JSON.stringify(brand)); } catch { /* ignore */ } setShowBuyCreditsModal(true); }} onUpgrade={() => { try { sessionStorage.setItem("raio_draft_vehicles", JSON.stringify(selected)); sessionStorage.setItem("raio_draft_brand", JSON.stringify(brand)); } catch { /* ignore */ } window.dispatchEvent(new CustomEvent("open-plans")); }} navSlot={navSlot} />;
           if (step === 3) return <StepReview content={content} selected={selected} when={when} setWhen={setWhen} brand={brand} vehicles={vehicles} datePicked={datePicked} setDatePicked={setDatePicked} dateFlash={dateFlash} setDateFlash={setDateFlash} navSlot={navSlot} />;
