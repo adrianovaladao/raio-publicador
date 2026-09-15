@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useUser, SignIn } from "@clerk/nextjs";
+import { useUser } from "@clerk/nextjs";
 import { RaioLockup } from "@/components/logo/RaioLockup";
 import { ArrowRight, Check, Users } from "lucide-react";
 
@@ -150,28 +150,27 @@ export default function ConviteTokenPage({ params }: { params: Promise<{ token: 
                 {invite.email}
               </p>
 
-              {!isLoaded ? null : !user ? (
-                /* Not logged in — show Clerk SignIn with redirect back */
-                <div>
-                  <p style={{ fontSize: 13, color: "var(--tx-3)", marginBottom: 16, lineHeight: 1.5 }}>
+              {!isLoaded ? (
+                <p style={{ color: "var(--tx-4)", fontSize: 14 }}>Carregando…</p>
+              ) : !user ? (
+                /* Not logged in — redirect to our own login page */
+                <div style={{ textAlign: "center" }}>
+                  <p style={{ fontSize: 14, color: "var(--tx-3)", marginBottom: 20, lineHeight: 1.55 }}>
                     Entre ou crie sua conta para aceitar o convite.
                   </p>
-                  <SignIn
-                    routing="hash"
-                    forceRedirectUrl={`/convite/${token}`}
-                    initialValues={{ emailAddress: invite.email }}
-                    appearance={{
-                      elements: {
-                        rootBox: { width: "100%" },
-                        card: { background: "transparent", boxShadow: "none", padding: 0 },
-                        headerTitle: { display: "none" },
-                        headerSubtitle: { display: "none" },
-                        socialButtonsBlockButton: { borderColor: "var(--line-2)", background: "rgba(255,255,255,0.03)", color: "var(--tx)" },
-                        formFieldInput: { background: "rgba(255,255,255,0.03)", borderColor: "var(--line-2)", color: "var(--tx)" },
-                        footerAction: { display: "none" },
-                      },
-                    }}
-                  />
+                  <a
+                    href={`/login?redirect_url=${encodeURIComponent(`/convite/${token}`)}`}
+                    className="btn btn-primary btn-block btn-lg"
+                    style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, textDecoration: "none" }}
+                  >
+                    Entrar na conta <ArrowRight size={16} />
+                  </a>
+                  <p style={{ fontSize: 13, color: "var(--tx-4)", marginTop: 14 }}>
+                    Não tem conta?{" "}
+                    <a href={`/cadastro?redirect_url=${encodeURIComponent(`/convite/${token}`)}`} style={{ color: "var(--coral)", fontWeight: 600 }}>
+                      Criar conta
+                    </a>
+                  </p>
                 </div>
               ) : (
                 /* Logged in — show accept button */
