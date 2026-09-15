@@ -13,6 +13,7 @@ const isPublicRoute = createRouteMatcher([
   "/cadastro(.*)",
   "/verificar(.*)",
   "/convite(.*)",
+  "/api/invites/accept",
   "/api/stripe/webhook",
   "/api/vouchers/validate",
   "/api/feed/(.*)",

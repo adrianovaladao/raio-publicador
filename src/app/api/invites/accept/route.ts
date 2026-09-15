@@ -36,22 +36,32 @@ export async function POST(req: Request) {
   const clerkUser = await clerk.users.getUser(userId);
   const name = [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(" ") || invite.email.split("@")[0];
 
-  // Mark as accepted and create/update TeamMember
-  await getPrisma().$transaction([
-    getPrisma().invite.update({ where: { token }, data: { accepted: true } }),
-    getPrisma().teamMember.upsert({
-      where: { clerkId: userId },
-      update: { status: "ACTIVE", name, ownerId: invite.ownerId },
-      create: {
-        clerkId: userId,
-        email: invite.email,
-        name,
-        role: invite.role,
-        status: "ACTIVE",
-        ownerId: invite.ownerId,
-      },
-    }),
-  ]);
+  const prisma = getPrisma();
+
+  // Mark as accepted, create/update TeamMember, and connect brands
+  const member = await prisma.teamMember.upsert({
+    where: { clerkId: userId },
+    update: { status: "ACTIVE", name, ownerId: invite.ownerId, role: invite.role },
+    create: {
+      clerkId: userId,
+      email: invite.email,
+      name,
+      role: invite.role,
+      status: "ACTIVE",
+      ownerId: invite.ownerId,
+    },
+  });
+
+  // Connect brandIds from the invite (replace existing brand associations)
+  if (invite.brandIds.length > 0) {
+    await prisma.brandMember.deleteMany({ where: { teamMemberId: member.id } });
+    await prisma.brandMember.createMany({
+      data: invite.brandIds.map(brandId => ({ brandId, teamMemberId: member.id })),
+      skipDuplicates: true,
+    });
+  }
+
+  await prisma.invite.update({ where: { token }, data: { accepted: true } });
 
   // Notify the workspace owner
   const ROLE_LABELS: Record<string, string> = { EDITOR: "Editor", REVIEWER: "Revisor", ADMIN: "Administrador" };
