@@ -819,41 +819,45 @@ interface SlotsInfo { editorsUsed: number; editorsLimit: number; reviewersUsed: 
 function InviteModal({ onClose, onSent }: { onClose: () => void; onSent: (inv: InviteRow) => void }) {
   const [email, setEmail] = useState("");
   const [role, setRole]   = useState("editor");
+  const [brandId, setBrandId] = useState("");
   const [sending, setSending] = useState(false);
   const [err, setErr]     = useState("");
   const [slots, setSlots] = useState<SlotsInfo | null>(null);
+  const [brands, setBrands] = useState<{ id: string; name: string }[]>([]);
 
   useEffect(() => {
     Promise.all([
       fetch("/api/stripe/subscription").then(r => r.json()),
       fetch("/api/team/members").then(r => r.json()),
       fetch("/api/invites").then(r => r.json()),
-    ]).then(([sub, members, invites]: [
+      fetch("/api/brands").then(r => r.json()),
+    ]).then(([sub, members, invites, brandsData]: [
       { plan?: string; editorsLimit?: number; reviewersLimit?: number },
       { role: string; status: string }[],
-      { role: string }[]
+      { role: string }[],
+      { id: string; name: string }[]
     ]) => {
       const editorsUsed    = (members.filter(m => m.role === "EDITOR"   && m.status === "ACTIVE").length)
                            + (invites.filter(i => i.role === "EDITOR").length);
       const reviewersUsed  = (members.filter(m => m.role === "REVIEWER" && m.status === "ACTIVE").length)
                            + (invites.filter(i => i.role === "REVIEWER").length);
-      setSlots({
-        editorsUsed,
-        editorsLimit:   sub.editorsLimit   ?? 0,
-        reviewersUsed,
-        reviewersLimit: sub.reviewersLimit ?? 0,
-      });
+      setSlots({ editorsUsed, editorsLimit: sub.editorsLimit ?? 0, reviewersUsed, reviewersLimit: sub.reviewersLimit ?? 0 });
+      if (Array.isArray(brandsData)) {
+        setBrands(brandsData);
+        if (brandsData.length > 0) setBrandId(brandsData[0].id);
+      }
     }).catch(() => {});
   }, []);
 
   async function send() {
     if (!email.trim()) { setErr("Informe o e-mail."); return; }
+    if (role === "reviewer" && !brandId) { setErr("Selecione uma marca para o revisor."); return; }
     setSending(true); setErr("");
     try {
-      const res  = await fetch("/api/invites", {
+      const res = await fetch("/api/invites", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim(), role, brandIds: [] }),
+        body: JSON.stringify({ email: email.trim(), role, brandIds: role === "reviewer" ? [brandId] : [] }),
       });
       const data = await res.json() as InviteRow & { error?: string };
       if (!res.ok) { setErr(data.error ?? `Erro ${res.status}`); return; }
@@ -897,7 +901,28 @@ function InviteModal({ onClose, onSent }: { onClose: () => void; onSent: (inv: I
               })}
             </div>
           </div>
-          {role === "reviewer" && <p className="muted" style={{ fontSize: 12, margin: "-8px 0 12px" }}>Revisão acessa apenas a marca atribuída.</p>}
+
+          {/* Brand picker — aparece apenas para revisor */}
+          {role === "reviewer" && (
+            <div className="field" style={{ marginTop: 4 }}>
+              <label>Marca atribuída</label>
+              {brands.length === 0 ? (
+                <p style={{ fontSize: 13, color: "var(--stone)", margin: "4px 0 0" }}>Nenhuma marca cadastrada ainda.</p>
+              ) : (
+                <select
+                  className="input"
+                  value={brandId}
+                  onChange={e => setBrandId(e.target.value)}
+                  style={{ appearance: "auto" }}
+                >
+                  {brands.map(b => (
+                    <option key={b.id} value={b.id}>{b.name}</option>
+                  ))}
+                </select>
+              )}
+            </div>
+          )}
+
           {err && <p style={{ color: "var(--red,#c0392b)", fontSize: 13, margin: "0 0 12px", fontWeight: 500 }}>{err}</p>}
         </div>
         <div className="m-foot">
