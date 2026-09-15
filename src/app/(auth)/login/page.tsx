@@ -4,7 +4,7 @@ import { useAuth, useClerk } from "@clerk/nextjs";
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Eye, EyeOff, ArrowRight, Feather, Newspaper, Send } from "lucide-react";
 import { translateClerkError } from "@/lib/clerkErrors";
 import { RaioLockup } from "@/components/logo/RaioLockup";
@@ -19,11 +19,12 @@ export default function LoginPage() {
   const { isSignedIn } = useAuth();
   const clerk = useClerk();
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const redirectUrl = searchParams.get("redirect_url");
+  // Lê redirect_url do lado cliente sem useSearchParams (evita Suspense obrigatório no SSR)
+  const getRedirectUrl = () => (typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("redirect_url") : null);
 
   useEffect(() => {
     if (isSignedIn) {
+      const redirectUrl = getRedirectUrl();
       if (redirectUrl) { router.replace(redirectUrl); return; }
       fetch("/api/stripe/subscription")
         .then(r => r.json())
@@ -34,7 +35,7 @@ export default function LoginPage() {
         })
         .catch(() => router.replace("/dashboard"));
     }
-  }, [isSignedIn, router, redirectUrl]);
+  }, [isSignedIn, router]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [email, setEmail]       = useState("");
   const [password, setPassword] = useState("");
@@ -67,6 +68,7 @@ export default function LoginPage() {
 
   async function redirectAfterLogin() {
     // redirect_url tem prioridade (ex: vindo de página de convite)
+    const redirectUrl = getRedirectUrl();
     if (redirectUrl) { router.replace(redirectUrl); return; }
     try {
       const subRes = await fetch("/api/stripe/subscription");
