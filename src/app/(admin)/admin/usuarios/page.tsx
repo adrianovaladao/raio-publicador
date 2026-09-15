@@ -83,6 +83,7 @@ function EditModal({ user, onClose, onSaved }: { user: UserRow; onClose: () => v
   const [stripeCustomerId, setStripeCustomerId] = useState(user.stripeCustomerId ?? "");
   const [stripeSubId, setStripeSubId]           = useState(user.stripeSubscriptionId ?? "");
   const [isMarkable, setIsMarkable]             = useState(user.isMarkable);
+  const [periodEnd, setPeriodEnd]               = useState(user.currentPeriodEnd ? user.currentPeriodEnd.slice(0, 10) : "");
   const [saving, setSaving]                     = useState(false);
   const [error, setError]                       = useState("");
 
@@ -100,6 +101,7 @@ function EditModal({ user, onClose, onSaved }: { user: UserRow; onClose: () => v
         stripeCustomerId: stripeCustomerId.trim() || null,
         stripeSubscriptionId: stripeSubId.trim() || null,
         isMarkable,
+        currentPeriodEnd: periodEnd || null,
       }),
     });
     if (res.ok) { onSaved(); onClose(); }
@@ -148,6 +150,10 @@ function EditModal({ user, onClose, onSaved }: { user: UserRow; onClose: () => v
             </div>
             <div style={{ background: "var(--cream)", borderRadius: 8, padding: "10px 14px", fontSize: 13, color: "var(--stone)" }}>
               Disponível após edição: <strong style={{ color: "var(--ink)" }}>{Math.max(0, Number(creditsTotal) - Number(creditsUsed)).toLocaleString("pt-BR")}</strong> créditos
+            </div>
+            <div className="field" style={{ marginBottom: 0 }}>
+              <label>Data de renovação</label>
+              <input type="date" value={periodEnd} onChange={e => setPeriodEnd(e.target.value)} className="input" />
             </div>
             <div style={{ borderTop: "1px solid var(--border)", paddingTop: 14 }}>
               <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 12 }}>IDs Stripe</p>

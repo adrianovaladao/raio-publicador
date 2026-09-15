@@ -78,7 +78,7 @@ export async function PATCH(req: NextRequest) {
   if (!await assertMaster())
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const { clerkId, creditsTotal, creditsUsed, plan, status, stripeCustomerId, stripeSubscriptionId, isMarkable } = await req.json() as {
+  const { clerkId, creditsTotal, creditsUsed, plan, status, stripeCustomerId, stripeSubscriptionId, isMarkable, currentPeriodEnd } = await req.json() as {
     clerkId: string;
     creditsTotal?: number;
     creditsUsed?: number;
@@ -87,6 +87,7 @@ export async function PATCH(req: NextRequest) {
     stripeCustomerId?: string | null;
     stripeSubscriptionId?: string | null;
     isMarkable?: boolean;
+    currentPeriodEnd?: string | null;
   };
 
   if (!clerkId) return NextResponse.json({ error: "clerkId obrigatório" }, { status: 400 });
@@ -109,6 +110,7 @@ export async function PATCH(req: NextRequest) {
   if (status) data.status = status;
   if (stripeCustomerId !== undefined) data.stripeCustomerId = stripeCustomerId || null;
   if (stripeSubscriptionId !== undefined) data.stripeSubscriptionId = stripeSubscriptionId || null;
+  if (currentPeriodEnd !== undefined) data.currentPeriodEnd = currentPeriodEnd ? new Date(currentPeriodEnd) : null;
 
   const updated = Object.keys(data).length > 0
     ? await getPrisma().subscription.update({ where: { ownerId: clerkId }, data })
