@@ -4,7 +4,7 @@ import { useAuth, useClerk } from "@clerk/nextjs";
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff, ArrowRight, Feather, Newspaper, Send } from "lucide-react";
 import { translateClerkError } from "@/lib/clerkErrors";
 import { RaioLockup } from "@/components/logo/RaioLockup";
@@ -19,20 +19,22 @@ export default function LoginPage() {
   const { isSignedIn } = useAuth();
   const clerk = useClerk();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectUrl = searchParams.get("redirect_url");
 
   useEffect(() => {
     if (isSignedIn) {
+      if (redirectUrl) { router.replace(redirectUrl); return; }
       fetch("/api/stripe/subscription")
         .then(r => r.json())
-        .then((d: { status?: string; everPaid?: boolean }) => {
+        .then((d: { status?: string; everPaid?: boolean; isTeamMember?: boolean }) => {
+          if (d.isTeamMember) { router.replace("/dashboard"); return; }
           const hasAccess = d.status === "ACTIVE" || d.status === "PAST_DUE";
-          // Quem já pagou ou tem plano ativo → dashboard
-          // Quem nunca pagou (novo usuário) → boas-vindas para completar o onboarding
           router.replace(hasAccess || d.everPaid ? "/dashboard" : "/boas-vindas");
         })
         .catch(() => router.replace("/dashboard"));
     }
-  }, [isSignedIn, router]);
+  }, [isSignedIn, router, redirectUrl]);
 
   const [email, setEmail]       = useState("");
   const [password, setPassword] = useState("");
@@ -64,9 +66,13 @@ export default function LoginPage() {
   }
 
   async function redirectAfterLogin() {
+    // redirect_url tem prioridade (ex: vindo de página de convite)
+    if (redirectUrl) { router.replace(redirectUrl); return; }
     try {
       const subRes = await fetch("/api/stripe/subscription");
-      const sub = await subRes.json() as { status?: string; everPaid?: boolean };
+      const sub = await subRes.json() as { status?: string; everPaid?: boolean; isTeamMember?: boolean };
+      // Membros de equipe vão direto para o dashboard
+      if (sub.isTeamMember) { router.replace("/dashboard"); return; }
       const hasAccess = sub.status === "ACTIVE" || sub.status === "PAST_DUE";
       // Quem já pagou alguma vez (cancelados incluídos) vai para o dashboard.
       // Quem nunca pagou vai para a landing para escolher um plano.

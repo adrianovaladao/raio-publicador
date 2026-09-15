@@ -71,7 +71,7 @@ export default function ConviteTokenPage({ params }: { params: Promise<{ token: 
         display: "flex", flexDirection: "column", alignItems: "center", gap: 32,
       }}>
         {/* Logo */}
-        <RaioLockup height={32} variant="light" />
+        <RaioLockup height={32} variant="dark" />
 
         {/* Card */}
         <div style={{
@@ -163,12 +163,15 @@ export default function ConviteTokenPage({ params }: { params: Promise<{ token: 
                     className="btn btn-primary btn-block btn-lg"
                     style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, textDecoration: "none" }}
                   >
-                    Entrar na conta <ArrowRight size={16} />
+                    Entrar <ArrowRight size={16} />
                   </a>
                   <p style={{ fontSize: 13, color: "var(--tx-4)", marginTop: 14 }}>
-                    Não tem conta?{" "}
-                    <a href={`/cadastro?redirect_url=${encodeURIComponent(`/convite/${token}`)}`} style={{ color: "var(--coral)", fontWeight: 600 }}>
-                      Criar conta
+                    Primeira vez aqui?{" "}
+                    <a
+                      href={`/cadastro?redirect_url=${encodeURIComponent(`/convite/${token}`)}&email=${encodeURIComponent(invite.email)}`}
+                      style={{ color: "var(--coral)", fontWeight: 600 }}
+                    >
+                      Criar conta gratuita
                     </a>
                   </p>
                 </div>

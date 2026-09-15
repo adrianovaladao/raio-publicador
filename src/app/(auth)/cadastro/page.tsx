@@ -58,6 +58,7 @@ function CadastroInner() {
   const planParam = searchParams.get("plan");
   const isVoucherFlow = searchParams.get("voucher") === "1";
   const plan = planParam && VALID_PLANS.includes(planParam) ? planParam : null;
+  const redirectUrl = searchParams.get("redirect_url"); // ex: vindo de convite
 
   const emailParam = searchParams.get("email");
 
@@ -87,6 +88,8 @@ function CadastroInner() {
   }
 
   function goToCheckout() {
+    // Se vier de um convite (redirect_url), vai direto para ele — não passa pelo onboarding de assinatura
+    if (redirectUrl) { window.location.href = redirectUrl; return; }
     window.location.href = plan ? `/boas-vindas?plan=${plan}` : "/boas-vindas";
   }
 
