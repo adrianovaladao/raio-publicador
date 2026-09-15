@@ -77,7 +77,7 @@ export async function POST(req: Request) {
   });
 
   const roleLabel = role === "admin" ? "Administração" : role === "editor" ? "Edição" : "Revisão";
-  const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? "https://raio-publicador.vercel.app"}/convite/${invite.token}`;
+  const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? "https://raiopublicador.com.br"}/convite/${invite.token}`;
 
   const { error: emailError } = await sendInviteEmail(email, ownerName, roleLabel, inviteUrl);
 
