@@ -35,7 +35,7 @@ export default function LoginPage() {
         })
         .catch(() => router.replace("/dashboard"));
     }
-  }, [isSignedIn, router]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isSignedIn, router]);
 
   const [email, setEmail]       = useState("");
   const [password, setPassword] = useState("");

@@ -40,7 +40,6 @@ const ROLES: Record<string, { label: string; desc: string; color: string; bg: st
   editor: { label: "Edição",        desc: "Escreve, revisa e agenda releases das marcas atribuídas.",          color: "#2A6FDB", bg: "#E6EEFB" },
 };
 
-const INVITE_ROLES = Object.fromEntries(Object.entries(ROLES).filter(([k]) => k !== "admin"));
 
 
 
