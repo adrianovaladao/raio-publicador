@@ -29,6 +29,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     title?: string;
     summary?: string;
     body?: string;
+    imageUrl?: string | null;
   };
 
   const prisma = getPrisma();
@@ -46,9 +47,10 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if (body.archive === true)  updateData.archivedAt = new Date();
   if (body.archive === false) updateData.archivedAt = null;
   // edição de conteúdo pelo admin
-  if (body.title   !== undefined) updateData.title   = body.title;
-  if (body.summary !== undefined) updateData.summary = body.summary;
+  if (body.title    !== undefined) updateData.title    = body.title;
+  if (body.summary  !== undefined) updateData.summary  = body.summary;
   if ((body as { body?: string }).body !== undefined) updateData.body = (body as { body?: string }).body;
+  if (body.imageUrl !== undefined) updateData.imageUrl = body.imageUrl;
 
   // Notifica se: status mudou OU admin clicou explicitamente em "Publicar e notificar" (notifyUser=true)
   // Isso permite reenviar o email de publicação ao atualizar os links mesmo sem mudar o status
