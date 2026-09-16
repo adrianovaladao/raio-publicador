@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useUser } from "@clerk/nextjs";
 import { isMaster } from "@/lib/admin";
-import { RefreshCw, Search, Building2, User, Copy, Check, ChevronDown, ChevronRight, Trash2 } from "lucide-react";
+import { RefreshCw, Search, Building2, User, Copy, Check, ChevronDown, ChevronRight, Trash2, Download } from "lucide-react";
 
 interface ClientRow {
   ownerId: string;
@@ -124,7 +124,9 @@ export default function ClientesPage() {
   const [search, setSearch]     = useState("");
   const [filter, setFilter]     = useState<"ALL" | "PF" | "PJ">("ALL");
   const [expanded, setExpanded] = useState<string | null>(null);
-  const [deleting, setDeleting] = useState<string | null>(null);
+  const [deleting, setDeleting]   = useState<string | null>(null);
+  const [importing, setImporting] = useState(false);
+  const [importMsg, setImportMsg] = useState("");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -135,6 +137,21 @@ export default function ClientesPage() {
   }, []);
 
   useEffect(() => { load(); }, [load, tick]);
+
+  async function handleImport() {
+    setImporting(true);
+    setImportMsg("");
+    try {
+      const res = await fetch("/api/admin/stripe-import", { method: "POST" });
+      const data = await res.json() as { ok: number; skip: number; error: number };
+      setImportMsg(`${data.ok} importados · ${data.skip} sem dados · ${data.error} erros`);
+      setTick(t => t + 1);
+    } catch {
+      setImportMsg("Erro ao importar.");
+    } finally {
+      setImporting(false);
+    }
+  }
 
   async function handleDelete(ownerId: string) {
     if (!confirm("Excluir perfil fiscal deste cliente? Esta ação não pode ser desfeita.")) return;
@@ -178,7 +195,11 @@ export default function ClientesPage() {
             <h2><em>Clientes</em></h2>
             <p className="sub">{rows.length} perfis fiscais cadastrados</p>
           </div>
-          <div className="actions">
+          <div className="actions" style={{ alignItems: "center", gap: 10 }}>
+            {importMsg && <span style={{ fontSize: 12, color: "var(--stone)" }}>{importMsg}</span>}
+            <button onClick={handleImport} disabled={importing} className="btn btn-ghost btn-sm" style={{ gap: 6 }}>
+              <Download size={14} /> {importing ? "Importando…" : "Importar do Stripe"}
+            </button>
             <button onClick={() => setTick(t => t + 1)} className="btn btn-ghost btn-sm" style={{ gap: 6 }}>
               <RefreshCw size={14} /> Atualizar
             </button>
