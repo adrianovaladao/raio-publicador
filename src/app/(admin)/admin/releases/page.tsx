@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import { useUser } from "@clerk/nextjs";
-import { Crown, FileText, Trash2, ChevronDown, AlertTriangle, Clock, ExternalLink, Send, Copy, Download, Check, Calendar, ChevronLeft, ChevronRight, X, Archive, Pencil, ImagePlus, Loader } from "lucide-react";
+import { Crown, FileText, Trash2, ChevronDown, AlertTriangle, Clock, ExternalLink, Send, Copy, Download, Check, Calendar, ChevronLeft, ChevronRight, X, Archive, Pencil } from "lucide-react";
 import { exportDocx, exportPdf } from "@/lib/export-release";
 import { isAnyAdmin } from "@/lib/admin";
 
@@ -213,33 +213,13 @@ function ReleaseActions({ release, onSaved, onDeleted, onArchived }: {
   const [editTitle, setEditTitle] = useState(release.title);
   const [editSummary, setEditSummary] = useState(release.summary ?? "");
   const [editBody, setEditBody] = useState(release.body);
-  const [editImageUrl, setEditImageUrl] = useState(release.imageUrl ?? "");
-  const [uploadingImage, setUploadingImage] = useState(false);
   const [savingContent, setSavingContent] = useState(false);
   const editBodyRef = useRef<HTMLDivElement>(null);
-  const imageInputRef = useRef<HTMLInputElement>(null);
-
-  async function handleImageUpload(file: File) {
-    setUploadingImage(true);
-    try {
-      const form = new FormData();
-      form.append("file", file);
-      const res = await fetch("/api/upload", { method: "POST", body: form });
-      const data = await res.json() as { url?: string; error?: string };
-      if (data.url) setEditImageUrl(data.url);
-      else setErr(data.error ?? "Erro no upload");
-    } catch {
-      setErr("Erro ao fazer upload da imagem");
-    } finally {
-      setUploadingImage(false);
-    }
-  }
 
   function openContentEdit() {
     setEditTitle(release.title);
     setEditSummary(release.summary ?? "");
     setEditBody(release.body);
-    setEditImageUrl(release.imageUrl ?? "");
     setEditingContent(true);
     // Popula o contenteditable após render
     setTimeout(() => {
@@ -254,7 +234,7 @@ function ReleaseActions({ release, onSaved, onDeleted, onArchived }: {
       const res = await fetch(`/api/admin/releases/${release.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: editTitle, summary: editSummary || null, body: bodyHtml, imageUrl: editImageUrl || null }),
+        body: JSON.stringify({ title: editTitle, summary: editSummary || null, body: bodyHtml }),
       });
       if (!res.ok) throw new Error(`Erro ${res.status}`);
       setEditingContent(false);
@@ -466,49 +446,6 @@ function ReleaseActions({ release, onSaved, onDeleted, onArchived }: {
                 style={{ width: "100%", fontSize: 13, fontStyle: "italic" }}
               />
             </div>
-            {/* Imagem de capa */}
-            <div>
-              <label style={{ fontSize: 11, fontWeight: 600, color: "#999", textTransform: "uppercase", letterSpacing: "0.05em", display: "block", marginBottom: 6 }}>Imagem de capa (opcional)</label>
-              <input
-                ref={imageInputRef}
-                type="file"
-                accept="image/*"
-                style={{ display: "none" }}
-                onChange={e => { const f = e.target.files?.[0]; if (f) handleImageUpload(f); }}
-              />
-              {editImageUrl ? (
-                <div style={{ position: "relative", display: "inline-block" }}>
-                  <div style={{ position: "relative", width: 200, height: 120, borderRadius: 8, overflow: "hidden", border: "1.5px solid #e8e8e8" }}>
-                    <Image src={editImageUrl} alt="Capa" fill style={{ objectFit: "cover" }} sizes="200px" />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setEditImageUrl("")}
-                    style={{ position: "absolute", top: 4, right: 4, background: "rgba(0,0,0,0.6)", border: "none", borderRadius: "50%", width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#fff" }}
-                  >
-                    <X size={12} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => imageInputRef.current?.click()}
-                    style={{ display: "block", marginTop: 6, fontSize: 12, color: "#555", background: "none", border: "none", cursor: "pointer", padding: 0, textDecoration: "underline" }}
-                  >
-                    Trocar imagem
-                  </button>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => imageInputRef.current?.click()}
-                  disabled={uploadingImage}
-                  style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 16px", border: "1.5px dashed #ccc", borderRadius: 8, background: "none", cursor: "pointer", fontSize: 13, color: "#555" }}
-                >
-                  {uploadingImage ? <Loader size={14} style={{ animation: "spin 1s linear infinite" }} /> : <ImagePlus size={14} />}
-                  {uploadingImage ? "Enviando…" : "Adicionar imagem de capa"}
-                </button>
-              )}
-            </div>
-
             {/* Corpo — contenteditable simples */}
             <div>
               <label style={{ fontSize: 11, fontWeight: 600, color: "#999", textTransform: "uppercase", letterSpacing: "0.05em", display: "block", marginBottom: 4 }}>Corpo</label>

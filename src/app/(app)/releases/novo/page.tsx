@@ -393,7 +393,7 @@ function StepBrand({ selected, onSelect, brands, brandsLimit, onAddBrand, onLimi
 
 // ── Passo 1: Conteúdo ────────────────────────────────────────────────────────
 
-interface Content { title: string; subtitle: string; body: string; cat: string; author: string; imageUrls: string[]; coverImage: string }
+interface Content { title: string; subtitle: string; body: string; cat: string; author: string; imageUrls: string[] }
 
 
 function StepContent({ content, setContent, brand, ownerName, onAIUsed, onNoPlan, navSlot }: { content: Content; setContent: React.Dispatch<React.SetStateAction<Content>>; brand: Brand | null; ownerName: string; onAIUsed?: () => void; onNoPlan?: () => void; navSlot?: React.ReactNode }) {
@@ -407,76 +407,9 @@ function StepContent({ content, setContent, brand, ownerName, onAIUsed, onNoPlan
   }, [authors[0]]);
   const cats = VEH_CATS_ALL;
 
-  const coverInputRef = useRef<HTMLInputElement>(null);
-  const [uploadingCover, setUploadingCover] = useState(false);
-
-  async function handleCoverUpload(file: File) {
-    setUploadingCover(true);
-    try {
-      const form = new FormData();
-      form.append("file", file);
-      const res = await fetch("/api/upload", { method: "POST", body: form });
-      const data = await res.json() as { url?: string };
-      if (data.url) setContent(prev => ({ ...prev, coverImage: data.url! }));
-    } finally {
-      setUploadingCover(false);
-    }
-  }
-
   return (
     <div className="composer-grid">
       <div>
-        {/* ── Imagem de capa ── */}
-        <div style={{ marginBottom: 16 }}>
-          <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 10 }}>
-            Imagem de capa <span style={{ color: "var(--red)", marginLeft: 2 }}>*</span>
-          </p>
-          <input
-            ref={coverInputRef}
-            type="file"
-            accept="image/png,image/jpeg,image/jpg,image/webp"
-            style={{ display: "none" }}
-            onChange={e => { const f = e.target.files?.[0]; if (f) handleCoverUpload(f); e.target.value = ""; }}
-          />
-          {content.coverImage ? (
-            <div style={{ position: "relative", width: "100%", aspectRatio: "16/5", borderRadius: 12, overflow: "hidden", border: "1.5px solid var(--line)" }}>
-              <Image src={content.coverImage} alt="Capa" fill style={{ objectFit: "cover" }} sizes="100vw" />
-              <div style={{ position: "absolute", top: 10, right: 10, display: "flex", gap: 6 }}>
-                <button
-                  type="button"
-                  onClick={() => coverInputRef.current?.click()}
-                  style={{ background: "rgba(0,0,0,0.55)", border: "none", borderRadius: 8, padding: "5px 10px", color: "#fff", fontSize: 12, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 5 }}
-                >
-                  <Upload size={12} /> Trocar
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setContent(prev => ({ ...prev, coverImage: "" }))}
-                  style={{ background: "rgba(0,0,0,0.55)", border: "none", borderRadius: 8, padding: "5px 8px", color: "#fff", fontSize: 12, cursor: "pointer", display: "flex", alignItems: "center" }}
-                >
-                  <X size={13} />
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-              <button
-                type="button"
-                onClick={() => coverInputRef.current?.click()}
-                disabled={uploadingCover}
-                style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 16px", border: "1.5px dashed var(--line)", borderRadius: 10, background: "var(--paper)", cursor: "pointer", fontSize: 13, color: "var(--stone)", fontFamily: "inherit", flexShrink: 0, whiteSpace: "nowrap" }}
-              >
-                <Upload size={14} />
-                {uploadingCover ? "Enviando…" : "Adicionar imagem de capa"}
-              </button>
-              <p style={{ fontSize: 12, color: "var(--stone)", lineHeight: 1.6 }}>
-                Tamanho mínimo: 1440×900 pixels<br />
-                Formato: PNG ou JPG
-              </p>
-            </div>
-          )}
-        </div>
-
         <RichEditor
           title={content.title}
           onTitleChange={v => up("title", v)}
@@ -1579,7 +1512,7 @@ export default function NovoReleasePage() {
   const [dupChecking, setDupChecking] = useState(false);
   const [brand, setBrand] = useState<Brand | null>(null);
   const [brands, setBrands] = useState<Brand[]>([]);
-  const [content, setContent] = useState<Content>({ title: "", subtitle: "", body: "", cat: "Negócios", author: "", imageUrls: [], coverImage: "" });
+  const [content, setContent] = useState<Content>({ title: "", subtitle: "", body: "", cat: "Negócios", author: "", imageUrls: [] });
   const [selected, setSelected] = useState<string[]>([]);
 
   // Restore brand, vehicle selection and step after Stripe credits/upgrade redirect (must run client-side only)
@@ -1652,7 +1585,7 @@ export default function NovoReleasePage() {
         scheduledAt: null,
         brandId: b.id,
         creditsUsed: 0,
-        imageUrl: c.coverImage || c.imageUrls[0] || extractFirstImageUrl(c.body) || null,
+        imageUrl: c.imageUrls[0] || extractFirstImageUrl(c.body) || null,
         vehicles: selectedRef.current,
       };
       if (draftIdRef.current) {
@@ -1711,7 +1644,7 @@ export default function NovoReleasePage() {
 
   const canNext =
     step === 0 ? !!brand :
-    step === 1 ? (content.title.trim().length > 0 && !!content.coverImage) :
+    step === 1 ? (content.title.trim().length > 0) :
     step === 2 ? (selected.length > 0 && !over) :
     true;
 
@@ -1837,7 +1770,7 @@ export default function NovoReleasePage() {
             <button
               className="btn btn-dark"
               disabled={!canNext || dupChecking}
-              title={step === 1 && !content.coverImage ? "Adicione uma imagem de capa para continuar" : step === 1 && !content.title.trim() ? "Preencha o título para continuar" : undefined}
+              title={step === 1 && !content.title.trim() ? "Preencha o título para continuar" : undefined}
               onClick={async () => {
               if (step === 0) {
                 setDupChecking(true);
@@ -1868,7 +1801,7 @@ export default function NovoReleasePage() {
                   title: content.title, body: content.body, summary: content.subtitle,
                   status: "SCHEDULED", scheduledAt, brandId: brand.id,
                   creditsUsed: selTokens,
-                  imageUrl: content.imageUrls[0] ?? extractFirstImageUrl(content.body) ?? null,
+                  imageUrl: content.imageUrls[0] || extractFirstImageUrl(content.body) || null,
                   vehicles: selected,
                 };
                 let res: Response;
