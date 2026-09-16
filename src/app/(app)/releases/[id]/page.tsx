@@ -7,6 +7,7 @@ import {
   ArrowLeft, ArrowRight, Check, Save,
   Calendar, X, Search, Trash2,
   ArrowUpDown, ArrowUp, ArrowDown, SlidersHorizontal,
+  Upload,
 } from "lucide-react";
 import { RichEditor } from "@/components/editor/RichEditor";
 import { BuyCreditsModal } from "@/components/BuyCreditsModal";
@@ -186,11 +187,13 @@ interface ReleaseData {
 
 function StepContent({
   title, setTitle, subtitle, setSubtitle, body, setBody,
+  coverImage, setCoverImage,
   cat, setCat, author, setAuthor, brand, navSlot,
 }: {
   title: string; setTitle: (v: string) => void;
   subtitle: string; setSubtitle: (v: string) => void;
   body: string; setBody: (v: string) => void;
+  coverImage: string; setCoverImage: (v: string) => void;
   cat: string; setCat: (v: string) => void;
   author: string; setAuthor: (v: string) => void;
   brand: Brand | null;
@@ -206,16 +209,76 @@ function StepContent({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const authors = teamMembers.length > 0 ? teamMembers : (brand?.authors ?? []).map(a => ({ id: a, name: a }));
+
+  const coverInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingCover, setUploadingCover] = useState(false);
+
+  async function handleCoverUpload(file: File) {
+    setUploadingCover(true);
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      const res = await fetch("/api/upload", { method: "POST", body: form });
+      const data = await res.json() as { url?: string };
+      if (data.url) setCoverImage(data.url);
+    } finally {
+      setUploadingCover(false);
+    }
+  }
+
   return (
     <>
     <div className="composer-grid">
       {/* Editor */}
-      <RichEditor
-        title={title} onTitleChange={setTitle}
-        subtitle={subtitle} onSubtitleChange={setSubtitle}
-        content={body} onContentChange={setBody}
-        brandName={brand?.name}
-      />
+      <div>
+        {/* Imagem de capa */}
+        <div style={{ marginBottom: 16 }}>
+          <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 10 }}>
+            Imagem de capa <span style={{ color: "var(--red)", marginLeft: 2 }}>*</span>
+          </p>
+          <input
+            ref={coverInputRef}
+            type="file"
+            accept="image/png,image/jpeg,image/jpg,image/webp"
+            style={{ display: "none" }}
+            onChange={e => { const f = e.target.files?.[0]; if (f) handleCoverUpload(f); e.target.value = ""; }}
+          />
+          {coverImage ? (
+            <div style={{ position: "relative", width: "100%", aspectRatio: "16/5", borderRadius: 12, overflow: "hidden", border: "1.5px solid var(--line)" }}>
+              <Image src={coverImage} alt="Capa" fill style={{ objectFit: "cover" }} sizes="100vw" />
+              <div style={{ position: "absolute", top: 10, right: 10, display: "flex", gap: 6 }}>
+                <button type="button" onClick={() => coverInputRef.current?.click()}
+                  style={{ background: "rgba(0,0,0,0.55)", border: "none", borderRadius: 8, padding: "5px 10px", color: "#fff", fontSize: 12, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 5 }}>
+                  <Upload size={12} /> Trocar
+                </button>
+                <button type="button" onClick={() => setCoverImage("")}
+                  style={{ background: "rgba(0,0,0,0.55)", border: "none", borderRadius: 8, padding: "5px 8px", color: "#fff", fontSize: 12, cursor: "pointer", display: "flex", alignItems: "center" }}>
+                  <X size={13} />
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+              <button type="button" onClick={() => coverInputRef.current?.click()} disabled={uploadingCover}
+                style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 16px", border: "1.5px dashed var(--line)", borderRadius: 10, background: "var(--paper)", cursor: "pointer", fontSize: 13, color: "var(--stone)", fontFamily: "inherit", flexShrink: 0, whiteSpace: "nowrap" }}>
+                <Upload size={14} />
+                {uploadingCover ? "Enviando…" : "Adicionar imagem de capa"}
+              </button>
+              <p style={{ fontSize: 12, color: "var(--stone)", lineHeight: 1.6 }}>
+                Tamanho mínimo: 1440×900 pixels<br />
+                Formato: PNG ou JPG
+              </p>
+            </div>
+          )}
+        </div>
+
+        <RichEditor
+          title={title} onTitleChange={setTitle}
+          subtitle={subtitle} onSubtitleChange={setSubtitle}
+          content={body} onContentChange={setBody}
+          brandName={brand?.name}
+        />
+      </div>
 
       {/* Sidebar */}
       <div>
@@ -766,9 +829,10 @@ useEffect(() => {
   }
 
   const [release,    setRelease]    = useState<ReleaseData | null>(null);
-  const [title,      setTitle]      = useState("");
-  const [subtitle,   setSubtitle]   = useState("");
-  const [body,       setBody]       = useState("");
+  const [title,       setTitle]       = useState("");
+  const [subtitle,    setSubtitle]    = useState("");
+  const [body,        setBody]        = useState("");
+  const [coverImage,  setCoverImage]  = useState("");
   const [cat,        setCat]        = useState("Negócios");
   const [author,     setAuthor]     = useState("");
   const [schedDate,  setSchedDate]  = useState("");
@@ -797,6 +861,7 @@ useEffect(() => {
         setTitle(data.title ?? "");
         setSubtitle(data.summary ?? "");
         setBody(data.body ?? "");
+        setCoverImage(data.imageUrl ?? "");
         if (data.vehicles?.length) setSelectedVeh(data.vehicles);
         setAuthor(a => a || data.brand?.authors?.[0] || "");
         if (data.scheduledAt) {
@@ -830,7 +895,7 @@ useEffect(() => {
           scheduledAt,
           vehicles: selectedVeh,
           creditsUsed,
-          imageUrl: extractFirstImageUrl(body),
+          imageUrl: coverImage || extractFirstImageUrl(body) || null,
         }),
       });
       if (!res.ok) { setErr("Erro ao salvar. Tente novamente."); return; }
@@ -855,7 +920,7 @@ useEffect(() => {
           status: "DRAFT",
           scheduledAt: null,
           vehicles: selectedVeh,
-          imageUrl: extractFirstImageUrl(body),
+          imageUrl: coverImage || extractFirstImageUrl(body) || null,
         }),
       });
       if (!res.ok) { setErr("Erro ao salvar. Tente novamente."); return; }
@@ -1200,6 +1265,7 @@ useEffect(() => {
                   title={title} setTitle={setTitle}
                   subtitle={subtitle} setSubtitle={setSubtitle}
                   body={body} setBody={setBody}
+                  coverImage={coverImage} setCoverImage={setCoverImage}
                   cat={cat} setCat={setCat}
                   author={author} setAuthor={setAuthor}
                   brand={brand}
