@@ -65,7 +65,17 @@ export async function POST() {
 
       results.push({ ownerId: p.ownerId, status: "ok" });
     } catch (err) {
-      results.push({ ownerId: p.ownerId, status: "error", reason: String(err) });
+      const msg = String(err);
+      // Customer não existe no Stripe — limpa o ID inválido do banco
+      if (msg.includes("No such customer")) {
+        await prisma.subscription.updateMany({
+          where: { ownerId: p.ownerId },
+          data: { stripeCustomerId: null },
+        });
+        results.push({ ownerId: p.ownerId, status: "skip", reason: "customer inválido no Stripe — ID removido do banco" });
+      } else {
+        results.push({ ownerId: p.ownerId, status: "error", reason: msg });
+      }
     }
   }
 
