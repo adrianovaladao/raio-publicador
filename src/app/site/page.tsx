@@ -39,7 +39,7 @@ const PLANS = [
       ["Acesso completo aos 50 portais parceiros", true],
       ["Calendário e agendamento de publicações", true],
       ["Biblioteca de releases divulgados", true],
-      ["1 usuário administrador", true],
+      ["1 usuário administrador e 1 editor", true],
     ],
     cta: "Assinar Básico", featured: false,
   },

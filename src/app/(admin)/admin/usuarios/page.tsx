@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import { useUser } from "@clerk/nextjs";
 import { PLANS, type PlanId } from "@/lib/plans";
@@ -8,7 +8,7 @@ import { isMaster } from "@/lib/admin";
 import {
   ArrowUp, ArrowDown, ArrowUpDown,
   Pencil, Check, X, RefreshCw, ExternalLink, ChevronDown, Crown, Trash2, ChevronRight,
-  Building2, FileText, Users, CreditCard, Zap,
+  Building2, FileText, Users, CreditCard, Zap, Calendar, ArrowLeft, ArrowRight,
 } from "lucide-react";
 
 interface UserRow {
@@ -74,6 +74,127 @@ function fmtName(row: UserRow) {
 }
 
 const SUB_STATUSES = ["ACTIVE", "INACTIVE", "PAST_DUE", "CANCELLED"] as const;
+
+// ── DatePicker customizado ─────────────────────────────────────────────────────
+const MESES_FULL = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+const DOW_SHORT  = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
+
+function AdminDatePicker({ value, onChange }: { value: string; onChange: (d: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  const toKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  const parsed = value ? new Date(value + "T12:00:00") : new Date();
+  const [viewY, setViewY] = useState(parsed.getFullYear());
+  const [viewM, setViewM] = useState(parsed.getMonth());
+
+  const fmtDisplay = (iso: string) => {
+    const d = new Date(iso + "T12:00:00");
+    return `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`;
+  };
+
+  const closeOnOutside = useCallback((e: MouseEvent) => {
+    if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+  }, []);
+
+  useEffect(() => {
+    if (open) document.addEventListener("mousedown", closeOnOutside);
+    return () => document.removeEventListener("mousedown", closeOnOutside);
+  }, [open, closeOnOutside]);
+
+  const firstDay = new Date(viewY, viewM, 1);
+  const lead = firstDay.getDay();
+  const dim = new Date(viewY, viewM + 1, 0).getDate();
+  const prevDim = new Date(viewY, viewM, 0).getDate();
+  const cells: { d: number; out: boolean; key: string }[] = [];
+  for (let i = 0; i < lead; i++) {
+    const d = new Date(viewY, viewM - 1, prevDim - lead + 1 + i);
+    cells.push({ d: d.getDate(), out: true, key: toKey(d) });
+  }
+  for (let d = 1; d <= dim; d++) {
+    cells.push({ d, out: false, key: toKey(new Date(viewY, viewM, d)) });
+  }
+  while (cells.length % 7 !== 0) {
+    const d = new Date(viewY, viewM + 1, cells.length - (lead + dim) + 1);
+    cells.push({ d: d.getDate(), out: true, key: toKey(d) });
+  }
+
+  function shiftMonth(dir: number) {
+    let nm = viewM + dir, ny = viewY;
+    if (nm < 0) { nm = 11; ny--; }
+    if (nm > 11) { nm = 0; ny++; }
+    setViewM(nm); setViewY(ny);
+  }
+
+  return (
+    <div ref={ref} style={{ position: "relative" }}>
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        className="input"
+        style={{ width: "100%", textAlign: "left", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between" }}
+      >
+        <span style={{ color: value ? "var(--ink)" : "var(--stone)" }}>
+          {value ? fmtDisplay(value) : "Selecione uma data"}
+        </span>
+        <Calendar size={15} style={{ color: "var(--stone)", flexShrink: 0 }} />
+      </button>
+
+      {open && (
+        <div style={{
+          position: "absolute", top: "calc(100% + 8px)", left: 0, zIndex: 999,
+          background: "var(--surface)", border: "1px solid var(--line)", borderRadius: 12,
+          boxShadow: "0 8px 32px rgba(0,0,0,0.10)", padding: 16, width: 280,
+        }}>
+          <div style={{ display: "flex", alignItems: "center", marginBottom: 12 }}>
+            <button type="button" onClick={() => shiftMonth(-1)} style={{ background: "none", border: "none", cursor: "pointer", padding: "4px 6px", borderRadius: 6, color: "var(--stone)" }}>
+              <ArrowLeft size={14} />
+            </button>
+            <span style={{ flex: 1, textAlign: "center", fontWeight: 700, fontSize: 13, color: "var(--ink)" }}>
+              {MESES_FULL[viewM]} {viewY}
+            </span>
+            <button type="button" onClick={() => shiftMonth(1)} style={{ background: "none", border: "none", cursor: "pointer", padding: "4px 6px", borderRadius: 6, color: "var(--stone)" }}>
+              <ArrowRight size={14} />
+            </button>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", marginBottom: 4 }}>
+            {DOW_SHORT.map((d, i) => (
+              <div key={d} style={{ textAlign: "center", fontSize: 11, fontWeight: 600, paddingBottom: 6, color: i === 0 || i === 6 ? "var(--stone)" : "var(--stone)" }}>{d}</div>
+            ))}
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 2 }}>
+            {cells.map((c, i) => {
+              const selected = c.key === value;
+              const isToday  = c.key === toKey(new Date());
+              return (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => { onChange(c.key); setOpen(false); }}
+                  style={{
+                    border: isToday && !selected ? "1.5px solid var(--ink)" : "1.5px solid transparent",
+                    borderRadius: 8,
+                    background: selected ? "var(--ink)" : "none",
+                    color: selected ? "#fff" : c.out ? "var(--line)" : "var(--ink)",
+                    fontSize: 12,
+                    fontWeight: selected ? 700 : 400,
+                    padding: "6px 0",
+                    cursor: "pointer",
+                    textAlign: "center",
+                  }}
+                >
+                  {c.d}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function EditModal({ user, onClose, onSaved }: { user: UserRow; onClose: () => void; onSaved: () => void }) {
   const [creditsTotal, setCreditsTotal]         = useState(String(user.creditsTotal));
@@ -153,7 +274,7 @@ function EditModal({ user, onClose, onSaved }: { user: UserRow; onClose: () => v
             </div>
             <div className="field" style={{ marginBottom: 0 }}>
               <label>Data de renovação</label>
-              <input type="date" value={periodEnd} onChange={e => setPeriodEnd(e.target.value)} className="input" />
+              <AdminDatePicker value={periodEnd} onChange={setPeriodEnd} />
             </div>
             <div style={{ borderTop: "1px solid var(--border)", paddingTop: 14 }}>
               <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 12 }}>IDs Stripe</p>

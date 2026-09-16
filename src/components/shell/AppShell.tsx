@@ -20,7 +20,7 @@ import { useSearchParams } from "next/navigation";
 interface SubInfo { plan: string | null; status: string | null; everPaid: boolean; label: string; priceCents: number | null; credits: number; creditsUsed: number; currentPeriodEnd: string | null; }
 
 const APP_PLANS = [
-  { id: "BASIC",        name: "Básico",       amt: "1.000", credits: "200 créditos",   feats: ["Até 2 marcas", "1 editor",  "Centenas de veículos", "Até 2 publicações em portais categoria A"] },
+  { id: "BASIC",        name: "Básico",       amt: "1.000", credits: "200 créditos",   feats: ["Até 2 marcas", "1 admin + 1 editor", "Centenas de veículos", "Até 2 publicações em portais categoria A"] },
   { id: "ADVANCED",     name: "Avançado",     amt: "3.000", credits: "1.000 créditos", feats: ["Até 5 marcas", "3 editores", "Relatórios de desempenho", "Até 10 publicações em portais categoria A"], featured: true },
   { id: "PROFESSIONAL", name: "Profissional", amt: "5.000", credits: "2.000 créditos", feats: ["Até 10 marcas", "5 editores", "Relatórios + exportação", "Até 20 publicações em portais categoria A"] },
 ];
