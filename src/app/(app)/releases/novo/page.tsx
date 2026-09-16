@@ -429,7 +429,7 @@ function StepContent({ content, setContent, brand, ownerName, onAIUsed, onNoPlan
         {/* ── Imagem de capa ── */}
         <div style={{ marginBottom: 16 }}>
           <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 10 }}>
-            Imagem de capa <span style={{ fontWeight: 400 }}>(opcional)</span>
+            Imagem de capa <span style={{ color: "var(--red)", marginLeft: 2 }}>*</span>
           </p>
           <input
             ref={coverInputRef}
@@ -1711,7 +1711,7 @@ export default function NovoReleasePage() {
 
   const canNext =
     step === 0 ? !!brand :
-    step === 1 ? content.title.trim().length > 0 :
+    step === 1 ? (content.title.trim().length > 0 && !!content.coverImage) :
     step === 2 ? (selected.length > 0 && !over) :
     true;
 
@@ -1834,7 +1834,11 @@ export default function NovoReleasePage() {
           ) : null;
 
           const nextBtn = step < last ? (
-            <button className="btn btn-dark" disabled={!canNext || dupChecking} onClick={async () => {
+            <button
+              className="btn btn-dark"
+              disabled={!canNext || dupChecking}
+              title={step === 1 && !content.coverImage ? "Adicione uma imagem de capa para continuar" : step === 1 && !content.title.trim() ? "Preencha o título para continuar" : undefined}
+              onClick={async () => {
               if (step === 0) {
                 setDupChecking(true);
                 try {
