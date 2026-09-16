@@ -357,12 +357,12 @@ export function RichEditor({
           type="button"
           className={`tb${imgUploading ? " on" : ""}`}
           onClick={() => imageFileRef.current?.click()}
-          title="Inserir imagem de capa"
+          title="Inserir imagem"
           disabled={imgUploading}
           style={{ background: "#FAB500", borderRadius: 6, color: "#000", padding: "0 10px", gap: 5, display: "flex", alignItems: "center", fontWeight: 600, fontSize: 12, height: 28, width: "auto" }}
         >
           <ImageIcon size={14} />
-          Inserir imagem de capa
+          Inserir imagem
         </button>
 
         <div style={{ flex: 1 }} />
@@ -412,7 +412,7 @@ export function RichEditor({
             <span>
               <strong style={{ color: "#5A4000" }}>Comece inserindo uma imagem de capa</strong>
               {" — use o botão "}
-              <strong style={{ color: "#5A4000" }}>Inserir imagem de capa</strong>
+              <strong style={{ color: "#5A4000" }}>Inserir imagem</strong>
               {" na barra acima para destacar seu release."}
             </span>
           </div>
