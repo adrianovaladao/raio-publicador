@@ -138,6 +138,7 @@ export function RichEditor({
   const [aiWordRange,  setAiWordRange]  = useState<[number, number]>([500, 600]);
   const [wordCount,  setWordCount]  = useState(0);
   const [linkModal,  setLinkModal]  = useState<{ open: boolean; initial: string }>({ open: false, initial: "" });
+  const [hintDismissed, setHintDismissed] = useState(false);
 
   const editor = useEditor({
     extensions: [
@@ -400,9 +401,9 @@ export function RichEditor({
           value={subtitle}
           onChange={onSubtitleChange}
         />
-        {!content && (
+        {!content && !hintDismissed && (
           <p
-            onClick={() => editor?.chain().focus().run()}
+            onClick={() => { setHintDismissed(true); editor?.chain().focus().run(); }}
             style={{
               fontSize: 16, color: "#B8A070", margin: "0 0 16px",
               display: "flex", alignItems: "center", gap: 6,
@@ -507,7 +508,9 @@ export function RichEditor({
             </div>
           </BubbleMenu>
         )}
-        <EditorContent editor={editor} />
+        <div onClick={() => setHintDismissed(true)}>
+          <EditorContent editor={editor} />
+        </div>
       </div>
 
       <div style={{ padding: "10px 26px 14px", borderTop: "1px solid var(--line)" }}>
