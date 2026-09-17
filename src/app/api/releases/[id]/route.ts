@@ -12,11 +12,18 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { id } = await params;
-  const release = await getPrisma().release.findUnique({
+  const prisma = getPrisma();
+  const member = await prisma.teamMember.findUnique({
+    where: { clerkId: userId },
+    select: { ownerId: true, status: true },
+  });
+  const accountOwnerId = member?.status === "ACTIVE" ? member.ownerId : userId;
+  const release = await prisma.release.findUnique({
     where: { id },
     include: { brand: true },
   });
   if (!release) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (release.brand.ownerId !== accountOwnerId) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   return NextResponse.json(release);
 }
 
@@ -34,7 +41,10 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   });
   const accountOwnerId = (member?.status === "ACTIVE") ? member.ownerId : userId;
 
-  const prev = await prisma.release.findUnique({ where: { id }, select: { status: true, creditsUsed: true, title: true, scheduledAt: true, vehicles: true } });
+  const prev = await prisma.release.findUnique({ where: { id }, select: { status: true, creditsUsed: true, title: true, scheduledAt: true, vehicles: true, brand: { select: { ownerId: true } } } });
+
+  if (!prev) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (prev.brand.ownerId !== accountOwnerId) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   // Block edits when release is in admin hands or already published
   if (prev && EDIT_LOCKED_STATUSES.includes(prev.status as ReleaseStatus)) {
@@ -168,8 +178,10 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
   });
   const accountOwnerId = (member?.status === "ACTIVE") ? member.ownerId : userId;
 
-  const release = await prisma.release.findUnique({ where: { id }, select: { status: true, creditsUsed: true } });
-  const creditsToReturn = release?.status === "SCHEDULED" ? (release.creditsUsed ?? 0) : 0;
+  const release = await prisma.release.findUnique({ where: { id }, select: { status: true, creditsUsed: true, brand: { select: { ownerId: true } } } });
+  if (!release) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (release.brand.ownerId !== accountOwnerId) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const creditsToReturn = release.status === "SCHEDULED" ? (release.creditsUsed ?? 0) : 0;
 
   // Clamp return to current creditsUsed to avoid going negative across plan/cycle boundaries
   const currentSub = creditsToReturn > 0
