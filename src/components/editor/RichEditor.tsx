@@ -1,6 +1,6 @@
 "use client";
 
-import { useEditor, EditorContent } from "@tiptap/react";
+import { useEditor, EditorContent, BubbleMenu } from "@tiptap/react";
 import { ReactNodeViewRenderer, NodeViewWrapper } from "@tiptap/react";
 import { Node, mergeAttributes } from "@tiptap/core";
 import type { NodeViewProps } from "@tiptap/react";
@@ -466,6 +466,50 @@ export function RichEditor({
               </button>
             ))}
           </div>
+        )}
+        {editor && (
+          <BubbleMenu
+            editor={editor}
+            tippyOptions={{ duration: 100, placement: "top" }}
+            shouldShow={({ editor, state }) => {
+              const { from, to } = state.selection;
+              return from !== to && !editor.isActive("figure");
+            }}
+          >
+            <div style={{
+              display: "flex", alignItems: "center", gap: 2,
+              background: "#1a1a1a", borderRadius: 8,
+              padding: "4px 6px",
+              boxShadow: "0 4px 16px rgba(0,0,0,0.25)",
+            }}>
+              {[
+                { icon: <Bold size={13} />, title: "Negrito", action: () => editor.chain().focus().toggleBold().run(), active: editor.isActive("bold") },
+                { icon: <Italic size={13} />, title: "Itálico", action: () => editor.chain().focus().toggleItalic().run(), active: editor.isActive("italic") },
+                { icon: <UnderlineIcon size={13} />, title: "Sublinhado", action: () => editor.chain().focus().toggleUnderline().run(), active: editor.isActive("underline") },
+                { icon: <LinkIcon size={13} />, title: "Link", action: () => { const prev = editor.isActive("link") ? editor.getAttributes("link").href ?? "" : "https://"; setLinkModal({ open: true, initial: prev }); }, active: editor.isActive("link") },
+              ].map(({ icon, title, action, active }) => (
+                <button
+                  key={title}
+                  type="button"
+                  title={title}
+                  onMouseDown={e => { e.preventDefault(); action(); }}
+                  style={{
+                    width: 28, height: 28,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    background: active ? "rgba(255,255,255,0.2)" : "none",
+                    border: "none", borderRadius: 6,
+                    color: active ? "#fff" : "rgba(255,255,255,0.75)",
+                    cursor: "pointer",
+                    transition: "color .1s, background .1s",
+                  }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.15)"; (e.currentTarget as HTMLButtonElement).style.color = "#fff"; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = active ? "rgba(255,255,255,0.2)" : "none"; (e.currentTarget as HTMLButtonElement).style.color = active ? "#fff" : "rgba(255,255,255,0.75)"; }}
+                >
+                  {icon}
+                </button>
+              ))}
+            </div>
+          </BubbleMenu>
         )}
         <EditorContent editor={editor} />
       </div>
