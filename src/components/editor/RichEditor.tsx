@@ -160,6 +160,7 @@ export function RichEditor({
         editor.commands.setContent(content, { emitUpdate: false });
       }
     },
+    onFocus: () => setHintDismissed(true),
     onUpdate: ({ editor }) => {
       onContentChange(editor.getHTML());
       const words = editor.getText().trim().split(/\s+/).filter(Boolean).length;
@@ -508,9 +509,7 @@ export function RichEditor({
             </div>
           </BubbleMenu>
         )}
-        <div onClick={() => setHintDismissed(true)}>
-          <EditorContent editor={editor} />
-        </div>
+        <EditorContent editor={editor} />
       </div>
 
       <div style={{ padding: "10px 26px 14px", borderTop: "1px solid var(--line)" }}>
