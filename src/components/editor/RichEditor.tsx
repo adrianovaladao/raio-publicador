@@ -401,12 +401,15 @@ export function RichEditor({
           onChange={onSubtitleChange}
         />
         {!content && (
-          <p style={{
-            fontSize: 12, color: "#A08030", margin: "6px 0 2px",
-            display: "flex", alignItems: "center", gap: 6,
-            pointerEvents: "none", userSelect: "none",
-          }}>
-            <ImageIcon size={12} style={{ flexShrink: 0 }} />
+          <p
+            onClick={() => editor?.chain().focus().run()}
+            style={{
+              fontSize: 16, color: "#B8A070", margin: "0 0 16px",
+              display: "flex", alignItems: "center", gap: 6,
+              cursor: "text", userSelect: "none",
+            }}
+          >
+            <ImageIcon size={14} style={{ flexShrink: 0 }} />
             Dica: comece inserindo uma imagem de capa pelo botão <strong style={{ fontWeight: 600 }}>Inserir imagem</strong> na barra acima.
           </p>
         )}
