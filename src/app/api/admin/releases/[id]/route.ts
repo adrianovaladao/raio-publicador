@@ -30,6 +30,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     summary?: string;
     body?: string;
     imageUrl?: string | null;
+    vehicles?: string[];
   };
 
   const prisma = getPrisma();
@@ -51,6 +52,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if (body.summary  !== undefined) updateData.summary  = body.summary;
   if ((body as { body?: string }).body !== undefined) updateData.body = (body as { body?: string }).body;
   if (body.imageUrl !== undefined) updateData.imageUrl = body.imageUrl;
+  if (body.vehicles !== undefined) updateData.vehicles = body.vehicles;
 
   // Notifica se: status mudou OU admin clicou explicitamente em "Publicar e notificar" (notifyUser=true)
   // Isso permite reenviar o email de publicação ao atualizar os links mesmo sem mudar o status
