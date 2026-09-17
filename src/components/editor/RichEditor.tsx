@@ -404,15 +404,15 @@ export function RichEditor({
         />
         {!content && !hintDismissed && (
           <p
-            onClick={() => { setHintDismissed(true); editor?.chain().focus().run(); }}
+            onMouseDown={e => { e.preventDefault(); setHintDismissed(true); editor?.chain().focus().run(); }}
             style={{
               fontSize: 16, color: "#B8A070", margin: "0 0 16px",
               display: "flex", alignItems: "center", gap: 6,
-              cursor: "text", userSelect: "none",
+              cursor: "text", userSelect: "none", pointerEvents: "auto",
             }}
           >
-            <ImageIcon size={14} style={{ flexShrink: 0 }} />
-            Dica: comece inserindo uma imagem de capa pelo botão <strong style={{ fontWeight: 600 }}>Inserir imagem</strong> na barra acima.
+            <ImageIcon size={14} style={{ flexShrink: 0, pointerEvents: "none" }} />
+            <span style={{ pointerEvents: "none" }}>Dica: comece inserindo uma imagem de capa pelo botão <strong style={{ fontWeight: 600 }}>Inserir imagem</strong> na barra acima.</span>
           </p>
         )}
         {plusBtn.visible && (
