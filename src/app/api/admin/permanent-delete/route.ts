@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   const token = req.headers.get("x-feed-token") ?? new URL(req.url).searchParams.get("token");
-  const body = await req.json() as { releaseIds: string[] };
+  const body = await req.json() as { releaseIds?: string[]; title?: string };
 
   const validTokens = Object.entries(process.env)
     .filter(([k]) => k.startsWith("FEED_TOKEN_"))
@@ -17,16 +17,20 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!Array.isArray(body.releaseIds) || body.releaseIds.length === 0) {
-    return NextResponse.json({ error: "releaseIds é obrigatório" }, { status: 400 });
+  if ((!Array.isArray(body.releaseIds) || body.releaseIds.length === 0) && !body.title) {
+    return NextResponse.json({ error: "releaseIds ou title é obrigatório" }, { status: 400 });
   }
 
   const prisma = getPrisma();
 
-  // Só permite deletar releases já arquivados (archivedAt != null)
+  // Busca por IDs ou por título (apenas arquivados)
+  const where = body.title
+    ? { title: body.title }
+    : { id: { in: body.releaseIds! }, archivedAt: { not: null } };
+
   const releases = await prisma.release.findMany({
-    where: { id: { in: body.releaseIds }, archivedAt: { not: null } },
-    select: { id: true, title: true },
+    where,
+    select: { id: true, title: true, archivedAt: true },
   });
 
   if (releases.length === 0) {
