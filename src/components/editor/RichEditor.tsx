@@ -401,22 +401,14 @@ export function RichEditor({
           onChange={onSubtitleChange}
         />
         {!content && (
-          <div
-            style={{
-              display: "flex", alignItems: "center", gap: 10,
-              background: "#FFF9E6", border: "1.5px solid #FAB500",
-              borderRadius: 8, padding: "10px 14px", margin: "8px 0 4px",
-              fontSize: 13, color: "#7A5800",
-            }}
-          >
-            <ImageIcon size={15} style={{ flexShrink: 0, color: "#FAB500" }} />
-            <span>
-              <strong style={{ color: "#5A4000" }}>Comece inserindo uma imagem de capa</strong>
-              {" — use o botão "}
-              <strong style={{ color: "#5A4000" }}>Inserir imagem</strong>
-              {" na barra acima para destacar seu release."}
-            </span>
-          </div>
+          <p style={{
+            fontSize: 12, color: "#A08030", margin: "6px 0 2px",
+            display: "flex", alignItems: "center", gap: 6,
+            pointerEvents: "none", userSelect: "none",
+          }}>
+            <ImageIcon size={12} style={{ flexShrink: 0 }} />
+            Dica: comece inserindo uma imagem de capa pelo botão <strong style={{ fontWeight: 600 }}>Inserir imagem</strong> na barra acima.
+          </p>
         )}
         {plusBtn.visible && (
           <div
