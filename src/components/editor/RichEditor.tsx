@@ -471,7 +471,7 @@ export function RichEditor({
         {editor && (
           <BubbleMenu
             editor={editor}
-            tippyOptions={{ duration: 100, placement: "top" }}
+            options={{ placement: "top" }}
             shouldShow={({ editor, state }) => {
               const { from, to } = state.selection;
               return from !== to && !editor.isActive("figure");
