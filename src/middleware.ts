@@ -18,6 +18,7 @@ const isPublicRoute = createRouteMatcher([
   "/api/vouchers/validate",
   "/api/feed/(.*)",
   "/api/admin/remove-from-vehicle",
+  "/api/admin/permanent-delete",
   "/api/contact",
   "/api/clerk/webhook",
   "/api/webhooks/clerk",
