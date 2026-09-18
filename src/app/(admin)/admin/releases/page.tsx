@@ -760,6 +760,7 @@ export default function AdminReleasesPage() {
   const [tab, setTab] = useState<"queue" | "published" | "archived">("queue");
   const [q, setQ] = useState("");
   const [dateFilter, setDateFilter] = useState("");
+  const [vehicleFilter, setVehicleFilter] = useState("");
   const [expanded, setExpanded] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkDeleting, setBulkDeleting] = useState(false);
@@ -836,27 +837,37 @@ export default function AdminReleasesPage() {
     return Array.from(map.entries()).map(([key, items]) => ({ key, label: dateLabel(key), items }));
   }
 
+  const allVehicles = Array.from(
+    new Map(releases.flatMap(r => r.vehicleNames).map(v => [v.id, v])).values()
+  ).sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+
   const searchFilter = (r: ReleaseRow) =>
     !q.trim() || (r.title + r.author.name + r.author.email + (r.brand?.name ?? "")).toLowerCase().includes(q.toLowerCase());
 
   const dateFilterFn = (r: ReleaseRow, dateField: string | null) =>
     !dateFilter || dateKey(dateField, r.createdAt) === dateFilter;
 
+  const vehicleFilterFn = (r: ReleaseRow) =>
+    !vehicleFilter || r.vehicleNames.some(v => v.id === vehicleFilter);
+
   const queueReleases = releases
     .filter(r => r.status !== "PUBLISHED" && r.status !== "CANCELLED")
     .filter(searchFilter)
+    .filter(vehicleFilterFn)
     .filter(r => dateFilterFn(r, r.scheduledAt))
     .sort((a, b) => new Date(a.scheduledAt ?? a.createdAt).getTime() - new Date(b.scheduledAt ?? b.createdAt).getTime());
 
   const publishedReleases = releases
     .filter(r => r.status === "PUBLISHED" && !r.archivedAt)
     .filter(searchFilter)
+    .filter(vehicleFilterFn)
     .filter(r => dateFilterFn(r, r.publishedAt))
     .sort((a, b) => new Date(b.publishedAt ?? b.createdAt).getTime() - new Date(a.publishedAt ?? a.createdAt).getTime());
 
   const archivedReleases = releases
     .filter(r => r.status === "PUBLISHED" && !!r.archivedAt)
     .filter(searchFilter)
+    .filter(vehicleFilterFn)
     .filter(r => dateFilterFn(r, r.archivedAt ?? r.publishedAt))
     .sort((a, b) => new Date(b.archivedAt ?? b.publishedAt ?? b.createdAt).getTime() - new Date(a.archivedAt ?? a.publishedAt ?? a.createdAt).getTime());
 
@@ -895,7 +906,7 @@ export default function AdminReleasesPage() {
           ] as const).map(([t, label, count]) => (
             <button
               key={t}
-              onClick={() => { setTab(t); setSelected(new Set()); setDateFilter(""); }}
+              onClick={() => { setTab(t); setSelected(new Set()); setDateFilter(""); setVehicleFilter(""); }}
               style={{
                 padding: "7px 18px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600,
                 background: tab === t ? "#fff" : "transparent",
@@ -945,6 +956,19 @@ export default function AdminReleasesPage() {
             )}
           </div>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            {allVehicles.length > 0 && (
+              <select
+                value={vehicleFilter}
+                onChange={e => setVehicleFilter(e.target.value)}
+                className="input"
+                style={{ fontSize: 13, padding: "8px 12px", color: vehicleFilter ? "#1a1a1a" : "#888" }}
+              >
+                <option value="">Todos os veículos</option>
+                {allVehicles.map(v => (
+                  <option key={v.id} value={v.id}>{v.name}</option>
+                ))}
+              </select>
+            )}
             <AdminDatePicker value={dateFilter} onChange={setDateFilter} />
             <input
               className="input"
