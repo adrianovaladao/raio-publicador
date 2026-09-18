@@ -79,7 +79,7 @@ const SUB_STATUSES = ["ACTIVE", "INACTIVE", "PAST_DUE", "CANCELLED"] as const;
 const MESES_FULL = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 const DOW_SHORT  = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
 
-function AdminDatePicker({ value, onChange }: { value: string; onChange: (d: string) => void }) {
+function AdminDatePicker({ value, onChange, dropUp }: { value: string; onChange: (d: string) => void; dropUp?: boolean }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -142,7 +142,7 @@ function AdminDatePicker({ value, onChange }: { value: string; onChange: (d: str
 
       {open && (
         <div style={{
-          position: "absolute", top: "calc(100% + 8px)", left: 0, zIndex: 999,
+          position: "absolute", ...(dropUp ? { bottom: "calc(100% + 8px)" } : { top: "calc(100% + 8px)" }), left: 0, zIndex: 9999,
           background: "var(--surface)", border: "1px solid var(--line)", borderRadius: 12,
           boxShadow: "0 8px 32px rgba(0,0,0,0.10)", padding: 16, width: 280,
         }}>
@@ -274,7 +274,7 @@ function EditModal({ user, onClose, onSaved }: { user: UserRow; onClose: () => v
             </div>
             <div className="field" style={{ marginBottom: 0 }}>
               <label>Data de renovação</label>
-              <AdminDatePicker value={periodEnd} onChange={setPeriodEnd} />
+              <AdminDatePicker value={periodEnd} onChange={setPeriodEnd} dropUp />
             </div>
             <div style={{ borderTop: "1px solid var(--border)", paddingTop: 14 }}>
               <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 12 }}>IDs Stripe</p>
