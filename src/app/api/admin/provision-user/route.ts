@@ -2,12 +2,13 @@ export const dynamic = "force-dynamic";
 import { clerkClient } from "@clerk/nextjs/server";
 import { getPrisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { PlanTier, SubscriptionStatus } from "@prisma/client";
 
 const PROVISION_SECRET = process.env.PROVISION_SECRET ?? "";
 
 export async function POST(req: Request) {
   const { secret, userId, plan, credits } = await req.json() as {
-    secret: string; userId: string; plan?: string; credits?: number;
+    secret: string; userId: string; plan?: PlanTier; credits?: number;
   };
   if (!PROVISION_SECRET || secret !== PROVISION_SECRET)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -28,12 +29,12 @@ export async function POST(req: Request) {
     if (existing) {
       await prisma.subscription.update({
         where: { ownerId: userId },
-        data: { plan, status: "ACTIVE", creditsTotal: credits, currentPeriodStart: now, currentPeriodEnd: periodEnd },
+        data: { plan, status: SubscriptionStatus.ACTIVE, creditsTotal: credits, currentPeriodStart: now, currentPeriodEnd: periodEnd },
       });
       results.push(`subscription: atualizada — plano ${plan}, ${credits} créditos`);
     } else {
       await prisma.subscription.create({
-        data: { ownerId: userId, plan, status: "ACTIVE", creditsTotal: credits, creditsUsed: 0, currentPeriodStart: now, currentPeriodEnd: periodEnd },
+        data: { ownerId: userId, plan, status: SubscriptionStatus.ACTIVE, creditsTotal: credits, creditsUsed: 0, currentPeriodStart: now, currentPeriodEnd: periodEnd },
       });
       results.push(`subscription: criada — plano ${plan}, ${credits} créditos`);
     }
