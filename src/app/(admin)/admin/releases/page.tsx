@@ -982,7 +982,7 @@ export default function AdminReleasesPage() {
                       const checked = vehicleFilter.has(v.id);
                       return (
                         <label key={v.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 14px", cursor: "pointer", fontSize: 13, color: "#1a1a1a", background: checked ? "#f5f5f3" : "none" }}
-                          onMouseDown={e => { e.preventDefault(); setVehicleFilter(prev => { const next = new Set(prev); checked ? next.delete(v.id) : next.add(v.id); return next; }); }}
+                          onMouseDown={e => { e.preventDefault(); setVehicleFilter(prev => { const next = new Set(prev); if (checked) { next.delete(v.id); } else { next.add(v.id); } return next; }); }}
                         >
                           <input type="checkbox" readOnly checked={checked} style={{ width: 14, height: 14, accentColor: "#1a1a1a", flexShrink: 0 }} />
                           {v.name}
