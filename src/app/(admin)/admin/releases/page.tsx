@@ -977,7 +977,7 @@ export default function AdminReleasesPage() {
                   )}
                 </button>
                 {vehicleDropOpen && (
-                  <div style={{ position: "absolute", top: "calc(100% + 6px)", left: 0, zIndex: 999, background: "#fff", border: "1px solid #e8e8e8", borderRadius: 10, boxShadow: "0 8px 24px rgba(0,0,0,0.10)", padding: "6px 0", minWidth: 180 }}>
+                  <div style={{ position: "absolute", top: "calc(100% + 6px)", left: 0, zIndex: 999, background: "#fff", border: "1px solid #e8e8e8", borderRadius: 10, boxShadow: "0 8px 24px rgba(0,0,0,0.10)", padding: "6px 0", minWidth: 200, maxHeight: 280, overflowY: "auto" }}>
                     {allVehicles.map(v => {
                       const checked = vehicleFilter.has(v.id);
                       return (

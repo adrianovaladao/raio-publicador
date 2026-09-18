@@ -45,7 +45,7 @@ export async function GET() {
     ...r,
     shortId: r.id.slice(-7).toUpperCase(),
     author: userMap[r.authorId] ?? { name: r.authorId, email: "" },
-    vehicleNames: (r.vehicles as string[]).map(id => ({ id, name: vehicleMap[id] ?? id })),
+    vehicleNames: (r.vehicles as string[]).filter(id => vehicleMap[id]).map(id => ({ id, name: vehicleMap[id] })),
   }));
 
   return NextResponse.json(rows);
