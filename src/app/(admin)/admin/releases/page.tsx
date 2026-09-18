@@ -760,7 +760,9 @@ export default function AdminReleasesPage() {
   const [tab, setTab] = useState<"queue" | "published" | "archived">("queue");
   const [q, setQ] = useState("");
   const [dateFilter, setDateFilter] = useState("");
-  const [vehicleFilter, setVehicleFilter] = useState("");
+  const [vehicleFilter, setVehicleFilter] = useState<Set<string>>(new Set());
+  const [vehicleDropOpen, setVehicleDropOpen] = useState(false);
+  const vehicleDropRef = useRef<HTMLDivElement>(null);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkDeleting, setBulkDeleting] = useState(false);
@@ -848,7 +850,7 @@ export default function AdminReleasesPage() {
     !dateFilter || dateKey(dateField, r.createdAt) === dateFilter;
 
   const vehicleFilterFn = (r: ReleaseRow) =>
-    !vehicleFilter || r.vehicleNames.some(v => v.id === vehicleFilter);
+    vehicleFilter.size === 0 || r.vehicleNames.some(v => vehicleFilter.has(v.id));
 
   const queueReleases = releases
     .filter(r => r.status !== "PUBLISHED" && r.status !== "CANCELLED")
@@ -906,7 +908,7 @@ export default function AdminReleasesPage() {
           ] as const).map(([t, label, count]) => (
             <button
               key={t}
-              onClick={() => { setTab(t); setSelected(new Set()); setDateFilter(""); setVehicleFilter(""); }}
+              onClick={() => { setTab(t); setSelected(new Set()); setDateFilter(""); setVehicleFilter(new Set()); }}
               style={{
                 padding: "7px 18px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600,
                 background: tab === t ? "#fff" : "transparent",
@@ -957,17 +959,39 @@ export default function AdminReleasesPage() {
           </div>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             {allVehicles.length > 0 && (
-              <select
-                value={vehicleFilter}
-                onChange={e => setVehicleFilter(e.target.value)}
-                className="input"
-                style={{ fontSize: 13, padding: "8px 12px", color: vehicleFilter ? "#1a1a1a" : "#888" }}
-              >
-                <option value="">Todos os veículos</option>
-                {allVehicles.map(v => (
-                  <option key={v.id} value={v.id}>{v.name}</option>
-                ))}
-              </select>
+              <div ref={vehicleDropRef} style={{ position: "relative" }}>
+                <button
+                  type="button"
+                  className="input"
+                  onClick={() => setVehicleDropOpen(o => !o)}
+                  onBlur={e => { if (!vehicleDropRef.current?.contains(e.relatedTarget as Node)) setVehicleDropOpen(false); }}
+                  style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", whiteSpace: "nowrap", background: vehicleFilter.size > 0 ? "#1a1a1a" : "#fff", color: vehicleFilter.size > 0 ? "#fff" : "#888", borderColor: vehicleFilter.size > 0 ? "#1a1a1a" : undefined }}
+                >
+                  <span style={{ fontSize: 13 }}>
+                    {vehicleFilter.size === 0 ? "Veículos" : vehicleFilter.size === 1 ? allVehicles.find(v => vehicleFilter.has(v.id))?.name : `${vehicleFilter.size} veículos`}
+                  </span>
+                  {vehicleFilter.size > 0 ? (
+                    <span onMouseDown={e => { e.stopPropagation(); setVehicleFilter(new Set()); }} style={{ display: "flex", alignItems: "center", opacity: 0.7, cursor: "pointer" }}><X size={12} /></span>
+                  ) : (
+                    <ChevronDown size={13} style={{ opacity: 0.5 }} />
+                  )}
+                </button>
+                {vehicleDropOpen && (
+                  <div style={{ position: "absolute", top: "calc(100% + 6px)", left: 0, zIndex: 999, background: "#fff", border: "1px solid #e8e8e8", borderRadius: 10, boxShadow: "0 8px 24px rgba(0,0,0,0.10)", padding: "6px 0", minWidth: 180 }}>
+                    {allVehicles.map(v => {
+                      const checked = vehicleFilter.has(v.id);
+                      return (
+                        <label key={v.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 14px", cursor: "pointer", fontSize: 13, color: "#1a1a1a", background: checked ? "#f5f5f3" : "none" }}
+                          onMouseDown={e => { e.preventDefault(); setVehicleFilter(prev => { const next = new Set(prev); checked ? next.delete(v.id) : next.add(v.id); return next; }); }}
+                        >
+                          <input type="checkbox" readOnly checked={checked} style={{ width: 14, height: 14, accentColor: "#1a1a1a", flexShrink: 0 }} />
+                          {v.name}
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             )}
             <AdminDatePicker value={dateFilter} onChange={setDateFilter} />
             <input
