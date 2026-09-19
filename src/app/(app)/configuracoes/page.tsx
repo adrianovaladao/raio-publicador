@@ -1182,8 +1182,8 @@ function BrandFormModal({ brand, onClose, onSaved }: {
   }
 
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className="modal" style={{ maxWidth: 480 }} onClick={e => e.stopPropagation()}>
+    <div className="overlay">
+      <div className="modal" style={{ maxWidth: 480 }}>
         <div className="m-head" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <h3>{isEdit ? "Editar" : "Cadastrar nova"} <em>marca</em></h3>
           <button className="icon-btn" onClick={onClose}><X size={17} /></button>
