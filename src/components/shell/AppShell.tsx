@@ -334,8 +334,8 @@ function NewBrandModal({ onClose, onCreate }: { onClose: () => void; onCreate: (
   }
 
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className="modal" onClick={e => e.stopPropagation()}>
+    <div className="overlay">
+      <div className="modal">
         <div className="m-head">
           <h3>Cadastrar nova <em>marca</em></h3>
         </div>
