@@ -165,8 +165,8 @@ function EditBrandModal({ brand, onClose, onSave }: { brand: Brand; onClose: () 
   }
 
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className="modal" style={{ maxWidth: 480 }} onClick={e => e.stopPropagation()}>
+    <div className="overlay">
+      <div className="modal" style={{ maxWidth: 480 }}>
         <div className="m-head" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <h3>Editar <em>marca</em></h3>
           <button className="icon-btn" onClick={onClose}><X size={17} /></button>
@@ -286,8 +286,8 @@ function NewBrandModal({ onClose, onSave }: { onClose: () => void; onSave: () =>
   }
 
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className="modal" style={{ maxWidth: 480 }} onClick={e => e.stopPropagation()}>
+    <div className="overlay">
+      <div className="modal" style={{ maxWidth: 480 }}>
         <div className="m-head">
           <h3>Cadastrar nova <em>marca</em></h3>
         </div>
