@@ -485,6 +485,7 @@ export default function DashboardPage() {
   const [brandsLimit, setBrandsLimit] = useState<number | null>(null);
   const [subStatus, setSubStatus] = useState<string | null>(null);
   const [activeIdx, setActiveIdx] = useState(0);
+  const [kpiVehStats, setKpiVehStats] = useState<VehStat[]>([]);
   useEffect(() => {
     fetch("/api/stripe/subscription")
       .then(r => r.json())
@@ -523,16 +524,26 @@ export default function DashboardPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  const stats      = data?.stats;
   const brands     = data?.brands ?? [];
+  const activeBrandId = (brands[activeIdx] ?? brands[0])?.id;
+
+  useEffect(() => {
+    if (!activeBrandId) { setKpiVehStats([]); return; }
+    fetch(`/api/vehicles-stats?brandId=${activeBrandId}`)
+      .then(r => r.json())
+      .then((res: { ranked: VehStat[] }) => setKpiVehStats(res.ranked ?? []))
+      .catch(() => setKpiVehStats([]));
+  }, [activeBrandId]);
+
+  const stats      = data?.stats;
   const activeBrand = brands[activeIdx] ?? brands[0] ?? null;
   const hasBrands   = brands.length > 0;
   const hasReleases = (stats?.total ?? 0) > 0;
 
   const KPIS = [
     { id: "k1", icon: Send,      label: "Releases publicados", val: String(activeBrand?.publishedCount ?? stats?.published ?? 0), accent: true },
-    { id: "k2", icon: Eye,       label: "Alcance estimado",    val: "—" },
-    { id: "k3", icon: Newspaper, label: "Veículos ativos",     val: "—" },
+    { id: "k2", icon: Eye,       label: "Alcance estimado",    val: kpiVehStats.length > 0 ? fmtReachStatic(kpiVehStats.reduce((s, v) => s + v.reach, 0)) : "—" },
+    { id: "k3", icon: Newspaper, label: "Veículos ativos",     val: kpiVehStats.length > 0 ? String(kpiVehStats.length) : "—" },
     { id: "k4", icon: Zap,       label: "Créditos utilizados por essa marca", val: activeBrand ? (activeBrand.creditsUsed).toLocaleString("pt-BR") : "—" },
   ];
 
