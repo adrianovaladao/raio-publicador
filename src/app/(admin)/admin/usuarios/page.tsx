@@ -250,8 +250,8 @@ function EditModal({ user, onClose, onSaved }: { user: UserRow; onClose: () => v
   }
 
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className="modal" style={{ maxWidth: 480, marginTop: 60 }} onClick={e => e.stopPropagation()}>
+    <div className="overlay">
+      <div className="modal" style={{ maxWidth: 480, marginTop: 60 }}>
         <div className="m-head" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "22px 24px 0" }}>
           <h3>Editar assinatura</h3>
           <button onClick={onClose} className="btn btn-ghost btn-sm" style={{ padding: "4px 8px" }}><X size={16} /></button>
