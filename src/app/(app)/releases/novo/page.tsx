@@ -63,7 +63,7 @@ function extractFirstImageUrl(html: string): string | null {
   return match?.[1] ?? null;
 }
 
-const VEH_CATS_ALL  = ["Agro","Carros e Motos","Beleza & Moda","Carreira","Educação","Empreendedorismo & Negócios","Entretenimento","Gastronomia","Indústria","Lifestyle","Marketing","Meio Ambiente & Sustentabilidade","Pet","Saúde","Tecnologia & Inovação","Turismo","Varejo","Variedades"];
+const VEH_CATS_ALL  = ["Agro","Beleza & Moda","Carros e Motos","Carreira","Educação","Empreendedorismo & Negócios","Entretenimento","Gastronomia","Indústria","Lifestyle","Marketing","Meio Ambiente & Sustentabilidade","Pet","Saúde","Tecnologia & Inovação","Turismo","Varejo","Variedades"];
 const VEH_TIERS_ALL = ["A","B","C"];
 const PAGE_SIZE      = 25;
 const TIER_TOKENS_MAP: Record<string, number> = { A: 100, B: 50, C: 25 };
