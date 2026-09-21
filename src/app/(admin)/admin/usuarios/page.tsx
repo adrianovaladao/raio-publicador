@@ -79,9 +79,11 @@ const SUB_STATUSES = ["ACTIVE", "INACTIVE", "PAST_DUE", "CANCELLED"] as const;
 const MESES_FULL = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 const DOW_SHORT  = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
 
-function AdminDatePicker({ value, onChange, dropUp }: { value: string; onChange: (d: string) => void; dropUp?: boolean }) {
+function AdminDatePicker({ value, onChange }: { value: string; onChange: (d: string) => void; dropUp?: boolean }) {
   const [open, setOpen] = useState(false);
+  const [coords, setCoords] = useState<{ top?: number; bottom?: number; left: number }>({ top: 0, left: 0 });
   const ref = useRef<HTMLDivElement>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
 
   const toKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
   const parsed = value ? new Date(value + "T12:00:00") : new Date();
@@ -93,8 +95,22 @@ function AdminDatePicker({ value, onChange, dropUp }: { value: string; onChange:
     return `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`;
   };
 
+  function openPicker() {
+    if (!btnRef.current) return;
+    const r = btnRef.current.getBoundingClientRect();
+    const calH = 320;
+    const spaceBelow = window.innerHeight - r.bottom;
+    if (spaceBelow >= calH) {
+      setCoords({ top: r.bottom + 8, left: r.left });
+    } else {
+      setCoords({ bottom: window.innerHeight - r.top + 8, left: r.left });
+    }
+    setOpen(o => !o);
+  }
+
   const closeOnOutside = useCallback((e: MouseEvent) => {
-    if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    if (ref.current && !ref.current.contains(e.target as Node) &&
+        btnRef.current && !btnRef.current.contains(e.target as Node)) setOpen(false);
   }, []);
 
   useEffect(() => {
@@ -127,10 +143,11 @@ function AdminDatePicker({ value, onChange, dropUp }: { value: string; onChange:
   }
 
   return (
-    <div ref={ref} style={{ position: "relative" }}>
+    <div style={{ position: "relative" }}>
       <button
+        ref={btnRef}
         type="button"
-        onClick={() => setOpen(o => !o)}
+        onClick={openPicker}
         className="input"
         style={{ width: "100%", textAlign: "left", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between" }}
       >
@@ -141,10 +158,13 @@ function AdminDatePicker({ value, onChange, dropUp }: { value: string; onChange:
       </button>
 
       {open && (
-        <div style={{
-          position: "absolute", ...(dropUp ? { bottom: "calc(100% + 8px)" } : { top: "calc(100% + 8px)" }), left: 0, zIndex: 9999,
+        <div ref={ref} style={{
+          position: "fixed",
+          top: coords.top !== undefined ? coords.top : undefined,
+          bottom: coords.bottom !== undefined ? coords.bottom : undefined,
+          left: coords.left, zIndex: 99999,
           background: "var(--surface)", border: "1px solid var(--line)", borderRadius: 12,
-          boxShadow: "0 8px 32px rgba(0,0,0,0.10)", padding: 16, width: 280,
+          boxShadow: "0 8px 32px rgba(0,0,0,0.15)", padding: 16, width: 280,
         }}>
           <div style={{ display: "flex", alignItems: "center", marginBottom: 12 }}>
             <button type="button" onClick={() => shiftMonth(-1)} style={{ background: "none", border: "none", cursor: "pointer", padding: "4px 6px", borderRadius: 6, color: "var(--stone)" }}>
