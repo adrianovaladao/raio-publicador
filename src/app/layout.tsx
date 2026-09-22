@@ -3,6 +3,7 @@ import { DM_Sans, Roboto_Serif } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ptBR } from "@clerk/localizations";
 import Script from "next/script";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -85,6 +86,7 @@ export default function RootLayout({
             gtag('js', new Date());
             gtag('config', 'G-C40W3MP2R7');
           `}</Script>
+          <Analytics />
         </body>
       </html>
     </ClerkProvider>
