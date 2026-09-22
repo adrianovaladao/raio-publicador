@@ -66,11 +66,11 @@ export async function POST() {
         state:       addr.state ?? "",
       };
 
-      await prisma.fiscalProfile.upsert({
-        where:  { ownerId: sub.ownerId },
-        update: data,
-        create: { ownerId: sub.ownerId, ...data },
-      });
+      // Só cria se ainda não existe — nunca sobrescreve dados já cadastrados manualmente
+      const existing = await prisma.fiscalProfile.findUnique({ where: { ownerId: sub.ownerId } });
+      if (!existing) {
+        await prisma.fiscalProfile.create({ data: { ownerId: sub.ownerId, ...data } });
+      }
 
       results.push({ ownerId: sub.ownerId, customerId, status: "ok" });
     } catch (err) {
