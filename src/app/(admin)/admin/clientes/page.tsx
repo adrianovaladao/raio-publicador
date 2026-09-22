@@ -51,8 +51,7 @@ function maskCnpj(v: string) {
   return d.length === 14 ? d.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5") : v;
 }
 function displayName(row: ClientRow) {
-  if (row.personType === "PJ") return row.companyName ?? row.clerkName ?? row.email.split("@")[0];
-  return row.fullName ?? row.clerkName ?? row.email.split("@")[0];
+  return row.clerkName ?? row.fullName ?? row.companyName ?? row.email.split("@")[0];
 }
 function fmtDoc(row: ClientRow) {
   if (row.personType === "PF") return row.cpf ? maskCpf(row.cpf) : "—";
