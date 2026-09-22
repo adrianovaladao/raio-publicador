@@ -16,10 +16,13 @@ export async function POST(req: NextRequest) {
   if (!body.targetUserId || !body.companyName) return NextResponse.json({ error: "campos obrigatórios ausentes" }, { status: 400 });
 
   const prisma = getPrisma();
-  const profile = await prisma.fiscalProfile.update({
-    where: { ownerId: body.targetUserId },
-    data: { companyName: body.companyName },
-  });
-
-  return NextResponse.json({ ok: true, companyName: profile.companyName });
+  try {
+    const profile = await prisma.fiscalProfile.update({
+      where: { ownerId: body.targetUserId },
+      data: { companyName: body.companyName },
+    });
+    return NextResponse.json({ ok: true, companyName: profile.companyName });
+  } catch {
+    return NextResponse.json({ ok: false, error: "FiscalProfile não encontrado para esse userId" }, { status: 404 });
+  }
 }
