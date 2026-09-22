@@ -4,6 +4,15 @@ import { getPrisma } from "@/lib/prisma";
 import { isMaster } from "@/lib/admin";
 import { NextRequest, NextResponse } from "next/server";
 
+interface Body {
+  targetUserId: string;
+  personType?: "PF" | "PJ";
+  fullName?: string; cpf?: string;
+  companyName?: string; cnpj?: string;
+  cep?: string; street?: string; number?: string;
+  complement?: string; district?: string; city?: string; state?: string;
+}
+
 export async function POST(req: NextRequest) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -12,15 +21,16 @@ export async function POST(req: NextRequest) {
   const me = await clerk.users.getUser(userId);
   if (!isMaster(me.publicMetadata)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const body = await req.json() as { targetUserId: string; companyName: string };
-  if (!body.targetUserId || !body.companyName) return NextResponse.json({ error: "campos obrigatórios ausentes" }, { status: 400 });
+  const body = await req.json() as Body;
+  if (!body.targetUserId) return NextResponse.json({ error: "targetUserId obrigatório" }, { status: 400 });
 
+  const { targetUserId, ...profileData } = body;
   const prisma = getPrisma();
-  const { targetUserId, ...profileData } = body as Record<string, string>;
   const profile = await prisma.fiscalProfile.upsert({
     where: { ownerId: targetUserId },
     update: { ...profileData },
-    create: { ownerId: targetUserId, ...profileData },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    create: { ownerId: targetUserId, ...(profileData as any) },
   });
   return NextResponse.json({ ok: true, companyName: profile.companyName });
 }
