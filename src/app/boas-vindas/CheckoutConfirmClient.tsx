@@ -76,7 +76,8 @@ export default function CheckoutConfirmClient({ initialPlanId, allPlans }: Props
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ planId: selectedId }),
       });
-      const data = await res.json() as { url?: string; error?: string };
+      const data = await res.json() as { url?: string; error?: string; needsFiscal?: boolean; redirect?: string };
+      if (data.needsFiscal && data.redirect) { window.location.href = data.redirect; return; }
       if (!res.ok || !data.url) { setError(data.error ?? "Erro ao iniciar pagamento."); return; }
       window.location.href = data.url;
     } catch (e) {

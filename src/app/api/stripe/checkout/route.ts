@@ -23,7 +23,17 @@ export async function POST(req: NextRequest) {
   const stripe = getStripe();
   const prisma = getPrisma();
 
-  const sub = await prisma.subscription.findUnique({ where: { ownerId: userId } });
+  const [sub, fiscalProfile] = await Promise.all([
+    prisma.subscription.findUnique({ where: { ownerId: userId } }),
+    prisma.fiscalProfile.findUnique({ where: { ownerId: userId } }),
+  ]);
+
+  // Fiscal profile required before paying — redirect to collect it
+  if (!fiscalProfile) {
+    return NextResponse.json({ needsFiscal: true, redirect: `/boas-vindas?plan=${planId}` }, { status: 422 });
+  }
+
+  const isVoucherUpgrade = sub?.plan === "VOUCHER";
 
   // Cria ou recupera o Customer no Stripe
   let customerId = sub?.stripeCustomerId ?? undefined;
@@ -69,7 +79,7 @@ export async function POST(req: NextRequest) {
         quantity: 1,
       },
     ],
-    success_url: `${origin}/boas-vindas?checkout=success`,
+    success_url: `${origin}/boas-vindas?checkout=success${isVoucherUpgrade ? "&from=voucher" : ""}`,
     cancel_url: `${origin}/site#planos`,
     locale: "pt-BR",
     metadata: { clerkId: userId, planId },

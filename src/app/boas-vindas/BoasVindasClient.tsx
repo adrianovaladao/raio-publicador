@@ -504,15 +504,15 @@ function Done({ data }: { data: OnbData }) {
 }
 
 // ─── WIZARD ───────────────────────────────────────────────────
-export default function BoasVindasPage() {
+export default function BoasVindasPage({ fiscalThenPlan }: { fiscalThenPlan?: string }) {
   const { user } = useUser();
   const firstName = user?.firstName || "";
   const searchParams = useSearchParams();
   const fromCheckout = searchParams.get("checkout") === "success";
   const fromVoucher  = fromCheckout && searchParams.get("from") === "voucher";
 
-  // Pré-passo fiscal só existe quando vem do checkout
-  const [step, setStep] = useState<Stage>(fromCheckout ? "fiscal" : "welcome");
+  // Pré-passo fiscal: quando vem do checkout OU quando precisa coletar dados antes de pagar
+  const [step, setStep] = useState<Stage>((fromCheckout || !!fiscalThenPlan) ? "fiscal" : "welcome");
   const [fiscal, setFiscal] = useState<FiscalData | null>(null);
   const [data, setData] = useState<OnbData>({ name: "", segment: "Franquias", site: "", contact: "", desc: "", logoUrl: "" });
 
@@ -562,13 +562,15 @@ export default function BoasVindasPage() {
             <FiscalStep
               onDone={f => {
                 setFiscal(f);
-                if (fromVoucher) {
+                if (fiscalThenPlan) {
+                  window.location.href = `/boas-vindas?plan=${fiscalThenPlan}`;
+                } else if (fromVoucher) {
                   window.location.href = "/dashboard";
                 } else {
                   go("welcome");
                 }
               }}
-              ctaLabel={fromVoucher ? "Ir para o dashboard" : undefined}
+              ctaLabel={fiscalThenPlan ? "Continuar para pagamento" : fromVoucher ? "Ir para o dashboard" : undefined}
 
             />
           </main>

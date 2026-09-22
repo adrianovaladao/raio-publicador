@@ -26,10 +26,19 @@ export default async function BoasVindasPage({
   // Has a plan param — check if already has active subscription
   const planId = planParam as PlanId;
   const prisma = getPrisma();
-  const sub = await prisma.subscription.findUnique({ where: { ownerId: userId } });
+  const [sub, fiscalProfile] = await Promise.all([
+    prisma.subscription.findUnique({ where: { ownerId: userId } }),
+    prisma.fiscalProfile.findUnique({ where: { ownerId: userId } }),
+  ]);
 
-  if (sub && !["INACTIVE", "CANCELLED"].includes(sub.status)) {
+  // VOUCHER users can upgrade to a paid plan — allow through to checkout
+  if (sub && !["INACTIVE", "CANCELLED"].includes(sub.status) && sub.plan !== "VOUCHER") {
     return <Suspense><BoasVindasClient /></Suspense>;
+  }
+
+  // No fiscal profile yet — show fiscal collection first, then redirect to checkout
+  if (!fiscalProfile) {
+    return <Suspense><BoasVindasClient fiscalThenPlan={planId} /></Suspense>;
   }
 
   const fmt = (cents: number) =>
