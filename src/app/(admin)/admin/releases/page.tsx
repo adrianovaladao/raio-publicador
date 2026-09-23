@@ -190,11 +190,12 @@ function extractImages(html: string): string[] {
 }
 
 // ── Painel de ações ───────────────────────────────────────────────────────────
-function ReleaseActions({ release, onSaved, onDeleted, onArchived }: {
+function ReleaseActions({ release, onSaved, onDeleted, onArchived, onUnpublished }: {
   release: ReleaseRow;
   onSaved: () => void;
   onDeleted: () => void;
   onArchived: () => void;
+  onUnpublished: () => void;
 }) {
   const [newStatus, setNewStatus] = useState(release.status);
   const [notes, setNotes] = useState(release.adminNotes ?? "");
@@ -316,7 +317,7 @@ function ReleaseActions({ release, onSaved, onDeleted, onArchived }: {
         throw new Error(msg);
       }
       setConfirmUnpublish(false);
-      onSaved();
+      onUnpublished();
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Erro ao despublicar");
     } finally {
@@ -737,7 +738,7 @@ function ReleaseActions({ release, onSaved, onDeleted, onArchived }: {
 }
 
 // ── Release Card ──────────────────────────────────────────────────────────────
-function ReleaseCard({ r, expanded, setExpanded, selected, toggleSelect, onSaved, onDeleted, onArchived }: {
+function ReleaseCard({ r, expanded, setExpanded, selected, toggleSelect, onSaved, onDeleted, onArchived, onUnpublished }: {
   r: ReleaseRow;
   expanded: string | null;
   setExpanded: (id: string | null) => void;
@@ -746,6 +747,7 @@ function ReleaseCard({ r, expanded, setExpanded, selected, toggleSelect, onSaved
   onSaved: () => void;
   onDeleted: () => void;
   onArchived: () => void;
+  onUnpublished: () => void;
 }) {
   const isExpanded = expanded === r.id;
   return (
@@ -793,7 +795,7 @@ function ReleaseCard({ r, expanded, setExpanded, selected, toggleSelect, onSaved
         <ChevronDown size={16} style={{ color: "#bbb", flexShrink: 0, transform: isExpanded ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
       </div>
       {isExpanded && (
-        <ReleaseActions release={r} onSaved={onSaved} onDeleted={onDeleted} onArchived={onArchived} />
+        <ReleaseActions release={r} onSaved={onSaved} onDeleted={onDeleted} onArchived={onArchived} onUnpublished={onUnpublished} />
       )}
     </div>
   );
@@ -1094,6 +1096,7 @@ export default function AdminReleasesPage() {
                       onSaved={load}
                       onDeleted={() => { setExpanded(null); load(); }}
                       onArchived={() => { setExpanded(null); load(); }}
+                      onUnpublished={() => { setExpanded(null); load(); }}
                     />
                   ))}
                 </div>
