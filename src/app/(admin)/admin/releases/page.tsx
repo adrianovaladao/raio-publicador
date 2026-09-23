@@ -204,6 +204,8 @@ function ReleaseActions({ release, onSaved, onDeleted, onArchived }: {
   const [archiving, setArchiving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [confirmArchive, setConfirmArchive] = useState(false);
+  const [confirmUnpublish, setConfirmUnpublish] = useState(false);
+  const [unpublishing, setUnpublishing] = useState(false);
   const [err, setErr] = useState("");
   const [ok, setOk] = useState("");
   const [copied, setCopied] = useState(false);
@@ -297,6 +299,28 @@ function ReleaseActions({ release, onSaved, onDeleted, onArchived }: {
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Erro ao excluir");
       setDeleting(false);
+    }
+  }
+
+  async function handleUnpublish() {
+    setUnpublishing(true); setErr("");
+    try {
+      const res = await fetch(`/api/admin/releases/${release.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "DRAFT" }),
+      });
+      if (!res.ok) {
+        let msg = `Erro ${res.status}`;
+        try { const d = await res.json(); msg = d.error ?? msg; } catch {}
+        throw new Error(msg);
+      }
+      setConfirmUnpublish(false);
+      onSaved();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Erro ao despublicar");
+    } finally {
+      setUnpublishing(false);
     }
   }
 
@@ -642,8 +666,33 @@ function ReleaseActions({ release, onSaved, onDeleted, onArchived }: {
           </>
         )}
 
+        {/* Despublicar release — só para publicados */}
+        {isPublished && !confirmUnpublish && !confirmArchive && !confirmDelete && (
+          <button
+            onClick={() => setConfirmUnpublish(true)}
+            className="btn btn-ghost btn-sm"
+            style={{ color: "#D97706", display: "flex", alignItems: "center", gap: 6 }}
+          >
+            <X size={14} /> Despublicar
+          </button>
+        )}
+        {isPublished && confirmUnpublish && (
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <span style={{ fontSize: 12, color: "#92400E", fontWeight: 600 }}>Tirar do ar e voltar para fila?</span>
+            <button onClick={() => setConfirmUnpublish(false)} className="btn btn-ghost btn-sm">Cancelar</button>
+            <button
+              onClick={handleUnpublish}
+              disabled={unpublishing}
+              className="btn btn-sm"
+              style={{ background: "#D97706", color: "#fff", border: "none", display: "flex", alignItems: "center", gap: 6 }}
+            >
+              <X size={13} /> {unpublishing ? "Aguarde…" : "Despublicar"}
+            </button>
+          </div>
+        )}
+
         {/* Arquivar release — só para publicados */}
-        {isPublished && !confirmArchive && !confirmDelete && (
+        {isPublished && !confirmUnpublish && !confirmArchive && !confirmDelete && (
           <button
             onClick={() => setConfirmArchive(true)}
             className="btn btn-ghost btn-sm"
@@ -652,7 +701,7 @@ function ReleaseActions({ release, onSaved, onDeleted, onArchived }: {
             <Archive size={14} /> {release.archivedAt ? "Desarquivar release" : "Arquivar release"}
           </button>
         )}
-        {isPublished && confirmArchive && (
+        {isPublished && !confirmUnpublish && confirmArchive && (
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             <span style={{ fontSize: 12, color: "#374151", fontWeight: 600 }}>
               {release.archivedAt ? "Desarquivar este release?" : "Arquivar este release?"}
