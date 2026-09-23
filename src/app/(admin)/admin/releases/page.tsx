@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import { useUser } from "@clerk/nextjs";
-import { Crown, FileText, Trash2, ChevronDown, AlertTriangle, Clock, ExternalLink, Send, Copy, Download, Check, Calendar, ChevronLeft, ChevronRight, X, Archive, Pencil } from "lucide-react";
+import { Crown, FileText, Trash2, ChevronDown, AlertTriangle, Clock, ExternalLink, Send, Copy, Download, Check, Calendar, ChevronLeft, ChevronRight, X, Archive, Pencil, RefreshCw } from "lucide-react";
 import { exportDocx, exportPdf } from "@/lib/export-release";
 import { isAnyAdmin } from "@/lib/admin";
 
@@ -898,12 +898,17 @@ export default function AdminReleasesPage() {
             <h2>Gerenciar <em>releases</em></h2>
             <p className="sub">Analise, aprove, publique e gerencie todas as releases da plataforma.</p>
           </div>
-          {needsAction > 0 && (
-            <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#FFFBEB", padding: "10px 16px", borderRadius: 10, border: "1.5px solid #FDE68A" }}>
-              <AlertTriangle size={16} style={{ color: "#D97706" }} />
-              <span style={{ fontSize: 13, fontWeight: 600, color: "#92400E" }}>{needsAction} aguardando ação</span>
-            </div>
-          )}
+          <div className="actions" style={{ alignItems: "center", gap: 10 }}>
+            {needsAction > 0 && (
+              <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#FFFBEB", padding: "10px 16px", borderRadius: 10, border: "1.5px solid #FDE68A" }}>
+                <AlertTriangle size={16} style={{ color: "#D97706" }} />
+                <span style={{ fontSize: 13, fontWeight: 600, color: "#92400E" }}>{needsAction} aguardando ação</span>
+              </div>
+            )}
+            <button onClick={load} className="btn btn-ghost btn-sm" style={{ gap: 6 }}>
+              <RefreshCw size={14} /> Atualizar
+            </button>
+          </div>
         </div>
 
         {/* Tabs */}
