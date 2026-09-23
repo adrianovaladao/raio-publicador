@@ -79,7 +79,7 @@ function DetailPanel({ row }: { row: ClientRow }) {
   const fullAddress = [address, row.district, cityState, `CEP ${row.cep}`].filter(Boolean).join(" — ");
 
   const fields = [
-    { label: row.personType === "PJ" ? "Razão social" : "Nome completo", value: displayName(row) },
+    { label: row.personType === "PJ" ? "Razão social" : "Nome completo", value: row.personType === "PJ" ? (row.companyName ?? "—") : (row.fullName ?? row.clerkName ?? "—") },
     { label: row.personType === "PJ" ? "CNPJ" : "CPF", value: doc, copy: docRaw, mono: true },
     { label: "E-mail", value: row.email, copy: row.email },
     { label: "Endereço", value: fullAddress, copy: fullAddress },
