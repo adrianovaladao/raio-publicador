@@ -763,6 +763,13 @@ export default function AdminReleasesPage() {
   const [vehicleFilter, setVehicleFilter] = useState<Set<string>>(new Set());
   const [vehicleDropOpen, setVehicleDropOpen] = useState(false);
   const vehicleDropRef = useRef<HTMLDivElement>(null);
+  const closeVehicleDrop = useCallback((e: MouseEvent) => {
+    if (vehicleDropRef.current && !vehicleDropRef.current.contains(e.target as Node)) setVehicleDropOpen(false);
+  }, []);
+  useEffect(() => {
+    if (vehicleDropOpen) document.addEventListener("mousedown", closeVehicleDrop);
+    return () => document.removeEventListener("mousedown", closeVehicleDrop);
+  }, [vehicleDropOpen, closeVehicleDrop]);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkDeleting, setBulkDeleting] = useState(false);
@@ -964,7 +971,6 @@ export default function AdminReleasesPage() {
                   type="button"
                   className="input"
                   onClick={() => setVehicleDropOpen(o => !o)}
-                  onBlur={e => { if (!vehicleDropRef.current?.contains(e.relatedTarget as Node)) setVehicleDropOpen(false); }}
                   style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", whiteSpace: "nowrap", background: vehicleFilter.size > 0 ? "#1a1a1a" : "#fff", color: vehicleFilter.size > 0 ? "#fff" : "#888", borderColor: vehicleFilter.size > 0 ? "#1a1a1a" : undefined }}
                 >
                   <span style={{ fontSize: 13 }}>
