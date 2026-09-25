@@ -12,7 +12,7 @@ import Underline from "@tiptap/extension-underline";
 import TextAlign from "@tiptap/extension-text-align";
 import { useState, useCallback, useRef, useEffect, useLayoutEffect } from "react";
 import {
-  Bold, Italic, Underline as UnderlineIcon, Heading2,
+  Bold, Italic, Underline as UnderlineIcon,
   List, ListOrdered, Quote, Link as LinkIcon, Undo, Redo,
   Sparkles, Loader, X, Image as ImageIcon,
   AlignLeft, AlignCenter, AlignRight, AlignJustify,
@@ -143,7 +143,7 @@ export function RichEditor({
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
-        heading: { levels: [2, 3] },
+        heading: false,
         bulletList: { keepMarks: true },
         orderedList: { keepMarks: true },
       }),
@@ -168,6 +168,23 @@ export function RichEditor({
     },
     editorProps: {
       attributes: { class: "tiptap-body" },
+      transformPastedHTML(html) {
+        const doc = new DOMParser().parseFromString(html, "text/html");
+
+        // Convert headings to <p><strong>
+        doc.body.querySelectorAll("h1,h2,h3,h4,h5,h6").forEach(h => {
+          const p = doc.createElement("p");
+          const strong = doc.createElement("strong");
+          strong.textContent = h.textContent ?? "";
+          p.appendChild(strong);
+          h.replaceWith(p);
+        });
+
+        // Strip all inline styles
+        doc.body.querySelectorAll("[style]").forEach(el => el.removeAttribute("style"));
+
+        return doc.body.innerHTML;
+      },
     },
     immediatelyRender: false,
   });
@@ -333,7 +350,6 @@ export function RichEditor({
 
         <span className="div" />
 
-        {btn(editor.isActive("heading", { level: 2 }), () => editor.chain().focus().toggleHeading({ level: 2 }).run(), <Heading2 size={15} />, "Subtítulo")}
         {btn(editor.isActive("bulletList"),   () => editor.chain().focus().toggleBulletList().run(),  <List size={15} />,        "Lista")}
         {btn(editor.isActive("orderedList"),  () => editor.chain().focus().toggleOrderedList().run(), <ListOrdered size={15} />, "Lista numerada")}
         {btn(editor.isActive("blockquote"),   () => editor.chain().focus().toggleBlockquote().run(),  <Quote size={15} />,       "Citação")}
