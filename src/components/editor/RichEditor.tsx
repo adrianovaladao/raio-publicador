@@ -171,12 +171,10 @@ export function RichEditor({
       transformPastedHTML(html) {
         const doc = new DOMParser().parseFromString(html, "text/html");
 
-        // Convert headings to <p><strong>
+        // Convert headings to plain <p>
         doc.body.querySelectorAll("h1,h2,h3,h4,h5,h6").forEach(h => {
           const p = doc.createElement("p");
-          const strong = doc.createElement("strong");
-          strong.textContent = h.textContent ?? "";
-          p.appendChild(strong);
+          p.textContent = h.textContent ?? "";
           h.replaceWith(p);
         });
 
