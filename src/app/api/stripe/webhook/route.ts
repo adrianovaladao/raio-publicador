@@ -206,6 +206,22 @@ export async function POST(req: NextRequest) {
         const { firstName, email } = await getClerkUser(clerkId);
         if (email) {
           await sendRenewalEmail(email, firstName, PLANS[planId].label, PLANS[planId].credits, periodEnd).catch(console.error);
+          await getResend().emails.send({
+            from: "Raio Publicador <noreply@raiopublicador.com.br>",
+            to: ADMIN_EMAIL,
+            subject: `🔄 Renovação — ${PLANS[planId].label} (${firstName})`,
+            html: `<div style="font-family:Arial,sans-serif;max-width:480px;padding:24px">
+              <h2 style="margin:0 0 16px">🔄 Assinatura renovada!</h2>
+              <table style="font-size:14px;color:#333;border-collapse:collapse;width:100%">
+                <tr><td style="padding:6px 0;color:#888;width:120px">Usuário</td><td style="padding:6px 0;font-weight:600">${firstName}</td></tr>
+                <tr><td style="padding:6px 0;color:#888">E-mail</td><td style="padding:6px 0"><a href="mailto:${email}" style="color:#c97b00">${email}</a></td></tr>
+                <tr><td style="padding:6px 0;color:#888">Plano</td><td style="padding:6px 0;font-weight:600">${PLANS[planId].label}</td></tr>
+                <tr><td style="padding:6px 0;color:#888">Valor</td><td style="padding:6px 0">R$ ${(PLANS[planId].priceCents / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}/mês</td></tr>
+                <tr><td style="padding:6px 0;color:#888">Próxima renovação</td><td style="padding:6px 0">${periodEnd.toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" })}</td></tr>
+                <tr><td style="padding:6px 0;color:#888">Data</td><td style="padding:6px 0">${new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}</td></tr>
+              </table>
+            </div>`,
+          }).catch(console.error);
         }
         await createNotification(clerkId, "plan_renewed",
           "Plano renovado",
