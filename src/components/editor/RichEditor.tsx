@@ -171,11 +171,19 @@ export function RichEditor({
       transformPastedHTML(html) {
         const doc = new DOMParser().parseFromString(html, "text/html");
 
-        // Convert headings to plain <p>
+        // Convert headings to plain <p> — strip inner formatting too
         doc.body.querySelectorAll("h1,h2,h3,h4,h5,h6").forEach(h => {
           const p = doc.createElement("p");
           p.textContent = h.textContent ?? "";
           h.replaceWith(p);
+        });
+
+        // Strip <strong> and <em>, preserve <a> and their content
+        doc.body.querySelectorAll("strong, em").forEach(el => {
+          const parent = el.parentNode;
+          if (!parent) return;
+          while (el.firstChild) parent.insertBefore(el.firstChild, el);
+          el.remove();
         });
 
         // Strip all inline styles
