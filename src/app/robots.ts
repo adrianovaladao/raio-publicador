@@ -5,12 +5,11 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: "*",
-        allow: ["/", "/sobre", "/termos", "/privacidade", "/cookies"],
+        allow: ["/", "/site", "/sobre", "/termos", "/privacidade", "/cookies"],
         disallow: [
           "/dashboard", "/releases", "/veiculos", "/calendario",
           "/configuracoes", "/admin", "/boas-vindas", "/pix",
           "/convite", "/logout", "/site",
-          "/__beta_auth",
         ],
       },
     ],

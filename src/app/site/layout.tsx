@@ -5,6 +5,9 @@ import BlurOnBack from "./BlurOnBack";
 export const metadata: Metadata = {
   title: "Raio Publicador",
   description: "A mais inovadora plataforma brasileira de publicação garantida e branded content em créditos que você distribui como preferir.",
+  alternates: {
+    canonical: "https://raiopublicador.com.br",
+  },
   openGraph: {
     title: "Raio Publicador",
     description: "A mais inovadora plataforma brasileira de publicação garantida e branded content em créditos que você distribui como preferir.",
