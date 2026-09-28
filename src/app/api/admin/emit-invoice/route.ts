@@ -37,6 +37,13 @@ export async function POST(req: NextRequest) {
     cityServiceCode: NFEIO_SVC_CODE,
     description: "Prestacao de servicos de tecnologia de informacao - Plataforma Raio Publicador",
     servicesAmount: amountCents / 100,
+    taxes: {
+      pis:    { type: "Withheld", rate: 0.65 },
+      cofins: { type: "Withheld", rate: 3 },
+      csll:   { type: "Withheld", rate: 1 },
+      ir:     { type: "Withheld", rate: 1 },
+      inss:   { type: "None" },
+    },
     borrower: {
       federalTaxNumber: borrowerDoc,
       name: fiscal.personType === "PJ" ? fiscal.companyName! : fiscal.fullName!,
