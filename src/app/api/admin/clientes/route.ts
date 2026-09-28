@@ -55,6 +55,29 @@ export async function GET() {
   return NextResponse.json({ rows });
 }
 
+// PATCH /api/admin/clientes — edita fiscal profile por ownerId
+export async function PATCH(req: NextRequest) {
+  if (!await assertMaster())
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  const body = await req.json() as {
+    ownerId: string;
+    personType?: string; fullName?: string; cpf?: string;
+    companyName?: string; cnpj?: string;
+    cep?: string; street?: string; number?: string; complement?: string;
+    district?: string; city?: string; state?: string;
+  };
+  if (!body.ownerId)
+    return NextResponse.json({ error: "ownerId obrigatório" }, { status: 400 });
+
+  const { ownerId, ...data } = body;
+  const profile = await getPrisma().fiscalProfile.update({
+    where: { ownerId },
+    data,
+  });
+  return NextResponse.json({ ok: true, profile });
+}
+
 // DELETE /api/admin/clientes — remove fiscal profile(s) by ownerId
 export async function DELETE(req: NextRequest) {
   if (!await assertMaster())

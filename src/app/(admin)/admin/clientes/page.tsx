@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useUser } from "@clerk/nextjs";
 import { isMaster } from "@/lib/admin";
-import { RefreshCw, Search, Building2, User, Copy, Check, ChevronDown, ChevronRight, Trash2, Download } from "lucide-react";
+import { RefreshCw, Search, Building2, User, Copy, Check, ChevronDown, ChevronRight, Trash2, Download, Pencil, X, Send } from "lucide-react";
 
 interface ClientRow {
   ownerId: string;
@@ -71,7 +71,163 @@ function CopyBtn({ text }: { text: string }) {
   );
 }
 
-function DetailPanel({ row }: { row: ClientRow }) {
+function EditPanel({ row, onSave, onCancel }: { row: ClientRow; onSave: (updated: ClientRow) => void; onCancel: () => void }) {
+  const [form, setForm] = useState({
+    personType: row.personType,
+    fullName:   row.fullName   ?? "",
+    cpf:        row.cpf        ?? "",
+    companyName: row.companyName ?? "",
+    cnpj:       row.cnpj       ?? "",
+    cep:        row.cep,
+    street:     row.street,
+    number:     row.number,
+    complement: row.complement ?? "",
+    district:   row.district,
+    city:       row.city,
+    state:      row.state,
+  });
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState("");
+
+  const field = (label: string, key: keyof typeof form, opts?: { mono?: boolean; placeholder?: string }) => (
+    <div>
+      <p style={{ margin: "0 0 4px", fontSize: 10, fontFamily: "var(--mono)", textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--stone)" }}>{label}</p>
+      <input
+        className="input"
+        style={{ fontFamily: opts?.mono ? "var(--mono)" : undefined, fontSize: 13 }}
+        value={form[key]}
+        placeholder={opts?.placeholder}
+        onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
+      />
+    </div>
+  );
+
+  async function save() {
+    setSaving(true); setErr("");
+    const res = await fetch("/api/admin/clientes", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ownerId: row.ownerId, ...form }),
+    });
+    if (!res.ok) { setErr("Erro ao salvar."); setSaving(false); return; }
+    onSave({ ...row, ...form, fullName: form.fullName || null, cpf: form.cpf || null, companyName: form.companyName || null, cnpj: form.cnpj || null, complement: form.complement || null });
+    setSaving(false);
+  }
+
+  return (
+    <tr>
+      <td colSpan={9} style={{ padding: 0, background: "var(--bg)", borderBottom: "1px solid var(--line)" }}>
+        <div style={{ padding: "20px 20px 20px 52px" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+            <p style={{ margin: 0, fontWeight: 600, fontSize: 13 }}>Editar perfil fiscal</p>
+            <button onClick={onCancel} className="btn btn-ghost btn-sm" style={{ padding: "4px 8px" }}><X size={13} /></button>
+          </div>
+
+          <div style={{ marginBottom: 16 }}>
+            <p style={{ margin: "0 0 6px", fontSize: 10, fontFamily: "var(--mono)", textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--stone)" }}>Tipo</p>
+            <div style={{ display: "flex", gap: 8 }}>
+              {(["PF", "PJ"] as const).map(t => (
+                <button
+                  key={t}
+                  onClick={() => setForm(f => ({ ...f, personType: t }))}
+                  className={`btn btn-sm ${form.personType === t ? "btn-primary" : "btn-ghost"}`}
+                  style={{ fontSize: 12 }}
+                >{t === "PF" ? "Pessoa Física" : "Pessoa Jurídica"}</button>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "14px 24px", marginBottom: 16 }}>
+            {form.personType === "PF" ? (
+              <>
+                {field("Nome completo", "fullName")}
+                {field("CPF", "cpf", { mono: true, placeholder: "000.000.000-00" })}
+              </>
+            ) : (
+              <>
+                {field("Razão social", "companyName")}
+                {field("CNPJ", "cnpj", { mono: true, placeholder: "00.000.000/0000-00" })}
+              </>
+            )}
+            {field("CEP", "cep", { mono: true })}
+            {field("Logradouro", "street")}
+            {field("Número", "number")}
+            {field("Complemento", "complement")}
+            {field("Bairro", "district")}
+            {field("Cidade", "city")}
+            {field("UF", "state")}
+          </div>
+
+          {err && <p style={{ color: "var(--red)", fontSize: 12, margin: "0 0 12px" }}>{err}</p>}
+
+          <div style={{ display: "flex", gap: 8 }}>
+            <button onClick={save} disabled={saving} className="btn btn-primary btn-sm">
+              {saving ? "Salvando…" : "Salvar"}
+            </button>
+            <button onClick={onCancel} className="btn btn-ghost btn-sm">Cancelar</button>
+          </div>
+        </div>
+      </td>
+    </tr>
+  );
+}
+
+function EmitPanel({ row, onClose }: { row: ClientRow; onClose: () => void }) {
+  const [amount, setAmount] = useState("");
+  const [emitting, setEmitting] = useState(false);
+  const [result, setResult] = useState<{ ok?: string; err?: string } | null>(null);
+
+  async function emit() {
+    const cents = Math.round(parseFloat(amount.replace(",", ".")) * 100);
+    if (!cents || isNaN(cents)) return;
+    setEmitting(true); setResult(null);
+    const res = await fetch("/api/admin/emit-invoice", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ownerId: row.ownerId, amountCents: cents }),
+    });
+    const data = await res.json() as { ok?: boolean; nfeioId?: string; error?: string };
+    if (data.ok) setResult({ ok: `NFS-e emitida! ID: ${data.nfeioId ?? "—"}` });
+    else setResult({ err: data.error ?? "Erro desconhecido" });
+    setEmitting(false);
+  }
+
+  return (
+    <tr>
+      <td colSpan={9} style={{ padding: 0, background: "var(--bg)", borderBottom: "1px solid var(--line)" }}>
+        <div style={{ padding: "20px 20px 20px 52px" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+            <p style={{ margin: 0, fontWeight: 600, fontSize: 13 }}>Emitir NFS-e manualmente</p>
+            <button onClick={onClose} className="btn btn-ghost btn-sm" style={{ padding: "4px 8px" }}><X size={13} /></button>
+          </div>
+          <p style={{ margin: "0 0 12px", fontSize: 12, color: "var(--stone)" }}>
+            Tomador: <strong>{row.personType === "PJ" ? (row.companyName ?? "—") : (row.fullName ?? "—")}</strong>
+            {" · "}{fmtDoc(row)}
+          </p>
+          <div style={{ display: "flex", gap: 10, alignItems: "flex-end", flexWrap: "wrap" }}>
+            <div>
+              <p style={{ margin: "0 0 4px", fontSize: 10, fontFamily: "var(--mono)", textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--stone)" }}>Valor (R$)</p>
+              <input
+                className="input"
+                style={{ fontFamily: "var(--mono)", width: 160 }}
+                placeholder="1.040,00"
+                value={amount}
+                onChange={e => setAmount(e.target.value)}
+              />
+            </div>
+            <button onClick={emit} disabled={emitting || !amount} className="btn btn-primary btn-sm" style={{ gap: 6 }}>
+              <Send size={13} /> {emitting ? "Emitindo…" : "Emitir agora"}
+            </button>
+          </div>
+          {result?.ok  && <p style={{ marginTop: 12, fontSize: 12, color: "#059669" }}>{result.ok}</p>}
+          {result?.err && <p style={{ marginTop: 12, fontSize: 12, color: "var(--red)" }}>{result.err}</p>}
+        </div>
+      </td>
+    </tr>
+  );
+}
+
+function DetailPanel({ row, onEdit, onEmit }: { row: ClientRow; onEdit: () => void; onEmit: () => void }) {
   const address = [row.street, row.number, row.complement].filter(Boolean).join(", ");
   const cityState = `${row.city}/${row.state}`;
   const doc = fmtDoc(row);
@@ -96,7 +252,7 @@ function DetailPanel({ row }: { row: ClientRow }) {
     <tr>
       <td colSpan={9} style={{ padding: 0, background: "var(--bg)", borderBottom: "1px solid var(--line)" }}>
         <div style={{ padding: "20px 20px 20px 52px" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "14px 24px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "14px 24px", marginBottom: 16 }}>
             {fields.map(({ label, value, copy, mono }) => (
               <div key={label}>
                 <p style={{ margin: "0 0 3px", fontSize: 10, fontFamily: "var(--mono)", textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--stone)" }}>{label}</p>
@@ -107,11 +263,21 @@ function DetailPanel({ row }: { row: ClientRow }) {
               </div>
             ))}
           </div>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button onClick={onEdit} className="btn btn-ghost btn-sm" style={{ gap: 6, fontSize: 12 }}>
+              <Pencil size={12} /> Editar dados fiscais
+            </button>
+            <button onClick={onEmit} className="btn btn-ghost btn-sm" style={{ gap: 6, fontSize: 12 }}>
+              <Send size={12} /> Emitir NFS-e
+            </button>
+          </div>
         </div>
       </td>
     </tr>
   );
 }
+
+type PanelMode = "detail" | "edit" | "emit";
 
 export default function ClientesPage() {
   const { user } = useUser();
@@ -123,6 +289,7 @@ export default function ClientesPage() {
   const [search, setSearch]     = useState("");
   const [filter, setFilter]     = useState<"ALL" | "PF" | "PJ">("ALL");
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [panelMode, setPanelMode] = useState<PanelMode>("detail");
   const [deleting, setDeleting]   = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
   const [importMsg, setImportMsg] = useState("");
@@ -136,6 +303,15 @@ export default function ClientesPage() {
   }, []);
 
   useEffect(() => { load(); }, [load, tick]);
+
+  function toggleExpand(ownerId: string) {
+    if (expanded === ownerId) {
+      setExpanded(null);
+    } else {
+      setExpanded(ownerId);
+      setPanelMode("detail");
+    }
+  }
 
   async function handleImport() {
     setImporting(true);
@@ -205,7 +381,6 @@ export default function ClientesPage() {
           </div>
         </div>
 
-        {/* Filtros */}
         <div style={{ display: "flex", gap: 10, marginBottom: 18, flexWrap: "wrap", alignItems: "center" }}>
           <div style={{ position: "relative", flex: 1, minWidth: 220 }}>
             <Search size={13} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--stone)", pointerEvents: "none" }} />
@@ -256,7 +431,7 @@ export default function ClientesPage() {
                       <>
                       <tr
                         key={row.ownerId}
-                        onClick={() => setExpanded(isOpen ? null : row.ownerId)}
+                        onClick={() => toggleExpand(row.ownerId)}
                         style={{ cursor: "pointer", background: isOpen ? "var(--bg)" : undefined }}
                       >
                         <td style={{ color: "var(--stone)", paddingRight: 0 }}>
@@ -301,7 +476,32 @@ export default function ClientesPage() {
                           </button>
                         </td>
                       </tr>
-                      {isOpen && <DetailPanel key={`${row.ownerId}-detail`} row={row} />}
+                      {isOpen && panelMode === "detail" && (
+                        <DetailPanel
+                          key={`${row.ownerId}-detail`}
+                          row={row}
+                          onEdit={() => setPanelMode("edit")}
+                          onEmit={() => setPanelMode("emit")}
+                        />
+                      )}
+                      {isOpen && panelMode === "edit" && (
+                        <EditPanel
+                          key={`${row.ownerId}-edit`}
+                          row={row}
+                          onSave={(updated) => {
+                            setRows(prev => prev.map(r => r.ownerId === updated.ownerId ? updated : r));
+                            setPanelMode("detail");
+                          }}
+                          onCancel={() => setPanelMode("detail")}
+                        />
+                      )}
+                      {isOpen && panelMode === "emit" && (
+                        <EmitPanel
+                          key={`${row.ownerId}-emit`}
+                          row={row}
+                          onClose={() => setPanelMode("detail")}
+                        />
+                      )}
                       </>
                     );
                   })}
