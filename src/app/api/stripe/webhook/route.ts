@@ -148,6 +148,17 @@ export async function POST(req: NextRequest) {
           await sendFounderWelcomeEmail(email, firstName).catch(console.error);
           await notifyAdminNewSubscription(email, firstName, PLANS[planId].label, PLANS[planId].priceCents).catch(console.error);
         }
+        // Agenda emissão de NFS-e para 7 dias após o pagamento
+        const stripeInvoiceId = session.invoice as string | undefined;
+        if (stripeInvoiceId && PLANS[planId].priceCents > 0) {
+          const scheduledFor = new Date();
+          scheduledFor.setDate(scheduledFor.getDate() + 7);
+          await prisma.pendingInvoice.upsert({
+            where: { stripeInvoiceId },
+            create: { clerkId, stripeInvoiceId, amountCents: PLANS[planId].priceCents, scheduledFor, status: "PENDING" },
+            update: {},
+          }).catch(console.error);
+        }
       }
       break;
     }
@@ -228,6 +239,18 @@ export async function POST(req: NextRequest) {
           `Seu Plano ${PLANS[planId].label} foi renovado. Você tem ${PLANS[planId].credits.toLocaleString("pt-BR")} créditos disponíveis.`,
           "/configuracoes?tab=cobranca",
         ).catch(console.error);
+      }
+      // Agenda emissão de NFS-e para 7 dias após o pagamento
+      const invoiceId = (invoice as unknown as { id?: string }).id;
+      const amountPaid = (invoice as unknown as { amount_paid?: number }).amount_paid ?? 0;
+      if (invoiceId && amountPaid > 0 && PLANS[planId]) {
+        const scheduledFor = new Date();
+        scheduledFor.setDate(scheduledFor.getDate() + 7);
+        await prisma.pendingInvoice.upsert({
+          where: { stripeInvoiceId: invoiceId },
+          create: { clerkId, stripeInvoiceId: invoiceId, amountCents: amountPaid, scheduledFor, status: "PENDING" },
+          update: {},
+        }).catch(console.error);
       }
       // billing_reason === "subscription_create" and "subscription_update" are handled by checkout.session.completed
       break;
