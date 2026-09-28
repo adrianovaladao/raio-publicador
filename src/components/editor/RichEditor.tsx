@@ -175,7 +175,7 @@ export function RichEditor({
         if (text && !html) {
           event.preventDefault();
           const { state, dispatch } = view;
-          const { tr, selection } = state;
+          const { tr } = state;
           tr.replaceSelectionWith(state.schema.text(text), false);
           dispatch(tr);
           return true;
