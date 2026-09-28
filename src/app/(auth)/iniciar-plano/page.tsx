@@ -25,10 +25,7 @@ export default async function IniciarPlanoPage({
   const stripe = getStripe();
   const prisma = getPrisma();
 
-  const [sub, fiscalProfile] = await Promise.all([
-    prisma.subscription.findUnique({ where: { ownerId: userId } }),
-    prisma.fiscalProfile.findUnique({ where: { ownerId: userId } }),
-  ]);
+  const sub = await prisma.subscription.findUnique({ where: { ownerId: userId } });
 
   // If already has active paid subscription, skip checkout
   // Exception: VOUCHER users can upgrade to a paid plan
@@ -36,11 +33,6 @@ export default async function IniciarPlanoPage({
     redirect("/dashboard");
   }
   const isVoucherUpgrade = sub?.plan === "VOUCHER";
-
-  // Fiscal profile is required before payment — send to boas-vindas flow which collects it
-  if (!fiscalProfile) {
-    redirect(`/boas-vindas?plan=${planId}`);
-  }
 
   let customerId = sub?.stripeCustomerId ?? undefined;
   if (!customerId) {
