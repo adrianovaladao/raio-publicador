@@ -1,13 +1,14 @@
 export const dynamic = "force-dynamic";
 import { getPrisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
+import { PLANS } from "@/lib/plans";
 
 const NFEIO_API_KEY   = process.env.NFEIO_API_KEY!;
 const NFEIO_COMPANY   = process.env.NFEIO_COMPANY_ID!;
 const NFEIO_SVC_CODE  = process.env.NFEIO_SERVICE_CODE ?? "2800";
 const NFEIO_BASE      = "https://api.nfe.io";
 
-async function emitNFSe(amountCents: number, fiscal: {
+async function emitNFSe(amountCents: number, planLabel: string, credits: number, fiscal: {
   personType: string; fullName?: string | null; cpf?: string | null;
   companyName?: string | null; cnpj?: string | null;
   street: string; number: string; complement?: string | null;
@@ -25,9 +26,21 @@ async function emitNFSe(amountCents: number, fiscal: {
   } catch { /* usa só o nome se ViaCEP falhar */ }
 
   const amount = amountCents / 100;
+  const taxesTotal = parseFloat((amount * (0.01 + 0.0065 + 0.03 + 0.01)).toFixed(2));
+  const netAmount = parseFloat((amount - taxesTotal).toFixed(2));
+  const today = new Date().toLocaleDateString("pt-BR");
+  const description = [
+    "Prestacao de servicos de tecnologia de informacao - Plataforma Raio Publicador",
+    `Plano ${planLabel}`,
+    `Creditos ${credits}`,
+    `Acesso e uso de creditos confirmados em ${today}`,
+    `Valor aproximado dos tributos R$ ${taxesTotal.toFixed(2).replace(".", ",")}`,
+    `Valor liquido R$ ${netAmount.toFixed(2).replace(".", ",")}`,
+  ].join("\n");
+
   const body = {
     cityServiceCode: NFEIO_SVC_CODE,
-    description: "Prestacao de servicos de tecnologia de informacao - Plataforma Raio Publicador",
+    description,
     servicesAmount: amount,
     pisAmountWithheld:    parseFloat((amount * 0.0065).toFixed(2)),
     cofinsAmountWithheld: parseFloat((amount * 0.03).toFixed(2)),
@@ -82,7 +95,10 @@ export async function GET(req: NextRequest) {
   const results = { emitted: 0, noProfile: 0, failed: 0 };
 
   for (const inv of pending) {
-    const fiscal = await prisma.fiscalProfile.findUnique({ where: { ownerId: inv.clerkId } });
+    const [fiscal, sub] = await Promise.all([
+      prisma.fiscalProfile.findUnique({ where: { ownerId: inv.clerkId } }),
+      prisma.subscription.findUnique({ where: { ownerId: inv.clerkId }, select: { plan: true, creditsTotal: true } }),
+    ]);
 
     if (!fiscal) {
       await prisma.pendingInvoice.update({
@@ -94,7 +110,9 @@ export async function GET(req: NextRequest) {
     }
 
     try {
-      const nfeioId = await emitNFSe(inv.amountCents, fiscal);
+      const planLabel = sub ? (PLANS[sub.plan as keyof typeof PLANS]?.label ?? sub.plan) : "—";
+      const credits = sub?.creditsTotal ?? 0;
+      const nfeioId = await emitNFSe(inv.amountCents, planLabel, credits, fiscal);
       await prisma.pendingInvoice.update({
         where: { id: inv.id },
         data: { status: "SENT", nfeioId },

@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 import { getPrisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { assertMaster } from "@/lib/admin-server";
+import { PLANS } from "@/lib/plans";
 
 const NFEIO_API_KEY  = process.env.NFEIO_API_KEY!;
 const NFEIO_COMPANY  = process.env.NFEIO_COMPANY_ID!;
@@ -33,10 +34,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "ownerId e amountCents obrigatórios" }, { status: 400 });
 
   const prisma = getPrisma();
-  const fiscal = await prisma.fiscalProfile.findUnique({ where: { ownerId } });
+  const [fiscal, sub] = await Promise.all([
+    prisma.fiscalProfile.findUnique({ where: { ownerId } }),
+    prisma.subscription.findUnique({ where: { ownerId }, select: { plan: true, creditsTotal: true } }),
+  ]);
   if (!fiscal)
     return NextResponse.json({ error: "Perfil fiscal não encontrado" }, { status: 404 });
-
 
   const borrowerDoc = fiscal.personType === "PJ"
     ? fiscal.cnpj!.replace(/\D/g, "")
@@ -51,9 +54,23 @@ export async function POST(req: NextRequest) {
   } catch { /* usa só o nome se ViaCEP falhar */ }
 
   const amount = amountCents / 100;
+  const planLabel = sub ? (PLANS[sub.plan as keyof typeof PLANS]?.label ?? sub.plan) : "—";
+  const credits = sub?.creditsTotal ?? 0;
+  const taxesTotal = parseFloat((amount * (0.01 + 0.0065 + 0.03 + 0.01)).toFixed(2));
+  const netAmount = parseFloat((amount - taxesTotal).toFixed(2));
+  const today = new Date().toLocaleDateString("pt-BR");
+  const description = [
+    "Prestacao de servicos de tecnologia de informacao - Plataforma Raio Publicador",
+    `Plano ${planLabel}`,
+    `Creditos ${credits}`,
+    `Acesso e uso de creditos confirmados em ${today}`,
+    `Valor aproximado dos tributos R$ ${taxesTotal.toFixed(2).replace(".", ",")}`,
+    `Valor liquido R$ ${netAmount.toFixed(2).replace(".", ",")}`,
+  ].join("\n");
+
   const body = {
     cityServiceCode: NFEIO_SVC_CODE,
-    description: "Prestacao de servicos de tecnologia de informacao - Plataforma Raio Publicador",
+    description,
     servicesAmount: amount,
     pisAmountWithheld:    parseFloat((amount * 0.0065).toFixed(2)),
     cofinsAmountWithheld: parseFloat((amount * 0.03).toFixed(2)),
