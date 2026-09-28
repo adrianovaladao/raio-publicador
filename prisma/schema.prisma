@@ -44,6 +44,7 @@ model Release {
   aiCreditsUsed        Int           @default(0)
   imageUrl             String?
   vehicles             String[]
+  category             String?
   adminNotes           String?
   publishedVehicleUrls Json?
   brandId              String

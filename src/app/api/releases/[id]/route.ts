@@ -72,11 +72,11 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     ...(body.summary     !== undefined && { summary:     body.summary }),
     ...(body.imageUrl    !== undefined && { imageUrl:    body.imageUrl }),
     ...(body.vehicles    !== undefined && { vehicles:    body.vehicles }),
+    ...(body.category    !== undefined && { category:    body.category }),
     ...(body.brandId     !== undefined && { brandId:     body.brandId }),
     ...(body.scheduledAt !== undefined && { scheduledAt: body.scheduledAt ? new Date(body.scheduledAt) : null }),
     ...(body.creditsUsed !== undefined && { creditsUsed: body.creditsUsed }),
     ...(body.status      !== undefined && { status:      body.status as ReleaseStatus }),
-    ...(body.category    !== undefined && { category:    body.category }),
   };
 
   // Delta de créditos: ao permanecer SCHEDULED com veículos alterados,
