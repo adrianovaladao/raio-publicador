@@ -20,7 +20,6 @@ export async function POST(req: NextRequest) {
   if (!fiscal)
     return NextResponse.json({ error: "Perfil fiscal não encontrado" }, { status: 404 });
 
-  console.log("[emit-invoice] fiscal:", JSON.stringify({ city: fiscal.city, state: fiscal.state, district: fiscal.district, cep: fiscal.cep }));
 
   const borrowerDoc = fiscal.personType === "PJ"
     ? fiscal.cnpj!.replace(/\D/g, "")
@@ -62,7 +61,7 @@ export async function POST(req: NextRequest) {
 
   if (!res.ok) {
     const text = await res.text();
-    return NextResponse.json({ error: `NFe.io ${res.status}: ${text}`, debug: { city: fiscal.city, state: fiscal.state, cep: fiscal.cep, district: fiscal.district, bodySent: body } }, { status: 502 });
+    return NextResponse.json({ error: `NFe.io ${res.status}: ${text}` }, { status: 502 });
   }
 
   const data = await res.json() as { id?: string };
