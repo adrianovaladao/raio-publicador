@@ -3,6 +3,7 @@ import { getPrisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { assertMaster } from "@/lib/admin-server";
 import { PLANS } from "@/lib/plans";
+import { clerkClient } from "@clerk/nextjs/server";
 
 const NFEIO_API_KEY  = process.env.NFEIO_API_KEY!;
 const NFEIO_COMPANY  = process.env.NFEIO_COMPANY_ID!;
@@ -34,10 +35,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "ownerId e amountCents obrigatórios" }, { status: 400 });
 
   const prisma = getPrisma();
-  const [fiscal, sub] = await Promise.all([
+  const clerk = await clerkClient();
+  const [fiscal, sub, clerkUser] = await Promise.all([
     prisma.fiscalProfile.findUnique({ where: { ownerId } }),
     prisma.subscription.findUnique({ where: { ownerId }, select: { plan: true, creditsTotal: true } }),
+    clerk.users.getUser(ownerId),
   ]);
+  const borrowerEmail = clerkUser.emailAddresses[0]?.emailAddress ?? "";
   if (!fiscal)
     return NextResponse.json({ error: "Perfil fiscal não encontrado" }, { status: 404 });
 
@@ -79,6 +83,7 @@ export async function POST(req: NextRequest) {
     borrower: {
       federalTaxNumber: borrowerDoc,
       name: fiscal.personType === "PJ" ? fiscal.companyName! : fiscal.fullName!,
+      email: borrowerEmail,
       address: {
         country: "BRA",
         postalCode: fiscal.cep.replace(/\D/g, ""),

@@ -2,13 +2,14 @@ export const dynamic = "force-dynamic";
 import { getPrisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { PLANS } from "@/lib/plans";
+import { clerkClient } from "@clerk/nextjs/server";
 
 const NFEIO_API_KEY   = process.env.NFEIO_API_KEY!;
 const NFEIO_COMPANY   = process.env.NFEIO_COMPANY_ID!;
 const NFEIO_SVC_CODE  = process.env.NFEIO_SERVICE_CODE ?? "2800";
 const NFEIO_BASE      = "https://api.nfe.io";
 
-async function emitNFSe(amountCents: number, planLabel: string, credits: number, fiscal: {
+async function emitNFSe(amountCents: number, planLabel: string, credits: number, borrowerEmail: string, fiscal: {
   personType: string; fullName?: string | null; cpf?: string | null;
   companyName?: string | null; cnpj?: string | null;
   street: string; number: string; complement?: string | null;
@@ -49,6 +50,7 @@ async function emitNFSe(amountCents: number, planLabel: string, credits: number,
     borrower: {
       federalTaxNumber: borrowerDoc.number,
       name: fiscal.personType === "PJ" ? fiscal.companyName! : fiscal.fullName!,
+      email: borrowerEmail,
       address: {
         country: "BRA",
         postalCode: fiscal.cep.replace(/\D/g, ""),
@@ -95,10 +97,13 @@ export async function GET(req: NextRequest) {
   const results = { emitted: 0, noProfile: 0, failed: 0 };
 
   for (const inv of pending) {
-    const [fiscal, sub] = await Promise.all([
+    const clerk = await clerkClient();
+    const [fiscal, sub, clerkUser] = await Promise.all([
       prisma.fiscalProfile.findUnique({ where: { ownerId: inv.clerkId } }),
       prisma.subscription.findUnique({ where: { ownerId: inv.clerkId }, select: { plan: true, creditsTotal: true } }),
+      clerk.users.getUser(inv.clerkId),
     ]);
+    const borrowerEmail = clerkUser.emailAddresses[0]?.emailAddress ?? "";
 
     if (!fiscal) {
       await prisma.pendingInvoice.update({
@@ -112,7 +117,7 @@ export async function GET(req: NextRequest) {
     try {
       const planLabel = sub ? (PLANS[sub.plan as keyof typeof PLANS]?.label ?? sub.plan) : "—";
       const credits = sub?.creditsTotal ?? 0;
-      const nfeioId = await emitNFSe(inv.amountCents, planLabel, credits, fiscal);
+      const nfeioId = await emitNFSe(inv.amountCents, planLabel, credits, borrowerEmail, fiscal);
       await prisma.pendingInvoice.update({
         where: { id: inv.id },
         data: { status: "SENT", nfeioId },
