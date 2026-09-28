@@ -7,6 +7,23 @@ const NFEIO_API_KEY  = process.env.NFEIO_API_KEY!;
 const NFEIO_COMPANY  = process.env.NFEIO_COMPANY_ID!;
 const NFEIO_SVC_CODE = process.env.NFEIO_SERVICE_CODE ?? "2800";
 
+// GET /api/admin/emit-invoice?nfeioId=XXX — busca nota pelo ID para inspecionar campos
+export async function GET(req: NextRequest) {
+  if (!await assertMaster())
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  const nfeioId = req.nextUrl.searchParams.get("nfeioId");
+  if (!nfeioId)
+    return NextResponse.json({ error: "nfeioId obrigatório" }, { status: 400 });
+
+  const res = await fetch(`https://api.nfe.io/v1/companies/${NFEIO_COMPANY}/serviceinvoices/${nfeioId}`, {
+    headers: { "Authorization": NFEIO_API_KEY },
+  });
+
+  const data = await res.json();
+  return NextResponse.json(data);
+}
+
 export async function POST(req: NextRequest) {
   if (!await assertMaster())
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -33,17 +50,20 @@ export async function POST(req: NextRequest) {
     cityCode = viaCep.ibge ?? "";
   } catch { /* usa só o nome se ViaCEP falhar */ }
 
+  const amount = amountCents / 100;
   const body = {
     cityServiceCode: NFEIO_SVC_CODE,
     description: "Prestacao de servicos de tecnologia de informacao - Plataforma Raio Publicador",
-    servicesAmount: amountCents / 100,
-    taxes: {
-      pis:    { type: "Withheld", rate: 0.65,  amount: parseFloat((amountCents / 100 * 0.0065).toFixed(2)) },
-      cofins: { type: "Withheld", rate: 3,     amount: parseFloat((amountCents / 100 * 0.03).toFixed(2)) },
-      csll:   { type: "Withheld", rate: 1,     amount: parseFloat((amountCents / 100 * 0.01).toFixed(2)) },
-      ir:     { type: "Withheld", rate: 1,     amount: parseFloat((amountCents / 100 * 0.01).toFixed(2)) },
-      inss:   { type: "None" },
-    },
+    servicesAmount: amount,
+    pisRate: 0.65,
+    pisAmount: parseFloat((amount * 0.0065).toFixed(2)),
+    cofinsRate: 3,
+    cofinsAmount: parseFloat((amount * 0.03).toFixed(2)),
+    csllRate: 1,
+    csllAmount: parseFloat((amount * 0.01).toFixed(2)),
+    irRate: 1,
+    irAmount: parseFloat((amount * 0.01).toFixed(2)),
+    inssRate: 0,
     borrower: {
       federalTaxNumber: borrowerDoc,
       name: fiscal.personType === "PJ" ? fiscal.companyName! : fiscal.fullName!,
