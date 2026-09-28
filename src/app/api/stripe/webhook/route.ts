@@ -18,6 +18,23 @@ import { Resend } from "resend";
 const ADMIN_EMAIL = "raiopublicador@gmail.com";
 function getResend() { return new Resend(process.env.RESEND_API_KEY); }
 
+async function notifyAdminCancellation(userEmail: string, userName: string, planLabel: string) {
+  await getResend().emails.send({
+    from: "Raio Publicador <noreply@raiopublicador.com.br>",
+    to: ADMIN_EMAIL,
+    subject: `❌ Assinatura cancelada — ${planLabel} (${userName})`,
+    html: `<div style="font-family:Arial,sans-serif;max-width:480px;padding:24px">
+      <h2 style="margin:0 0 16px">❌ Assinatura cancelada</h2>
+      <table style="font-size:14px;color:#333;border-collapse:collapse;width:100%">
+        <tr><td style="padding:6px 0;color:#888;width:120px">Usuário</td><td style="padding:6px 0;font-weight:600">${userName}</td></tr>
+        <tr><td style="padding:6px 0;color:#888">E-mail</td><td style="padding:6px 0"><a href="mailto:${userEmail}" style="color:#c97b00">${userEmail}</a></td></tr>
+        <tr><td style="padding:6px 0;color:#888">Plano</td><td style="padding:6px 0;font-weight:600">${planLabel}</td></tr>
+        <tr><td style="padding:6px 0;color:#888">Data</td><td style="padding:6px 0">${new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}</td></tr>
+      </table>
+    </div>`,
+  });
+}
+
 async function notifyAdminNewSubscription(userEmail: string, userName: string, planLabel: string, priceCents: number) {
   await getResend().emails.send({
     from: "Raio Publicador <noreply@raiopublicador.com.br>",
@@ -305,9 +322,12 @@ export async function POST(req: NextRequest) {
       if (!clerkId) break;
 
       // Only cancel if this is still the active subscription — ignore deletions of old subscriptions during upgrades
-      const current = await prisma.subscription.findUnique({ where: { ownerId: clerkId }, select: { stripeSubscriptionId: true } });
+      const current = await prisma.subscription.findUnique({ where: { ownerId: clerkId }, select: { stripeSubscriptionId: true, plan: true } });
       if (current?.stripeSubscriptionId === subscription.id) {
         await prisma.subscription.update({ where: { ownerId: clerkId }, data: { status: "CANCELLED" } });
+        const { firstName, email } = await getClerkUser(clerkId);
+        const planLabel = current.plan in PLANS ? PLANS[current.plan as keyof typeof PLANS].label : current.plan;
+        await notifyAdminCancellation(email, firstName, planLabel).catch(console.error);
       }
       break;
     }
