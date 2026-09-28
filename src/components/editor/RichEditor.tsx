@@ -168,6 +168,20 @@ export function RichEditor({
     },
     editorProps: {
       attributes: { class: "tiptap-body" },
+      handlePaste(view, event) {
+        const text = event.clipboardData?.getData("text/plain");
+        const html = event.clipboardData?.getData("text/html");
+        // Se não há HTML (texto puro), insere sem marks ativos para evitar herdar bold/italic do cursor
+        if (text && !html) {
+          event.preventDefault();
+          const { state, dispatch } = view;
+          const { tr, selection } = state;
+          tr.replaceSelectionWith(state.schema.text(text), false);
+          dispatch(tr);
+          return true;
+        }
+        return false;
+      },
       transformPastedHTML(html) {
         const doc = new DOMParser().parseFromString(html, "text/html");
 
