@@ -175,7 +175,7 @@ function EditPanel({ row, onSave, onCancel }: { row: ClientRow; onSave: (updated
 function EmitPanel({ row, onClose }: { row: ClientRow; onClose: () => void }) {
   const [amount, setAmount] = useState("");
   const [emitting, setEmitting] = useState(false);
-  const [result, setResult] = useState<{ ok?: string; err?: string } | null>(null);
+  const [result, setResult] = useState<{ ok?: string; err?: string; debug?: Record<string, string> } | null>(null);
 
   async function emit() {
     const cents = Math.round(parseFloat(amount.replace(",", ".")) * 100);
@@ -186,9 +186,9 @@ function EmitPanel({ row, onClose }: { row: ClientRow; onClose: () => void }) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ownerId: row.ownerId, amountCents: cents }),
     });
-    const data = await res.json() as { ok?: boolean; nfeioId?: string; error?: string };
+    const data = await res.json() as { ok?: boolean; nfeioId?: string; error?: string; debug?: Record<string, string> };
     if (data.ok) setResult({ ok: `NFS-e emitida! ID: ${data.nfeioId ?? "—"}` });
-    else setResult({ err: data.error ?? "Erro desconhecido" });
+    else setResult({ err: data.error ?? "Erro desconhecido", debug: data.debug });
     setEmitting(false);
   }
 
@@ -220,7 +220,12 @@ function EmitPanel({ row, onClose }: { row: ClientRow; onClose: () => void }) {
             </button>
           </div>
           {result?.ok  && <p style={{ marginTop: 12, fontSize: 12, color: "#059669" }}>{result.ok}</p>}
-          {result?.err && <p style={{ marginTop: 12, fontSize: 12, color: "var(--red)" }}>{result.err}</p>}
+          {result?.err && (
+            <div style={{ marginTop: 12 }}>
+              <p style={{ margin: "0 0 4px", fontSize: 12, color: "var(--red)" }}>{result.err}</p>
+              {result.debug && <pre style={{ margin: 0, fontSize: 11, color: "var(--stone)", background: "var(--line)", padding: "6px 8px", borderRadius: 4 }}>{JSON.stringify(result.debug, null, 2)}</pre>}
+            </div>
+          )}
         </div>
       </td>
     </tr>
