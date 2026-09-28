@@ -26,6 +26,14 @@ export async function POST(req: NextRequest) {
     ? fiscal.cnpj!.replace(/\D/g, "")
     : fiscal.cpf!.replace(/\D/g, "");
 
+  // Busca código IBGE via ViaCEP para enviar à NFe.io
+  let cityCode = "";
+  try {
+    const cepClean = fiscal.cep.replace(/\D/g, "");
+    const viaCep = await fetch(`https://viacep.com.br/ws/${cepClean}/json/`).then(r => r.json()) as { ibge?: string };
+    cityCode = viaCep.ibge ?? "";
+  } catch { /* usa só o nome se ViaCEP falhar */ }
+
   const body = {
     cityServiceCode: NFEIO_SVC_CODE,
     description: "Prestacao de servicos de tecnologia de informacao - Plataforma Raio Publicador",
@@ -40,7 +48,7 @@ export async function POST(req: NextRequest) {
         number: fiscal.number,
         additionalInformation: fiscal.complement ?? "",
         district: fiscal.district,
-        city: { name: fiscal.city },
+        city: { name: fiscal.city, ...(cityCode && { code: cityCode }) },
         state: fiscal.state,
       },
     },
