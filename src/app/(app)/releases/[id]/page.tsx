@@ -180,6 +180,7 @@ interface ReleaseData {
   publishedVehicleUrls: Record<string, string> | null;
   brandId: string;
   brand: Brand;
+  category: string | null;
 }
 
 // ── Step 0: Conteúdo ──────────────────────────────────────────────────────────
@@ -800,6 +801,7 @@ useEffect(() => {
         setTitle(data.title ?? "");
         setSubtitle(data.summary ?? "");
         setBody(data.body ?? "");
+        if (data.category) setCat(data.category);
         if (data.vehicles?.length) setSelectedVeh(data.vehicles);
         setAuthor(a => a || data.brand?.authors?.[0] || "");
         if (data.scheduledAt) {
@@ -834,6 +836,7 @@ useEffect(() => {
           vehicles: selectedVeh,
           creditsUsed,
           imageUrl: extractFirstImageUrl(body) || null,
+          category: cat,
         }),
       });
       if (!res.ok) { setErr("Erro ao salvar. Tente novamente."); return; }
@@ -859,6 +862,7 @@ useEffect(() => {
           scheduledAt: null,
           vehicles: selectedVeh,
           imageUrl: extractFirstImageUrl(body) || null,
+          category: cat,
         }),
       });
       if (!res.ok) { setErr("Erro ao salvar. Tente novamente."); return; }

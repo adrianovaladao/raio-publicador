@@ -1587,6 +1587,7 @@ export default function NovoReleasePage() {
         creditsUsed: 0,
         imageUrl: c.imageUrls[0] || extractFirstImageUrl(c.body) || null,
         vehicles: selectedRef.current,
+        category: c.cat,
       };
       if (draftIdRef.current) {
         await fetch(`/api/releases/${draftIdRef.current}`, {
@@ -1803,6 +1804,7 @@ export default function NovoReleasePage() {
                   creditsUsed: selTokens,
                   imageUrl: content.imageUrls[0] || extractFirstImageUrl(content.body) || null,
                   vehicles: selected,
+                  category: content.cat,
                 };
                 let res: Response;
                 if (draftIdRef.current) {

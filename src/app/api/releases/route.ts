@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
 
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const body = await req.json() as { status: string; creditsUsed: number; title: string; body: string; summary?: string; scheduledAt?: string | null; brandId: string; imageUrl?: string | null; vehicles: string[] };
+  const body = await req.json() as { status: string; creditsUsed: number; title: string; body: string; summary?: string; scheduledAt?: string | null; brandId: string; imageUrl?: string | null; vehicles: string[]; category?: string };
   console.log("[releases POST] status:", body.status, "creditsUsed:", body.creditsUsed, "vehicles:", body.vehicles?.length);
   const prisma = getPrisma();
 
@@ -89,6 +89,7 @@ export async function POST(req: NextRequest) {
         vehicles:    body.vehicles,
         creditsUsed: body.creditsUsed,
         authorId:    userId,
+        ...(body.category && { category: body.category }),
       },
     }),
     ...(creditsToDebit > 0

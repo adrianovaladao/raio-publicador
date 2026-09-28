@@ -31,7 +31,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { id } = await params;
-  const body = await req.json() as { status: string; creditsUsed: number; title?: string; body?: string; summary?: string; scheduledAt?: string | null; brandId?: string; imageUrl?: string | null; vehicles?: string[] };
+  const body = await req.json() as { status: string; creditsUsed: number; title?: string; body?: string; summary?: string; scheduledAt?: string | null; brandId?: string; imageUrl?: string | null; vehicles?: string[]; category?: string };
   const prisma = getPrisma();
 
   // Se for membro de equipe (editor), créditos/assinatura são do dono da conta
@@ -76,6 +76,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     ...(body.scheduledAt !== undefined && { scheduledAt: body.scheduledAt ? new Date(body.scheduledAt) : null }),
     ...(body.creditsUsed !== undefined && { creditsUsed: body.creditsUsed }),
     ...(body.status      !== undefined && { status:      body.status as ReleaseStatus }),
+    ...(body.category    !== undefined && { category:    body.category }),
   };
 
   // Delta de créditos: ao permanecer SCHEDULED com veículos alterados,
