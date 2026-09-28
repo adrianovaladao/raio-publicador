@@ -24,17 +24,15 @@ async function emitNFSe(amountCents: number, fiscal: {
     cityCode = viaCep.ibge ?? "";
   } catch { /* usa só o nome se ViaCEP falhar */ }
 
+  const amount = amountCents / 100;
   const body = {
     cityServiceCode: NFEIO_SVC_CODE,
     description: "Prestacao de servicos de tecnologia de informacao - Plataforma Raio Publicador",
-    servicesAmount: amountCents / 100,
-    taxes: {
-      pis:    { type: "Withheld", rate: 0.65,  amount: parseFloat((amountCents / 100 * 0.0065).toFixed(2)) },
-      cofins: { type: "Withheld", rate: 3,     amount: parseFloat((amountCents / 100 * 0.03).toFixed(2)) },
-      csll:   { type: "Withheld", rate: 1,     amount: parseFloat((amountCents / 100 * 0.01).toFixed(2)) },
-      ir:     { type: "Withheld", rate: 1,     amount: parseFloat((amountCents / 100 * 0.01).toFixed(2)) },
-      inss:   { type: "None" },
-    },
+    servicesAmount: amount,
+    pisAmountWithheld:    parseFloat((amount * 0.0065).toFixed(2)),
+    cofinsAmountWithheld: parseFloat((amount * 0.03).toFixed(2)),
+    csllAmountWithheld:   parseFloat((amount * 0.01).toFixed(2)),
+    irAmountWithheld:     parseFloat((amount * 0.01).toFixed(2)),
     borrower: {
       federalTaxNumber: borrowerDoc.number,
       name: fiscal.personType === "PJ" ? fiscal.companyName! : fiscal.fullName!,
