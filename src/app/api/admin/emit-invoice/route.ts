@@ -38,10 +38,10 @@ export async function POST(req: NextRequest) {
     description: "Prestacao de servicos de tecnologia de informacao - Plataforma Raio Publicador",
     servicesAmount: amountCents / 100,
     taxes: {
-      pis:    { type: "Withheld", rate: 0.65 },
-      cofins: { type: "Withheld", rate: 3 },
-      csll:   { type: "Withheld", rate: 1 },
-      ir:     { type: "Withheld", rate: 1 },
+      pis:    { type: "Withheld", rate: 0.65,  amount: parseFloat((amountCents / 100 * 0.0065).toFixed(2)) },
+      cofins: { type: "Withheld", rate: 3,     amount: parseFloat((amountCents / 100 * 0.03).toFixed(2)) },
+      csll:   { type: "Withheld", rate: 1,     amount: parseFloat((amountCents / 100 * 0.01).toFixed(2)) },
+      ir:     { type: "Withheld", rate: 1,     amount: parseFloat((amountCents / 100 * 0.01).toFixed(2)) },
       inss:   { type: "None" },
     },
     borrower: {
