@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
 
   if (!res.ok) {
     const text = await res.text();
-    return NextResponse.json({ error: `NFe.io ${res.status}: ${text}`, debug: { city: fiscal.city, state: fiscal.state, cep: fiscal.cep, district: fiscal.district } }, { status: 502 });
+    return NextResponse.json({ error: `NFe.io ${res.status}: ${text}`, debug: { city: fiscal.city, state: fiscal.state, cep: fiscal.cep, district: fiscal.district, bodySent: body } }, { status: 502 });
   }
 
   const data = await res.json() as { id?: string };
