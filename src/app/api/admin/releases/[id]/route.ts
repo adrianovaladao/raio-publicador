@@ -163,13 +163,25 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
     ? Math.min(creditsToReturn, currentSub?.creditsUsed ?? 0)
     : 0;
 
-  await prisma.$transaction([
-    prisma.release.update({ where: { id }, data: { archivedAt: new Date() } }),
-    ...(safeReturn > 0 ? [prisma.subscription.update({
-      where: { ownerId: release.authorId },
-      data: { creditsUsed: { decrement: safeReturn } },
-    })] : []),
-  ]);
+  if (release.archivedAt) {
+    // Já arquivado: hard delete permanente
+    await prisma.$transaction([
+      prisma.release.delete({ where: { id } }),
+      ...(safeReturn > 0 ? [prisma.subscription.update({
+        where: { ownerId: release.authorId },
+        data: { creditsUsed: { decrement: safeReturn } },
+      })] : []),
+    ]);
+  } else {
+    // Primeiro delete: soft-delete (arquiva)
+    await prisma.$transaction([
+      prisma.release.update({ where: { id }, data: { archivedAt: new Date() } }),
+      ...(safeReturn > 0 ? [prisma.subscription.update({
+        where: { ownerId: release.authorId },
+        data: { creditsUsed: { decrement: safeReturn } },
+      })] : []),
+    ]);
+  }
 
   return NextResponse.json({ ok: true });
 }
