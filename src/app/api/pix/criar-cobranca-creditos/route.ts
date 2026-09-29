@@ -26,6 +26,12 @@ export async function POST(req: NextRequest) {
   const pricePerCr = CREDIT_PRICE_CENTS[effectivePlan] ?? 500;
   const amountCents = Math.round(quantity * pricePerCr);
 
+  // Cancela cobranças PENDING anteriores para o mesmo usuário/quantidade
+  await prisma.pixPayment.updateMany({
+    where: { ownerId: userId, type: "CREDIT_PURCHASE", creditQty: quantity, status: "PENDING" },
+    data: { status: "REJECTED" },
+  });
+
   try {
     const cob = await criarCobranca({
       amountCents,
