@@ -710,3 +710,33 @@ export async function sendVoucherExpiringEmail(
 
   return getResend().emails.send({ from: FROM, to, subject, html });
 }
+
+
+// ─── Admin: alerta de reembolso Pix pendente ─────────────────────────────────
+export async function sendAdminPixRefundAlert(opts: {
+  clientName: string;
+  clientEmail: string;
+  planLabel: string;
+  amountCents: number;
+}) {
+  const ADMIN_EMAIL = "adrianovaladao@gmail.com";
+  const amount = (opts.amountCents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  const html = base(`
+    ${h1("Reembolso Pix pendente ⚡")}
+    ${p("Um cliente cancelou a assinatura dentro do prazo de 7 dias (Art. 49 CDC) e pagou via Pix. É necessário realizar o reembolso manualmente.")}
+    <table style="width:100%;border-collapse:collapse;margin:24px 0">
+      <tr style="border-top:1px solid #eee"><td style="padding:10px 14px;color:#888;width:140px">Cliente</td><td style="padding:10px 14px;color:#1a1a1a;font-weight:600">${opts.clientName}</td></tr>
+      <tr style="border-top:1px solid #eee"><td style="padding:10px 14px;color:#888">E-mail</td><td style="padding:10px 14px;color:#1a1a1a">${opts.clientEmail}</td></tr>
+      <tr style="border-top:1px solid #eee"><td style="padding:10px 14px;color:#888">Plano</td><td style="padding:10px 14px;color:#1a1a1a">${opts.planLabel}</td></tr>
+      <tr style="border-top:1px solid #eee"><td style="padding:10px 14px;color:#888">Valor a devolver</td><td style="padding:10px 14px;color:#1a1a1a;font-weight:700">${amount}</td></tr>
+    </table>
+    ${p("Acesse o painel admin → Pix para confirmar o cancelamento após transferir o valor.")}
+    ${btn("Ir para Admin Pix", `${APP_URL}/admin/pix`)}
+  `);
+  return getResend().emails.send({
+    from: FROM,
+    to: ADMIN_EMAIL,
+    subject: `[Ação necessária] Reembolso Pix — ${opts.clientName} · ${amount}`,
+    html,
+  });
+}

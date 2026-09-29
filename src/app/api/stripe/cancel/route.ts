@@ -4,7 +4,7 @@ import { getStripe } from "@/lib/stripe";
 import { getPrisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
-import { sendCancellationEmail } from "@/lib/email";
+import { sendCancellationEmail, sendAdminPixRefundAlert } from "@/lib/email";
 import { PLANS } from "@/lib/plans";
 import { createNotification } from "@/lib/notify";
 
@@ -51,9 +51,20 @@ export async function POST(req: Request) {
         data: { status: "CANCELLED", creditsTotal: 0, creditsUsed: 0 },
       });
       if (email) await sendCancellationEmail(email, firstName, true, null, planLabel).catch(console.error);
+      // Alerta ao admin para processar reembolso Pix manualmente
+      const lastPixPayment = await prisma.pixPayment.findFirst({
+        where: { ownerId: userId, type: "SUBSCRIPTION", status: "CONFIRMED" },
+        orderBy: { confirmedAt: "desc" },
+      });
+      await sendAdminPixRefundAlert({
+        clientName: firstName,
+        clientEmail: email ?? "",
+        planLabel,
+        amountCents: lastPixPayment?.amountCents ?? 0,
+      }).catch(console.error);
       await createNotification(userId, "subscription_cancelled",
         "Assinatura cancelada",
-        `Seu Plano ${planLabel} foi cancelado. Para reembolso via Pix, entre em contato pelo suporte. Seus dados e releases permanecem salvos.`,
+        `Seu Plano ${planLabel} foi cancelado. O reembolso via Pix será processado em até 2 dias úteis. Seus dados e releases permanecem salvos.`,
         "/configuracoes?tab=cobranca",
       ).catch(console.error);
       return NextResponse.json({ ok: true, refunded: false, boletoRefund: false, periodEnd: null });

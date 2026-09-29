@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useUser, useClerk } from "@clerk/nextjs";
+import { useEffect, useState } from "react";
 import { LayoutDashboard, Users, Rss, FileText, LogOut, ShieldCheck, Shield, ExternalLink, UserCog, Tag, Receipt, QrCode } from "lucide-react";
 import { RaioLockup } from "@/components/logo/RaioLockup";
 import { getAdminRole, isMaster, ROLE_LABEL } from "@/lib/admin";
@@ -27,6 +28,15 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const role   = getAdminRole(meta);
   const master = isMaster(meta);
   const nav    = NAV_ALL.filter(item => !item.masterOnly || master);
+
+  const [pixBadge, setPixBadge] = useState(0);
+  useEffect(() => {
+    if (!master) return;
+    fetch("/api/admin/pix/badge")
+      .then(r => r.json())
+      .then(d => setPixBadge(d.count ?? 0))
+      .catch(() => {});
+  }, [master]);
 
   async function handleLogout() {
     await signOut();
@@ -71,6 +81,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </p>
           {nav.map(({ href, icon: Icon, label, exact }) => {
             const active = exact ? pathname === href : pathname.startsWith(href);
+            const badge = href === "/admin/pix" && pixBadge > 0 ? pixBadge : 0;
             return (
               <Link key={href} href={href} style={{
                 display: "flex", alignItems: "center", gap: 10,
@@ -81,7 +92,18 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                 textDecoration: "none", transition: "all 0.15s",
               }}>
                 <Icon size={16} />
-                {label}
+                <span style={{ flex: 1 }}>{label}</span>
+                {badge > 0 && (
+                  <span style={{
+                    minWidth: 18, height: 18, borderRadius: 9,
+                    background: "#F59E0B", color: "#111",
+                    fontSize: 10, fontWeight: 800, fontFamily: "var(--mono)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    padding: "0 5px",
+                  }}>
+                    {badge > 99 ? "99+" : badge}
+                  </span>
+                )}
               </Link>
             );
           })}
