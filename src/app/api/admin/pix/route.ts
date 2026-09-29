@@ -5,7 +5,7 @@ import { PLANS, type PlanId } from "@/lib/plans";
 import { NextRequest, NextResponse } from "next/server";
 import { assertAnyAdmin } from "@/lib/admin-server";
 
-// GET — lista pagamentos Pix pendentes
+// GET — lista pagamentos Pix pendentes e confirmados
 export async function GET() {
   if (!await assertAnyAdmin()) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -13,7 +13,7 @@ export async function GET() {
 
   const prisma = getPrisma();
   const payments = await prisma.pixPayment.findMany({
-    where: { status: "PENDING" },
+    where: { status: { in: ["PENDING", "CONFIRMED"] } },
     orderBy: { createdAt: "desc" },
   });
 
@@ -55,12 +55,48 @@ export async function POST(req: NextRequest) {
 
   const { paymentId, action } = (await req.json()) as {
     paymentId: string;
-    action: "confirm" | "reject";
+    action: "confirm" | "reject" | "cancel";
   };
 
   const prisma = getPrisma();
   const payment = await prisma.pixPayment.findUnique({ where: { id: paymentId } });
   if (!payment) return NextResponse.json({ error: "Pagamento não encontrado" }, { status: 404 });
+
+  // Cancelamento de pagamento já confirmado (reembolso manual)
+  if (action === "cancel") {
+    if (payment.status !== "CONFIRMED") {
+      return NextResponse.json({ error: "Só é possível cancelar pagamentos confirmados" }, { status: 409 });
+    }
+    if (payment.type === "CREDIT_PURCHASE") {
+      const creditQty = payment.creditQty ?? 0;
+      const sub = await prisma.subscription.findUnique({ where: { ownerId: payment.ownerId }, select: { creditsTotal: true } });
+      const newTotal = Math.max(0, (sub?.creditsTotal ?? 0) - creditQty);
+      await prisma.$transaction([
+        prisma.pixPayment.update({
+          where: { id: paymentId },
+          data: { status: "REJECTED", confirmedBy: userId },
+        }),
+        prisma.subscription.update({
+          where: { ownerId: payment.ownerId },
+          data: { creditsTotal: newTotal },
+        }),
+      ]);
+    } else {
+      // SUBSCRIPTION — desativa assinatura
+      await prisma.$transaction([
+        prisma.pixPayment.update({
+          where: { id: paymentId },
+          data: { status: "REJECTED", confirmedBy: userId },
+        }),
+        prisma.subscription.update({
+          where: { ownerId: payment.ownerId },
+          data: { status: "INACTIVE" },
+        }),
+      ]);
+    }
+    return NextResponse.json({ ok: true });
+  }
+
   if (payment.status !== "PENDING") {
     return NextResponse.json({ error: "Pagamento já processado" }, { status: 409 });
   }
