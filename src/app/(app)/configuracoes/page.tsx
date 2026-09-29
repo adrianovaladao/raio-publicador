@@ -1701,15 +1701,22 @@ function FiscalProfileData({ onToast }: { onToast: (m: string) => void }) {
               </div>
             </div>
 
-            {/* CEP — dispara ViaCEP */}
+            {/* CEP */}
+            <div className="field">
+              <label>CEP <span style={{ color: "var(--danger, #c0392b)" }}>*</span></label>
+              <input className="input" value={form.cep} inputMode="numeric"
+                placeholder="00000-000"
+                style={{ maxWidth: 160 }}
+                onChange={e => { const v = fmtCEP(e.target.value); setF("cep", v); if (v.replace(/\D/g,"").length === 8) lookupCEP(v); }}
+                onBlur={e => { const v = fmtCEP(e.target.value); if (v.replace(/\D/g,"").length === 8) lookupCEP(v); }} />
+              {cepLoading && <span style={{ fontSize: 12, color: "var(--fg-muted)" }}>buscando…</span>}
+            </div>
+
+            {/* Logradouro + Número */}
             <div className="set-grid2">
               <div className="field">
-                <label>CEP <span style={{ color: "var(--danger, #c0392b)" }}>*</span></label>
-                <input className="input" value={form.cep} inputMode="numeric"
-                  placeholder="00000-000"
-                  onChange={e => { const v = fmtCEP(e.target.value); setF("cep", v); if (v.replace(/\D/g,"").length === 8) lookupCEP(v); }}
-                  onBlur={e => { const v = fmtCEP(e.target.value); if (v.replace(/\D/g,"").length === 8) lookupCEP(v); }} />
-                {cepLoading && <span style={{ fontSize: 12, color: "var(--fg-muted)" }}>buscando…</span>}
+                <label>Logradouro <span style={{ color: "var(--danger, #c0392b)" }}>*</span></label>
+                <input className="input" value={form.street} onChange={e => setF("street", e.target.value)} placeholder="Rua / Av. / Alameda…" />
               </div>
               <div className="field">
                 <label>Número <span style={{ color: "var(--danger, #c0392b)" }}>*</span></label>
@@ -1717,16 +1724,10 @@ function FiscalProfileData({ onToast }: { onToast: (m: string) => void }) {
               </div>
             </div>
 
-            {/* Logradouro + Complemento */}
-            <div className="set-grid2">
-              <div className="field">
-                <label>Logradouro <span style={{ color: "var(--danger, #c0392b)" }}>*</span></label>
-                <input className="input" value={form.street} onChange={e => setF("street", e.target.value)} placeholder="Rua / Av. / Alameda…" />
-              </div>
-              <div className="field">
-                <label>Complemento</label>
-                <input className="input" value={form.complement ?? ""} onChange={e => setF("complement", e.target.value)} placeholder="Sala, andar, apto…" />
-              </div>
+            {/* Complemento */}
+            <div className="field">
+              <label>Complemento</label>
+              <input className="input" value={form.complement ?? ""} onChange={e => setF("complement", e.target.value)} placeholder="Sala, andar, apto…" />
             </div>
 
             {/* Bairro + Cidade + Estado */}
