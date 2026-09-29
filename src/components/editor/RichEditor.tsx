@@ -17,6 +17,10 @@ import {
   Sparkles, Loader, X, Image as ImageIcon,
   AlignLeft, AlignCenter, AlignRight, AlignJustify, Code2,
 } from "lucide-react";
+import SimpleEditor from "react-simple-code-editor";
+import Prism from "prismjs";
+import "prismjs/components/prism-markup";
+import "prismjs/themes/prism.css";
 
 // ── Figure NodeView ──────────────────────────────────────────────────────────
 
@@ -571,19 +575,21 @@ export function RichEditor({
           </BubbleMenu>
         )}
         {htmlMode ? (
-          <textarea
-            value={htmlDraft}
-            onChange={e => setHtmlDraft(e.target.value)}
-            spellCheck={false}
-            style={{
-              width: "100%", boxSizing: "border-box",
-              minHeight: 400,
-              fontFamily: "var(--mono)", fontSize: 12, lineHeight: 1.7,
-              color: "var(--ink)", background: "var(--bg,#fafafa)",
-              border: "none", outline: "none", resize: "vertical",
-              padding: "16px 0",
-            }}
-          />
+          <div style={{ fontFamily: "var(--mono)", fontSize: 12.5, lineHeight: 1.7, minHeight: 400 }}>
+            <SimpleEditor
+              value={htmlDraft}
+              onValueChange={setHtmlDraft}
+              highlight={code => Prism.highlight(code, Prism.languages.markup, "markup")}
+              padding={0}
+              style={{
+                fontFamily: "inherit",
+                fontSize: "inherit",
+                lineHeight: "inherit",
+                minHeight: 400,
+                outline: "none",
+              }}
+            />
+          </div>
         ) : (
           <EditorContent editor={editor} />
         )}
