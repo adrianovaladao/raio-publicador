@@ -50,6 +50,7 @@ export async function GET(req: NextRequest) {
       status: "ACTIVE",
       stripeSubscriptionId: null,
       currentPeriodEnd: { not: null },
+      plan: { in: ["BASIC", "ADVANCED", "PROFESSIONAL"] },
     },
     select: {
       id: true,
