@@ -3,7 +3,7 @@ import { getPrisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { assertAnyAdmin } from "@/lib/admin-server";
 
-export async function POST(req: NextRequest) {
+export async function POST(_req: NextRequest) {
   if (!await assertAnyAdmin()) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
