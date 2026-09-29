@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { assertMaster } from "@/lib/auth-admin";
+import { assertMaster } from "@/lib/admin-server";
 import crypto from "node:crypto";
 
 export async function GET() {
