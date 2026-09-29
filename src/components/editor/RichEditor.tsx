@@ -15,7 +15,7 @@ import {
   Bold, Italic, Underline as UnderlineIcon,
   List, ListOrdered, Quote, Link as LinkIcon, Undo, Redo,
   Sparkles, Loader, X, Image as ImageIcon,
-  AlignLeft, AlignCenter, AlignRight, AlignJustify,
+  AlignLeft, AlignCenter, AlignRight, AlignJustify, Code2,
 } from "lucide-react";
 
 // ── Figure NodeView ──────────────────────────────────────────────────────────
@@ -139,6 +139,8 @@ export function RichEditor({
   const [wordCount,  setWordCount]  = useState(0);
   const [linkModal,  setLinkModal]  = useState<{ open: boolean; initial: string }>({ open: false, initial: "" });
   const [hintDismissed, setHintDismissed] = useState(false);
+  const [htmlMode, setHtmlMode] = useState(false);
+  const [htmlDraft, setHtmlDraft] = useState("");
 
   const editor = useEditor({
     extensions: [
@@ -407,6 +409,26 @@ export function RichEditor({
           Inserir imagem
         </button>
 
+        <span className="div" />
+        <button
+          type="button"
+          className={`tb${htmlMode ? " on" : ""}`}
+          title={htmlMode ? "Voltar ao editor visual" : "Ver / editar HTML"}
+          onClick={() => {
+            if (!htmlMode) {
+              setHtmlDraft(editor.getHTML());
+              setHtmlMode(true);
+            } else {
+              editor.commands.setContent(htmlDraft, { emitUpdate: true });
+              onContentChange(htmlDraft);
+              setHtmlMode(false);
+            }
+          }}
+          style={{ color: htmlMode ? "var(--ink)" : undefined }}
+        >
+          <Code2 size={15} />
+        </button>
+
         <div style={{ flex: 1 }} />
 
         <button
@@ -548,7 +570,23 @@ export function RichEditor({
             </div>
           </BubbleMenu>
         )}
-        <EditorContent editor={editor} />
+        {htmlMode ? (
+          <textarea
+            value={htmlDraft}
+            onChange={e => setHtmlDraft(e.target.value)}
+            spellCheck={false}
+            style={{
+              width: "100%", boxSizing: "border-box",
+              minHeight: 400,
+              fontFamily: "var(--mono)", fontSize: 12, lineHeight: 1.7,
+              color: "var(--ink)", background: "var(--bg,#fafafa)",
+              border: "none", outline: "none", resize: "vertical",
+              padding: "16px 0",
+            }}
+          />
+        ) : (
+          <EditorContent editor={editor} />
+        )}
       </div>
 
       <div style={{ padding: "10px 26px 14px", borderTop: "1px solid var(--line)" }}>
