@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowRight, ArrowLeft, Check, Coins, Building2, Users, Newspaper, Zap } from "lucide-react";
+import { ArrowRight, ArrowLeft, Check, Coins, Building2, Users, Newspaper, Zap, QrCode } from "lucide-react";
 import { RaioLockup } from "@/components/logo/RaioLockup";
 import "./onboarding.css";
 
@@ -223,6 +223,11 @@ export default function CheckoutConfirmClient({ initialPlanId, allPlans }: Props
                 <button className="btn btn-primary btn-lg" onClick={() => proceedToStripe()} disabled={loading}
                   style={{ width: "100%", justifyContent: "center", marginBottom: 8 }}>
                   {loading ? "Redirecionando…" : <><span>Pagar com cartão</span><ArrowRight size={17} /></>}
+                </button>
+
+                <button onClick={() => window.location.href = `/pix/${selectedId.toLowerCase()}`} disabled={loading}
+                  style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, width: "100%", padding: "13px 0", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, fontSize: 14, fontWeight: 600, color: "var(--tx-2)", cursor: "pointer", fontFamily: "inherit", marginBottom: 8 }}>
+                  <QrCode size={15} /> Pagar com Pix
                 </button>
 
                 <button onClick={() => window.location.href = "/site#planos"}
