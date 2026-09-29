@@ -164,11 +164,13 @@ function FiscalStep({ onDone, ctaLabel }: { onDone: (f: FiscalData) => void; cta
     const digits = cep.replace(/\D/g, "");
     if (digits.length !== 8) return;
     setCepLoading(true);
+    setErr("");
     try {
       const res = await fetch(`/api/cep?cep=${digits}`);
       const data = await res.json() as { street?: string; district?: string; city?: string; state?: string; error?: string };
-      if (res.ok) setFiscal(f => ({ ...f, street: data.street || f.street, district: data.district || f.district, city: data.city || f.city, state: data.state || f.state }));
-    } catch { /* silently fail */ }
+      if (!res.ok) { setErr(data.error ?? "CEP não encontrado."); return; }
+      setFiscal(f => ({ ...f, street: data.street || f.street, district: data.district || f.district, city: data.city || f.city, state: data.state || f.state }));
+    } catch { setErr("Erro ao buscar CEP. Preencha o endereço manualmente."); }
     finally { setCepLoading(false); }
   }
 
