@@ -3,7 +3,6 @@
 import { useSearchParams, useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { useState, useEffect, Suspense } from "react";
-import { PLANS } from "@/lib/plans";
 import { RaioLockup } from "@/components/logo/RaioLockup";
 import QRCode from "qrcode";
 import { CheckCircle2, Copy, Check, ArrowLeft, Loader2, Zap } from "lucide-react";
