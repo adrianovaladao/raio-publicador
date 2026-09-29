@@ -108,10 +108,25 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  await prisma.pixPayment.update({
-    where: { id: paymentId },
-    data: { status: "CONFIRMED", confirmedAt: now, confirmedBy: userId },
-  });
+  const scheduledFor = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+  await prisma.$transaction([
+    prisma.pixPayment.update({
+      where: { id: paymentId },
+      data: { status: "CONFIRMED", confirmedAt: now, confirmedBy: userId },
+    }),
+    prisma.pendingInvoice.upsert({
+      where: { pixPaymentId: paymentId },
+      create: {
+        clerkId:      payment.ownerId,
+        pixPaymentId: paymentId,
+        amountCents:  payment.amountCents,
+        scheduledFor,
+        status:       "PENDING",
+      },
+      update: {},
+    }),
+  ]);
 
   return NextResponse.json({ ok: true });
 }

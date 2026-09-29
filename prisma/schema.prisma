@@ -273,7 +273,8 @@ enum PixStatus {
 model PendingInvoice {
   id               String   @id @default(cuid())
   clerkId          String
-  stripeInvoiceId  String   @unique
+  stripeInvoiceId  String?  @unique
+  pixPaymentId     String?  @unique
   amountCents      Int
   scheduledFor     DateTime
   status           String   @default("PENDING") // PENDING | SENT | FAILED | NO_FISCAL_PROFILE

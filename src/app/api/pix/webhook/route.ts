@@ -62,14 +62,25 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    await prisma.pixPayment.update({
-      where: { id: payment.id },
-      data: {
-        status: "CONFIRMED",
-        confirmedAt: now,
-        confirmedBy: "webhook:c6bank",
-      },
-    });
+    const scheduledFor = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+    await prisma.$transaction([
+      prisma.pixPayment.update({
+        where: { id: payment.id },
+        data: { status: "CONFIRMED", confirmedAt: now, confirmedBy: "webhook:c6bank" },
+      }),
+      prisma.pendingInvoice.upsert({
+        where: { pixPaymentId: payment.id },
+        create: {
+          clerkId:      payment.ownerId,
+          pixPaymentId: payment.id,
+          amountCents:  payment.amountCents,
+          scheduledFor,
+          status:       "PENDING",
+        },
+        update: {},
+      }),
+    ]);
   }
 
   return NextResponse.json({ ok: true });
