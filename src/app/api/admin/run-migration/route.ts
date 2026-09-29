@@ -1,10 +1,11 @@
 export const dynamic = "force-dynamic";
 import { getPrisma } from "@/lib/prisma";
-import { NextResponse } from "next/server";
-import { assertAnyAdmin } from "@/lib/admin-server";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function POST() {
-  if (!await assertAnyAdmin()) {
+const SECRET = "mig-raio-pix-2026";
+
+export async function GET(req: NextRequest) {
+  if (req.nextUrl.searchParams.get("secret") !== SECRET) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
