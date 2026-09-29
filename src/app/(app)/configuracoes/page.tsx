@@ -1707,7 +1707,8 @@ function FiscalProfileData({ onToast }: { onToast: (m: string) => void }) {
                 <label>CEP <span style={{ color: "var(--danger, #c0392b)" }}>*</span></label>
                 <input className="input" value={form.cep} inputMode="numeric"
                   placeholder="00000-000"
-                  onChange={e => { const v = fmtCEP(e.target.value); setF("cep", v); if (v.replace(/\D/g,"").length === 8) lookupCEP(v); }} />
+                  onChange={e => { const v = fmtCEP(e.target.value); setF("cep", v); if (v.replace(/\D/g,"").length === 8) lookupCEP(v); }}
+                  onBlur={e => { const v = fmtCEP(e.target.value); if (v.replace(/\D/g,"").length === 8) lookupCEP(v); }} />
                 {cepLoading && <span style={{ fontSize: 12, color: "var(--fg-muted)" }}>buscando…</span>}
               </div>
               <div className="field">

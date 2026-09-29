@@ -250,7 +250,8 @@ function FiscalStep({ onDone, ctaLabel }: { onDone: (f: FiscalData) => void; cta
               <div>
                 {fiscalLabel("CEP")}
                 <input className="fi" placeholder="00000-000" value={fiscal.cep} inputMode="numeric"
-                  onChange={e => { const v=formatCEP(e.target.value); setF("cep",v); if(v.replace(/\D/g,"").length===8) lookupCEP(v); }} />
+                  onChange={e => { const v=formatCEP(e.target.value); setF("cep",v); if(v.replace(/\D/g,"").length===8) lookupCEP(v); }}
+                  onBlur={e => { const v=formatCEP(e.target.value); if(v.replace(/\D/g,"").length===8) lookupCEP(v); }} />
               </div>
               <div style={{ display:"flex", alignItems:"flex-end" }}>
                 {cepLoading && <div style={{ fontSize:12, color:"rgba(255,255,255,0.35)", paddingBottom:11 }}>buscando…</div>}
