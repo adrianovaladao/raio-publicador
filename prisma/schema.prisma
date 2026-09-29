@@ -258,8 +258,15 @@ model PixPayment {
   status      PixStatus       @default(PENDING)
   confirmedAt DateTime?
   confirmedBy String?         // admin userId
+  type        PixPaymentType  @default(SUBSCRIPTION)
+  creditQty   Int?            // preenchido quando type = CREDIT_PURCHASE
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
+}
+
+enum PixPaymentType {
+  SUBSCRIPTION
+  CREDIT_PURCHASE
 }
 
 enum PixStatus {

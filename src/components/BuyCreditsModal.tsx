@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useEscapeKey } from "@/hooks/useEscapeKey";
-import { X, Zap, AlertTriangle } from "lucide-react";
+import { X, Zap, AlertTriangle, CreditCard, QrCode } from "lucide-react";
 
 interface PackageDef { qty: number; label: string }
 
@@ -45,7 +45,7 @@ export function BuyCreditsModal({ currentPlan, onClose, returnUrl }: { currentPl
   const config = PACKAGES[currentPlan] ?? PACKAGES["BASIC"];
   const [selected, setSelected] = useState<number | null>(null);
   const [custom, setCustom] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<"card" | "pix" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [hovered, setHovered] = useState<number | null>(null);
 
@@ -55,9 +55,9 @@ export function BuyCreditsModal({ currentPlan, onClose, returnUrl }: { currentPl
   const effectiveQty = selected !== null ? selected : (config.allowCustom && customQty >= 1000 ? customQty : null);
   const totalCents = effectiveQty ? Math.round(effectiveQty * config.pricePerCr * 100) : null;
 
-  async function handleBuy() {
+  async function handleBuyCard() {
     if (!effectiveQty) return;
-    setLoading(true);
+    setLoading("card");
     setError(null);
     try {
       const res = await fetch("/api/stripe/credits", {
@@ -71,7 +71,17 @@ export function BuyCreditsModal({ currentPlan, onClose, returnUrl }: { currentPl
     } catch {
       setError("Falha de conexão. Tente novamente.");
     }
-    setLoading(false);
+    setLoading(null);
+  }
+
+  function handleBuyPix() {
+    if (!effectiveQty) return;
+    const params = new URLSearchParams({
+      qty: String(effectiveQty),
+      plan: currentPlan,
+      returnUrl: returnUrl ?? window.location.href,
+    });
+    window.location.href = `/pix/creditos?${params.toString()}`;
   }
 
   return (
@@ -156,18 +166,27 @@ export function BuyCreditsModal({ currentPlan, onClose, returnUrl }: { currentPl
             </p>
           )}
 
-          <button
-            className="btn btn-primary btn-block"
-            style={{ justifyContent: "center", fontSize: 15 }}
-            disabled={!effectiveQty || loading}
-            onClick={handleBuy}
-          >
-            {loading ? "Aguarde…" : effectiveQty ? `Comprar ${effectiveQty.toLocaleString("pt-BR")} créditos · ${fmtBRL(totalCents!)}` : "Selecione um pacote"}
-          </button>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <button
+              className="btn btn-primary btn-block"
+              style={{ justifyContent: "center", fontSize: 15, gap: 8 }}
+              disabled={!effectiveQty || loading !== null}
+              onClick={handleBuyCard}
+            >
+              <CreditCard size={16} />
+              {loading === "card" ? "Aguarde…" : effectiveQty ? `Pagar com cartão · ${fmtBRL(totalCents!)}` : "Selecione um pacote"}
+            </button>
 
-          <p style={{ fontSize: 12, color: "var(--stone)", textAlign: "center", marginTop: 12 }}>
-            Pagamento único via Stripe.
-          </p>
+            <button
+              className="btn btn-block"
+              style={{ justifyContent: "center", fontSize: 15, gap: 8, background: "var(--cream)", border: "1.5px solid var(--line)", color: "var(--ink)", fontWeight: 700 }}
+              disabled={!effectiveQty || loading !== null}
+              onClick={handleBuyPix}
+            >
+              <QrCode size={16} />
+              {effectiveQty ? `Pagar com Pix · ${fmtBRL(totalCents!)}` : "Selecione um pacote"}
+            </button>
+          </div>
         </div>
       </div>
     </div>

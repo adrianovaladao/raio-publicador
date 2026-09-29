@@ -27,10 +27,28 @@ export async function POST(req: NextRequest) {
     const payment = await prisma.pixPayment.findFirst({ where: { txId } });
     if (!payment || payment.status !== "PENDING") continue;
 
+    const now = new Date();
+
+    if (payment.type === "CREDIT_PURCHASE") {
+      // Créditos avulsos: incrementa creditsTotal na subscription existente
+      const creditQty = payment.creditQty ?? 0;
+      await prisma.$transaction([
+        prisma.pixPayment.update({
+          where: { id: payment.id },
+          data: { status: "CONFIRMED", confirmedAt: now, confirmedBy: "webhook:c6bank" },
+        }),
+        prisma.subscription.update({
+          where: { ownerId: payment.ownerId },
+          data: { creditsTotal: { increment: creditQty } },
+        }),
+      ]);
+      continue;
+    }
+
+    // SUBSCRIPTION
     const plan = PLANS[payment.planId as PlanId];
     if (!plan) continue;
 
-    const now = new Date();
     const nextMonth = new Date(now);
     nextMonth.setMonth(nextMonth.getMonth() + 1);
 

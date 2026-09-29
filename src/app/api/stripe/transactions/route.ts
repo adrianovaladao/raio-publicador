@@ -32,11 +32,14 @@ export async function GET() {
     take: 100,
   });
   for (const pix of pixPayments) {
+    const isCreditPurchase = pix.type === "CREDIT_PURCHASE";
     rows.push({
       id: `pix-${pix.id}`,
       date: (pix.confirmedAt ?? pix.createdAt).toISOString(),
-      type: "subscription",
-      description: `Pagamento Pix · Plano ${PLAN_LABELS[pix.planId] ?? pix.planId}`,
+      type: isCreditPurchase ? "credits" : "subscription",
+      description: isCreditPurchase
+        ? `Créditos avulsos via Pix · ${(pix.creditQty ?? 0).toLocaleString("pt-BR")} cr`
+        : `Pagamento Pix · Plano ${PLAN_LABELS[pix.planId] ?? pix.planId}`,
       amount: pix.amountCents,
       currency: "brl",
       status: "paid",

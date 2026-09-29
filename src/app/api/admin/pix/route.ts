@@ -73,12 +73,29 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true });
   }
 
-  // Confirmar — ativa ou cria assinatura
+  const now = new Date();
+
+  if (payment.type === "CREDIT_PURCHASE") {
+    // Créditos avulsos: incrementa creditsTotal
+    const creditQty = payment.creditQty ?? 0;
+    await prisma.$transaction([
+      prisma.pixPayment.update({
+        where: { id: paymentId },
+        data: { status: "CONFIRMED", confirmedAt: now, confirmedBy: userId },
+      }),
+      prisma.subscription.update({
+        where: { ownerId: payment.ownerId },
+        data: { creditsTotal: { increment: creditQty } },
+      }),
+    ]);
+    return NextResponse.json({ ok: true });
+  }
+
+  // SUBSCRIPTION — ativa ou cria assinatura
   const plan = PLANS[payment.planId as PlanId];
   if (!plan) return NextResponse.json({ error: "Plano inválido" }, { status: 400 });
 
   const sub = await prisma.subscription.findUnique({ where: { ownerId: payment.ownerId } });
-  const now = new Date();
   const nextMonth = new Date(now);
   nextMonth.setMonth(nextMonth.getMonth() + 1);
 

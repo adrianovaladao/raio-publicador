@@ -113,16 +113,27 @@ export async function GET() {
     take: 100,
   });
   for (const pix of pixPayments) {
-    const plan = PLANS[pix.planId as keyof typeof PLANS];
-    if (!plan) continue;
-    rows.push({
-      id: `pix-${pix.id}`,
-      date: (pix.confirmedAt ?? pix.createdAt).toISOString(),
-      direction: "in",
-      description: `Início de assinatura · ${PLAN_LABELS[pix.planId] ?? pix.planId}`,
-      credits: plan.credits,
-      detail: "Pix",
-    });
+    if (pix.type === "CREDIT_PURCHASE") {
+      rows.push({
+        id: `pix-${pix.id}`,
+        date: (pix.confirmedAt ?? pix.createdAt).toISOString(),
+        direction: "in",
+        description: `Créditos avulsos · ${(pix.creditQty ?? 0).toLocaleString("pt-BR")} cr`,
+        credits: pix.creditQty ?? 0,
+        detail: "Pix",
+      });
+    } else {
+      const plan = PLANS[pix.planId as keyof typeof PLANS];
+      if (!plan) continue;
+      rows.push({
+        id: `pix-${pix.id}`,
+        date: (pix.confirmedAt ?? pix.createdAt).toISOString(),
+        direction: "in",
+        description: `Início de assinatura · ${PLAN_LABELS[pix.planId] ?? pix.planId}`,
+        credits: plan.credits,
+        detail: "Pix",
+      });
+    }
   }
 
   rows.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
