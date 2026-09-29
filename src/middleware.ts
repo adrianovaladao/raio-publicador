@@ -20,6 +20,7 @@ const isPublicRoute = createRouteMatcher([
   "/api/webhooks/clerk",
   "/api/webhooks/c6bank",
   "/api/cron/(.*)",
+  "/api/admin/provision-user",
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
