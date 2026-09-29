@@ -28,7 +28,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { sendPixRenewalEmail } from "@/lib/email-pix";
 
 // Guard: este cron só executa se PIX_RENEWAL_ENABLED=true estiver setado
-const ENABLED = process.env.PIX_RENEWAL_ENABLED === "true";
+const ENABLED = process.env.C6_PIX_RENEWAL_ENABLED === "true";
 
 export async function GET(req: NextRequest) {
   if (!ENABLED) {
