@@ -246,15 +246,18 @@ function FiscalStep({ onDone, ctaLabel }: { onDone: (f: FiscalData) => void; cta
 
           <div style={{ borderTop:"1px solid rgba(255,255,255,0.08)", paddingTop:12 }}>
             <div style={{ fontSize:11, fontWeight:700, letterSpacing:"0.08em", textTransform:"uppercase", color:"rgba(255,255,255,0.35)", marginBottom:12 }}>Endereço</div>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr auto", gap:8, marginBottom:12 }}>
-              <div>
-                {fiscalLabel("CEP")}
+            <div style={{ marginBottom:12 }}>
+              {fiscalLabel("CEP")}
+              <div style={{ display:"flex", gap:8, alignItems:"center" }}>
                 <input className="fi" placeholder="00000-000" value={fiscal.cep} inputMode="numeric"
+                  style={{ maxWidth:160 }}
                   onChange={e => { const v=formatCEP(e.target.value); setF("cep",v); if(v.replace(/\D/g,"").length===8) lookupCEP(v); }}
                   onBlur={e => { const v=formatCEP(e.target.value); if(v.replace(/\D/g,"").length===8) lookupCEP(v); }} />
-              </div>
-              <div style={{ display:"flex", alignItems:"flex-end" }}>
-                {cepLoading && <div style={{ fontSize:12, color:"rgba(255,255,255,0.35)", paddingBottom:11 }}>buscando…</div>}
+                <button type="button" disabled={cepLoading || fiscal.cep.replace(/\D/g,"").length!==8}
+                  onClick={() => lookupCEP(fiscal.cep)}
+                  style={{ background:"none", border:"1px solid rgba(255,255,255,0.2)", borderRadius:8, color:"rgba(255,255,255,0.6)", fontSize:12, padding:"7px 12px", cursor:"pointer", whiteSpace:"nowrap" }}>
+                  {cepLoading ? "Buscando…" : "Buscar endereço"}
+                </button>
               </div>
             </div>
             <div style={{ display:"grid", gridTemplateColumns:"1fr 100px", gap:8, marginBottom:12 }}>

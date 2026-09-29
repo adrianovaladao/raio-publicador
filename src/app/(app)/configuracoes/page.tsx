@@ -1704,12 +1704,18 @@ function FiscalProfileData({ onToast }: { onToast: (m: string) => void }) {
             {/* CEP */}
             <div className="field">
               <label>CEP <span style={{ color: "var(--danger, #c0392b)" }}>*</span></label>
-              <input className="input" value={form.cep} inputMode="numeric"
-                placeholder="00000-000"
-                style={{ maxWidth: 160 }}
-                onChange={e => { const v = fmtCEP(e.target.value); setF("cep", v); if (v.replace(/\D/g,"").length === 8) lookupCEP(v); }}
-                onBlur={e => { const v = fmtCEP(e.target.value); if (v.replace(/\D/g,"").length === 8) lookupCEP(v); }} />
-              {cepLoading && <span style={{ fontSize: 12, color: "var(--fg-muted)" }}>buscando…</span>}
+              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                <input className="input" value={form.cep} inputMode="numeric"
+                  placeholder="00000-000"
+                  style={{ maxWidth: 160 }}
+                  onChange={e => { const v = fmtCEP(e.target.value); setF("cep", v); if (v.replace(/\D/g,"").length === 8) lookupCEP(v); }}
+                  onBlur={e => { const v = fmtCEP(e.target.value); if (v.replace(/\D/g,"").length === 8) lookupCEP(v); }} />
+                <button type="button" className="btn btn-ghost btn-sm" disabled={cepLoading || form.cep.replace(/\D/g,"").length !== 8}
+                  onClick={() => lookupCEP(form.cep)}
+                  style={{ whiteSpace: "nowrap" }}>
+                  {cepLoading ? "Buscando…" : "Buscar endereço"}
+                </button>
+              </div>
             </div>
 
             {/* Logradouro + Número */}
