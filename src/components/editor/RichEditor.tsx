@@ -15,12 +15,8 @@ import {
   Bold, Italic, Underline as UnderlineIcon,
   List, ListOrdered, Quote, Link as LinkIcon, Undo, Redo,
   Sparkles, Loader, X, Image as ImageIcon,
-  AlignLeft, AlignCenter, AlignRight, AlignJustify, Code2,
+  AlignLeft, AlignCenter, AlignRight, AlignJustify,
 } from "lucide-react";
-import SimpleEditor from "react-simple-code-editor";
-import Prism from "prismjs";
-import "prismjs/components/prism-markup";
-import "prismjs/themes/prism.css";
 
 // ── Figure NodeView ──────────────────────────────────────────────────────────
 
@@ -143,8 +139,6 @@ export function RichEditor({
   const [wordCount,  setWordCount]  = useState(0);
   const [linkModal,  setLinkModal]  = useState<{ open: boolean; initial: string }>({ open: false, initial: "" });
   const [hintDismissed, setHintDismissed] = useState(false);
-  const [htmlMode, setHtmlMode] = useState(false);
-  const [htmlDraft, setHtmlDraft] = useState("");
 
   const editor = useEditor({
     extensions: [
@@ -413,25 +407,6 @@ export function RichEditor({
           Inserir imagem
         </button>
 
-        <span className="div" />
-        <button
-          type="button"
-          className={`tb${htmlMode ? " on" : ""}`}
-          title={htmlMode ? "Voltar ao editor visual" : "Ver / editar HTML"}
-          onClick={() => {
-            if (!htmlMode) {
-              setHtmlDraft(editor.getHTML());
-              setHtmlMode(true);
-            } else {
-              editor.commands.setContent(htmlDraft, { emitUpdate: true });
-              onContentChange(htmlDraft);
-              setHtmlMode(false);
-            }
-          }}
-          style={{ color: htmlMode ? "var(--ink)" : undefined }}
-        >
-          <Code2 size={15} />
-        </button>
 
         <div style={{ flex: 1 }} />
 
@@ -574,25 +549,7 @@ export function RichEditor({
             </div>
           </BubbleMenu>
         )}
-        {htmlMode ? (
-          <div style={{ fontFamily: "var(--mono)", fontSize: 12.5, lineHeight: 1.7, minHeight: 400 }}>
-            <SimpleEditor
-              value={htmlDraft}
-              onValueChange={setHtmlDraft}
-              highlight={code => Prism.highlight(code, Prism.languages.markup, "markup")}
-              padding={0}
-              style={{
-                fontFamily: "inherit",
-                fontSize: "inherit",
-                lineHeight: "inherit",
-                minHeight: 400,
-                outline: "none",
-              }}
-            />
-          </div>
-        ) : (
-          <EditorContent editor={editor} />
-        )}
+        <EditorContent editor={editor} />
       </div>
 
       <div style={{ padding: "10px 26px 14px", borderTop: "1px solid var(--line)" }}>
