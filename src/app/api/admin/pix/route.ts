@@ -64,37 +64,45 @@ export async function POST(req: NextRequest) {
 
   // Cancelamento de pagamento já confirmado (reembolso manual)
   if (action === "cancel") {
-    if (payment.status !== "CONFIRMED") {
-      return NextResponse.json({ error: "Só é possível cancelar pagamentos confirmados" }, { status: 409 });
-    }
-    if (payment.type === "CREDIT_PURCHASE") {
-      const creditQty = payment.creditQty ?? 0;
-      const sub = await prisma.subscription.findUnique({ where: { ownerId: payment.ownerId }, select: { creditsTotal: true } });
-      const newTotal = Math.max(0, (sub?.creditsTotal ?? 0) - creditQty);
-      await prisma.$transaction([
-        prisma.pixPayment.update({
+    try {
+      if (payment.status !== "CONFIRMED") {
+        return NextResponse.json({ error: "Só é possível cancelar pagamentos confirmados" }, { status: 409 });
+      }
+      const sub = await prisma.subscription.findUnique({ where: { ownerId: payment.ownerId } });
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const pix = payment as any;
+      if (pix.type === "CREDIT_PURCHASE") {
+        const creditQty = pix.creditQty ?? 0;
+        const newTotal = Math.max(0, (sub?.creditsTotal ?? 0) - creditQty);
+        await prisma.pixPayment.update({
           where: { id: paymentId },
           data: { status: "REJECTED", confirmedBy: userId },
-        }),
-        prisma.subscription.update({
-          where: { ownerId: payment.ownerId },
-          data: { creditsTotal: newTotal },
-        }),
-      ]);
-    } else {
-      // SUBSCRIPTION — desativa assinatura
-      await prisma.$transaction([
-        prisma.pixPayment.update({
+        });
+        if (sub) {
+          await prisma.subscription.update({
+            where: { ownerId: payment.ownerId },
+            data: { creditsTotal: newTotal },
+          });
+        }
+      } else {
+        await prisma.pixPayment.update({
           where: { id: paymentId },
           data: { status: "REJECTED", confirmedBy: userId },
-        }),
-        prisma.subscription.update({
-          where: { ownerId: payment.ownerId },
-          data: { status: "INACTIVE" },
-        }),
-      ]);
+        });
+        if (sub) {
+          await prisma.subscription.update({
+            where: { ownerId: payment.ownerId },
+            data: { status: "INACTIVE" },
+          });
+        }
+      }
+      return NextResponse.json({ ok: true });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error("[admin/pix cancel]", msg);
+      return NextResponse.json({ error: msg }, { status: 500 });
     }
-    return NextResponse.json({ ok: true });
   }
 
   if (payment.status !== "PENDING") {

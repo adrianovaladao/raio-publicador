@@ -55,9 +55,12 @@ export default function AdminPixPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ paymentId, action }),
       });
-      const data = await res.json();
-      if (!res.ok) { alert(data?.error ?? "Erro"); return; }
+      let data: { error?: string; ok?: boolean } = {};
+      try { data = await res.json(); } catch { /* resposta não-JSON */ }
+      if (!res.ok) { alert(data?.error ?? `Erro ${res.status}`); return; }
       await load();
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Erro inesperado");
     } finally { setActing(null); }
   }
 
