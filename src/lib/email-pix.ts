@@ -24,7 +24,7 @@ export async function sendPixRenewalEmail(
   planLabel: string,
   amountCents: number,
   renewalDate: Date,
-  pixCopiaECola: string,
+  pixCopiaECola: string | null,
   daysLeft: number,
 ) {
   const amountBRL = fmtBRL(amountCents);
@@ -45,6 +45,23 @@ export async function sendPixRenewalEmail(
   const subject = subjectMap[daysLeft] ?? `Renovação via Pix — Raio`;
   const intro   = introMap[daysLeft] ?? `Sua assinatura do Plano <strong>${planLabel}</strong> vence em ${renewalFmt}.`;
 
+  const pixSection = pixCopiaECola ? `
+          <!-- Pix box -->
+          <div style="background:#f8f8f8;border:1.5px solid #e0e0e0;border-radius:12px;padding:20px 24px;margin-bottom:24px">
+            <p style="margin:0 0 8px;font-size:12px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.08em">Pix Copia e Cola</p>
+            <div style="background:#ffffff;border:1px solid #ddd;border-radius:8px;padding:12px;font-family:monospace;font-size:11px;color:#333;word-break:break-all;line-height:1.5">${pixCopiaECola}</div>
+            <p style="margin:10px 0 0;font-size:12px;color:#888">Copie o código acima e cole no app do seu banco em <em>Pix → Copia e Cola</em>.</p>
+          </div>
+          <p style="margin:0 0 8px;font-size:13px;color:#666;line-height:1.6">
+            ⚠️ <strong>Atenção:</strong> o código expira em 72 horas. Após o prazo, entre em contato com o suporte para gerar um novo QR Code.
+          </p>
+          <p style="margin:0;font-size:13px;color:#666;line-height:1.6">
+            Se já realizou o pagamento, aguarde a confirmação em até 1 hora útil.
+          </p>` : `
+          <p style="margin:0 0 8px;font-size:13px;color:#666;line-height:1.6">
+            No dia do vencimento você receberá um novo e-mail com o QR Code para pagamento.
+          </p>`;
+
   const html = `
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -61,20 +78,7 @@ export async function sendPixRenewalEmail(
         <tr><td style="padding:32px">
           <p style="margin:0 0 16px;font-size:16px;color:#333">Olá, ${firstName}!</p>
           <p style="margin:0 0 24px;font-size:15px;color:#444;line-height:1.6">${intro}<br>Para continuar com acesso ao Raio, realize o pagamento via Pix no valor de <strong>R$ ${amountBRL}</strong>.</p>
-
-          <!-- Pix box -->
-          <div style="background:#f8f8f8;border:1.5px solid #e0e0e0;border-radius:12px;padding:20px 24px;margin-bottom:24px">
-            <p style="margin:0 0 8px;font-size:12px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.08em">Pix Copia e Cola</p>
-            <div style="background:#ffffff;border:1px solid #ddd;border-radius:8px;padding:12px;font-family:monospace;font-size:11px;color:#333;word-break:break-all;line-height:1.5">${pixCopiaECola}</div>
-            <p style="margin:10px 0 0;font-size:12px;color:#888">Copie o código acima e cole no app do seu banco em <em>Pix → Copia e Cola</em>.</p>
-          </div>
-
-          <p style="margin:0 0 8px;font-size:13px;color:#666;line-height:1.6">
-            ⚠️ <strong>Atenção:</strong> o código expira em 72 horas. Após o prazo, entre em contato com o suporte para gerar um novo QR Code.
-          </p>
-          <p style="margin:0;font-size:13px;color:#666;line-height:1.6">
-            Se já realizou o pagamento, aguarde a confirmação em até 1 hora útil.
-          </p>
+          ${pixSection}
         </td></tr>
         <!-- Footer -->
         <tr><td style="background:#f8f8f8;padding:20px 32px;border-top:1px solid #eee">

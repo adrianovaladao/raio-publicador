@@ -82,29 +82,31 @@ export async function GET(req: NextRequest) {
       const firstName = user.firstName ?? email?.split("@")[0] ?? "usuário";
       if (!email) continue;
 
-      // Gera nova cobrança Pix no C6 Bank
-      // Expiração: 3 dias (permite pagamento até D+3)
-      const cob = await criarCobranca({
-        amountCents: plan.priceCents,
-        expiracaoSegundos: 3 * 24 * 3600, // 72h
-        solicitacaoPagador: `Renovação ${plan.label} — Raio Publicador`,
-      });
-
-      // Registra a cobrança no banco
-      await prisma.pixPayment.create({
-        data: {
-          ownerId: sub.ownerId,
-          planId,
+      if (daysLeft === 0) {
+        // Dia do vencimento: gera cobrança C6 Bank e envia QR Code
+        const cob = await criarCobranca({
           amountCents: plan.priceCents,
-          userName: `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim(),
-          userEmail: email,
-          txId: cob.txid,
-          status: "PENDING",
-        },
-      });
+          expiracaoSegundos: 3 * 24 * 3600, // 72h
+          solicitacaoPagador: `Renovação ${plan.label} — Raio Publicador`,
+        });
 
-      // Envia e-mail com QR Code e copia-e-cola
-      await sendPixRenewalEmail(email, firstName, plan.label, plan.priceCents, sub.currentPeriodEnd, cob.pixCopiaECola, daysLeft);
+        await prisma.pixPayment.create({
+          data: {
+            ownerId: sub.ownerId,
+            planId,
+            amountCents: plan.priceCents,
+            userName: `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim(),
+            userEmail: email,
+            txId: cob.txid,
+            status: "PENDING",
+          },
+        });
+
+        await sendPixRenewalEmail(email, firstName, plan.label, plan.priceCents, sub.currentPeriodEnd, cob.pixCopiaECola, daysLeft);
+      } else {
+        // 7 ou 2 dias antes: só aviso, sem cobrança e sem QR Code
+        await sendPixRenewalEmail(email, firstName, plan.label, plan.priceCents, sub.currentPeriodEnd, null, daysLeft);
+      }
 
       results.push({ ownerId: sub.ownerId, daysLeft, sent: true });
     } catch (err) {
