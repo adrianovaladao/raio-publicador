@@ -8,11 +8,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const secret = req.headers.get("x-migration-secret");
-  if (secret !== process.env.PROVISION_SECRET) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   const prisma = getPrisma();
   const results: string[] = [];
 
