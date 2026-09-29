@@ -10,12 +10,6 @@ export async function GET() {
 
   const prisma = getPrisma();
   const sub = await prisma.subscription.findUnique({ where: { ownerId: userId } });
-  if (!sub?.stripeCustomerId) return NextResponse.json([]);
-
-  const stripe = getStripe();
-
-  // Fetch invoices (subscription payments)
-  const invoices = await stripe.invoices.list({ customer: sub.stripeCustomerId, limit: 100 });
 
   type TxRow = {
     id: string;
@@ -29,8 +23,37 @@ export async function GET() {
   };
 
   const rows: TxRow[] = [];
-
   const PLAN_LABELS: Record<string, string> = { BASIC: "Básico", ADVANCED: "Avançado", PROFESSIONAL: "Profissional" };
+
+  // ── Transações via Pix ────────────────────────────────────────────────────
+  const pixPayments = await prisma.pixPayment.findMany({
+    where: { ownerId: userId, status: "CONFIRMED" },
+    orderBy: { confirmedAt: "desc" },
+    take: 100,
+  });
+  for (const pix of pixPayments) {
+    rows.push({
+      id: `pix-${pix.id}`,
+      date: (pix.confirmedAt ?? pix.createdAt).toISOString(),
+      type: "subscription",
+      description: `Pagamento Pix · Plano ${PLAN_LABELS[pix.planId] ?? pix.planId}`,
+      amount: pix.amountCents,
+      currency: "brl",
+      status: "paid",
+      receiptUrl: null,
+    });
+  }
+
+  if (!sub?.stripeCustomerId) {
+    rows.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    return NextResponse.json(rows);
+  }
+
+  const stripe = getStripe();
+
+  // Fetch invoices (subscription payments)
+  const invoices = await stripe.invoices.list({ customer: sub.stripeCustomerId, limit: 100 });
+
   // Price in cents → plan name (fallback when metadata is missing)
   const PRICE_TO_PLAN: Record<number, string> = { 100000: "Básico", 300000: "Avançado", 500000: "Profissional" };
 

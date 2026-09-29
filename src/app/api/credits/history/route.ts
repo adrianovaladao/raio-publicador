@@ -106,6 +106,25 @@ export async function GET() {
     } catch { /* Stripe indisponível — retorna só as saídas */ }
   }
 
+  // ── Entradas: assinatura via Pix ─────────────────────────────────────────
+  const pixPayments = await prisma.pixPayment.findMany({
+    where: { ownerId: userId, status: "CONFIRMED" },
+    orderBy: { confirmedAt: "desc" },
+    take: 100,
+  });
+  for (const pix of pixPayments) {
+    const plan = PLANS[pix.planId as keyof typeof PLANS];
+    if (!plan) continue;
+    rows.push({
+      id: `pix-${pix.id}`,
+      date: (pix.confirmedAt ?? pix.createdAt).toISOString(),
+      direction: "in",
+      description: `Início de assinatura · ${PLAN_LABELS[pix.planId] ?? pix.planId}`,
+      credits: plan.credits,
+      detail: "Pix",
+    });
+  }
+
   rows.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   return NextResponse.json(rows);
 }
