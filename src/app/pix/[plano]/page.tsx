@@ -220,10 +220,10 @@ export default function PixPage() {
                 Seu plano <strong style={{ color: "rgba(255,255,255,0.8)" }}>{plan.label}</strong> foi ativado com sucesso. Bem-vindo ao Raio!
               </p>
               <button
-                onClick={() => router.push("/dashboard")}
+                onClick={() => router.push("/boas-vindas?checkout=success&from=pix")}
                 style={{ width: "100%", padding: "14px 0", background: "#FAB500", color: "#212121", border: "none", borderRadius: 12, fontSize: 14, fontWeight: 800, cursor: "pointer" }}
               >
-                Ir para o dashboard
+                Continuar
               </button>
             </div>
           )}
