@@ -165,9 +165,9 @@ function FiscalStep({ onDone, ctaLabel }: { onDone: (f: FiscalData) => void; cta
     if (digits.length !== 8) return;
     setCepLoading(true);
     try {
-      const res = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
-      const data = await res.json() as { logradouro?: string; bairro?: string; localidade?: string; uf?: string; erro?: boolean };
-      if (!data.erro) setFiscal(f => ({ ...f, street: data.logradouro ?? f.street, district: data.bairro ?? f.district, city: data.localidade ?? f.city, state: data.uf ?? f.state }));
+      const res = await fetch(`/api/cep?cep=${digits}`);
+      const data = await res.json() as { street?: string; district?: string; city?: string; state?: string; error?: string };
+      if (res.ok) setFiscal(f => ({ ...f, street: data.street || f.street, district: data.district || f.district, city: data.city || f.city, state: data.state || f.state }));
     } catch { /* silently fail */ }
     finally { setCepLoading(false); }
   }

@@ -1602,11 +1602,13 @@ function FiscalProfileData({ onToast }: { onToast: (m: string) => void }) {
     const digits = cep.replace(/\D/g, "");
     if (digits.length !== 8) return;
     setCepLoading(true);
+    setErr("");
     try {
-      const res = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
-      const data = await res.json() as { logradouro?: string; bairro?: string; localidade?: string; uf?: string; erro?: boolean };
-      if (!data.erro) setForm(f => ({ ...f, street: data.logradouro ?? f.street, district: data.bairro ?? f.district, city: data.localidade ?? f.city, state: data.uf ?? f.state }));
-    } catch { /* silently fail */ }
+      const res = await fetch(`/api/cep?cep=${digits}`);
+      const data = await res.json() as { street?: string; district?: string; city?: string; state?: string; error?: string };
+      if (!res.ok) { setErr(data.error ?? "CEP não encontrado."); return; }
+      setForm(f => ({ ...f, street: data.street || f.street, district: data.district || f.district, city: data.city || f.city, state: data.state || f.state }));
+    } catch { setErr("Erro ao buscar CEP. Preencha o endereço manualmente."); }
     finally { setCepLoading(false); }
   }
 
