@@ -1712,11 +1712,7 @@ function FiscalProfileData({ onToast }: { onToast: (m: string) => void }) {
                   style={{ maxWidth: 160 }}
                   onChange={e => { const v = fmtCEP(e.target.value); setF("cep", v); if (v.replace(/\D/g,"").length === 8) lookupCEP(v); }}
                   onBlur={e => { const v = fmtCEP(e.target.value); if (v.replace(/\D/g,"").length === 8) lookupCEP(v); }} />
-                <button type="button" className="btn btn-ghost btn-sm" disabled={cepLoading || form.cep.replace(/\D/g,"").length !== 8}
-                  onClick={() => lookupCEP(form.cep)}
-                  style={{ whiteSpace: "nowrap" }}>
-                  {cepLoading ? "Buscando…" : "Buscar endereço"}
-                </button>
+                {cepLoading && <span style={{ fontSize: 12, color: "var(--fg-muted)" }}>Buscando…</span>}
               </div>
             </div>
 
