@@ -21,6 +21,7 @@ const isPublicRoute = createRouteMatcher([
   "/api/webhooks/c6bank",
   "/api/cron/(.*)",
   "/api/cep",
+  "/api/admin/run-migration",
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
