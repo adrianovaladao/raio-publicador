@@ -60,16 +60,11 @@ export async function POST(req: NextRequest) {
   const amount = amountCents / 100;
   const planLabel = sub ? (PLANS[sub.plan as keyof typeof PLANS]?.label ?? sub.plan) : "—";
   const credits = sub?.creditsTotal ?? 0;
-  const taxesTotal = parseFloat((amount * (0.01 + 0.0065 + 0.03 + 0.01)).toFixed(2));
-  const netAmount = parseFloat((amount - taxesTotal).toFixed(2));
   const today = new Date().toLocaleDateString("pt-BR");
   const description = [
-    "Prestacao de servicos de tecnologia de informacao - Plataforma Raio Publicador",
-    `Plano ${planLabel}`,
-    `Creditos ${credits}`,
-    `Acesso e uso de creditos confirmados em ${today}`,
-    `Valor aproximado dos tributos R$ ${taxesTotal.toFixed(2).replace(".", ",")}`,
-    `Valor liquido R$ ${netAmount.toFixed(2).replace(".", ",")}`,
+    "Raio Publicador",
+    `Plano ${planLabel} ${credits} créditos`,
+    `Acesso e uso de créditos confirmados em ${today}`,
   ].join("\n");
 
   const body = {
