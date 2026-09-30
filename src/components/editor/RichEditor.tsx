@@ -21,17 +21,28 @@ import {
 // ── Figure NodeView ──────────────────────────────────────────────────────────
 
 function FigureView({ node, updateAttributes }: NodeViewProps) {
+  const href = (node.attrs.href as string) || "";
+  const img = (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={node.attrs.src as string} className="editor-img" alt={node.attrs.caption as string || ""} />
+  );
   return (
     <NodeViewWrapper>
       <figure className="editor-figure" contentEditable={false}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={node.attrs.src as string} className="editor-img" alt={node.attrs.caption as string || ""} />
+        {href ? <a href={href} target="_blank" rel="noopener noreferrer" style={{ display: "block" }}>{img}</a> : img}
         <figcaption>
           <input
             className="figure-caption-input"
             placeholder="Fonte: Getty Images, Divulgação, Arquivo pessoal…"
             value={(node.attrs.caption as string) || ""}
             onChange={e => updateAttributes({ caption: e.target.value })}
+          />
+          <input
+            className="figure-caption-input"
+            placeholder="Link ao clicar na imagem (opcional)"
+            value={href}
+            onChange={e => updateAttributes({ href: e.target.value })}
+            style={{ marginTop: 2 }}
           />
         </figcaption>
       </figure>
@@ -49,6 +60,7 @@ const FigureExtension = Node.create({
     return {
       src:     { default: null },
       caption: { default: "" },
+      href:    { default: "" },
     };
   },
 
@@ -58,14 +70,19 @@ const FigureExtension = Node.create({
       getAttrs: (node) => ({
         src:     (node as HTMLElement).querySelector("img")?.getAttribute("src") ?? null,
         caption: (node as HTMLElement).querySelector("figcaption")?.textContent ?? "",
+        href:    (node as HTMLElement).querySelector("a")?.getAttribute("href") ?? "",
       }),
     }];
   },
 
   renderHTML({ HTMLAttributes }) {
+    const img: [string, Record<string, string>] = ["img", { src: HTMLAttributes.src, class: "editor-img", alt: HTMLAttributes.caption || "" }];
+    const imgWrapped = HTMLAttributes.href
+      ? ["a", { href: HTMLAttributes.href, target: "_blank", rel: "noopener noreferrer" }, img]
+      : img;
     return [
       "figure", mergeAttributes({ class: "editor-figure" }),
-      ["img", { src: HTMLAttributes.src, class: "editor-img", alt: HTMLAttributes.caption || "" }],
+      imgWrapped,
       ["figcaption", {}, HTMLAttributes.caption || ""],
     ];
   },
