@@ -763,6 +763,7 @@ useEffect(() => {
     fetch("/api/stripe/subscription").then(r => r.json())
       .then((d: { credits?: number; creditsUsed?: number; plan?: string | null; status?: string | null; currentPeriodEnd?: string | null }) => {
         setSub({ credits: d.credits ?? 0, creditsUsed: d.creditsUsed ?? 0, plan: d.plan ?? null, status: d.status ?? null, currentPeriodEnd: d.currentPeriodEnd ?? null });
+
       }).catch(() => {});
   }, []);
 

@@ -1498,7 +1498,7 @@ export default function NovoReleasePage() {
   const [creditToast, setCreditToast] = useState<string | null>(null);
   const refreshSub = () => {
     fetch("/api/stripe/subscription").then(r => r.json()).then((d: SubInfo) => {
-      if (d.credits != null) setSub({ credits: d.credits, creditsUsed: d.creditsUsed ?? 0, plan: d.plan, brandsLimit: d.brandsLimit, status: d.status });
+      if (d.credits != null) setSub({ credits: d.credits, creditsUsed: d.creditsUsed ?? 0, plan: d.plan, brandsLimit: d.brandsLimit, status: d.status, currentPeriodEnd: d.currentPeriodEnd });
     }).catch(() => {});
   };
   const handleAIUsed = () => {
