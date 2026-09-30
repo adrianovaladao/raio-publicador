@@ -687,8 +687,9 @@ function StepSchedule({
               // Hora atual em Brasília (UTC-3)
               const pad = (n: number) => String(n).padStart(2, "0");
               const minDate = `${now.getUTCFullYear()}-${pad(now.getUTCMonth()+1)}-${pad(now.getUTCDate())}`;
-              const lastDay = new Date(now.getUTCFullYear(), now.getUTCMonth()+1, 0).getDate();
-              const maxDate = `${now.getUTCFullYear()}-${pad(now.getUTCMonth()+1)}-${pad(lastDay)}`;
+              const maxDate = sub.currentPeriodEnd
+                ? sub.currentPeriodEnd.slice(0, 10)
+                : `${now.getUTCFullYear()}-${pad(now.getUTCMonth()+1)}-${pad(new Date(now.getUTCFullYear(), now.getUTCMonth()+1, 0).getDate())}`;
               if (schedDate && schedDate < minDate) setSchedDate("");
               return (
                 <div className="field-row" style={{ marginBottom: 0 }}>
@@ -756,11 +757,11 @@ export default function EditReleasePage() {
   const [showBuyCreditsModal, setShowBuyCreditsModal] = useState(false);
   const [err,        setErr]        = useState("");
   const [toast,      setToast]      = useState<string | null>(null);
-  const [sub, setSub] = useState({ credits: 0, creditsUsed: 0, plan: null as string | null, status: null as string | null });
+  const [sub, setSub] = useState({ credits: 0, creditsUsed: 0, plan: null as string | null, status: null as string | null, currentPeriodEnd: null as string | null });
 useEffect(() => {
     fetch("/api/stripe/subscription").then(r => r.json())
-      .then((d: { credits?: number; creditsUsed?: number; plan?: string | null; status?: string | null }) => {
-        setSub({ credits: d.credits ?? 0, creditsUsed: d.creditsUsed ?? 0, plan: d.plan ?? null, status: d.status ?? null });
+      .then((d: { credits?: number; creditsUsed?: number; plan?: string | null; status?: string | null; currentPeriodEnd?: string | null }) => {
+        setSub({ credits: d.credits ?? 0, creditsUsed: d.creditsUsed ?? 0, plan: d.plan ?? null, status: d.status ?? null, currentPeriodEnd: d.currentPeriodEnd ?? null });
       }).catch(() => {});
   }, []);
 

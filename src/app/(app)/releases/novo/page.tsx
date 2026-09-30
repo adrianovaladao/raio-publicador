@@ -73,7 +73,7 @@ const TIER_FG_MAP:     Record<string, string> = { A: "#fff",    B: "#fff",    C:
 
 type VehSortCol = "name" | "tier" | "reach" | "tokens";
 type VehSortDir = "asc" | "desc";
-type SubInfo = { credits: number; creditsUsed: number; plan?: string | null; brandsLimit?: number | null; status?: string | null };
+type SubInfo = { credits: number; creditsUsed: number; plan?: string | null; brandsLimit?: number | null; status?: string | null; currentPeriodEnd?: string | null };
 
 
 const BRAND_COLORS = ["#C25E00","#2A6FDB","#2F8A5B","#6D3BD9","#0E7C86","#B0322E","#8A6500","#1A1A1A"];
@@ -1383,8 +1383,9 @@ function StepReview({ content, selected, when, setWhen, brand, vehicles, datePic
             {when.mode === "schedule" && (() => {
               const today = new Date();
               const minDate = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
-              const lastDay = new Date(today.getFullYear(), today.getMonth()+1, 0).getDate();
-              const maxDate = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(lastDay).padStart(2,"0")}`;
+              const maxDate = sub.currentPeriodEnd
+                ? sub.currentPeriodEnd.slice(0, 10)
+                : `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(new Date(today.getFullYear(), today.getMonth()+1, 0).getDate()).padStart(2,"0")}`;
               return (
                 <div className="field-row" style={{ marginBottom: 0 }}>
                   <label>Escolha a data</label>
