@@ -119,75 +119,87 @@ export async function POST(req: NextRequest) {
 
   const now = new Date();
 
-  if (payment.type === "CREDIT_PURCHASE") {
-    // Créditos avulsos: incrementa creditsTotal
-    const creditQty = payment.creditQty ?? 0;
-    await prisma.$transaction([
-      prisma.pixPayment.update({
-        where: { id: paymentId },
-        data: { status: "CONFIRMED", confirmedAt: now, confirmedBy: userId },
-      }),
-      prisma.subscription.update({
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const pix = payment as any;
+    if (pix.type === "CREDIT_PURCHASE") {
+      // Créditos avulsos: incrementa creditsTotal
+      const creditQty = pix.creditQty ?? 0;
+      await prisma.$transaction([
+        prisma.pixPayment.update({
+          where: { id: paymentId },
+          data: { status: "CONFIRMED", confirmedAt: now, confirmedBy: userId },
+        }),
+        prisma.subscription.update({
+          where: { ownerId: payment.ownerId },
+          data: { creditsTotal: { increment: creditQty } },
+        }),
+      ]);
+      return NextResponse.json({ ok: true });
+    }
+
+    // SUBSCRIPTION — ativa ou cria assinatura
+    const plan = PLANS[payment.planId as PlanId];
+    if (!plan) return NextResponse.json({ error: "Plano inválido" }, { status: 400 });
+
+    const sub = await prisma.subscription.findUnique({ where: { ownerId: payment.ownerId } });
+    const nextMonth = new Date(now);
+    nextMonth.setMonth(nextMonth.getMonth() + 1);
+
+    if (sub) {
+      await prisma.subscription.update({
         where: { ownerId: payment.ownerId },
-        data: { creditsTotal: { increment: creditQty } },
-      }),
-    ]);
-    return NextResponse.json({ ok: true });
-  }
+        data: {
+          plan: payment.planId as PlanId,
+          status: "ACTIVE",
+          creditsTotal: plan.credits,
+          creditsUsed: 0,
+          currentPeriodStart: now,
+          currentPeriodEnd: nextMonth,
+        },
+      });
+    } else {
+      await prisma.subscription.create({
+        data: {
+          ownerId: payment.ownerId,
+          plan: payment.planId as PlanId,
+          status: "ACTIVE",
+          creditsTotal: plan.credits,
+          creditsUsed: 0,
+          currentPeriodStart: now,
+          currentPeriodEnd: nextMonth,
+        },
+      });
+    }
 
-  // SUBSCRIPTION — ativa ou cria assinatura
-  const plan = PLANS[payment.planId as PlanId];
-  if (!plan) return NextResponse.json({ error: "Plano inválido" }, { status: 400 });
+    const scheduledFor = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
-  const sub = await prisma.subscription.findUnique({ where: { ownerId: payment.ownerId } });
-  const nextMonth = new Date(now);
-  nextMonth.setMonth(nextMonth.getMonth() + 1);
-
-  if (sub) {
-    await prisma.subscription.update({
-      where: { ownerId: payment.ownerId },
-      data: {
-        plan: payment.planId as PlanId,
-        status: "ACTIVE",
-        creditsTotal: plan.credits,
-        creditsUsed: 0,
-        currentPeriodStart: now,
-        currentPeriodEnd: nextMonth,
-      },
-    });
-  } else {
-    await prisma.subscription.create({
-      data: {
-        ownerId: payment.ownerId,
-        plan: payment.planId as PlanId,
-        status: "ACTIVE",
-        creditsTotal: plan.credits,
-        creditsUsed: 0,
-        currentPeriodStart: now,
-        currentPeriodEnd: nextMonth,
-      },
-    });
-  }
-
-  const scheduledFor = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-
-  await prisma.$transaction([
-    prisma.pixPayment.update({
+    await prisma.pixPayment.update({
       where: { id: paymentId },
       data: { status: "CONFIRMED", confirmedAt: now, confirmedBy: userId },
-    }),
-    prisma.pendingInvoice.upsert({
-      where: { pixPaymentId: paymentId },
-      create: {
-        clerkId:      payment.ownerId,
-        pixPaymentId: paymentId,
-        amountCents:  payment.amountCents,
-        scheduledFor,
-        status:       "PENDING",
-      },
-      update: {},
-    }),
-  ]);
+    });
 
-  return NextResponse.json({ ok: true });
+    // PendingInvoice é best-effort — não bloqueia a confirmação
+    try {
+      await prisma.pendingInvoice.upsert({
+        where: { pixPaymentId: paymentId },
+        create: {
+          clerkId:      payment.ownerId,
+          pixPaymentId: paymentId,
+          amountCents:  payment.amountCents,
+          scheduledFor,
+          status:       "PENDING",
+        },
+        update: {},
+      });
+    } catch (invoiceErr) {
+      console.error("[admin/pix confirm] PendingInvoice upsert error:", invoiceErr);
+    }
+
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("[admin/pix confirm]", msg);
+    return NextResponse.json({ error: msg }, { status: 500 });
+  }
 }
