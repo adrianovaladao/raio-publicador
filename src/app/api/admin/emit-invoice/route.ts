@@ -6,7 +6,7 @@ import { PLANS } from "@/lib/plans";
 import { clerkClient } from "@clerk/nextjs/server";
 
 const NFEIO_API_KEY  = process.env.NFEIO_API_KEY!;
-const NFEIO_COMPANY  = process.env.NFEIO_COMPANY_ID!;
+const NFEIO_COMPANY  = process.env.NFEIO_COMPANY_ID ?? "796880a7bfb7407db2201ffee964b4ef";
 const NFEIO_SVC_CODE = process.env.NFEIO_SERVICE_CODE ?? "2800";
 
 // GET /api/admin/emit-invoice?nfeioId=XXX — busca nota pelo ID para inspecionar campos
