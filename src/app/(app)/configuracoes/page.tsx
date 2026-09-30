@@ -1422,14 +1422,16 @@ function CobrancaPanel({ onToast, isCancelled }: { onToast: (m: string) => void;
   const [reactivating,    setReactivating]    = useState(false);
   const [voucherCode,     setVoucherCode]     = useState("");
   const [voucherLoading,  setVoucherLoading]  = useState(false);
+  const [periodEnd,       setPeriodEnd]       = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/api/stripe/subscription").then(r => r.json()).then((s: { plan?: string; label?: string; priceCents?: number; credits?: number; creditsUsed?: number }) => {
+    fetch("/api/stripe/subscription").then(r => r.json()).then((s: { plan?: string; label?: string; priceCents?: number; credits?: number; creditsUsed?: number; currentPeriodEnd?: string | null }) => {
       if (s.plan)       setPlan(s.plan);
       if (s.label)      setPlanLabel(s.label);
       if (s.priceCents) setPriceCents(s.priceCents);
       if (s.credits)    setCredits(s.credits);
       setCreditsUsed(s.creditsUsed ?? 0);
+      setPeriodEnd(s.currentPeriodEnd ?? null);
     }).catch(() => {});
   }, []);
 
@@ -1469,7 +1471,7 @@ function CobrancaPanel({ onToast, isCancelled }: { onToast: (m: string) => void;
         <div className="bp-left">
           <div className="bp-label">Plano atual</div>
           <div className="bp-name">{planLabel}</div>
-          <div className="bp-price">{priceStr} <span>/mês · renova em {(() => { const d = new Date(); const r = new Date(d.getFullYear(), d.getMonth()+1, 1); return `${String(r.getDate()).padStart(2,"0")}/${String(r.getMonth()+1).padStart(2,"0")}/${r.getFullYear()}`; })()}</span></div>
+          <div className="bp-price">{priceStr} <span>/mês · renova em {periodEnd ? new Date(periodEnd).toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" }) : (() => { const d = new Date(); const r = new Date(d.getFullYear(), d.getMonth()+1, 1); return `${String(r.getDate()).padStart(2,"0")}/${String(r.getMonth()+1).padStart(2,"0")}/${r.getFullYear()}`; })()}</span></div>
           <div className="row" style={{ gap: 10, marginTop: 16 }}>
             {isCancelled ? (
               <button className="btn btn-primary btn-sm" onClick={handleReactivate} disabled={reactivating}>
