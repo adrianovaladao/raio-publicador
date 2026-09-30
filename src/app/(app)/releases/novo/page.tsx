@@ -926,9 +926,9 @@ function DatePicker({ value, onChange, minDate, maxDate }: {
 
   const toKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
 
-  const parsed = value ? new Date(value + "T12:00:00") : new Date();
-  const [viewY, setViewY] = useState(parsed.getFullYear());
-  const [viewM, setViewM] = useState(parsed.getMonth());
+  const minParsed = minDate ? new Date(minDate + "T12:00:00") : new Date();
+  const [viewY, setViewY] = useState(minParsed.getFullYear());
+  const [viewM, setViewM] = useState(minParsed.getMonth());
 
   const fmtDisplay = (iso: string) => {
     const d = new Date(iso + "T12:00:00");
