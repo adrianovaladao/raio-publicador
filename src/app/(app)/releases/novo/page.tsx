@@ -1298,11 +1298,12 @@ async function downloadDocx(content: Content, selVehicles: VehicleItem[], brand:
 
 interface PolicyIssue { rule: string; severity: "error" | "warning"; description: string; suggestion: string }
 
-function StepReview({ content, selected, when, setWhen, brand, vehicles, datePicked, setDatePicked, dateFlash, setDateFlash, navSlot }: {
+function StepReview({ content, selected, when, setWhen, brand, vehicles, datePicked, setDatePicked, dateFlash, setDateFlash, periodEnd, navSlot }: {
   content: Content; selected: string[]; when: When; setWhen: (w: When) => void; brand: Brand | null;
   vehicles: VehicleItem[];
   datePicked: boolean; setDatePicked: (v: boolean) => void;
   dateFlash: boolean; setDateFlash: (v: boolean) => void;
+  periodEnd?: string | null;
   navSlot?: React.ReactNode;
 }) {
   const [validating,    setValidating]    = useState(false);
@@ -1383,8 +1384,8 @@ function StepReview({ content, selected, when, setWhen, brand, vehicles, datePic
             {when.mode === "schedule" && (() => {
               const today = new Date();
               const minDate = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
-              const maxDate = sub.currentPeriodEnd
-                ? sub.currentPeriodEnd.slice(0, 10)
+              const maxDate = periodEnd
+                ? periodEnd.slice(0, 10)
                 : `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(new Date(today.getFullYear(), today.getMonth()+1, 0).getDate()).padStart(2,"0")}`;
               return (
                 <div className="field-row" style={{ marginBottom: 0 }}>
@@ -1835,7 +1836,7 @@ export default function NovoReleasePage() {
           if (step === 0) return <StepBrand selected={brand} onSelect={setBrand} brands={brands} brandsLimit={sub.brandsLimit} onAddBrand={b => setBrands(prev => [...prev, b])} onLimitReached={() => { window.dispatchEvent(new CustomEvent("open-plans")); }} isCancelled={sub.status === "CANCELLED"} isEditor={isEditorMember} navSlot={navSlot} />;
           if (step === 1) return <StepContent content={content} setContent={setContent} brand={brand} ownerName={ownerName} onAIUsed={handleAIUsed} onNoPlan={(sub.plan === "VOUCHER" || !sub.plan || sub.status === "CANCELLED" || sub.status === "INACTIVE") ? () => window.dispatchEvent(new CustomEvent("open-plans")) : undefined} navSlot={navSlot} />;
           if (step === 2) return <StepVehicles selected={selected} setSelected={setSelected} vehicles={vehicles} sub={sub} onBuyCredits={(sub.plan === "VOUCHER" || sub.status === "CANCELLED" || sub.status === "INACTIVE") ? undefined : () => { try { sessionStorage.setItem("raio_draft_vehicles", JSON.stringify(selected)); sessionStorage.setItem("raio_draft_brand", JSON.stringify(brand)); } catch { /* ignore */ } setShowBuyCreditsModal(true); }} onUpgrade={() => { try { sessionStorage.setItem("raio_draft_vehicles", JSON.stringify(selected)); sessionStorage.setItem("raio_draft_brand", JSON.stringify(brand)); } catch { /* ignore */ } window.dispatchEvent(new CustomEvent("open-plans")); }} navSlot={navSlot} />;
-          if (step === 3) return <StepReview content={content} selected={selected} when={when} setWhen={setWhen} brand={brand} vehicles={vehicles} datePicked={datePicked} setDatePicked={setDatePicked} dateFlash={dateFlash} setDateFlash={setDateFlash} navSlot={navSlot} />;
+          if (step === 3) return <StepReview content={content} selected={selected} when={when} setWhen={setWhen} brand={brand} vehicles={vehicles} datePicked={datePicked} setDatePicked={setDatePicked} dateFlash={dateFlash} setDateFlash={setDateFlash} periodEnd={sub.currentPeriodEnd} navSlot={navSlot} />;
         })()}
       </div>
     </div>

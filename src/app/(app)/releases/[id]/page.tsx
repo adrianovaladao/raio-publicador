@@ -598,12 +598,13 @@ function StepVehicles({ selected, setSelected, vehicles, sub, onUpgrade, onBuyCr
 function StepSchedule({
   schedDate, setSchedDate,
   title, body, subtitle, cat, selectedVeh, brand,
-  releaseStatus, onSaveDraft, saving, vehicles, navSlot,
+  releaseStatus, onSaveDraft, saving, vehicles, periodEnd, navSlot,
 }: {
   schedDate: string; setSchedDate: (v: string) => void;
   title: string; body: string; subtitle: string; cat: string;
   selectedVeh: string[]; brand: Brand | null;
   releaseStatus: string; onSaveDraft: () => Promise<void>; saving: boolean; vehicles: VehicleItem[];
+  periodEnd?: string | null;
   navSlot?: React.ReactNode;
 }) {
   const selVehicles = selectedVeh.map(id => vehicles.find(v => v.id === id)).filter(Boolean) as VehicleItem[];
@@ -687,8 +688,8 @@ function StepSchedule({
               // Hora atual em Brasília (UTC-3)
               const pad = (n: number) => String(n).padStart(2, "0");
               const minDate = `${now.getUTCFullYear()}-${pad(now.getUTCMonth()+1)}-${pad(now.getUTCDate())}`;
-              const maxDate = sub.currentPeriodEnd
-                ? sub.currentPeriodEnd.slice(0, 10)
+              const maxDate = periodEnd
+                ? periodEnd.slice(0, 10)
                 : `${now.getUTCFullYear()}-${pad(now.getUTCMonth()+1)}-${pad(new Date(now.getUTCFullYear(), now.getUTCMonth()+1, 0).getDate())}`;
               if (schedDate && schedDate < minDate) setSchedDate("");
               return (
@@ -1226,6 +1227,7 @@ useEffect(() => {
                   onSaveDraft={saveDraft}
                   saving={saving}
                   vehicles={vehicles}
+                  periodEnd={sub.currentPeriodEnd}
                   navSlot={<>{backBtn}{nextBtn}</>}
                 />
               )}
