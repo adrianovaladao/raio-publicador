@@ -84,9 +84,9 @@ export default function TermosPage() {
         </Section>
 
         <Section title="9. Permanência, indexação e disponibilidade das publicações">
-          <p>A publicação do conteúdo não implica garantia de permanência por prazo indeterminado no portal parceiro. A manutenção, arquivamento, atualização, desindexação ou eventual retirada do conteúdo poderá estar sujeita às políticas e decisões editoriais ou técnicas do respectivo veículo.</p>
+          <p>A publicação do conteúdo não implica garantia de permanência por prazo indeterminado no portal parceiro. A manutenção, arquivamento, atualização, desindexação ou eventual retirada do conteúdo poderá estar sujeita às políticas e decisões editoriais ou técnicas do respectivo veículo, a critério deste e independentemente de notificação prévia.</p>
           <p>O Raio Publicador também não garante a indexação, posicionamento ou permanência da publicação em mecanismos de busca, Google News, plataformas de inteligência artificial, redes sociais, agregadores de notícias ou quaisquer outros sistemas de recomendação.</p>
-          <p>Eventuais alterações na estrutura, domínio, tecnologia, política editorial ou funcionamento dos portais parceiros que ocorram após a publicação e que estejam fora do controle do Raio Publicador não caracterizam descumprimento da obrigação de publicação.</p>
+          <p>Alterações na estrutura, domínio, tecnologia, política editorial ou funcionamento dos portais parceiros — incluindo o eventual encerramento da parceria entre o Raio Publicador e o veículo — estão fora do controle do Raio Publicador e não caracterizam descumprimento da obrigação de publicação, ainda que ocorram sem comunicação prévia ao Usuário.</p>
         </Section>
 
         <Section title="10. Alterações e retirada após a publicação">
@@ -120,7 +120,7 @@ export default function TermosPage() {
         <Section title="15. Limitação de responsabilidade">
           <p>O Raio não se responsabiliza por:</p>
           <ul>
-            <li>Decisões editoriais ou técnicas dos portais parceiros relacionadas a alterações, manutenção, arquivamento ou remoção do conteúdo após sua publicação</li>
+            <li>Decisões editoriais ou técnicas dos portais parceiros relacionadas a alterações, manutenção, arquivamento ou remoção do conteúdo após sua publicação, independentemente do momento em que tais decisões vierem a ser comunicadas ao Usuário</li>
             <li>Conteúdo produzido, revisado ou aprovado pelo Usuário, com ou sem auxílio da IA</li>
             <li>Interrupções temporárias do serviço por manutenção programada, falhas técnicas, ataques cibernéticos ou eventos de força maior</li>
             <li>Danos indiretos, lucros cessantes ou perda de oportunidades de negócio decorrentes do uso ou da indisponibilidade da plataforma</li>
