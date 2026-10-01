@@ -5,7 +5,7 @@ import { useUser } from "@clerk/nextjs";
 import { useState } from "react";
 import { PLANS, type PlanId } from "@/lib/plans";
 import { RaioLockup } from "@/components/logo/RaioLockup";
-import { ArrowRight, ArrowLeft, Check, Coins, Building2, Users, Newspaper, Zap, QrCode } from "lucide-react";
+import { CreditCard, ArrowLeft, Check, Coins, Building2, Users, Newspaper, Zap, QrCode } from "lucide-react";
 import "../../boas-vindas/onboarding.css";
 
 const PLAN_FEATURES: Record<string, { icon: React.ElementType; text: string }[]> = {
@@ -130,7 +130,7 @@ export default function CheckoutPage() {
                     <span style={{ fontWeight: 600 }}>{fmt(plan.priceCents)}</span>
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "var(--tx-2)" }}>
-                    <span>Pagamento por Cartão de crédito</span>
+                    <span>Pagamento por Cartão de crédito (+3,5%)</span>
                     <span style={{ fontWeight: 600 }}>{fmt(totalCents)}</span>
                   </div>
                 </div>
@@ -139,14 +139,15 @@ export default function CheckoutPage() {
 
             {err && <p style={{ color: "var(--red, #c0392b)", fontSize: 13, marginBottom: 16 }}>{err}</p>}
 
-            <button className="btn btn-primary btn-lg" onClick={handleCard} disabled={loading}
+            <button onClick={() => window.location.href = `/pix/${plano}`} disabled={loading}
+              className="btn btn-primary btn-lg"
               style={{ width: "100%", justifyContent: "center", marginBottom: 8 }}>
-              {loading ? "Redirecionando…" : <><span>Pagar com cartão</span><ArrowRight size={17} /></>}
+              <QrCode size={17} /> Pagar com Pix
             </button>
 
-            <button onClick={() => window.location.href = `/pix/${plano}`} disabled={loading}
+            <button onClick={handleCard} disabled={loading}
               style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, width: "100%", padding: "13px 0", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, fontSize: 14, fontWeight: 600, color: "var(--tx-2)", cursor: "pointer", fontFamily: "inherit", marginBottom: 8 }}>
-              <QrCode size={15} /> Pagar com Pix
+              <CreditCard size={15} /> {loading ? "Redirecionando…" : "Pagar com cartão"}
             </button>
 
             <button onClick={() => router.back()}
