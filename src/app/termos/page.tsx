@@ -126,6 +126,9 @@ export default function TermosPage() {
             <li>Danos indiretos, lucros cessantes ou perda de oportunidades de negócio decorrentes do uso ou da indisponibilidade da plataforma</li>
           </ul>
           <p>Na máxima extensão permitida pela legislação aplicável e ressalvadas as hipóteses em que a limitação de responsabilidade seja vedada por lei, a responsabilidade total do Raio Publicador decorrente destes Termos estará limitada ao valor efetivamente pago pelo Usuário nos três meses anteriores ao evento que originou a reclamação.</p>
+          <p><strong>Compensação em caso de retirada de conteúdo já publicado</strong></p>
+          <p>Caso uma publicação já veiculada seja retirada do ar em decorrência do encerramento da parceria entre o Raio Publicador e o portal onde o conteúdo foi publicado, e desde que a retirada ocorra dentro de 60 (sessenta) dias a partir da data de publicação, o Usuário receberá de volta os créditos utilizados para uma nova publicação em portal compatível disponível na plataforma.</p>
+          <p>Esta compensação não se aplica quando a retirada decorrer de decisão editorial do portal relacionada ao conteúdo publicado, de descumprimento destes Termos pelo Usuário, ou de circunstâncias previstas na Seção 15 (força maior, falhas técnicas, ataques cibernéticos).</p>
         </Section>
 
         <Section title="16. Disponibilidade da plataforma e dos portais parceiros">
