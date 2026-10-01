@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useUser } from "@clerk/nextjs";
 import { isMaster } from "@/lib/admin";
-import { RefreshCw, Search, Building2, User, Copy, Check, ChevronDown, ChevronRight, Trash2, Download, Pencil, X, Send } from "lucide-react";
+import { RefreshCw, Search, Building2, User, Copy, Check, ChevronDown, ChevronRight, Trash2, Download, Pencil, X, Send, FileText } from "lucide-react";
 
 interface ClientRow {
   ownerId: string;
@@ -23,6 +23,8 @@ interface ClientRow {
   state: string;
   plan: string | null;
   status: string | null;
+  currentPeriodStart: string | null;
+  invoicedAt: string | null;
   createdAt: string;
 }
 
@@ -227,7 +229,32 @@ function EmitPanel({ row, onClose }: { row: ClientRow; onClose: () => void }) {
   );
 }
 
-function DetailPanel({ row, onEdit, onEmit }: { row: ClientRow; onEdit: () => void; onEmit: () => void }) {
+function InvoicedCheckbox({ row, onChange }: { row: ClientRow; onChange: (invoicedAt: string | null) => void }) {
+  const [loading, setLoading] = useState(false);
+  const checked = !!row.invoicedAt;
+
+  async function toggle() {
+    setLoading(true);
+    const res = await fetch("/api/admin/clientes/invoiced", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ownerId: row.ownerId, invoiced: !checked }),
+    });
+    if (res.ok) onChange(!checked ? new Date().toISOString() : null);
+    setLoading(false);
+  }
+
+  return (
+    <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: loading ? "default" : "pointer", fontSize: 12, color: checked ? "#059669" : "var(--stone)", userSelect: "none" }}>
+      <input type="checkbox" checked={checked} onChange={toggle} disabled={loading} style={{ accentColor: "#059669", width: 14, height: 14 }} />
+      {checked
+        ? `NFS-e emitida em ${fmtDate(row.invoicedAt!)}`
+        : "Marcar NFS-e como emitida"}
+    </label>
+  );
+}
+
+function DetailPanel({ row, onEdit, onEmit, onInvoicedChange }: { row: ClientRow; onEdit: () => void; onEmit: () => void; onInvoicedChange: (invoicedAt: string | null) => void }) {
   const address = [row.street, row.number, row.complement].filter(Boolean).join(", ");
   const cityState = `${row.city}/${row.state}`;
   const doc = fmtDoc(row);
@@ -263,13 +290,14 @@ function DetailPanel({ row, onEdit, onEmit }: { row: ClientRow; onEdit: () => vo
               </div>
             ))}
           </div>
-          <div style={{ display: "flex", gap: 8 }}>
+          <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
             <button onClick={onEdit} className="btn btn-ghost btn-sm" style={{ gap: 6, fontSize: 12 }}>
               <Pencil size={12} /> Editar dados fiscais
             </button>
             <button onClick={onEmit} className="btn btn-ghost btn-sm" style={{ gap: 6, fontSize: 12 }}>
               <Send size={12} /> Emitir NFS-e
             </button>
+            <InvoicedCheckbox row={row} onChange={onInvoicedChange} />
           </div>
         </div>
       </td>
@@ -360,6 +388,14 @@ export default function ClientesPage() {
     );
   });
 
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const pendingInvoice = rows.filter(r =>
+    r.status === "ACTIVE" &&
+    !r.invoicedAt &&
+    r.currentPeriodStart &&
+    r.currentPeriodStart < sevenDaysAgo
+  ).length;
+
   return (
     <div className="content scroll">
       <div className="content-inner">
@@ -368,7 +404,14 @@ export default function ClientesPage() {
           <div>
             <p className="eyebrow">Master Admin · Raio Publicador</p>
             <h2><em>Clientes</em></h2>
-            <p className="sub">{rows.length} perfis fiscais cadastrados</p>
+            <p className="sub" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              {rows.length} perfis fiscais cadastrados
+              {pendingInvoice > 0 && (
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 4, background: "#FEF3C7", color: "#92400E", borderRadius: 20, padding: "2px 10px", fontSize: 11, fontWeight: 700 }}>
+                  <FileText size={11} /> {pendingInvoice} NFS-e pendente{pendingInvoice > 1 ? "s" : ""}
+                </span>
+              )}
+            </p>
           </div>
           <div className="actions" style={{ alignItems: "center", gap: 10 }}>
             {importMsg && <span style={{ fontSize: 12, color: "var(--stone)" }}>{importMsg}</span>}
@@ -427,6 +470,7 @@ export default function ClientesPage() {
                   {filtered.map(row => {
                     const isOpen = expanded === row.ownerId;
                     const sc = row.status ? STATUS_COLOR[row.status] : null;
+                    const nfPendente = row.status === "ACTIVE" && !row.invoicedAt && row.currentPeriodStart && row.currentPeriodStart < sevenDaysAgo;
                     return (
                       <>
                       <tr
@@ -463,7 +507,14 @@ export default function ClientesPage() {
                             ? <span style={{ padding: "3px 8px", borderRadius: 20, fontSize: 11, fontWeight: 600, background: sc.bg, color: sc.fg }}>{STATUS_LABEL[row.status]}</span>
                             : <span className="muted">—</span>}
                         </td>
-                        <td style={{ fontSize: 12, color: "var(--stone)" }}>{fmtDate(row.createdAt)}</td>
+                        <td style={{ fontSize: 12, color: "var(--stone)" }}>
+                          {fmtDate(row.createdAt)}
+                          {nfPendente && (
+                            <span title="NFS-e pendente" style={{ marginLeft: 6, display: "inline-flex", verticalAlign: "middle" }}>
+                              <FileText size={11} color="#D97706" />
+                            </span>
+                          )}
+                        </td>
                         <td onClick={e => e.stopPropagation()} style={{ textAlign: "center" }}>
                           <button
                             title="Excluir perfil fiscal"
@@ -482,6 +533,7 @@ export default function ClientesPage() {
                           row={row}
                           onEdit={() => setPanelMode("edit")}
                           onEmit={() => setPanelMode("emit")}
+                          onInvoicedChange={(invoicedAt) => setRows(prev => prev.map(r => r.ownerId === row.ownerId ? { ...r, invoicedAt } : r))}
                         />
                       )}
                       {isOpen && panelMode === "edit" && (

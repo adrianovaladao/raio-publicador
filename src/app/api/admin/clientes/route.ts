@@ -46,9 +46,11 @@ export async function GET() {
       district:    p.district,
       city:        p.city,
       state:       p.state,
-      plan:        sub?.plan ?? null,
-      status:      sub?.status ?? null,
-      createdAt:   p.createdAt.toISOString(),
+      plan:               sub?.plan ?? null,
+      status:             sub?.status ?? null,
+      currentPeriodStart: sub?.currentPeriodStart?.toISOString() ?? null,
+      invoicedAt:         sub?.invoicedAt?.toISOString() ?? null,
+      createdAt:          p.createdAt.toISOString(),
     };
   });
 
