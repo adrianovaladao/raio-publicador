@@ -122,17 +122,15 @@ export default function CheckoutPage() {
               {/* Card fee breakdown */}
               <div style={{ marginTop: 18 }}>
                 <div style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, padding: "14px 14px 12px" }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--tx-3)", marginBottom: 10 }}>
-                    💳 Cartão de crédito
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "var(--tx-2)", marginBottom: 8 }}>
+                    <span>Plano {plan.label} <span style={{ color: "var(--tx-3)", fontWeight: 400 }}>(Pix)</span></span>
+                    <span>{fmt(plan.priceCents)}</span>
                   </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "var(--tx-2)", marginBottom: 5 }}>
-                    <span>Plano {plan.label}</span><span>{fmt(plan.priceCents)}</span>
-                  </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "var(--tx-3)", marginBottom: 10 }}>
-                    <span>Taxa de processamento (3,5%)</span><span>{fmt(feeCents)}</span>
-                  </div>
-                  <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: 8, display: "flex", justifyContent: "space-between", fontSize: 15, fontWeight: 800, color: "var(--coral)" }}>
-                    <span>Total/mês</span><span>{fmt(totalCents)}</span>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 13, color: "var(--tx-3)" }}>
+                    <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                      <span style={{ fontSize: 14 }}>💳</span> Taxa de processamento (3,5%)
+                    </span>
+                    <span>+ {fmt(feeCents)}</span>
                   </div>
                 </div>
               </div>
