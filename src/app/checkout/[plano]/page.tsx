@@ -119,18 +119,19 @@ export default function CheckoutPage() {
                 ))}
               </div>
 
-              {/* Card fee breakdown */}
+              {/* Pricing breakdown */}
               <div style={{ marginTop: 18 }}>
                 <div style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, padding: "14px 14px 12px" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "var(--tx-2)", marginBottom: 8 }}>
-                    <span>Plano {plan.label} <span style={{ color: "var(--tx-3)", fontWeight: 400 }}>(Pix)</span></span>
-                    <span>{fmt(plan.priceCents)}</span>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: "var(--coral)", marginBottom: 10 }}>
+                    Plano {plan.label}
                   </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 13, color: "var(--tx-3)" }}>
-                    <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                      <span style={{ fontSize: 14 }}>💳</span> Taxa de processamento (3,5%)
-                    </span>
-                    <span>+ {fmt(feeCents)}</span>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "var(--tx-2)", marginBottom: 6 }}>
+                    <span>Pagamento por Pix</span>
+                    <span style={{ fontWeight: 600 }}>{fmt(plan.priceCents)}</span>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "var(--tx-2)" }}>
+                    <span>Pagamento por Cartão de crédito</span>
+                    <span style={{ fontWeight: 600 }}>{fmt(totalCents)}</span>
                   </div>
                 </div>
               </div>
