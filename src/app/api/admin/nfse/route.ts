@@ -10,6 +10,7 @@ const NFEIO_COMPANY  = process.env.NFEIO_COMPANY_ID ?? "796880a7bfb7407db2201ffe
 const NFEIO_SVC_CODE = process.env.NFEIO_SERVICE_CODE ?? "2800";
 
 export async function GET() {
+  try {
   if (!await assertMaster())
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
@@ -50,6 +51,11 @@ export async function GET() {
   });
 
   return NextResponse.json({ invoices: rows });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("[GET /api/admin/nfse]", msg);
+    return NextResponse.json({ error: msg }, { status: 500 });
+  }
 }
 
 export async function POST(req: NextRequest) {
