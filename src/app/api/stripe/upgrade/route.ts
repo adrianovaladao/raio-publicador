@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
       await prisma.subscription.update({ where: { ownerId: userId }, data: { stripeCustomerId: customerId } });
     }
 
-    const cardFeeCents = Math.round(plan.priceCents * 0.04);
+    const cardFeeCents = Math.round(plan.priceCents * 0.035);
     const planFeatures: Record<string, string> = {
       BASIC:        "200 créditos/mês · 2 marcas · 1 editor · 1 revisor · 2 pub. Cat. A/mês",
       ADVANCED:     "1.000 créditos/mês · 5 marcas · 3 editores · 5 revisores · 5 pub. Cat. A/mês",
@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
           unit_amount: cardFeeCents,
           recurring: { interval: "month" as const },
           product_data: {
-            name: "Taxa de processamento de cartão (4%)",
+            name: "Taxa de processamento de cartão (3,5%)",
             description: "Aplicada mensalmente sobre o valor do plano.",
           },
         },
