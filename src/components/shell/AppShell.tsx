@@ -190,15 +190,21 @@ function PlansModal({ onClose, sub, onSuccess, onBuyCredits }: { onClose: () => 
   const left = sub.credits - sub.creditsUsed;
   const [upgrading, setUpgrading] = useState<string | null>(null);
   const [upgradeErr, setUpgradeErr] = useState<string | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
-    const fn = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    const fn = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (selectedPlan) setSelectedPlan(null);
+        else onClose();
+      }
+    };
     window.addEventListener("keydown", fn);
     return () => window.removeEventListener("keydown", fn);
-  }, [onClose]);
+  }, [onClose, selectedPlan]);
 
-  async function handleUpgrade(planId: string) {
+  async function handleCardUpgrade(planId: string) {
     setUpgrading(planId);
     setUpgradeErr(null);
     try {
@@ -217,21 +223,71 @@ function PlansModal({ onClose, sub, onSuccess, onBuyCredits }: { onClose: () => 
     setUpgrading(null);
   }
 
+  const selectedPlanData = APP_PLANS.find(p => p.id === selectedPlan);
+
   return (
-    <div className="overlay" onClick={onClose}>
+    <div className="overlay" onClick={() => { if (selectedPlan) setSelectedPlan(null); else onClose(); }}>
       <div className="modal modal-plans dark" onClick={e => e.stopPropagation()}>
         <div className="m-head" style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
           <div>
-            <h3>Planos e <em>créditos</em></h3>
-            <p style={{ margin: "6px 0 0", fontSize: 14, color: "var(--d-text)" }}>
-              Você usou {pct}% dos créditos deste ciclo · {left.toLocaleString("pt-BR")} restantes.
-            </p>
+            {selectedPlan ? (
+              <>
+                <h3>Forma de <em>pagamento</em></h3>
+                <p style={{ margin: "6px 0 0", fontSize: 14, color: "var(--d-text)" }}>
+                  Plano {selectedPlanData?.name} · R$ {selectedPlanData?.amt}/mês
+                </p>
+              </>
+            ) : (
+              <>
+                <h3>Planos e <em>créditos</em></h3>
+                <p style={{ margin: "6px 0 0", fontSize: 14, color: "var(--d-text)" }}>
+                  Você usou {pct}% dos créditos deste ciclo · {left.toLocaleString("pt-BR")} restantes.
+                </p>
+              </>
+            )}
           </div>
           <button className="icon-btn" onClick={onClose} style={{ width: 34, height: 34, flexShrink: 0 }}>
             <X size={17} />
           </button>
         </div>
         <div className="m-body">
+
+          {/* ── Passo 2: escolha de método de pagamento ── */}
+          {selectedPlan && selectedPlanData ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              <button
+                className="btn btn-dark btn-block"
+                style={{ justifyContent: "center", gap: 10, padding: "18px 20px", fontSize: 15 }}
+                disabled={upgrading !== null}
+                onClick={() => handleCardUpgrade(selectedPlan)}
+              >
+                {upgrading === selectedPlan
+                  ? "Redirecionando…"
+                  : <><CreditCard size={18} /> Pagar com cartão</>}
+              </button>
+              <button
+                className="btn btn-ghost btn-block"
+                style={{ justifyContent: "center", gap: 10, padding: "18px 20px", fontSize: 15 }}
+                disabled={upgrading !== null}
+                onClick={() => { onClose(); router.push(`/pix/${selectedPlan.toLowerCase()}`); }}
+              >
+                <QrCode size={18} /> Pagar com Pix
+              </button>
+              <button
+                className="btn btn-ghost btn-block"
+                style={{ justifyContent: "center", marginTop: 4 }}
+                onClick={() => { setSelectedPlan(null); setUpgradeErr(null); }}
+              >
+                ← Voltar
+              </button>
+              {upgradeErr && (
+                <p style={{ fontSize: 13, color: "var(--red)", background: "var(--red-soft)", borderRadius: 8, padding: "10px 12px", margin: 0 }}>
+                  {upgradeErr}
+                </p>
+              )}
+            </div>
+          ) : (
+            <>
           <div className="plan-usage">
             <div className="pu-top">
               <span>{sub.label} · {sub.creditsUsed.toLocaleString("pt-BR")} de {sub.credits.toLocaleString("pt-BR")} usados</span>
@@ -262,21 +318,11 @@ function PlansModal({ onClose, sub, onSuccess, onBuyCredits }: { onClose: () => 
                   </ul>
                   <button
                     className={`btn btn-block${isCurrent ? " btn-ghost" : p.featured ? " btn-primary" : " btn-dark"}`}
-                    disabled={isCurrent || upgrading === p.id}
-                    onClick={() => { if (!isCurrent) handleUpgrade(p.id); }}
+                    disabled={isCurrent}
+                    onClick={() => { if (!isCurrent) setSelectedPlan(p.id); }}
                   >
-                    {upgrading === p.id ? "Redirecionando…" : isCurrent ? "Plano atual" : `Selecionar ${p.name}`}
+                    {isCurrent ? "Plano atual" : `Selecionar ${p.name}`}
                   </button>
-                  {!isCurrent && (
-                    <button
-                      className="btn btn-ghost btn-block"
-                      style={{ justifyContent: "center", gap: 6, marginTop: 6 }}
-                      disabled={upgrading !== null}
-                      onClick={() => { onClose(); router.push(`/pix/${p.id.toLowerCase()}`); }}
-                    >
-                      <QrCode size={13} /> Pagar com Pix
-                    </button>
-                  )}
                 </div>
               );
             })}
@@ -292,6 +338,8 @@ function PlansModal({ onClose, sub, onSuccess, onBuyCredits }: { onClose: () => 
               <Zap size={16} />
               <span>Precisa de mais créditos? <b>Comprar créditos avulsos →</b></span>
             </div>
+          )}
+            </>
           )}
         </div>
       </div>
