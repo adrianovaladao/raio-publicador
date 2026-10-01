@@ -6,7 +6,7 @@ import { useUser, useClerk } from "@clerk/nextjs";
 import {
   LayoutDashboard, FileText, CalendarDays, Rss, Settings, ShieldCheck,
   Bell, LogOut, Zap, Check, X,
-  Megaphone, CreditCard, Users, Radio,
+  Megaphone, CreditCard, Users, Radio, QrCode,
 } from "lucide-react";
 import { RaioLockup } from "@/components/logo/RaioLockup";
 import { SupportWidget } from "@/components/support/SupportWidget";
@@ -190,6 +190,7 @@ function PlansModal({ onClose, sub, onSuccess, onBuyCredits }: { onClose: () => 
   const left = sub.credits - sub.creditsUsed;
   const [upgrading, setUpgrading] = useState<string | null>(null);
   const [upgradeErr, setUpgradeErr] = useState<string | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const fn = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
@@ -266,6 +267,16 @@ function PlansModal({ onClose, sub, onSuccess, onBuyCredits }: { onClose: () => 
                   >
                     {upgrading === p.id ? "Redirecionando…" : isCurrent ? "Plano atual" : `Selecionar ${p.name}`}
                   </button>
+                  {!isCurrent && (
+                    <button
+                      className="btn btn-ghost btn-block"
+                      style={{ justifyContent: "center", gap: 6, marginTop: 6 }}
+                      disabled={upgrading !== null}
+                      onClick={() => { onClose(); router.push(`/pix/${p.id.toLowerCase()}`); }}
+                    >
+                      <QrCode size={13} /> Pagar com Pix
+                    </button>
+                  )}
                 </div>
               );
             })}

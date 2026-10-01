@@ -13,8 +13,8 @@ async function resolveCustomerId(
 ): Promise<string> {
   if (storedId) {
     try {
-      await stripe.customers.retrieve(storedId);
-      return storedId;
+      const c = await stripe.customers.retrieve(storedId);
+      if (!("deleted" in c && c.deleted)) return storedId;
     } catch { /* stale ID — fallthrough */ }
   }
   if (email) {
