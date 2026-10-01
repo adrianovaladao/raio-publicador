@@ -20,10 +20,10 @@ export async function GET() {
 
   const clerkIds = [...new Set(invoices.map(i => i.clerkId))];
   const clerk = await clerkClient();
-  const clerkUsers = clerkIds.length > 0
-    ? await clerk.users.getUserList({ userId: clerkIds, limit: 500 })
-    : { data: [] };
-  const clerkMap = new Map(clerkUsers.data.map(u => [u.id, u]));
+  const clerkUsers = await clerk.users.getUserList({ limit: 500 });
+  const clerkMap = new Map(
+    clerkUsers.data.filter(u => clerkIds.includes(u.id)).map(u => [u.id, u])
+  );
 
   const fiscalProfiles = clerkIds.length > 0
     ? await prisma.fiscalProfile.findMany({ where: { ownerId: { in: clerkIds } } })
