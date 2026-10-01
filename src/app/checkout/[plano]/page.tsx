@@ -150,7 +150,7 @@ export default function CheckoutPage() {
               <CreditCard size={15} /> {loading ? "Redirecionando…" : "Pagar com cartão"}
             </button>
 
-            <button onClick={() => router.back()}
+            <button onClick={() => router.push("/dashboard")}
               style={{ background: "none", border: "none", fontSize: 13.5, color: "var(--tx-3)", cursor: "pointer", padding: "4px 8px", marginBottom: 20, display: "inline-flex", alignItems: "center", gap: 5 }}>
               <ArrowLeft size={14} /> Voltar
             </button>
