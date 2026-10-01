@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useUser, useClerk } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
-import { LayoutDashboard, Users, Rss, FileText, LogOut, ShieldCheck, Shield, ExternalLink, UserCog, Tag, Receipt, QrCode } from "lucide-react";
+import { LayoutDashboard, Users, Rss, FileText, LogOut, ShieldCheck, Shield, ExternalLink, UserCog, Tag, Receipt, QrCode, ScrollText } from "lucide-react";
 import { RaioLockup } from "@/components/logo/RaioLockup";
 import { getAdminRole, isMaster, ROLE_LABEL } from "@/lib/admin";
 
@@ -17,6 +17,7 @@ const NAV_ALL = [
   { href: "/admin/vouchers",          icon: Tag,             label: "Vouchers",                      masterOnly: true  },
   { href: "/admin/clientes",          icon: Receipt,         label: "Clientes",                      masterOnly: true  },
   { href: "/admin/pix",               icon: QrCode,          label: "Pix",                           masterOnly: true  },
+  { href: "/admin/nfse",              icon: ScrollText,      label: "NFS-e",                         masterOnly: true  },
 ];
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
@@ -29,12 +30,17 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const master = isMaster(meta);
   const nav    = NAV_ALL.filter(item => !item.masterOnly || master);
 
-  const [pixBadge, setPixBadge] = useState(0);
+  const [pixBadge,   setPixBadge]   = useState(0);
+  const [nfseBadge,  setNfseBadge]  = useState(0);
   useEffect(() => {
     if (!master) return;
     fetch("/api/admin/pix/badge")
       .then(r => r.json())
       .then(d => setPixBadge(d.count ?? 0))
+      .catch(() => {});
+    fetch("/api/admin/nfse/badge")
+      .then(r => r.json())
+      .then(d => setNfseBadge(d.count ?? 0))
       .catch(() => {});
   }, [master]);
 
@@ -81,7 +87,11 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </p>
           {nav.map(({ href, icon: Icon, label, exact }) => {
             const active = exact ? pathname === href : pathname.startsWith(href);
-            const badge = href === "/admin/pix" && pixBadge > 0 ? pixBadge : 0;
+            const badge = href === "/admin/pix" && pixBadge > 0
+              ? pixBadge
+              : href === "/admin/nfse" && nfseBadge > 0
+              ? nfseBadge
+              : 0;
             return (
               <Link key={href} href={href} style={{
                 display: "flex", alignItems: "center", gap: 10,
