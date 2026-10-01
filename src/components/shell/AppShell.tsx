@@ -6,7 +6,7 @@ import { useUser, useClerk } from "@clerk/nextjs";
 import {
   LayoutDashboard, FileText, CalendarDays, Rss, Settings, ShieldCheck,
   Bell, LogOut, Zap, Check, X,
-  Megaphone, CreditCard, Users, Radio, QrCode,
+  Megaphone, CreditCard, Users, Radio,
 } from "lucide-react";
 import { RaioLockup } from "@/components/logo/RaioLockup";
 import { SupportWidget } from "@/components/support/SupportWidget";
@@ -185,109 +185,33 @@ function NotificationPanel({ onClose }: { onClose: () => void }) {
 
 // ─── PlansModal ───────────────────────────────────────────────────────────────
 
-function PlansModal({ onClose, sub, onSuccess, onBuyCredits }: { onClose: () => void; sub: SubInfo; onSuccess: (msg: string) => void; onBuyCredits: () => void }) {
+function PlansModal({ onClose, sub, onBuyCredits }: { onClose: () => void; sub: SubInfo; onSuccess: (msg: string) => void; onBuyCredits: () => void }) {
   const pct  = sub.credits > 0 ? Math.round((sub.creditsUsed / sub.credits) * 100) : 0;
   const left = sub.credits - sub.creditsUsed;
-  const [upgrading, setUpgrading] = useState<string | null>(null);
-  const [upgradeErr, setUpgradeErr] = useState<string | null>(null);
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
-    const fn = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        if (selectedPlan) setSelectedPlan(null);
-        else onClose();
-      }
-    };
+    const fn = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
     window.addEventListener("keydown", fn);
     return () => window.removeEventListener("keydown", fn);
-  }, [onClose, selectedPlan]);
-
-  async function handleCardUpgrade(planId: string) {
-    setUpgrading(planId);
-    setUpgradeErr(null);
-    try {
-      const res = await fetch("/api/stripe/upgrade", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ planId }),
-      });
-      const data = await res.json() as { ok?: boolean; redirect?: boolean; url?: string; error?: string };
-      if (data.redirect && data.url) { window.location.href = data.url; return; }
-      if (data.ok) { onSuccess("Plano atualizado com sucesso"); onClose(); return; }
-      setUpgradeErr(data.error ?? "Não foi possível processar o upgrade. Tente novamente.");
-    } catch {
-      setUpgradeErr("Falha de conexão. Tente novamente.");
-    }
-    setUpgrading(null);
-  }
-
-  const selectedPlanData = APP_PLANS.find(p => p.id === selectedPlan);
+  }, [onClose]);
 
   return (
-    <div className="overlay" onClick={() => { if (selectedPlan) setSelectedPlan(null); else onClose(); }}>
+    <div className="overlay" onClick={onClose}>
       <div className="modal modal-plans dark" onClick={e => e.stopPropagation()}>
         <div className="m-head" style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
           <div>
-            {selectedPlan ? (
-              <>
-                <h3>Forma de <em>pagamento</em></h3>
-                <p style={{ margin: "6px 0 0", fontSize: 14, color: "var(--d-text)" }}>
-                  Plano {selectedPlanData?.name} · R$ {selectedPlanData?.amt}/mês
-                </p>
-              </>
-            ) : (
-              <>
-                <h3>Planos e <em>créditos</em></h3>
-                <p style={{ margin: "6px 0 0", fontSize: 14, color: "var(--d-text)" }}>
-                  Você usou {pct}% dos créditos deste ciclo · {left.toLocaleString("pt-BR")} restantes.
-                </p>
-              </>
-            )}
+            <h3>Planos e <em>créditos</em></h3>
+            <p style={{ margin: "6px 0 0", fontSize: 14, color: "var(--d-text)" }}>
+              Você usou {pct}% dos créditos deste ciclo · {left.toLocaleString("pt-BR")} restantes.
+            </p>
           </div>
           <button className="icon-btn" onClick={onClose} style={{ width: 34, height: 34, flexShrink: 0 }}>
             <X size={17} />
           </button>
         </div>
         <div className="m-body">
-
-          {/* ── Passo 2: escolha de método de pagamento ── */}
-          {selectedPlan && selectedPlanData ? (
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              <button
-                className="btn btn-dark btn-block"
-                style={{ justifyContent: "center", gap: 10, padding: "18px 20px", fontSize: 15 }}
-                disabled={upgrading !== null}
-                onClick={() => handleCardUpgrade(selectedPlan)}
-              >
-                {upgrading === selectedPlan
-                  ? "Redirecionando…"
-                  : <><CreditCard size={18} /> Pagar com cartão</>}
-              </button>
-              <button
-                className="btn btn-ghost btn-block"
-                style={{ justifyContent: "center", gap: 10, padding: "18px 20px", fontSize: 15 }}
-                disabled={upgrading !== null}
-                onClick={() => { onClose(); router.push(`/pix/${selectedPlan.toLowerCase()}`); }}
-              >
-                <QrCode size={18} /> Pagar com Pix
-              </button>
-              <button
-                className="btn btn-ghost btn-block"
-                style={{ justifyContent: "center", marginTop: 4 }}
-                onClick={() => { setSelectedPlan(null); setUpgradeErr(null); }}
-              >
-                ← Voltar
-              </button>
-              {upgradeErr && (
-                <p style={{ fontSize: 13, color: "var(--red)", background: "var(--red-soft)", borderRadius: 8, padding: "10px 12px", margin: 0 }}>
-                  {upgradeErr}
-                </p>
-              )}
-            </div>
-          ) : (
-            <>
+          <>
           <div className="plan-usage">
             <div className="pu-top">
               <span>{sub.label} · {sub.creditsUsed.toLocaleString("pt-BR")} de {sub.credits.toLocaleString("pt-BR")} usados</span>
@@ -319,7 +243,7 @@ function PlansModal({ onClose, sub, onSuccess, onBuyCredits }: { onClose: () => 
                   <button
                     className={`btn btn-block${isCurrent ? " btn-ghost" : p.featured ? " btn-primary" : " btn-dark"}`}
                     disabled={isCurrent}
-                    onClick={() => { if (!isCurrent) setSelectedPlan(p.id); }}
+                    onClick={() => { if (!isCurrent) { onClose(); router.push(`/checkout/${p.id.toLowerCase()}`); } }}
                   >
                     {isCurrent ? "Plano atual" : `Selecionar ${p.name}`}
                   </button>
@@ -328,19 +252,13 @@ function PlansModal({ onClose, sub, onSuccess, onBuyCredits }: { onClose: () => 
             })}
           </div>
 
-          {upgradeErr && (
-            <div style={{ margin: "0 0 8px", padding: "10px 14px", background: "var(--coral-soft, #fee2e2)", borderRadius: 10, fontSize: 13, color: "var(--coral, #dc2626)" }}>
-              {upgradeErr}
-            </div>
-          )}
           {sub.plan !== "VOUCHER" && (
             <div className="plans-note" style={{ cursor: "pointer" }} onClick={() => { onClose(); onBuyCredits(); }}>
               <Zap size={16} />
               <span>Precisa de mais créditos? <b>Comprar créditos avulsos →</b></span>
             </div>
           )}
-            </>
-          )}
+          </>
         </div>
       </div>
     </div>
