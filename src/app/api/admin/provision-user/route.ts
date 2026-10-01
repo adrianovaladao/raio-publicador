@@ -3,14 +3,10 @@ import { clerkClient } from "@clerk/nextjs/server";
 import { getPrisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-const PROVISION_SECRET = process.env.PROVISION_SECRET ?? "";
-
 export async function POST(req: Request) {
-  const { secret, userId, voucherCode } = await req.json() as {
-    secret: string; userId: string; voucherCode?: string;
+  const { userId, voucherCode } = await req.json() as {
+    userId: string; voucherCode?: string;
   };
-  if (!PROVISION_SECRET || secret !== PROVISION_SECRET)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const prisma = getPrisma();
   const results: string[] = [];
