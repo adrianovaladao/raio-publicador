@@ -528,7 +528,6 @@ export default function AdminUsuarios() {
   const [editing, setEditing]   = useState<UserRow | null>(null);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [tick, setTick]         = useState(0);
-  const [fiscalToast, setFiscalToast] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkDel, setBulkDel]   = useState(false);
   const [filterTag, setFilterTag] = useState<"ALL" | "subscribers" | "markable" | "voucher">("ALL");
@@ -755,11 +754,10 @@ export default function AdminUsuarios() {
                                 <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", padding: "1px 5px", borderRadius: 4, background: "#FEF3C7", color: "#92400E" }}>Markable</span>
                               )}
                               {!row.hasFiscalProfile && row.plan !== "VOUCHER" && (
-                                <OctagonAlert
-                                  size={14}
-                                  style={{ color: "#EF4444", flexShrink: 0, cursor: "pointer" }}
-                                  onClick={e => { e.stopPropagation(); setFiscalToast(true); setTimeout(() => setFiscalToast(false), 3000); }}
-                                />
+                                <span style={{ position: "relative", display: "inline-flex" }} className="fiscal-alert-wrap">
+                                  <OctagonAlert size={14} style={{ color: "#EF4444", flexShrink: 0 }} />
+                                  <span className="fiscal-tooltip">Sem perfil fiscal</span>
+                                </span>
                               )}
                             </span>
                             <span className="ph">{row.email}</span>
@@ -818,19 +816,25 @@ export default function AdminUsuarios() {
         />
       )}
 
-      {fiscalToast && (
-        <div style={{
-          position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)",
-          display: "flex", alignItems: "center", gap: 8,
-          background: "#1f2937", color: "#fff",
-          padding: "10px 18px", borderRadius: 10, fontSize: 13, fontWeight: 600,
-          boxShadow: "0 4px 20px rgba(0,0,0,0.3)", zIndex: 9999,
-          animation: "fadeIn .15s ease",
-        }}>
-          <OctagonAlert size={14} style={{ color: "#EF4444" }} />
-          Sem perfil fiscal
-        </div>
-      )}
+      <style>{`
+        .fiscal-alert-wrap .fiscal-tooltip {
+          display: none;
+          position: absolute;
+          bottom: calc(100% + 6px);
+          left: 50%;
+          transform: translateX(-50%);
+          white-space: nowrap;
+          background: #1f2937;
+          color: #fff;
+          font-size: 11px;
+          font-weight: 600;
+          padding: 4px 9px;
+          border-radius: 6px;
+          pointer-events: none;
+          z-index: 100;
+        }
+        .fiscal-alert-wrap:hover .fiscal-tooltip { display: block; }
+      `}</style>
     </div>
   );
 }
