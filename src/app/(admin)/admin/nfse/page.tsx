@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { RefreshCw, Send, AlertTriangle, CheckCircle, FileX, Clock, ExternalLink } from "lucide-react";
+import { RefreshCw, Send, AlertTriangle, CheckCircle, FileX, Clock, ExternalLink, Trash2 } from "lucide-react";
 
 interface NfseRow {
   id: string;
@@ -52,6 +52,7 @@ export default function AdminNfsePage() {
   const [invoices, setInvoices] = useState<NfseRow[]>([]);
   const [loading, setLoading]   = useState(true);
   const [emitting, setEmitting] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<string | null>(null);
   const [error, setError]       = useState("");
   const [tab, setTab]           = useState<"pending" | "sent">("pending");
 
@@ -69,6 +70,23 @@ export default function AdminNfsePage() {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+
+  async function deleteInvoice(invoiceId: string) {
+    if (!confirm("Deletar este registro permanentemente?")) return;
+    setDeleting(invoiceId);
+    try {
+      const res = await fetch("/api/admin/nfse", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ invoiceId }),
+      });
+      const data = await res.json();
+      if (!res.ok) { alert(data?.error ?? `Erro ${res.status}`); }
+      await load();
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Erro inesperado");
+    } finally { setDeleting(null); }
+  }
 
   async function emit(invoiceId: string) {
     setEmitting(invoiceId);
@@ -157,7 +175,7 @@ export default function AdminNfsePage() {
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
                 <thead>
                   <tr style={{ borderBottom: "1px solid var(--line)", background: "var(--bg2)" }}>
-                    {["Data pagamento", "Nome", "E-mail", "Valor", "Origem", "Status", tab === "pending" ? "Ação" : "NFe.io"].map(h => (
+                    {["Data pagamento", "Nome", "E-mail", "Valor", "Origem", "Status", tab === "pending" ? "Ação" : "NFe.io", ""].map(h => (
                       <th key={h} style={{ padding: "10px 16px", textAlign: "left", fontWeight: 600, fontSize: 11, color: "var(--stone)", whiteSpace: "nowrap" }}>{h}</th>
                     ))}
                   </tr>
@@ -223,6 +241,24 @@ export default function AdminNfsePage() {
                             </a>
                           ) : "—"
                         )}
+                      </td>
+                      <td style={{ padding: "12px 16px" }}>
+                        <button
+                          onClick={() => deleteInvoice(inv.id)}
+                          disabled={deleting === inv.id}
+                          title="Deletar registro"
+                          style={{
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                            width: 30, height: 30,
+                            background: "none", border: "1px solid var(--line)", borderRadius: 7,
+                            color: "var(--stone)", cursor: deleting === inv.id ? "not-allowed" : "pointer",
+                            opacity: deleting === inv.id ? 0.5 : 1,
+                          }}
+                        >
+                          {deleting === inv.id
+                            ? <RefreshCw size={12} style={{ animation: "spin 1s linear infinite" }} />
+                            : <Trash2 size={12} />}
+                        </button>
                       </td>
                     </tr>
                   ))}

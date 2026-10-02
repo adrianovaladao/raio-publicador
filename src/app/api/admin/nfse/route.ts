@@ -156,3 +156,20 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({ ok: true, nfeioId: data.id });
 }
+
+export async function DELETE(req: NextRequest) {
+  if (!await assertMaster())
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  const { invoiceId } = await req.json() as { invoiceId: string };
+  if (!invoiceId)
+    return NextResponse.json({ error: "invoiceId obrigatório" }, { status: 400 });
+
+  const prisma = getPrisma();
+  const inv = await prisma.pendingInvoice.findUnique({ where: { id: invoiceId } });
+  if (!inv)
+    return NextResponse.json({ error: "Invoice não encontrada" }, { status: 404 });
+
+  await prisma.pendingInvoice.delete({ where: { id: invoiceId } });
+  return NextResponse.json({ ok: true });
+}
