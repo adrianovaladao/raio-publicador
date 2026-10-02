@@ -754,7 +754,7 @@ export default function AdminUsuarios() {
                               {row.isMarkable && (
                                 <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", padding: "1px 5px", borderRadius: 4, background: "#FEF3C7", color: "#92400E" }}>Markable</span>
                               )}
-                              {!row.hasFiscalProfile && (
+                              {!row.hasFiscalProfile && row.plan !== "VOUCHER" && (
                                 <OctagonAlert
                                   size={14}
                                   style={{ color: "#EF4444", flexShrink: 0, cursor: "pointer" }}
