@@ -17,6 +17,13 @@ export async function GET() {
     orderBy: { createdAt: "desc" },
   });
 
+  // Fetch fiscal profiles to flag users without one
+  const fiscalProfiles = await prisma.fiscalProfile.findMany({
+    where: { ownerId: { in: subs.map(s => s.ownerId) } },
+    select: { ownerId: true },
+  });
+  const fiscalSet = new Set(fiscalProfiles.map(f => f.ownerId));
+
   // Fetch voucher redemptions (one per user at most — first redemption wins)
   const redemptions = await prisma.voucherRedemption.findMany({
     where: { userId: { in: subs.map(s => s.ownerId) } },
@@ -54,6 +61,7 @@ export async function GET() {
       currentPeriodEnd: sub.currentPeriodEnd?.toISOString() ?? null,
       isMarkable: !!(cu?.publicMetadata as Record<string, unknown>)?.isMarkable,
       voucherCode: voucherMap.get(sub.ownerId) ?? null,
+      hasFiscalProfile: fiscalSet.has(sub.ownerId),
     };
   });
 

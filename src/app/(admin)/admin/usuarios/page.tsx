@@ -8,7 +8,7 @@ import { isMaster } from "@/lib/admin";
 import {
   ArrowUp, ArrowDown, ArrowUpDown,
   Pencil, Check, X, RefreshCw, ExternalLink, ChevronDown, Crown, Trash2, ChevronRight,
-  Building2, FileText, Users, CreditCard, Zap, Calendar, ArrowLeft, ArrowRight,
+  Building2, FileText, Users, CreditCard, Zap, Calendar, ArrowLeft, ArrowRight, OctagonAlert,
 } from "lucide-react";
 
 interface UserRow {
@@ -29,6 +29,7 @@ interface UserRow {
   currentPeriodEnd: string | null;
   isMarkable: boolean;
   voucherCode: string | null;
+  hasFiscalProfile: boolean;
 }
 
 interface UserDetail {
@@ -527,6 +528,7 @@ export default function AdminUsuarios() {
   const [editing, setEditing]   = useState<UserRow | null>(null);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [tick, setTick]         = useState(0);
+  const [fiscalToast, setFiscalToast] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkDel, setBulkDel]   = useState(false);
   const [filterTag, setFilterTag] = useState<"ALL" | "subscribers" | "markable" | "voucher">("ALL");
@@ -752,6 +754,13 @@ export default function AdminUsuarios() {
                               {row.isMarkable && (
                                 <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", padding: "1px 5px", borderRadius: 4, background: "#FEF3C7", color: "#92400E" }}>Markable</span>
                               )}
+                              {!row.hasFiscalProfile && (
+                                <OctagonAlert
+                                  size={14}
+                                  style={{ color: "#EF4444", flexShrink: 0, cursor: "pointer" }}
+                                  onClick={e => { e.stopPropagation(); setFiscalToast(true); setTimeout(() => setFiscalToast(false), 3000); }}
+                                />
+                              )}
                             </span>
                             <span className="ph">{row.email}</span>
                           </td>
@@ -807,6 +816,20 @@ export default function AdminUsuarios() {
           onClose={() => setEditing(null)}
           onSaved={() => { setTick(t => t + 1); setEditing(null); }}
         />
+      )}
+
+      {fiscalToast && (
+        <div style={{
+          position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)",
+          display: "flex", alignItems: "center", gap: 8,
+          background: "#1f2937", color: "#fff",
+          padding: "10px 18px", borderRadius: 10, fontSize: 13, fontWeight: 600,
+          boxShadow: "0 4px 20px rgba(0,0,0,0.3)", zIndex: 9999,
+          animation: "fadeIn .15s ease",
+        }}>
+          <OctagonAlert size={14} style={{ color: "#EF4444" }} />
+          Sem perfil fiscal
+        </div>
       )}
     </div>
   );
