@@ -452,6 +452,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         const periodEnd = d.currentPeriodEnd ?? null;
         setSub({ plan: d.plan ?? null, status, everPaid, label: d.label ?? "—", priceCents: d.priceCents ?? null, credits: d.credits ?? 0, creditsUsed: d.creditsUsed ?? 0, currentPeriodEnd: periodEnd });
 
+        // Perfil fiscal obrigatório para assinantes pagos ativos
+        const isPaidSubscriber = hasAccess && d.plan && d.plan !== "VOUCHER";
+        const path = window.location.pathname;
+        const isOnBoasVindas = path.startsWith("/boas-vindas") || path.startsWith("/configuracoes");
+        if (!isAdmin && !d.isTeamMember && isPaidSubscriber && !isOnBoasVindas) {
+          fetch("/api/fiscal-profile")
+            .then(r => r.json())
+            .then((fp: { cep?: string } | null) => {
+              if (!fp?.cep) {
+                window.location.href = "/boas-vindas?checkout=success";
+              }
+            })
+            .catch(() => {});
+        }
+
         // Modal de vencimento de voucher — exibe apenas no dia do vencimento, uma única vez
         if (d.plan === "VOUCHER" && status === "ACTIVE" && periodEnd) {
           const expiresDate = new Date(periodEnd).toISOString().slice(0, 10);
