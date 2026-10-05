@@ -1573,10 +1573,21 @@ export default function NovoReleasePage() {
   useEffect(() => { brandRef.current    = brand;    }, [brand]);
   useEffect(() => { selectedRef.current = selected; }, [selected]);
 
+  const isSavingRef    = useRef(false);
+  const pendingSaveRef = useRef(false);
+
   async function autosave() {
     const c = contentRef.current;
     const b = brandRef.current;
     if (!b || !c.title.trim()) return;
+    // Guard against concurrent POST (would create duplicates).
+    // Once we have a draftId, PUTs are idempotent so we just queue one retry.
+    if (isSavingRef.current) {
+      if (!draftIdRef.current) return; // no draftId yet — skip to avoid duplicate POST
+      pendingSaveRef.current = true;   // draftId exists — queue a retry
+      return;
+    }
+    isSavingRef.current = true;
     setSaveStatus("saving");
     try {
       const payload = {
@@ -1611,6 +1622,12 @@ export default function NovoReleasePage() {
       setLastSaved(new Date());
     } catch {
       setSaveStatus("error");
+    } finally {
+      isSavingRef.current = false;
+      if (pendingSaveRef.current) {
+        pendingSaveRef.current = false;
+        autosave();
+      }
     }
   }
 
