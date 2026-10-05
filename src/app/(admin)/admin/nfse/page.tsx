@@ -145,16 +145,16 @@ export default function AdminNfsePage() {
               style={{
                 display: "flex", alignItems: "center", gap: 6,
                 padding: "7px 16px",
-                background: tab === t.key ? "var(--fg)" : "var(--bg2)",
-                color:      tab === t.key ? "var(--bg)" : "var(--fg)",
+                background: tab === t.key ? "#1a1a1a" : "var(--bg2)",
+                color:      tab === t.key ? "#fff" : "var(--fg)",
                 border: "1px solid var(--line)", borderRadius: 99,
                 fontSize: 13, fontWeight: 600, cursor: "pointer",
               }}
             >
               {t.label}
               <span style={{
-                background: tab === t.key ? "var(--bg)" : "var(--line)",
-                color:      tab === t.key ? "var(--fg)" : "var(--stone)",
+                background: tab === t.key ? "rgba(255,255,255,0.15)" : "var(--line)",
+                color:      tab === t.key ? "#fff" : "var(--stone)",
                 borderRadius: 99, padding: "0 7px", fontSize: 11, fontWeight: 700,
               }}>
                 {t.count}
