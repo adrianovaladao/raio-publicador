@@ -71,8 +71,8 @@ export async function GET(req: NextRequest) {
     const msLeft = sub.currentPeriodEnd.getTime() - now.getTime();
     const daysLeft = Math.round(msLeft / (1000 * 60 * 60 * 24));
 
-    // Cancelamento por inadimplência: venceu há mais de 7 dias sem pagamento
-    if (daysLeft < -7) {
+    // Cancelamento por inadimplência: venceu há mais de 48h sem pagamento
+    if (daysLeft < -2) {
       try {
         await prisma.subscription.update({
           where: { id: sub.id },
