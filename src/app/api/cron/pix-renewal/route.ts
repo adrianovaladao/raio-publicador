@@ -18,6 +18,7 @@
  *   - Gera nova cobrança Pix via C6 Bank
  *   - Envia e-mail com QR Code e copia-e-cola
  *   - Em caso de não pagamento em D+0+7 dias: cancela assinatura (INACTIVE)
+ *   - Cancelamento por inadimplência: status → INACTIVE, creditsTotal/creditsUsed → 0
  */
 export const dynamic = "force-dynamic";
 import { getPrisma } from "@/lib/prisma";
@@ -26,6 +27,7 @@ import { criarCobranca } from "@/lib/c6bank";
 import { clerkClient } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { sendPixRenewalEmail } from "@/lib/email-pix";
+import { createNotification } from "@/lib/notify";
 
 // Guard: este cron só executa se PIX_RENEWAL_ENABLED=true estiver setado
 const ENABLED = process.env.C6_PIX_RENEWAL_ENABLED === "true";
@@ -61,13 +63,35 @@ export async function GET(req: NextRequest) {
   });
 
   const clerk = await clerkClient();
-  const results: { ownerId: string; daysLeft: number; sent: boolean; error?: string }[] = [];
+  const results: { ownerId: string; daysLeft: number; sent: boolean; cancelled?: boolean; error?: string }[] = [];
 
   for (const sub of candidates) {
     if (!sub.currentPeriodEnd) continue;
 
     const msLeft = sub.currentPeriodEnd.getTime() - now.getTime();
     const daysLeft = Math.round(msLeft / (1000 * 60 * 60 * 24));
+
+    // Cancelamento por inadimplência: venceu há mais de 7 dias sem pagamento
+    if (daysLeft < -7) {
+      try {
+        await prisma.subscription.update({
+          where: { id: sub.id },
+          data: { status: "INACTIVE", creditsTotal: 0, creditsUsed: 0 },
+        });
+        const planId = sub.plan as PlanId;
+        const planLabel = PLANS[planId]?.label ?? sub.plan;
+        await createNotification(sub.ownerId, "subscription_cancelled",
+          "Assinatura encerrada por inadimplência",
+          `Seu Plano ${planLabel} foi encerrado por falta de pagamento. Seus dados e releases permanecem salvos.`,
+        );
+        results.push({ ownerId: sub.ownerId, daysLeft, sent: false, cancelled: true });
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        console.error(`[cron/pix-renewal] Erro ao cancelar ${sub.ownerId}:`, message);
+        results.push({ ownerId: sub.ownerId, daysLeft, sent: false, error: message });
+      }
+      continue;
+    }
 
     // Envia apenas nos marcos de 7, 2 e 0 dias
     if (![0, 2, 7].includes(daysLeft)) continue;
