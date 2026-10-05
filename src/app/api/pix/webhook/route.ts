@@ -54,13 +54,18 @@ export async function POST(req: NextRequest) {
 
     const sub = await prisma.subscription.findUnique({ where: { ownerId: payment.ownerId } });
 
+    // Preserva créditos remanescentes se o usuário vinha de um voucher (mesma lógica do webhook Stripe)
+    const bonusCredits = sub?.plan === "VOUCHER"
+      ? Math.max(0, (sub.creditsTotal ?? 0) - (sub.creditsUsed ?? 0))
+      : 0;
+
     if (sub) {
       await prisma.subscription.update({
         where: { ownerId: payment.ownerId },
         data: {
           plan: payment.planId as PlanId,
           status: "ACTIVE",
-          creditsTotal: plan.credits,
+          creditsTotal: plan.credits + bonusCredits,
           creditsUsed: 0,
           currentPeriodStart: now,
           currentPeriodEnd: nextMonth,
