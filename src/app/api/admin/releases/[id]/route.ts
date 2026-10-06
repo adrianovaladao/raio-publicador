@@ -44,7 +44,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if (body.status !== undefined) updateData.status = body.status;
   if (body.adminNotes !== undefined) updateData.adminNotes = body.adminNotes;
   if (body.publishedVehicleUrls !== undefined) updateData.publishedVehicleUrls = body.publishedVehicleUrls;
-  if (body.status === "PUBLISHED") updateData.publishedAt = new Date();
+  if (body.status === "PUBLISHED" && prev.status !== "PUBLISHED") updateData.publishedAt = new Date();
   if (body.archive === true)  updateData.archivedAt = new Date();
   if (body.archive === false) updateData.archivedAt = null;
   // edição de conteúdo pelo admin
