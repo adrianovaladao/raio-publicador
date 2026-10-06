@@ -57,7 +57,6 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   // Notifica se: status mudou OU admin clicou explicitamente em "Publicar e notificar" (notifyUser=true)
   // Isso permite reenviar o email de publicação ao atualizar os links mesmo sem mudar o status
   const shouldNotify = body.status && (
-    (body.notifyUser !== false && body.status !== prev.status) ||
     body.notifyUser === true
   );
   const release = await prisma.release.update({ where: { id }, data: updateData });
