@@ -25,6 +25,30 @@ function boldLinks(html: string) {
   return html.replace(/(<a\b[^>]*>)([\s\S]*?)(<\/a>)/gi, "$1<strong>$2</strong>$3");
 }
 
+/**
+ * Normaliza o HTML do corpo antes de enviar ao veículo parceiro.
+ * Garante consistência independente de como o editor produziu o conteúdo.
+ */
+function sanitizeBody(html: string): string {
+  return html
+    // Remove atributos style e class de qualquer tag
+    .replace(/\s+style="[^"]*"/gi, "")
+    .replace(/\s+class="[^"]*"/gi, "")
+    // Remove atributos data-* (TipTap os adiciona internamente)
+    .replace(/\s+data-[\w-]+(?:="[^"]*")?/gi, "")
+    // Remove parágrafos vazios: <p></p>, <p><br></p>, <p>&nbsp;</p>, <p>   </p>
+    .replace(/<p>(?:\s|&nbsp;|<br\s*\/?>)*<\/p>/gi, "")
+    // Remove &nbsp; e espaços soltos logo após <p> (legendas com espaço à frente)
+    .replace(/<p>(?:&nbsp;|\s)+/gi, "<p>")
+    // Remove &nbsp; logo antes de </p>
+    .replace(/(?:&nbsp;|\s)+<\/p>/gi, "</p>")
+    // Substitui quebras de linha soltas dentro de parágrafos por espaço
+    .replace(/<br\s*\/?>/gi, " ")
+    // Remove linhas em branco consecutivas (mais de 2 \n seguidos no texto final)
+    .replace(/(\n\s*){3,}/g, "\n\n")
+    .trim();
+}
+
 function htmlToPlainText(html: string) {
   return html
     .replace(/<br\s*\/?>/gi, "\n")
@@ -99,7 +123,7 @@ export async function GET(
           guid:        r.id,
           title:       r.title,
           description: htmlToPlainText(r.summary ?? r.body).slice(0, 500),
-          contentEncoded: r.body,
+          contentEncoded: sanitizeBody(r.body),
           pubDate:     pubDate(r),
           link:        `${baseUrl}/releases/${r.id}`,
           category:    r.brand.name,
@@ -109,7 +133,7 @@ export async function GET(
       : {
           id:          r.id,
           title:       r.title,
-          body:        r.body,
+          body:        sanitizeBody(r.body),
           summary:     r.summary ?? "",
           author:      r.brand.name,
           imageUrl:    r.imageUrl ?? null,
@@ -129,7 +153,7 @@ export async function GET(
     <item>
       <title>${xmlEscape(r.title)}</title>
       <subtitle><![CDATA[${r.summary ?? ""}]]></subtitle>
-      <description><![CDATA[${boldLinks(r.body)}]]></description>
+      <description><![CDATA[${boldLinks(sanitizeBody(r.body))}]]></description>
       <pubDate>${pubDate(r)}</pubDate>
       <guid isPermaLink="false">${r.id}</guid>
       <link>${baseUrl}/releases/${r.id}</link>
@@ -148,7 +172,7 @@ export async function GET(
       <link>${baseUrl}/releases/${r.id}</link>
       <description>${description}</description>
       <pubDate>${pubDate(r)}</pubDate>
-      <content:encoded><![CDATA[${r.body}]]></content:encoded>
+      <content:encoded><![CDATA[${sanitizeBody(r.body)}]]></content:encoded>
       ${categoryTag}
       <dc:creator>${xmlEscape(r.brand.name)}</dc:creator>
       <author>${xmlEscape(r.brand.name)}</author>
@@ -159,7 +183,7 @@ export async function GET(
     return `
     <item>
       <title>${xmlEscape(r.title)}</title>
-      <description><![CDATA[${r.body}]]></description>
+      <description><![CDATA[${sanitizeBody(r.body)}]]></description>
       <summary><![CDATA[${r.summary ?? ""}]]></summary>
       <author>${xmlEscape(r.brand.name)}</author>
       <pubDate>${pubDate(r)}</pubDate>
