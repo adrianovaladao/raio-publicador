@@ -808,7 +808,13 @@ export default function AdminReleasesPage() {
 
   const [releases, setReleases] = useState<ReleaseRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const [counts, setCounts] = useState({ queue: 0, published: 0, archived: 0 });
+  const [needsAction, setNeedsAction] = useState(0);
   const [tab, setTab] = useState<"queue" | "published" | "archived">("queue");
+  const [qInput, setQInput] = useState("");
   const [q, setQ] = useState("");
   const [dateFilter, setDateFilter] = useState("");
   const [vehicleFilter, setVehicleFilter] = useState<Set<string>>(new Set());
@@ -826,17 +832,53 @@ export default function AdminReleasesPage() {
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [bulkConfirm, setBulkConfirm] = useState(false);
 
+  function buildUrl(p: number) {
+    const params = new URLSearchParams({ tab, page: String(p) });
+    if (q.trim()) params.set("search", q.trim());
+    if (dateFilter) params.set("date", dateFilter);
+    if (vehicleFilter.size > 0) params.set("vehicles", [...vehicleFilter].join(","));
+    return `/api/admin/releases?${params}`;
+  }
+
   const load = useCallback(() => {
     setLoading(true);
-    fetch("/api/admin/releases")
-      .then(r => {
-        if (!r.ok) throw new Error(`Erro ${r.status}`);
-        return r.json();
+    setPage(1);
+    fetch(buildUrl(1))
+      .then(r => { if (!r.ok) throw new Error(`Erro ${r.status}`); return r.json(); })
+      .then(data => {
+        setReleases(data.releases);
+        setCounts(data.counts);
+        setNeedsAction(data.needsAction);
+        setHasMore(data.hasMore);
+        setPage(1);
       })
-      .then(setReleases)
       .catch(e => console.error("Erro ao carregar releases:", e))
       .finally(() => setLoading(false));
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab, q, dateFilter, vehicleFilter]);
+
+  async function loadMore() {
+    const nextPage = page + 1;
+    setLoadingMore(true);
+    try {
+      const r = await fetch(buildUrl(nextPage));
+      if (!r.ok) throw new Error(`Erro ${r.status}`);
+      const data = await r.json();
+      setReleases(prev => [...prev, ...data.releases]);
+      setHasMore(data.hasMore);
+      setPage(nextPage);
+    } catch (e) {
+      console.error("Erro ao carregar mais releases:", e);
+    } finally {
+      setLoadingMore(false);
+    }
+  }
+
+  // Debounce search input: só dispara load após 400ms sem digitar
+  useEffect(() => {
+    const t = setTimeout(() => setQ(qInput), 400);
+    return () => clearTimeout(t);
+  }, [qInput]);
 
   useEffect(() => { if (isAdmin) load(); }, [isAdmin, load]);
 
@@ -901,44 +943,15 @@ export default function AdminReleasesPage() {
     new Map(releases.flatMap(r => r.vehicleNames).map(v => [v.id, v])).values()
   ).sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
 
-  const searchFilter = (r: ReleaseRow) =>
-    !q.trim() || (r.title + r.author.name + r.author.email + (r.brand?.name ?? "")).toLowerCase().includes(q.toLowerCase());
-
-  const dateFilterFn = (r: ReleaseRow, dateField: string | null) =>
-    !dateFilter || dateKey(dateField, r.createdAt) === dateFilter;
-
-  const vehicleFilterFn = (r: ReleaseRow) =>
-    vehicleFilter.size === 0 || r.vehicleNames.some(v => vehicleFilter.has(v.id));
-
-  const queueReleases = releases
-    .filter(r => r.status !== "PUBLISHED" && r.status !== "CANCELLED")
-    .filter(searchFilter)
-    .filter(vehicleFilterFn)
-    .filter(r => dateFilterFn(r, r.scheduledAt))
-    .sort((a, b) => new Date(a.scheduledAt ?? a.createdAt).getTime() - new Date(b.scheduledAt ?? b.createdAt).getTime());
-
-  const publishedReleases = releases
-    .filter(r => r.status === "PUBLISHED" && !r.archivedAt)
-    .filter(searchFilter)
-    .filter(vehicleFilterFn)
-    .filter(r => dateFilterFn(r, r.publishedAt))
-    .sort((a, b) => new Date(b.publishedAt ?? b.createdAt).getTime() - new Date(a.publishedAt ?? a.createdAt).getTime());
-
-  const archivedReleases = releases
-    .filter(r => r.status === "PUBLISHED" && !!r.archivedAt)
-    .filter(searchFilter)
-    .filter(vehicleFilterFn)
-    .filter(r => dateFilterFn(r, r.archivedAt ?? r.publishedAt))
-    .sort((a, b) => new Date(b.archivedAt ?? b.publishedAt ?? b.createdAt).getTime() - new Date(a.archivedAt ?? a.publishedAt ?? a.createdAt).getTime());
-
-  const queueGroups = groupByDate(queueReleases, r => dateKey(r.scheduledAt, r.createdAt));
-  const publishedGroups = groupByDate(publishedReleases, r => dateKey(r.publishedAt, r.createdAt));
-  const archivedGroups = groupByDate(archivedReleases, r => dateKey(r.archivedAt ?? r.publishedAt, r.createdAt));
-
-  const activeList = tab === "queue" ? queueReleases : tab === "published" ? publishedReleases : archivedReleases;
-  const activeGroups = tab === "queue" ? queueGroups : tab === "published" ? publishedGroups : archivedGroups;
-
-  const needsAction = releases.filter(r => ["SCHEDULED", "IN_PUBLICATION"].includes(r.status)).length;
+  // Grouping is done client-side on already-filtered server data
+  const activeGroups = groupByDate(releases, r =>
+    tab === "queue"
+      ? dateKey(r.scheduledAt, r.createdAt)
+      : tab === "published"
+      ? dateKey(r.publishedAt, r.createdAt)
+      : dateKey(r.archivedAt ?? r.publishedAt, r.createdAt)
+  );
+  const activeList = releases;
 
   return (
     <div className="content scroll">
@@ -965,9 +978,9 @@ export default function AdminReleasesPage() {
         {/* Tabs */}
         <div style={{ display: "flex", gap: 2, background: "#f0f0ee", borderRadius: 10, padding: 3, alignSelf: "flex-start", marginBottom: 20 }}>
           {([
-            ["queue",     "Fila de publicação",     queueReleases.length],
-            ["published", "Publicados",              publishedReleases.length],
-            ["archived",  "Publicados e arquivados", archivedReleases.length],
+            ["queue",     "Fila de publicação",     counts.queue],
+            ["published", "Publicados",              counts.published],
+            ["archived",  "Publicados e arquivados", counts.archived],
           ] as const).map(([t, label, count]) => (
             <button
               key={t}
@@ -1059,8 +1072,8 @@ export default function AdminReleasesPage() {
             <input
               className="input"
               placeholder="Buscar…"
-              value={q}
-              onChange={e => setQ(e.target.value)}
+              value={qInput}
+              onChange={e => setQInput(e.target.value)}
               style={{ width: 200, padding: "8px 14px", fontSize: 13 }}
             />
           </div>
@@ -1102,6 +1115,20 @@ export default function AdminReleasesPage() {
                 </div>
               </div>
             ))}
+            {hasMore && (
+              <div style={{ display: "flex", justifyContent: "center", paddingBottom: 16 }}>
+                <button
+                  onClick={loadMore}
+                  disabled={loadingMore}
+                  className="btn btn-ghost"
+                  style={{ gap: 8, minWidth: 160 }}
+                >
+                  {loadingMore
+                    ? <><RefreshCw size={14} style={{ animation: "spin 1s linear infinite" }} /> Carregando…</>
+                    : "Carregar mais"}
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
