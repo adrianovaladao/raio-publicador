@@ -133,6 +133,7 @@ interface ReleaseRow {
   adminNotes: string | null;
   publishedVehicleUrls: Record<string, string> | null;
   creditsUsed: number;
+  bypassFeed: boolean;
   author: { name: string; email: string };
   brand: { name: string; color: string | null; logoUrl: string | null } | null;
 }
@@ -226,6 +227,26 @@ function ReleaseActions({ release, onSaved, onDeleted, onArchived, onUnpublished
   const [err, setErr] = useState("");
   const [ok, setOk] = useState("");
   const [copied, setCopied] = useState(false);
+
+  // ── Bypass feed ──────────────────────────────────────────────────────────
+  const [bypassFeed, setBypassFeedState] = useState(release.bypassFeed);
+  const [savingBypass, setSavingBypass] = useState(false);
+
+  async function toggleBypassFeed() {
+    setSavingBypass(true);
+    const next = !bypassFeed;
+    try {
+      const res = await fetch(`/api/admin/releases/${release.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bypassFeed: next }),
+      });
+      if (!res.ok) throw new Error(`Erro ${res.status}`);
+      setBypassFeedState(next);
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Erro");
+    } finally { setSavingBypass(false); }
+  }
 
   // ── Edição de conteúdo pelo admin ─────────────────────────────────────────
   const [editingContent, setEditingContent] = useState(false);
@@ -689,6 +710,19 @@ function ReleaseActions({ release, onSaved, onDeleted, onArchived, onUnpublished
               Cancelar
             </button>
           </>
+        )}
+
+        {/* Bypass feed — só para publicados */}
+        {isPublished && !confirmUnpublish && !confirmArchive && !confirmDelete && (
+          <button
+            onClick={toggleBypassFeed}
+            disabled={savingBypass}
+            className="btn btn-ghost btn-sm"
+            style={{ color: bypassFeed ? "#059669" : "#6B7280", display: "flex", alignItems: "center", gap: 6 }}
+            title={bypassFeed ? "Não aparece no feed — clique para reativar" : "Aparece no feed — clique para ocultar"}
+          >
+            {bypassFeed ? "✓ Oculto no feed" : "Ocultar do feed"}
+          </button>
         )}
 
         {/* Despublicar release — só para publicados */}

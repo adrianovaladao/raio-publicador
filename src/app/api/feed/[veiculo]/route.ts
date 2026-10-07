@@ -98,6 +98,7 @@ export async function GET(
   const releases = await prisma.release.findMany({
     where: {
       status: "PUBLISHED",
+      bypassFeed: false,
       vehicles: { has: vehicle.id },
     },
     include: {
