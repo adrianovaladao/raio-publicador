@@ -42,10 +42,6 @@ function sanitizeBody(html: string): string {
     .replace(/<p>(?:&nbsp;|\s)+/gi, "<p>")
     // Remove &nbsp; logo antes de </p>
     .replace(/(?:&nbsp;|\s)+<\/p>/gi, "</p>")
-    // Substitui quebras de linha soltas dentro de parágrafos por espaço
-    .replace(/<br\s*\/?>/gi, " ")
-    // Remove linhas em branco consecutivas (mais de 2 \n seguidos no texto final)
-    .replace(/(\n\s*){3,}/g, "\n\n")
     .trim();
 }
 
