@@ -53,10 +53,9 @@ export async function GET(req: Request) {
   }
 
   const where: Prisma.ReleaseWhereInput = {
-    ...tabWhere,
-    ...vehicleWhere,
-    ...searchWhere,
-    ...dateWhere,
+    AND: [tabWhere, vehicleWhere, searchWhere, dateWhere].filter(
+      w => Object.keys(w).length > 0
+    ),
   };
 
   // ── OrderBy por tab ───────────────────────────────────────────────────────

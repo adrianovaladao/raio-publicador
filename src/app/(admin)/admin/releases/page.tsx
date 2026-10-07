@@ -846,13 +846,13 @@ export default function AdminReleasesPage() {
     fetch(buildUrl(1))
       .then(r => { if (!r.ok) throw new Error(`Erro ${r.status}`); return r.json(); })
       .then(data => {
-        setReleases(data.releases);
-        setCounts(data.counts);
-        setNeedsAction(data.needsAction);
-        setHasMore(data.hasMore);
+        setReleases(data.releases ?? []);
+        setCounts(data.counts ?? { queue: 0, published: 0, archived: 0 });
+        setNeedsAction(data.needsAction ?? 0);
+        setHasMore(data.hasMore ?? false);
         setPage(1);
       })
-      .catch(e => console.error("Erro ao carregar releases:", e))
+      .catch(e => { console.error("Erro ao carregar releases:", e); setReleases([]); })
       .finally(() => setLoading(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab, q, dateFilter, vehicleFilter]);
@@ -864,7 +864,7 @@ export default function AdminReleasesPage() {
       const r = await fetch(buildUrl(nextPage));
       if (!r.ok) throw new Error(`Erro ${r.status}`);
       const data = await r.json();
-      setReleases(prev => [...prev, ...data.releases]);
+      setReleases(prev => [...prev, ...(data.releases ?? [])]);
       setHasMore(data.hasMore);
       setPage(nextPage);
     } catch (e) {
@@ -940,7 +940,7 @@ export default function AdminReleasesPage() {
   }
 
   const allVehicles = Array.from(
-    new Map(releases.flatMap(r => r.vehicleNames).map(v => [v.id, v])).values()
+    new Map((releases ?? []).flatMap(r => r.vehicleNames ?? []).map(v => [v.id, v])).values()
   ).sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
 
   // Grouping is done client-side on already-filtered server data
