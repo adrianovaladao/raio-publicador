@@ -1,5 +1,5 @@
 {
-  "buildCommand": "prisma migrate deploy && prisma generate && next build",
+  "buildCommand": "prisma migrate resolve --applied 20260929_pending_invoice_pix_support && prisma migrate deploy && prisma generate && next build",
   "headers": [
     {
       "source": "/(.*\\.mp4)",
