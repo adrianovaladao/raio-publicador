@@ -166,6 +166,20 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
+// Formata HTML com quebras de linha entre tags para leitura no admin
+function formatHtml(html: string): string {
+  const BLOCK = /^(figure|p|div|h[1-6]|ul|ol|li|blockquote|pre|br|hr|img|figcaption)$/i;
+  return html
+    // Adiciona quebra antes e depois de tags de bloco
+    .replace(/<(\/?)(\w+)(\s[^>]*)?(\/?)>/g, (match, close, tag) => {
+      if (BLOCK.test(tag)) return "\n" + match + "\n";
+      return match;
+    })
+    // Colapsa múltiplas linhas em branco em no máximo uma
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 function fmtDate(iso: string | null) {
   if (!iso) return "—";
   const d = new Date(iso);
@@ -233,15 +247,21 @@ function ReleaseActions({ release, onSaved, onDeleted, onArchived, onUnpublished
 
   function toggleHtmlMode() {
     if (htmlMode) {
+      // Volta ao editor visual: normaliza em batch junto com o key para evitar stale
+      const clean = editBody.replace(/\n+/g, "").trim();
+      setEditBody(clean);
       setRichKey(k => k + 1);
       setHtmlMode(false);
     } else {
+      // Entra no modo HTML: formata para leitura
+      setEditBody(formatHtml(editBody));
       setHtmlMode(true);
     }
   }
 
   async function saveContent() {
-    const bodyHtml = editBody;
+    // Remove quebras de linha de formatação (adicionadas só para leitura no modo HTML)
+    const bodyHtml = editBody.replace(/\n+/g, "").trim();
     setSavingContent(true); setErr(""); setOk("");
     try {
       const res = await fetch(`/api/admin/releases/${release.id}`, {
