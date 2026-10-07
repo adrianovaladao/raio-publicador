@@ -103,10 +103,10 @@ export async function POST(req: NextRequest) {
   const credits = sub?.creditsTotal ?? 0;
   const today = new Date().toLocaleDateString("pt-BR");
   const description = [
-    "Prestacao de servicos de tecnologia de informacao - Plataforma Raio Publicador",
-    `Plano ${planLabel}`,
-    `Creditos ${credits}`,
-    `Acesso e uso de creditos confirmados em ${today}`,
+    "PRESTACAO DE SERVICOS DE TECNOLOGIA DE INFORMACAO - PLATAFORMA RAIO PUBLICADOR",
+    `PLANO ${planLabel.toUpperCase()}`,
+    `CREDITOS ${credits}`,
+    `ACESSO E USO DE CREDITOS CONFIRMADOS EM ${today}`,
   ].join("\n");
 
   const body = {
