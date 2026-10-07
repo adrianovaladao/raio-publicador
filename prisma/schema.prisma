@@ -40,7 +40,6 @@ model Release {
   scheduledAt          DateTime?
   publishedAt          DateTime?
   archivedAt           DateTime?
-  bypassFeed           Boolean       @default(false)
   creditsUsed          Int           @default(0)
   aiCreditsUsed        Int           @default(0)
   imageUrl             String?

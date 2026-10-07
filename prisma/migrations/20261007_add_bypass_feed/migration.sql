@@ -1,1 +1,0 @@
-ALTER TABLE "Release" ADD COLUMN "bypassFeed" BOOLEAN NOT NULL DEFAULT false;
