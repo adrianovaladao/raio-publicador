@@ -27,16 +27,12 @@ async function emitNFSe(amountCents: number, planLabel: string, credits: number,
   } catch { /* usa só o nome se ViaCEP falhar */ }
 
   const amount = amountCents / 100;
-  const taxesTotal = parseFloat((amount * (0.01 + 0.0065 + 0.03 + 0.01)).toFixed(2));
-  const netAmount = parseFloat((amount - taxesTotal).toFixed(2));
   const today = new Date().toLocaleDateString("pt-BR");
   const description = [
     "Prestacao de servicos de tecnologia de informacao - Plataforma Raio Publicador",
     `Plano ${planLabel}`,
     `Creditos ${credits}`,
     `Acesso e uso de creditos confirmados em ${today}`,
-    `Valor aproximado dos tributos R$ ${taxesTotal.toFixed(2).replace(".", ",")}`,
-    `Valor liquido R$ ${netAmount.toFixed(2).replace(".", ",")}`,
   ].join("\n");
 
   const body = {
