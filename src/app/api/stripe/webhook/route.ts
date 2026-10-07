@@ -170,7 +170,6 @@ export async function POST(req: NextRequest) {
         const amountPaidSession = (session as unknown as { amount_total?: number }).amount_total ?? PLANS[planId].priceCents;
         if (stripeInvoiceId && amountPaidSession > 0) {
           const scheduledFor = new Date();
-          scheduledFor.setDate(scheduledFor.getDate() + 7);
           await prisma.pendingInvoice.upsert({
             where: { stripeInvoiceId },
             create: { clerkId, stripeInvoiceId, amountCents: amountPaidSession, scheduledFor, status: "PENDING" },
@@ -263,7 +262,6 @@ export async function POST(req: NextRequest) {
       const amountPaid = (invoice as unknown as { amount_paid?: number }).amount_paid ?? 0;
       if (invoiceId && amountPaid > 0 && PLANS[planId]) {
         const scheduledFor = new Date();
-        scheduledFor.setDate(scheduledFor.getDate() + 7);
         await prisma.pendingInvoice.upsert({
           where: { stripeInvoiceId: invoiceId },
           create: { clerkId, stripeInvoiceId: invoiceId, amountCents: amountPaid, scheduledFor, status: "PENDING" },

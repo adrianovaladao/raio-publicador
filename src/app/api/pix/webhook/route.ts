@@ -85,7 +85,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const scheduledFor = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const scheduledFor = new Date(now);
 
     await prisma.$transaction([
       prisma.pixPayment.update({
