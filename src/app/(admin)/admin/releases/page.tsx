@@ -6,6 +6,8 @@ import { useUser } from "@clerk/nextjs";
 import { Crown, FileText, Trash2, ChevronDown, AlertTriangle, Clock, ExternalLink, Send, Copy, Download, Check, Calendar, ChevronLeft, ChevronRight, X, Archive, Pencil, RefreshCw } from "lucide-react";
 import { exportDocx, exportPdf } from "@/lib/export-release";
 import { isAnyAdmin } from "@/lib/admin";
+import { RichEditor } from "@/components/editor/RichEditor";
+import { Code2 } from "lucide-react";
 
 // ── DatePicker do admin (sem restrições de feriado) ───────────────────────────
 const MESES_FULL = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
@@ -217,21 +219,29 @@ function ReleaseActions({ release, onSaved, onDeleted, onArchived, onUnpublished
   const [editSummary, setEditSummary] = useState(release.summary ?? "");
   const [editBody, setEditBody] = useState(release.body);
   const [savingContent, setSavingContent] = useState(false);
-  const editBodyRef = useRef<HTMLDivElement>(null);
+  const [htmlMode, setHtmlMode] = useState(false);
+  const [richKey, setRichKey] = useState(0);
 
   function openContentEdit() {
     setEditTitle(release.title);
     setEditSummary(release.summary ?? "");
     setEditBody(release.body);
+    setHtmlMode(false);
+    setRichKey(k => k + 1);
     setEditingContent(true);
-    // Popula o contenteditable após render
-    setTimeout(() => {
-      if (editBodyRef.current) editBodyRef.current.innerHTML = release.body;
-    }, 0);
+  }
+
+  function toggleHtmlMode() {
+    if (htmlMode) {
+      setRichKey(k => k + 1);
+      setHtmlMode(false);
+    } else {
+      setHtmlMode(true);
+    }
   }
 
   async function saveContent() {
-    const bodyHtml = editBodyRef.current?.innerHTML ?? editBody;
+    const bodyHtml = editBody;
     setSavingContent(true); setErr(""); setOk("");
     try {
       const res = await fetch(`/api/admin/releases/${release.id}`, {
@@ -450,47 +460,41 @@ function ReleaseActions({ release, onSaved, onDeleted, onArchived, onUnpublished
 
         {editingContent ? (
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {/* Título */}
-            <div>
-              <label style={{ fontSize: 11, fontWeight: 600, color: "#999", textTransform: "uppercase", letterSpacing: "0.05em", display: "block", marginBottom: 4 }}>Título</label>
-              <input
-                className="input"
-                value={editTitle}
-                onChange={e => setEditTitle(e.target.value)}
-                style={{ width: "100%", fontSize: 14, fontWeight: 600 }}
+            {htmlMode ? (
+              <div>
+                <label style={{ fontSize: 11, fontWeight: 600, color: "#999", textTransform: "uppercase", letterSpacing: "0.05em", display: "block", marginBottom: 4 }}>HTML bruto</label>
+                <textarea
+                  value={editBody}
+                  onChange={e => setEditBody(e.target.value)}
+                  rows={20}
+                  spellCheck={false}
+                  style={{ width: "100%", boxSizing: "border-box", fontFamily: "monospace", fontSize: 12, lineHeight: 1.6, padding: "12px 14px", border: "1.5px solid #2563EB", borderRadius: 8, resize: "vertical", background: "#f8f9ff", color: "#1a1a1a" }}
+                />
+              </div>
+            ) : (
+              <RichEditor
+                key={richKey}
+                title={editTitle}
+                onTitleChange={setEditTitle}
+                subtitle={editSummary}
+                onSubtitleChange={setEditSummary}
+                content={editBody}
+                onContentChange={setEditBody}
               />
-            </div>
-            {/* Subtítulo */}
-            <div>
-              <label style={{ fontSize: 11, fontWeight: 600, color: "#999", textTransform: "uppercase", letterSpacing: "0.05em", display: "block", marginBottom: 4 }}>Subtítulo (opcional)</label>
-              <input
-                className="input"
-                value={editSummary}
-                onChange={e => setEditSummary(e.target.value)}
-                placeholder="Subtítulo / lead…"
-                style={{ width: "100%", fontSize: 13, fontStyle: "italic" }}
-              />
-            </div>
-            {/* Corpo — contenteditable simples */}
-            <div>
-              <label style={{ fontSize: 11, fontWeight: 600, color: "#999", textTransform: "uppercase", letterSpacing: "0.05em", display: "block", marginBottom: 4 }}>Corpo</label>
-              <div
-                ref={editBodyRef}
-                contentEditable
-                suppressContentEditableWarning
-                style={{
-                  background: "#fff", border: "1.5px solid #2563EB", borderRadius: 8,
-                  padding: "16px 20px", fontSize: 14, lineHeight: 1.7, color: "#1a1a1a",
-                  minHeight: 300, outline: "none", overflowY: "auto",
-                }}
-              />
-              <p style={{ fontSize: 11, color: "#aaa", marginTop: 4 }}>
-                Use Ctrl+B para negrito, Ctrl+I para itálico. A formatação HTML existente é preservada.
-              </p>
-            </div>
+            )}
             <div style={{ display: "flex", gap: 8 }}>
               <button className="btn btn-primary btn-sm" onClick={saveContent} disabled={savingContent}>
                 {savingContent ? "Salvando…" : <><Check size={13} /> Salvar conteúdo</>}
+              </button>
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm"
+                onClick={toggleHtmlMode}
+                title={htmlMode ? "Voltar ao editor visual" : "Ver/editar HTML bruto"}
+                style={{ display: "flex", alignItems: "center", gap: 5 }}
+              >
+                <Code2 size={13} />
+                {htmlMode ? "Editor visual" : "Ver HTML"}
               </button>
               <button className="btn btn-ghost btn-sm" onClick={() => setEditingContent(false)}>Cancelar</button>
             </div>
