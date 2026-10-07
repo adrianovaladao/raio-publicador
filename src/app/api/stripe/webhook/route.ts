@@ -167,12 +167,13 @@ export async function POST(req: NextRequest) {
         }
         // Agenda emissão de NFS-e para 7 dias após o pagamento
         const stripeInvoiceId = session.invoice as string | undefined;
-        if (stripeInvoiceId && PLANS[planId].priceCents > 0) {
+        const amountPaidSession = (session as unknown as { amount_total?: number }).amount_total ?? PLANS[planId].priceCents;
+        if (stripeInvoiceId && amountPaidSession > 0) {
           const scheduledFor = new Date();
           scheduledFor.setDate(scheduledFor.getDate() + 7);
           await prisma.pendingInvoice.upsert({
             where: { stripeInvoiceId },
-            create: { clerkId, stripeInvoiceId, amountCents: PLANS[planId].priceCents, scheduledFor, status: "PENDING" },
+            create: { clerkId, stripeInvoiceId, amountCents: amountPaidSession, scheduledFor, status: "PENDING" },
             update: {},
           }).catch(console.error);
         }
