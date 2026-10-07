@@ -157,6 +157,23 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({ ok: true, nfeioId: data.id });
 }
 
+export async function PATCH(req: NextRequest) {
+  if (!await assertMaster())
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  const { invoiceId, amountCents } = await req.json() as { invoiceId: string; amountCents: number };
+  if (!invoiceId || !amountCents || amountCents <= 0)
+    return NextResponse.json({ error: "invoiceId e amountCents obrigatórios" }, { status: 400 });
+
+  const prisma = getPrisma();
+  const inv = await prisma.pendingInvoice.findUnique({ where: { id: invoiceId } });
+  if (!inv) return NextResponse.json({ error: "Invoice não encontrada" }, { status: 404 });
+  if (inv.status === "SENT") return NextResponse.json({ error: "Nota já emitida, não pode alterar" }, { status: 400 });
+
+  await prisma.pendingInvoice.update({ where: { id: invoiceId }, data: { amountCents } });
+  return NextResponse.json({ ok: true });
+}
+
 export async function DELETE(req: NextRequest) {
   if (!await assertMaster())
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });

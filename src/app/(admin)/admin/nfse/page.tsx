@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { RefreshCw, Send, AlertTriangle, CheckCircle, FileX, Clock, ExternalLink, Trash2 } from "lucide-react";
+import { RefreshCw, Send, AlertTriangle, CheckCircle, FileX, Clock, ExternalLink, Trash2, Pencil, Check, X } from "lucide-react";
 
 interface NfseRow {
   id: string;
@@ -55,6 +55,8 @@ export default function AdminNfsePage() {
   const [deleting, setDeleting] = useState<string | null>(null);
   const [error, setError]       = useState("");
   const [tab, setTab]           = useState<"pending" | "sent">("pending");
+  const [editingAmount, setEditingAmount] = useState<string | null>(null); // invoiceId
+  const [editAmountVal, setEditAmountVal] = useState("");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -86,6 +88,24 @@ export default function AdminNfsePage() {
     } catch (e) {
       alert(e instanceof Error ? e.message : "Erro inesperado");
     } finally { setDeleting(null); }
+  }
+
+  async function saveAmount(invoiceId: string) {
+    const cents = Math.round(parseFloat(editAmountVal.replace(",", ".")) * 100);
+    if (!cents || cents <= 0) { alert("Valor inválido"); return; }
+    try {
+      const res = await fetch("/api/admin/nfse", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ invoiceId, amountCents: cents }),
+      });
+      const data = await res.json();
+      if (!res.ok) { alert(data?.error ?? `Erro ${res.status}`); return; }
+      setEditingAmount(null);
+      await load();
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Erro inesperado");
+    }
   }
 
   async function emit(invoiceId: string) {
@@ -193,7 +213,35 @@ export default function AdminNfsePage() {
                         )}
                       </td>
                       <td style={{ padding: "12px 16px", color: "var(--stone)", fontFamily: "var(--mono)", fontSize: 12 }}>{inv.email}</td>
-                      <td style={{ padding: "12px 16px", fontFamily: "var(--mono)", fontWeight: 700, whiteSpace: "nowrap" }}>{fmt(inv.amountCents)}</td>
+                      <td style={{ padding: "12px 16px", whiteSpace: "nowrap" }}>
+                        {tab === "pending" && editingAmount === inv.id ? (
+                          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                            <span style={{ fontSize: 12, color: "var(--stone)" }}>R$</span>
+                            <input
+                              autoFocus
+                              value={editAmountVal}
+                              onChange={e => setEditAmountVal(e.target.value)}
+                              onKeyDown={e => { if (e.key === "Enter") saveAmount(inv.id); if (e.key === "Escape") setEditingAmount(null); }}
+                              style={{ width: 80, fontFamily: "var(--mono)", fontSize: 13, fontWeight: 700, padding: "3px 6px", border: "1.5px solid #2563EB", borderRadius: 6, outline: "none" }}
+                            />
+                            <button onClick={() => saveAmount(inv.id)} title="Confirmar" style={{ background: "none", border: "none", cursor: "pointer", color: "#166534", padding: 2 }}><Check size={14} /></button>
+                            <button onClick={() => setEditingAmount(null)} title="Cancelar" style={{ background: "none", border: "none", cursor: "pointer", color: "var(--stone)", padding: 2 }}><X size={14} /></button>
+                          </div>
+                        ) : (
+                          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                            <span style={{ fontFamily: "var(--mono)", fontWeight: 700 }}>{fmt(inv.amountCents)}</span>
+                            {tab === "pending" && (
+                              <button
+                                onClick={() => { setEditingAmount(inv.id); setEditAmountVal((inv.amountCents / 100).toFixed(2).replace(".", ",")); }}
+                                title="Editar valor"
+                                style={{ background: "none", border: "none", cursor: "pointer", color: "var(--stone)", padding: 2, display: "flex" }}
+                              >
+                                <Pencil size={12} />
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </td>
                       <td style={{ padding: "12px 16px" }}>
                         <span style={{ fontSize: 11, color: "var(--stone)", background: "var(--bg2)", borderRadius: 5, padding: "2px 7px" }}>
                           {inv.stripeInvoiceId ? "Stripe" : inv.pixPaymentId ? "Pix" : "—"}
