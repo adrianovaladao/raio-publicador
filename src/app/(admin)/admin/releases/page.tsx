@@ -339,7 +339,7 @@ function ReleaseActions({ release, onSaved, onDeleted, onArchived, onUnpublished
       const res = await fetch(`/api/admin/releases/${release.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "PENDING" }),
+        body: JSON.stringify({ status: "SCHEDULED" }),
       });
       if (!res.ok) {
         let msg = `Erro ${res.status}`;
