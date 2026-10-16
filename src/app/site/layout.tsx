@@ -19,7 +19,7 @@ function WhatsAppFab() {
   return (
     <a
       className="whatsapp-fab"
-      href="https://wa.me/16193414276"
+      href="https://wa.me/16193416459"
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Fale conosco pelo WhatsApp"

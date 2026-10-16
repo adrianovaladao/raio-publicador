@@ -10,25 +10,6 @@ export async function GET() {
   }
 
   const prisma = getPrisma();
-
-  // Assinaturas canceladas (precisam de reembolso Pix)
-  const cancelledSubs = await prisma.subscription.findMany({
-    where: { status: "CANCELLED" },
-    select: { ownerId: true },
-  });
-  const cancelledOwnerIds = cancelledSubs.map(s => s.ownerId);
-
-  const [pending, refundPending] = await Promise.all([
-    prisma.pixPayment.count({ where: { status: "PENDING" } }),
-    cancelledOwnerIds.length > 0
-      ? prisma.pixPayment.count({
-          where: {
-            ownerId: { in: cancelledOwnerIds },
-            status: "CONFIRMED",
-          },
-        })
-      : Promise.resolve(0),
-  ]);
-
-  return NextResponse.json({ count: pending + refundPending });
+  const count = await prisma.pixPayment.count({ where: { status: "PENDING" } });
+  return NextResponse.json({ count });
 }

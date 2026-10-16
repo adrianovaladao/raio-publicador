@@ -270,7 +270,7 @@ export function SupportWidget({ plan }: SupportWidgetProps) {
                     <a
                       className="btn btn-primary btn-sm"
                       style={{ width: "100%", justifyContent: "center", marginBottom: 10 }}
-                      href="https://wa.me/16193414276?text=Olá%2C%20preciso%20de%20suporte%20no%20Raio%20Publicador."
+                      href="https://wa.me/16193416459?text=Olá%2C%20preciso%20de%20suporte%20no%20Raio%20Publicador."
                       target="_blank"
                       rel="noopener noreferrer"
                     >
