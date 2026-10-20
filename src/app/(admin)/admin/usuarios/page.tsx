@@ -8,7 +8,7 @@ import { isMaster } from "@/lib/admin";
 import {
   ArrowUp, ArrowDown, ArrowUpDown,
   Pencil, Check, X, RefreshCw, ExternalLink, ChevronDown, Crown, Trash2, ChevronRight,
-  Building2, FileText, Users, CreditCard, Zap, Calendar, ArrowLeft, ArrowRight, OctagonAlert,
+  Building2, FileText, Users, CreditCard, Zap, Calendar, ArrowLeft, ArrowRight, OctagonAlert, Clock,
 } from "lucide-react";
 
 interface UserRow {
@@ -759,6 +759,17 @@ export default function AdminUsuarios() {
                                   <span className="fiscal-tooltip">Sem perfil fiscal</span>
                                 </span>
                               )}
+                              {(() => {
+                                if (!row.currentPeriodEnd || row.status !== "ACTIVE") return null;
+                                const daysLeft = Math.ceil((new Date(row.currentPeriodEnd).getTime() - Date.now()) / 86400000);
+                                if (daysLeft > 3 || daysLeft < 0) return null;
+                                return (
+                                  <span style={{ position: "relative", display: "inline-flex" }} className="fiscal-alert-wrap">
+                                    <Clock size={14} style={{ color: "#F59E0B", flexShrink: 0 }} />
+                                    <span className="fiscal-tooltip">Renovação em {daysLeft} dia{daysLeft !== 1 ? "s" : ""}</span>
+                                  </span>
+                                );
+                              })()}
                             </span>
                             <span className="ph">{row.email}</span>
                           </td>
