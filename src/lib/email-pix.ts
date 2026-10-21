@@ -71,8 +71,8 @@ export async function sendPixRenewalEmail(
     <tr><td align="center">
       <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08)">
         <!-- Header -->
-        <tr><td style="background:#1a1a1a;padding:24px 32px">
-          <span style="font-size:22px;font-weight:900;color:#FFCC00;letter-spacing:-0.5px">⚡ Raio</span>
+        <tr><td align="left" bgcolor="#000000" style="background:#000000;padding:24px 32px">
+          <img src="https://raiopublicador.com.br/assets/logo/raio-logo-email.png" alt="Raio Publicador" height="38" style="display:block;height:38px;width:auto;border:0;margin:0">
         </td></tr>
         <!-- Body -->
         <tr><td style="padding:32px">
