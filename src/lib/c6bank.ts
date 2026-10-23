@@ -5,7 +5,10 @@
 import https from "node:https";
 import { URL } from "node:url";
 
-const IS_SANDBOX = (process.env.C6_ENV ?? "sandbox") === "sandbox";
+if (!process.env.C6_ENV || process.env.C6_ENV === "sandbox") {
+  throw new Error("C6_ENV não está configurado como 'production'. Pagamentos Pix bloqueados para evitar uso do ambiente sandbox.");
+}
+const IS_SANDBOX = false;
 const BASE_AUTH    = IS_SANDBOX ? "https://baas-api-sandbox.c6bank.info/v1/auth" : "https://baas-api.c6bank.info/v1/auth";
 const BASE_PIX     = IS_SANDBOX ? "https://baas-api-sandbox.c6bank.info/v2/pix"  : "https://baas-api.c6bank.info/v2/pix";
 // BASE_WEBHOOK reservado para outros serviços (BANK_SLIP, CHECKOUT)
