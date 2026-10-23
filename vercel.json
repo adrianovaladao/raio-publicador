@@ -1,4 +1,5 @@
 {
+  "nodeVersion": "22.x",
   "buildCommand": "prisma migrate resolve --applied 20260929_pending_invoice_pix_support; prisma migrate resolve --applied 20260929_pix_payment_type; prisma migrate resolve --applied 20261001_add_invoiced_at; prisma migrate deploy && prisma generate && next build",
   "headers": [
     {
