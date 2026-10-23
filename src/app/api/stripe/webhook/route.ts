@@ -182,7 +182,8 @@ export async function POST(req: NextRequest) {
 
     case "invoice.upcoming": {
       const invoice = event.data.object as Stripe.Invoice;
-      const subscriptionId = (invoice as unknown as { subscription?: string }).subscription;
+      const subRef = invoice.parent?.subscription_details?.subscription;
+      const subscriptionId = typeof subRef === "string" ? subRef : subRef?.id;
       if (!subscriptionId) break;
 
       const subscription = await stripe.subscriptions.retrieve(subscriptionId);
@@ -205,15 +206,28 @@ export async function POST(req: NextRequest) {
 
     case "invoice.payment_succeeded": {
       const invoice = event.data.object as Stripe.Invoice;
-      const subscriptionId = (invoice as unknown as { subscription?: string }).subscription;
+      const subRef = invoice.parent?.subscription_details?.subscription;
+      const subscriptionId = typeof subRef === "string" ? subRef : subRef?.id;
       if (!subscriptionId) break;
 
       const subscription = await stripe.subscriptions.retrieve(subscriptionId);
       const clerkId = subscription.metadata?.clerkId;
-      const planId = subscription.metadata?.planId as PlanId | undefined;
-      if (!clerkId || !planId) break;
+      if (!clerkId) break;
 
-      const billingReason = (invoice as unknown as { billing_reason?: string }).billing_reason;
+      // planId pode não estar nos metadados da subscription (assinaturas antigas) — fallback no banco
+      let planId = subscription.metadata?.planId as PlanId | undefined;
+      if (!planId) {
+        const existing = await prisma.subscription.findUnique({
+          where: { ownerId: clerkId },
+          select: { plan: true },
+        });
+        if (existing?.plan && PLANS[existing.plan as PlanId]) {
+          planId = existing.plan as PlanId;
+        }
+      }
+      if (!planId) break;
+
+      const billingReason = invoice.billing_reason;
       const periodStartMs = subscription.items.data[0].current_period_start * 1000;
       const periodEndMs = subscription.items.data[0].current_period_end * 1000;
       const periodEnd = new Date(periodEndMs);
@@ -258,8 +272,8 @@ export async function POST(req: NextRequest) {
         ).catch(console.error);
       }
       // Agenda emissão de NFS-e para 7 dias após o pagamento
-      const invoiceId = (invoice as unknown as { id?: string }).id;
-      const amountPaid = (invoice as unknown as { amount_paid?: number }).amount_paid ?? 0;
+      const invoiceId = invoice.id;
+      const amountPaid = invoice.amount_paid ?? 0;
       if (invoiceId && amountPaid > 0 && PLANS[planId]) {
         const scheduledFor = new Date();
         await prisma.pendingInvoice.upsert({
