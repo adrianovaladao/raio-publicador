@@ -90,6 +90,17 @@ export async function POST(req: NextRequest) {
             where: { ownerId: clerkId },
             data: { creditsTotal: { increment: creditQty } },
           });
+          // Agenda emissão de NFS-e para compra de créditos avulsos
+          const stripeInvoiceId = session.invoice as string | undefined;
+          const amountPaid = (session as unknown as { amount_total?: number }).amount_total ?? 0;
+          if (stripeInvoiceId && amountPaid > 0) {
+            const scheduledFor = new Date();
+            await prisma.pendingInvoice.upsert({
+              where: { stripeInvoiceId },
+              create: { clerkId, stripeInvoiceId, amountCents: amountPaid, scheduledFor, status: "PENDING" },
+              update: {},
+            }).catch(console.error);
+          }
         }
         break;
       }
