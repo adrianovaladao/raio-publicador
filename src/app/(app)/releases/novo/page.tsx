@@ -1555,7 +1555,7 @@ export default function NovoReleasePage() {
   })();
   const defaultDate = nextBusinessDay;
   const [when, setWhen] = useState<When>({ mode: "schedule", date: defaultDate });
-  const [datePicked, setDatePicked] = useState(false);
+  const [datePicked, setDatePicked] = useState(true);
   const [dateFlash, setDateFlash] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [showPolicyModal, setShowPolicyModal] = useState(false);
