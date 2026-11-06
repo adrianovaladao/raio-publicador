@@ -19,6 +19,13 @@ interface Voucher {
   createdAt: string;
 }
 
+interface Redemption {
+  userId: string;
+  email: string;
+  name: string;
+  redeemedAt: string;
+}
+
 export default function VouchersAdminPage() {
   const [vouchers, setVouchers]         = useState<Voucher[]>([]);
   const [loading, setLoading]           = useState(true);
@@ -28,6 +35,17 @@ export default function VouchersAdminPage() {
   const [sortDir, setSortDir]           = useState<SortDir>("asc");
   const [copied, setCopied]             = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; code: string } | null>(null);
+  const [redemptions, setRedemptions]     = useState<Record<string, Redemption[]>>({});
+  const [hoveredCode, setHoveredCode]     = useState<string | null>(null);
+
+  async function fetchRedemptions(code: string) {
+    if (redemptions[code]) return;
+    try {
+      const res = await fetch(`/api/admin/vouchers/redemptions?voucherCode=${encodeURIComponent(code)}`);
+      const data = await res.json() as { redemptions: Redemption[] };
+      setRedemptions(prev => ({ ...prev, [code]: data.redemptions ?? [] }));
+    } catch { /* silencioso */ }
+  }
   const [search, setSearch]             = useState("");
   const [tab, setTab]                   = useState<Tab>("active");
   const [loadError, setLoadError]       = useState("");
@@ -348,9 +366,31 @@ export default function VouchersAdminPage() {
                     </td>
                     <td>{v.credits.toLocaleString("pt-BR")}</td>
                     <td>
-                      <span style={{ color: v.usedCount >= v.maxUses ? "var(--red)" : "inherit" }}>
-                        {v.usedCount}/{v.maxUses}
-                      </span>
+                      {v.usedCount > 0 ? (
+                        <span
+                          style={{ color: v.usedCount >= v.maxUses ? "var(--red)" : "inherit", position: "relative", cursor: "default" }}
+                          onMouseEnter={() => { setHoveredCode(v.code); fetchRedemptions(v.code); }}
+                          onMouseLeave={() => setHoveredCode(null)}
+                        >
+                          {v.usedCount}/{v.maxUses}
+                          {hoveredCode === v.code && (
+                            <span style={{
+                              position: "absolute", bottom: "calc(100% + 6px)", left: "50%", transform: "translateX(-50%)",
+                              background: "var(--ink)", color: "var(--paper)", borderRadius: 7, padding: "8px 12px",
+                              fontSize: 12, whiteSpace: "pre", zIndex: 50, pointerEvents: "none",
+                              boxShadow: "0 4px 16px rgba(0,0,0,0.18)",
+                            }}>
+                              {!redemptions[v.code]
+                                ? "Carregando…"
+                                : redemptions[v.code].length === 0
+                                  ? "Nenhum resgate encontrado"
+                                  : redemptions[v.code].map(r => `${r.name}\n${r.email}`).join("\n\n")}
+                            </span>
+                          )}
+                        </span>
+                      ) : (
+                        <span>{v.usedCount}/{v.maxUses}</span>
+                      )}
                     </td>
                     <td className="muted" style={{ fontSize: 13 }}>{v.description ?? "—"}</td>
                     <td style={{ color: isExpired(v.expiresAt) ? "var(--red)" : "inherit" }}>
