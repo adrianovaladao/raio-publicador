@@ -37,14 +37,6 @@ export default function VouchersAdminPage() {
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; code: string } | null>(null);
   const [redemptions, setRedemptions]     = useState<Record<string, Redemption[]>>({});
 
-  async function fetchRedemptions(code: string) {
-    if (redemptions[code]) return;
-    try {
-      const res = await fetch(`/api/admin/vouchers/redemptions?voucherCode=${encodeURIComponent(code)}`);
-      const data = await res.json() as { redemptions: Redemption[] };
-      setRedemptions(prev => ({ ...prev, [code]: data.redemptions ?? [] }));
-    } catch { /* silencioso */ }
-  }
   const [search, setSearch]             = useState("");
   const [tab, setTab]                   = useState<Tab>("active");
   const [loadError, setLoadError]       = useState("");
