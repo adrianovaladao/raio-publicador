@@ -365,31 +365,26 @@ export default function VouchersAdminPage() {
                       </button>
                     </td>
                     <td>{v.credits.toLocaleString("pt-BR")}</td>
-                    <td>
-                      {v.usedCount > 0 ? (
-                        <span
-                          style={{ color: v.usedCount >= v.maxUses ? "var(--red)" : "inherit", position: "relative", cursor: "default" }}
-                          onMouseEnter={() => { setHoveredCode(v.code); fetchRedemptions(v.code); }}
-                          onMouseLeave={() => setHoveredCode(null)}
-                        >
-                          {v.usedCount}/{v.maxUses}
-                          {hoveredCode === v.code && (
-                            <span style={{
-                              position: "absolute", bottom: "calc(100% + 6px)", left: "50%", transform: "translateX(-50%)",
-                              background: "var(--ink)", color: "var(--paper)", borderRadius: 7, padding: "8px 12px",
-                              fontSize: 12, whiteSpace: "pre", zIndex: 50, pointerEvents: "none",
-                              boxShadow: "0 4px 16px rgba(0,0,0,0.18)",
-                            }}>
-                              {!redemptions[v.code]
-                                ? "Carregando…"
-                                : redemptions[v.code].length === 0
-                                  ? "Nenhum resgate encontrado"
-                                  : redemptions[v.code].map(r => `${r.name}\n${r.email}`).join("\n\n")}
-                            </span>
-                          )}
-                        </span>
-                      ) : (
-                        <span>{v.usedCount}/{v.maxUses}</span>
+                    <td style={{ position: "relative" }}
+                      onMouseEnter={() => { if (v.usedCount > 0) { setHoveredCode(v.code); fetchRedemptions(v.code); } }}
+                      onMouseLeave={() => setHoveredCode(null)}
+                    >
+                      <span style={{ color: v.usedCount >= v.maxUses ? "var(--red)" : "inherit", cursor: v.usedCount > 0 ? "default" : undefined }}>
+                        {v.usedCount}/{v.maxUses}
+                      </span>
+                      {v.usedCount > 0 && hoveredCode === v.code && (
+                        <div style={{
+                          position: "absolute", bottom: "calc(100% + 4px)", left: 0, zIndex: 9999, pointerEvents: "none",
+                          background: "var(--ink)", color: "var(--paper)", borderRadius: 8, padding: "10px 14px",
+                          fontSize: 12, whiteSpace: "pre", lineHeight: 1.6,
+                          boxShadow: "0 4px 20px rgba(0,0,0,0.25)",
+                        }}>
+                          {!redemptions[v.code]
+                            ? "Carregando…"
+                            : redemptions[v.code].length === 0
+                              ? "Nenhum resgate encontrado"
+                              : redemptions[v.code].map(r => `${r.name}\n${r.email}`).join("\n\n")}
+                        </div>
                       )}
                     </td>
                     <td className="muted" style={{ fontSize: 13 }}>{v.description ?? "—"}</td>
