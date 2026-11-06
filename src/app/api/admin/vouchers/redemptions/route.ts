@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
 
   const redemptions = await prisma.voucherRedemption.findMany({
     where: { voucherId: voucher.id },
-    select: { userId: true, createdAt: true },
+    select: { userId: true, redeemedAt: true },
   });
 
   if (redemptions.length === 0) return NextResponse.json({ voucher: code, redemptions: [] });
@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
       userId:    r.userId,
       email:     u?.emailAddresses[0]?.emailAddress ?? "—",
       name:      [u?.firstName, u?.lastName].filter(Boolean).join(" ") || "—",
-      redeemedAt: r.createdAt.toISOString(),
+      redeemedAt: r.redeemedAt.toISOString(),
     };
   });
 
