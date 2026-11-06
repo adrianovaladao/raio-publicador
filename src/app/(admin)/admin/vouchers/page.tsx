@@ -36,7 +36,6 @@ export default function VouchersAdminPage() {
   const [copied, setCopied]             = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; code: string } | null>(null);
   const [redemptions, setRedemptions]     = useState<Record<string, Redemption[]>>({});
-  const [hoveredCode, setHoveredCode]     = useState<string | null>(null);
 
   async function fetchRedemptions(code: string) {
     if (redemptions[code]) return;
@@ -365,27 +364,18 @@ export default function VouchersAdminPage() {
                       </button>
                     </td>
                     <td>{v.credits.toLocaleString("pt-BR")}</td>
-                    <td style={{ position: "relative" }}
-                      onMouseEnter={() => { if (v.usedCount > 0) { setHoveredCode(v.code); fetchRedemptions(v.code); } }}
-                      onMouseLeave={() => setHoveredCode(null)}
-                    >
-                      <span style={{ color: v.usedCount >= v.maxUses ? "var(--red)" : "inherit", cursor: v.usedCount > 0 ? "default" : undefined }}>
+                    <td>
+                      <span
+                        style={{ color: v.usedCount >= v.maxUses ? "var(--red)" : "inherit", cursor: v.usedCount > 0 ? "help" : undefined }}
+                        title={v.usedCount > 0
+                          ? (redemptions[v.code]
+                              ? redemptions[v.code].map(r => `${r.name} · ${r.email}`).join("\n") || "Nenhum resgate encontrado"
+                              : "Passe o mouse novamente para carregar…")
+                          : undefined}
+                        onMouseEnter={() => { if (v.usedCount > 0) fetchRedemptions(v.code); }}
+                      >
                         {v.usedCount}/{v.maxUses}
                       </span>
-                      {v.usedCount > 0 && hoveredCode === v.code && (
-                        <div style={{
-                          position: "absolute", bottom: "calc(100% + 4px)", left: 0, zIndex: 9999, pointerEvents: "none",
-                          background: "var(--ink)", color: "var(--paper)", borderRadius: 8, padding: "10px 14px",
-                          fontSize: 12, whiteSpace: "pre", lineHeight: 1.6,
-                          boxShadow: "0 4px 20px rgba(0,0,0,0.25)",
-                        }}>
-                          {!redemptions[v.code]
-                            ? "Carregando…"
-                            : redemptions[v.code].length === 0
-                              ? "Nenhum resgate encontrado"
-                              : redemptions[v.code].map(r => `${r.name}\n${r.email}`).join("\n\n")}
-                        </div>
-                      )}
                     </td>
                     <td className="muted" style={{ fontSize: 13 }}>{v.description ?? "—"}</td>
                     <td style={{ color: isExpired(v.expiresAt) ? "var(--red)" : "inherit" }}>
