@@ -68,7 +68,18 @@ export default function VouchersAdminPage() {
         setLoadError(`Erro ao carregar vouchers: ${data?.error ?? res.status}`);
         setVouchers([]);
       } else {
-        setVouchers(Array.isArray(data) ? data : []);
+        const list: Voucher[] = Array.isArray(data) ? data : [];
+        setVouchers(list);
+        // Pré-carrega resgates de todos os vouchers com usedCount > 0
+        const used = list.filter(v => v.usedCount > 0);
+        for (const v of used) {
+          fetch(`/api/admin/vouchers/redemptions?voucherCode=${encodeURIComponent(v.code)}`)
+            .then(r => r.json())
+            .then((d: { redemptions: Redemption[] }) => {
+              setRedemptions(prev => ({ ...prev, [v.code]: d.redemptions ?? [] }));
+            })
+            .catch(() => {});
+        }
       }
     } catch (e) {
       setLoadError(`Falha de conexão: ${e instanceof Error ? e.message : String(e)}`);
@@ -367,12 +378,9 @@ export default function VouchersAdminPage() {
                     <td>
                       <span
                         style={{ color: v.usedCount >= v.maxUses ? "var(--red)" : "inherit", cursor: v.usedCount > 0 ? "help" : undefined }}
-                        title={v.usedCount > 0
-                          ? (redemptions[v.code]
-                              ? redemptions[v.code].map(r => `${r.name} · ${r.email}`).join("\n") || "Nenhum resgate encontrado"
-                              : "Passe o mouse novamente para carregar…")
+                        title={v.usedCount > 0 && redemptions[v.code]
+                          ? redemptions[v.code].map(r => `${r.name} · ${r.email}`).join("\n") || "Nenhum resgate encontrado"
                           : undefined}
-                        onMouseEnter={() => { if (v.usedCount > 0) fetchRedemptions(v.code); }}
                       >
                         {v.usedCount}/{v.maxUses}
                       </span>
