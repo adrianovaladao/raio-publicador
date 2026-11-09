@@ -60,18 +60,7 @@ export default function VouchersAdminPage() {
         setLoadError(`Erro ao carregar vouchers: ${data?.error ?? res.status}`);
         setVouchers([]);
       } else {
-        const list: Voucher[] = Array.isArray(data) ? data : [];
-        setVouchers(list);
-        // Pré-carrega resgates de todos os vouchers com usedCount > 0
-        const used = list.filter(v => v.usedCount > 0);
-        for (const v of used) {
-          fetch(`/api/admin/vouchers/redemptions?voucherCode=${encodeURIComponent(v.code)}`)
-            .then(r => r.json())
-            .then((d: { redemptions: Redemption[] }) => {
-              setRedemptions(prev => ({ ...prev, [v.code]: d.redemptions ?? [] }));
-            })
-            .catch(() => {});
-        }
+        setVouchers(Array.isArray(data) ? data : []);
       }
     } catch (e) {
       setLoadError(`Falha de conexão: ${e instanceof Error ? e.message : String(e)}`);
