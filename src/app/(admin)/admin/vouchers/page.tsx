@@ -37,6 +37,15 @@ export default function VouchersAdminPage() {
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; code: string } | null>(null);
   const [redemptions, setRedemptions]     = useState<Record<string, Redemption[]>>({});
 
+  async function fetchRedemptions(code: string) {
+    if (redemptions[code]) return;
+    try {
+      const res = await fetch(`/api/admin/vouchers/redemptions?voucherCode=${encodeURIComponent(code)}`);
+      const data = await res.json();
+      setRedemptions(prev => ({ ...prev, [code]: data.redemptions ?? [] }));
+    } catch { /* silencioso */ }
+  }
+
   const [search, setSearch]             = useState("");
   const [tab, setTab]                   = useState<Tab>("active");
   const [loadError, setLoadError]       = useState("");
@@ -362,6 +371,7 @@ export default function VouchersAdminPage() {
                         title={v.usedCount > 0 && redemptions[v.code]
                           ? redemptions[v.code].map(r => `${r.name} · ${r.email}`).join("\n") || "Nenhum resgate encontrado"
                           : undefined}
+                        onMouseEnter={() => { if (v.usedCount > 0) fetchRedemptions(v.code); }}
                       >
                         {v.usedCount}/{v.maxUses}
                       </span>
