@@ -7,7 +7,7 @@ const g = globalThis as any;
 
 export function getPrisma(): PrismaClient {
   if (!g._prisma) {
-    const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+    const pool = new Pool({ connectionString: process.env.DATABASE_URL, max: 1 });
     const adapter = new PrismaPg(pool);
     g._prisma = new PrismaClient({ adapter });
   }
