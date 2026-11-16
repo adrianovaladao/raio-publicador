@@ -484,7 +484,7 @@ export default function AdminVeiculos() {
                     </td>
                     <td style={{ ...tdS, textAlign: "right", fontFamily: "var(--mono)", fontWeight: 700, background: selected.has(v.id) ? "var(--cream)" : "" }}>{fmtReach(v.reach)}</td>
                     <td style={{ ...tdS, textAlign: "right", fontFamily: "var(--mono)", fontWeight: 700, background: selected.has(v.id) ? "var(--cream)" : "" }}>{TIER_TOKENS[v.tier] ?? 0} ⚡</td>
-                    <td style={{ ...tdS, background: selected.has(v.id) ? "var(--cream)" : "" }}>
+                    <td style={{ ...tdS, paddingRight: 16, background: selected.has(v.id) ? "var(--cream)" : "" }}>
                       <div style={{ display: "flex", gap: 4, justifyContent: "flex-end" }}>
                         <button title="Editar" onClick={() => setEditing(v)}
                           style={{ background: "none", border: "1px solid var(--line)", borderRadius: 6, padding: "5px 8px", cursor: "pointer", color: "var(--stone)", display: "flex" }}>
