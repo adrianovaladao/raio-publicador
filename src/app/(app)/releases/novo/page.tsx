@@ -1575,11 +1575,13 @@ export default function NovoReleasePage() {
 
   const isSavingRef    = useRef(false);
   const pendingSaveRef = useRef(false);
+  const submittedRef   = useRef(false);
 
   async function autosave() {
     const c = contentRef.current;
     const b = brandRef.current;
     if (!b || !c.title.trim()) return;
+    if (submittedRef.current) return;
     // Guard against concurrent POST (would create duplicates).
     // Once we have a draftId, PUTs are idempotent so we just queue one retry.
     if (isSavingRef.current) {
@@ -1814,6 +1816,8 @@ export default function NovoReleasePage() {
             <button className="btn btn-primary" disabled={submitting || !datePicked} title={!datePicked ? "Escolha a data de publicação antes de agendar" : undefined} onClick={async () => {
               if (!datePicked) { setDateFlash(true); return; }
               if (!brand) { setStep(0); return; }
+              submittedRef.current = true;
+              if (debounceRef.current) { clearTimeout(debounceRef.current); debounceRef.current = null; }
               setSubmitting(true);
               try {
                 const scheduledAt = when.date ? new Date(`${when.date}T09:00:00`).toISOString() : null;
@@ -1835,6 +1839,7 @@ export default function NovoReleasePage() {
                 window.dispatchEvent(new Event("credits-changed"));
                 setDone(true);
               } catch {
+                submittedRef.current = false;
                 alert("Erro ao salvar release. Tente novamente.");
               } finally { setSubmitting(false); }
             }}>
