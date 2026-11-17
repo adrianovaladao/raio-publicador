@@ -7,7 +7,7 @@ type Brand = { id: string; name: string; segment: string | null; logoUrl?: strin
 type AIResult = { found: boolean; excerpt: string; error?: string };
 type CheckResult = {
   results: { openai: AIResult; gemini: AIResult; claude: AIResult };
-  foundCount: number; freeChecksUsed: number; freeChecksTotal: number; creditsUsed: number;
+  foundCount: number; totalEngines: number; freeChecksUsed: number; freeChecksTotal: number; creditsUsed: number;
 };
 type HistoryItem = {
   id: string; companyName: string; segment: string; city?: string;
