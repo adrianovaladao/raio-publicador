@@ -6,7 +6,7 @@ import { useUser, useClerk } from "@clerk/nextjs";
 import {
   LayoutDashboard, FileText, CalendarDays, Rss, Settings, ShieldCheck,
   Bell, LogOut, Zap, Check, X,
-  Megaphone, CreditCard, Users, Radio,
+  Megaphone, CreditCard, Users, Radio, Eye,
 } from "lucide-react";
 import { RaioLockup } from "@/components/logo/RaioLockup";
 import { SupportWidget } from "@/components/support/SupportWidget";
@@ -395,7 +395,8 @@ const NAV_ITEMS = [
   { href: "/dashboard",   icon: LayoutDashboard, label: "Visão geral" },
   { href: "/releases",    icon: FileText,         label: "Biblioteca" },
   { href: "/calendario",  icon: CalendarDays,     label: "Calendário" },
-  { href: "/veiculos",    icon: Rss,              label: "Veículos" },
+  { href: "/veiculos",      icon: Rss,              label: "Veículos" },
+  { href: "/visibilidade",  icon: Eye,              label: "Visibilidade IA" },
 ];
 
 function QueryParamWatcher({ setToast }: { setToast: (m: string) => void }) {

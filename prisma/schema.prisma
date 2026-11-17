@@ -315,3 +315,18 @@ model FiscalProfile {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
+
+// ─── Verificação de Visibilidade em IA ───────────────────────────────────────
+
+model VisibilityCheck {
+  id          String   @id @default(cuid())
+  userId      String
+  companyName String
+  segment     String
+  city        String?
+  results     Json     // { openai: { found: bool, excerpt: string }, gemini: {...}, claude: {...} }
+  creditsUsed Int      @default(0) // 0 = gratuito, 50 = pago
+  createdAt   DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
