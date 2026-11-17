@@ -238,7 +238,7 @@ export default function VisibilidadePage() {
                       fontSize: 13, color: "#374151", margin: 0,
                       fontStyle: "italic", lineHeight: 1.5,
                     }}>
-                      "{r.excerpt}"
+                      &ldquo;{r.excerpt}&rdquo;
                     </p>
                   )}
                   {r.error && (
