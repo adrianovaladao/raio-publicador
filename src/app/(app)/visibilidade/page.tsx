@@ -91,12 +91,16 @@ export default function VisibilidadePage() {
   const { user, isLoaded } = useUser();
   const router = useRouter();
 
+  const BETA_EMAILS = ["adrianovaladao@raiopublicador.com.br"];
+  const isAdmin = !!(user?.publicMetadata as Record<string, unknown>)?.raioAdmin;
+  const isBetaTester = BETA_EMAILS.includes(user?.primaryEmailAddress?.emailAddress ?? "");
+
   useEffect(() => {
     if (!isLoaded) return;
-    if (!(user?.publicMetadata as Record<string, unknown>)?.raioAdmin) {
+    if (!isAdmin && !isBetaTester) {
       router.replace("/dashboard");
     }
-  }, [isLoaded, user, router]);
+  }, [isLoaded, isAdmin, isBetaTester, router]);
 
   const [brands, setBrands]       = useState<Brand[]>([]);
   const [activeBrand, setActiveBrand] = useState<Brand | null>(null);

@@ -607,7 +607,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <span>Gerenciamento</span>
               </Link>
             )}
-            {user?.publicMetadata?.raioAdmin === true && (
+            {(user?.publicMetadata?.raioAdmin === true || ["adrianovaladao@raiopublicador.com.br"].includes(user?.primaryEmailAddress?.emailAddress ?? "")) && (
               <Link href="/visibilidade" className={`sb-item${pathname.startsWith("/visibilidade") ? " active" : ""}`}>
                 <Eye size={18} />
                 <span>Visibilidade IA</span>
