@@ -1,5 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
+import { useUser } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -84,6 +86,16 @@ function Sparkline({ values, color }: { values: number[]; color: string }) {
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 export default function VisibilidadePage() {
+  const { user, isLoaded } = useUser();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoaded) return;
+    if (!(user?.publicMetadata as Record<string, unknown>)?.raioAdmin) {
+      router.replace("/dashboard");
+    }
+  }, [isLoaded, user, router]);
+
   const [brands, setBrands]       = useState<Brand[]>([]);
   const [activeBrand, setActiveBrand] = useState<Brand | null>(null);
   const [city, setCity]           = useState("");

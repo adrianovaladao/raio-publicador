@@ -396,7 +396,6 @@ const NAV_ITEMS = [
   { href: "/releases",    icon: FileText,         label: "Biblioteca" },
   { href: "/calendario",  icon: CalendarDays,     label: "Calendário" },
   { href: "/veiculos",      icon: Rss,              label: "Veículos",        badge: undefined },
-  { href: "/visibilidade",  icon: Eye,              label: "Visibilidade IA", badge: "BETA" as const },
 ];
 
 function QueryParamWatcher({ setToast }: { setToast: (m: string) => void }) {
@@ -606,6 +605,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <Link href="/configuracoes" className={`sb-item${pathname.startsWith("/configuracoes") ? " active" : ""}`}>
                 <Settings size={18} />
                 <span>Gerenciamento</span>
+              </Link>
+            )}
+            {user?.publicMetadata?.raioAdmin === true && (
+              <Link href="/visibilidade" className={`sb-item${pathname.startsWith("/visibilidade") ? " active" : ""}`}>
+                <Eye size={18} />
+                <span>Visibilidade IA</span>
+                <span style={{ fontSize: 9, fontWeight: 700, padding: "1px 5px", borderRadius: 4, background: "var(--coral)", color: "#fff", letterSpacing: "0.04em", marginLeft: 2 }}>BETA</span>
               </Link>
             )}
             {user?.publicMetadata?.raioAdmin === true && (
