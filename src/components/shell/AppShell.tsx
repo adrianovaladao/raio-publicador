@@ -395,8 +395,8 @@ const NAV_ITEMS = [
   { href: "/dashboard",   icon: LayoutDashboard, label: "Visão geral" },
   { href: "/releases",    icon: FileText,         label: "Biblioteca" },
   { href: "/calendario",  icon: CalendarDays,     label: "Calendário" },
-  { href: "/veiculos",      icon: Rss,              label: "Veículos" },
-  { href: "/visibilidade",  icon: Eye,              label: "Visibilidade IA" },
+  { href: "/veiculos",      icon: Rss,              label: "Veículos",        badge: undefined },
+  { href: "/visibilidade",  icon: Eye,              label: "Visibilidade IA", badge: "BETA" as const },
 ];
 
 function QueryParamWatcher({ setToast }: { setToast: (m: string) => void }) {
@@ -578,7 +578,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
           <div className="sb-section">Navegação</div>
           <nav className="sb-nav">
-            {NAV_ITEMS.map(({ href, icon: Icon, label }) => {
+            {NAV_ITEMS.map(({ href, icon: Icon, label, badge: navBadge }) => {
               const active = pathname === href || pathname.startsWith(href + "/");
               const badge = href === "/releases" && releaseCount ? String(releaseCount) : null;
               // Cancelados que já pagaram navegam livremente — só bloqueamos quem nunca pagou
@@ -592,6 +592,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   <Icon size={18} />
                   <span>{label}</span>
                   {badge && <span className="badge">{badge}</span>}
+                  {navBadge && <span style={{ fontSize: 9, fontWeight: 700, padding: "1px 5px", borderRadius: 4, background: "var(--coral)", color: "#fff", letterSpacing: "0.04em", marginLeft: 2 }}>{navBadge}</span>}
                 </Link>
               );
             })}

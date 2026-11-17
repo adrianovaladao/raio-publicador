@@ -17,7 +17,7 @@ type HistoryItem = {
 
 // ─── Gauge SVG ────────────────────────────────────────────────────────────────
 
-function Gauge({ score, label, sub, color, animated }: { score: number; label: string; sub: string; color: string; animated: number }) {
+function Gauge({ label, sub, color, animated }: { score?: number; label: string; sub: string; color: string; animated: number }) {
   const r = 48, cx = 60, cy = 60;
   const circ = 2 * Math.PI * r;
   const arc = circ * 0.75;
