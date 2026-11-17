@@ -103,7 +103,7 @@ export default function VisibilidadePage() {
           fontSize: 13, fontWeight: 500,
         }}>
           {freeLeft > 0
-            ? `✅ ${freeLeft} verificação${freeLeft !== 1 ? "ões" : ""} gratuita${freeLeft !== 1 ? "s" : ""} restante${freeLeft !== 1 ? "s" : ""} este mês`
+            ? `✅ ${freeLeft} verificaç${freeLeft !== 1 ? "ões" : "ão"} gratuita${freeLeft !== 1 ? "s" : ""} restante${freeLeft !== 1 ? "s" : ""} este mês`
             : "⚡ Verificações gratuitas esgotadas — próximas custam 50 créditos"}
         </div>
       </div>
