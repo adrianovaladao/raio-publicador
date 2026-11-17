@@ -35,7 +35,6 @@ function GaugeChart({ score, label, sublabel, color, delay = 0 }: {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      let start = 0;
       const duration = 1200;
       const startTime = performance.now();
       function step(now: number) {
