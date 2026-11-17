@@ -611,7 +611,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <Link href="/visibilidade" className={`sb-item${pathname.startsWith("/visibilidade") ? " active" : ""}`}>
                 <Eye size={18} />
                 <span>Visibilidade IA</span>
-                <span style={{ fontSize: 9, fontWeight: 700, padding: "1px 5px", borderRadius: 4, background: "var(--coral)", color: "#fff", letterSpacing: "0.04em", marginLeft: 2 }}>BETA</span>
+                <span className="badge" style={{ background: "var(--coral)", color: "#fff" }}>BETA</span>
               </Link>
             )}
             {user?.publicMetadata?.raioAdmin === true && (
