@@ -139,8 +139,8 @@ export async function POST(req: NextRequest) {
     creditsUsed = CREDITS_PER_EXTRA;
   }
 
-  // Prompt baseado na keyword — muito mais preciso que o genérico por segmento
-  const prompt = `Sobre o tema "${keyword}", quais são as principais empresas, marcas ou organizações que você associa a esse assunto? A empresa "${companyName}" aparece nas suas respostas sobre esse tema? Liste as referências que você conhece.`;
+  // Não menciona o nome da marca — verifica se ela aparece organicamente
+  const prompt = `Sobre o tema "${keyword}", quais são as principais empresas, marcas ou organizações que você considera referências? Liste pelo menos 5 nomes específicos que você conhece nesse contexto. Seja direto e mencione apenas nomes reais.`;
 
   // Consultar todas as fontes em paralelo
   const [openaiText, geminiText, claudeText, geoResult] = await Promise.allSettled([
@@ -156,13 +156,13 @@ export async function POST(req: NextRequest) {
       : { found: false, excerpt: "", error: "Falha na consulta" },
     gemini: geminiText.status === "fulfilled"
       ? checkMention(geminiText.value, companyName)
-      : { found: false, excerpt: "", error: "Falha na consulta" },
+      : { found: false, excerpt: "", error: (geminiText as PromiseRejectedResult).reason?.message ?? "Falha na consulta" },
     claude: claudeText.status === "fulfilled"
       ? checkMention(claudeText.value, companyName)
       : { found: false, excerpt: "", error: "Falha na consulta" },
     googleAI: geoResult.status === "fulfilled"
       ? geoResult.value
-      : { found: false, excerpt: "", error: "Falha na consulta" },
+      : { found: false, excerpt: "", error: (geoResult as PromiseRejectedResult).reason?.message ?? "Falha na consulta" },
   };
 
   await prisma.$transaction([
