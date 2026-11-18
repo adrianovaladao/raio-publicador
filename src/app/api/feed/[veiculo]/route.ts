@@ -6,9 +6,11 @@ const prisma = getPrisma();
 
 // Tokens por veículo — adicione novos veículos parceiros aqui
 const VEHICLE_TOKENS: Record<string, string> = {
-  folhapress: process.env.FEED_TOKEN_FOLHAPRESS ?? "",
-  ig:         process.env.FEED_TOKEN_IG ?? "",
-  agenciaoglobo: process.env.FEED_TOKEN_OGLOBO ?? "",
+  folhapress:        process.env.FEED_TOKEN_FOLHAPRESS ?? "",
+  ig:                process.env.FEED_TOKEN_IG ?? "",
+  agenciaoglobo:     process.env.FEED_TOKEN_OGLOBO ?? "",
+  parceirodocampo:   process.env.FEED_TOKEN_PARCEIRODOCAMPO ?? "",
+  panoramago:        process.env.FEED_TOKEN_PANORAMAGO ?? "",
 };
 
 function xmlEscape(str: string) {
