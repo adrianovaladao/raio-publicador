@@ -15,7 +15,7 @@ async function askOpenAI(prompt: string): Promise<string> {
     body: JSON.stringify({
       model: "gpt-4o-mini",
       messages: [{ role: "user", content: prompt }],
-      max_tokens: 400,
+      max_tokens: 500,
       temperature: 0.3,
     }),
   });
@@ -30,7 +30,7 @@ async function askGemini(prompt: string): Promise<string> {
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { maxOutputTokens: 400 } }),
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { maxOutputTokens: 500 } }),
     }
   );
   if (!res.ok) {
@@ -51,7 +51,7 @@ async function askClaude(prompt: string): Promise<string> {
     },
     body: JSON.stringify({
       model: "claude-haiku-4-5",
-      max_tokens: 400,
+      max_tokens: 500,
       messages: [{ role: "user", content: prompt }],
     }),
   });
@@ -60,14 +60,50 @@ async function askClaude(prompt: string): Promise<string> {
   return data.content?.[0]?.text ?? "";
 }
 
+// ─── SerpAPI — AI Overview do Google ─────────────────────────────────────────
+
+type SerpAIOverview = {
+  text?: string;
+  sources?: Array<{ title?: string; link?: string; domain?: string }>;
+};
+
+async function checkGoogleAIOverview(keyword: string, companyName: string): Promise<{ found: boolean; excerpt: string; error?: string }> {
+  const key = process.env.SERPAPI_KEY;
+  if (!key) return { found: false, excerpt: "", error: "SERPAPI_KEY não configurada" };
+
+  const url = `https://serpapi.com/search.json?engine=google&q=${encodeURIComponent(keyword)}&api_key=${key}&hl=pt-br&gl=br&num=10`;
+
+  const res = await fetch(url);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(`SerpAPI error ${res.status}: ${JSON.stringify(err)}`);
+  }
+
+  const data = await res.json();
+  const overview: SerpAIOverview | undefined = data.ai_overview;
+
+  if (!overview) return { found: false, excerpt: "" };
+
+  const text = overview.text ?? "";
+  const name = companyName.toLowerCase();
+  const found = text.toLowerCase().includes(name);
+
+  if (!found) return { found: false, excerpt: "" };
+
+  const idx = text.toLowerCase().indexOf(name);
+  const start = Math.max(0, idx - 100);
+  const end = Math.min(text.length, idx + name.length + 100);
+  return { found: true, excerpt: "…" + text.slice(start, end).trim() + "…" };
+}
+
 function checkMention(text: string, companyName: string): { found: boolean; excerpt: string } {
   const lower = text.toLowerCase();
   const name  = companyName.toLowerCase();
   const found = lower.includes(name);
   if (!found) return { found: false, excerpt: "" };
-  const idx     = lower.indexOf(name);
-  const start   = Math.max(0, idx - 80);
-  const end     = Math.min(text.length, idx + name.length + 80);
+  const idx   = lower.indexOf(name);
+  const start = Math.max(0, idx - 80);
+  const end   = Math.min(text.length, idx + name.length + 80);
   return { found: true, excerpt: "…" + text.slice(start, end).trim() + "…" };
 }
 
@@ -77,15 +113,16 @@ export async function POST(req: NextRequest) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
 
-  const { companyName, segment, city } = await req.json() as {
-    companyName: string; segment: string; city?: string;
+  const { companyName, segment, keyword } = await req.json() as {
+    companyName: string; segment: string; keyword: string;
   };
   if (!companyName?.trim() || !segment?.trim())
     return NextResponse.json({ error: "Nome e segmento obrigatórios" }, { status: 400 });
+  if (!keyword?.trim())
+    return NextResponse.json({ error: "Palavra-chave obrigatória" }, { status: 400 });
 
   const prisma = getPrisma();
 
-  // ── Verificar limite mensal ───────────────────────────────────────────────
   const sub = await prisma.subscription.findUnique({ where: { ownerId: userId } });
   if (!sub || sub.status !== "ACTIVE")
     return NextResponse.json({ error: "Assinatura ativa necessária" }, { status: 403 });
@@ -97,21 +134,20 @@ export async function POST(req: NextRequest) {
 
   let creditsUsed = 0;
   if (usedThisPeriod >= FREE_CHECKS_PER_MONTH) {
-    // Cobrar créditos
     if ((sub.creditsTotal - sub.creditsUsed) < CREDITS_PER_EXTRA)
       return NextResponse.json({ error: "Créditos insuficientes. São necessários 50 créditos para verificações adicionais." }, { status: 402 });
     creditsUsed = CREDITS_PER_EXTRA;
   }
 
-  // ── Montar prompt ─────────────────────────────────────────────────────────
-  const location = city?.trim() ? ` em ${city.trim()}` : " no Brasil";
-  const prompt = `Quais são as melhores empresas de ${segment}${location}? Liste pelo menos 5 nomes específicos de empresas reais que você conhece nesse segmento. Seja direto e mencione apenas nomes de empresas.`;
+  // Prompt baseado na keyword — muito mais preciso que o genérico por segmento
+  const prompt = `Sobre o tema "${keyword}", quais são as principais empresas, marcas ou organizações que você associa a esse assunto? A empresa "${companyName}" aparece nas suas respostas sobre esse tema? Liste as referências que você conhece.`;
 
-  // ── Consultar IAs em paralelo ─────────────────────────────────────────────
-  const [openaiText, geminiText, claudeText] = await Promise.allSettled([
+  // Consultar todas as fontes em paralelo
+  const [openaiText, geminiText, claudeText, geoResult] = await Promise.allSettled([
     askOpenAI(prompt),
     askGemini(prompt),
     askClaude(prompt),
+    checkGoogleAIOverview(keyword, companyName),
   ]);
 
   const results = {
@@ -124,12 +160,21 @@ export async function POST(req: NextRequest) {
     claude: claudeText.status === "fulfilled"
       ? checkMention(claudeText.value, companyName)
       : { found: false, excerpt: "", error: "Falha na consulta" },
+    googleAI: geoResult.status === "fulfilled"
+      ? geoResult.value
+      : { found: false, excerpt: "", error: "Falha na consulta" },
   };
 
-  // ── Salvar resultado e debitar créditos ───────────────────────────────────
   await prisma.$transaction([
     prisma.visibilityCheck.create({
-      data: { userId, companyName: companyName.trim(), segment: segment.trim(), city: city?.trim() || null, results, creditsUsed },
+      data: {
+        userId,
+        companyName: companyName.trim(),
+        segment: segment.trim(),
+        city: keyword.trim(), // reaproveitando campo city para keyword até migrar schema
+        results,
+        creditsUsed,
+      },
     }),
     ...(creditsUsed > 0 ? [
       prisma.subscription.update({
@@ -140,11 +185,12 @@ export async function POST(req: NextRequest) {
   ]);
 
   const foundCount = Object.values(results).filter(r => r.found).length;
+  const totalEngines = 4;
 
   return NextResponse.json({
     results,
     foundCount,
-    totalEngines: 3,
+    totalEngines,
     freeChecksUsed: creditsUsed === 0 ? usedThisPeriod + 1 : usedThisPeriod,
     freeChecksTotal: FREE_CHECKS_PER_MONTH,
     creditsUsed,
