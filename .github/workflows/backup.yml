@@ -51,12 +51,22 @@ jobs:
 
           while true; do
             if [ -z "$CURSOR" ]; then
-              URL="https://blob.vercel-storage.com?limit=1000"
+              URL="https://blob.vercel-storage.com/?limit=1000"
             else
-              URL="https://blob.vercel-storage.com?limit=1000&cursor=${CURSOR}"
+              URL="https://blob.vercel-storage.com/?limit=1000&cursor=${CURSOR}"
             fi
 
-            RESPONSE=$(curl -s "$URL" -H "Authorization: Bearer $BLOB_READ_WRITE_TOKEN")
+            RESPONSE=$(curl -s "$URL" \
+              -H "Authorization: Bearer $BLOB_READ_WRITE_TOKEN" \
+              -H "Accept: application/json")
+
+            # Diagnóstico em caso de erro
+            if ! echo "$RESPONSE" | jq -e '.blobs' > /dev/null 2>&1; then
+              echo "❌ Resposta inesperada da API:"
+              echo "$RESPONSE" | jq . || echo "$RESPONSE"
+              exit 1
+            fi
+
             BLOBS=$(echo "$RESPONSE" | jq -r '.blobs[] | .url + "|" + .pathname')
 
             if [ -z "$BLOBS" ]; then
