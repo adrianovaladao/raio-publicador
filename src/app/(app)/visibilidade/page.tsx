@@ -215,7 +215,8 @@ export default function VisibilidadePage() {
   ];
 
   return (
-    <div style={{ maxWidth: 860, margin: "0 auto", padding: "32px 20px 80px", minHeight: "100%" }}>
+    <div className="content scroll">
+    <div style={{ maxWidth: 860, margin: "0 auto", padding: "4px 0 80px" }}>
 
       {/* ── Cabeçalho ── */}
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 28, flexWrap: "wrap", gap: 12 }}>
@@ -446,6 +447,7 @@ export default function VisibilidadePage() {
       )}
 
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    </div>
     </div>
   );
 }
