@@ -51,14 +51,16 @@ jobs:
 
           while true; do
             if [ -z "$CURSOR" ]; then
-              URL="https://blob.vercel-storage.com/?limit=1000"
+              RESPONSE=$(curl -s "https://blob.vercel-storage.com/?limit=1000" \
+                -H "Authorization: Bearer $BLOB_READ_WRITE_TOKEN" \
+                -H "Accept: application/json")
             else
-              URL="https://blob.vercel-storage.com/?limit=1000&cursor=${CURSOR}"
+              RESPONSE=$(curl -s -G "https://blob.vercel-storage.com/" \
+                --data-urlencode "cursor=${CURSOR}" \
+                --data-urlencode "limit=1000" \
+                -H "Authorization: Bearer $BLOB_READ_WRITE_TOKEN" \
+                -H "Accept: application/json")
             fi
-
-            RESPONSE=$(curl -s "$URL" \
-              -H "Authorization: Bearer $BLOB_READ_WRITE_TOKEN" \
-              -H "Accept: application/json")
 
             # Diagnóstico em caso de erro
             if ! echo "$RESPONSE" | jq -e '.blobs' > /dev/null 2>&1; then
