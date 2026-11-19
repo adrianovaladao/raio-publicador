@@ -13,6 +13,7 @@ const VEHICLE_TOKENS: Record<string, string> = {
   panoramago:        process.env.FEED_TOKEN_PANORAMAGO ?? "",
   pordentrodetudo:   process.env.FEED_TOKEN_PORDENTRODETUDO ?? "",
   estadao:           process.env.FEED_TOKEN_ESTADAO ?? "",
+  local10:           process.env.FEED_TOKEN_LOCAL10 ?? "",
 };
 
 function xmlEscape(str: string) {
