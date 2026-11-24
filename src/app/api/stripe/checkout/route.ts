@@ -23,15 +23,7 @@ export async function POST(req: NextRequest) {
   const stripe = getStripe();
   const prisma = getPrisma();
 
-  const [sub, fiscalProfile] = await Promise.all([
-    prisma.subscription.findUnique({ where: { ownerId: userId } }),
-    prisma.fiscalProfile.findUnique({ where: { ownerId: userId } }),
-  ]);
-
-  // Fiscal profile required before paying — redirect to collect it
-  if (!fiscalProfile) {
-    return NextResponse.json({ needsFiscal: true, redirect: `/boas-vindas` }, { status: 422 });
-  }
+  const sub = await prisma.subscription.findUnique({ where: { ownerId: userId } });
 
   const isVoucherUpgrade = sub?.plan === "VOUCHER";
 
