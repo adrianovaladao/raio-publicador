@@ -1636,6 +1636,7 @@ export default function NovoReleasePage() {
   useEffect(() => {
     const id = setInterval(autosave, 2 * 60 * 1000);
     return () => clearInterval(id);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Salva imediatamente (com debounce de 1,5s) assim que o título for digitado,
@@ -1647,6 +1648,7 @@ export default function NovoReleasePage() {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => { autosave(); }, 1500);
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [content.title, content.subtitle, content.body, brand]);
 
   useEffect(() => {
