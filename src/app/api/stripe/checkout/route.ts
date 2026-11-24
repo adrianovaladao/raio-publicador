@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
 
   // Fiscal profile required before paying — redirect to collect it
   if (!fiscalProfile) {
-    return NextResponse.json({ needsFiscal: true, redirect: `/boas-vindas?plan=${planId}` }, { status: 422 });
+    return NextResponse.json({ needsFiscal: true, redirect: `/boas-vindas` }, { status: 422 });
   }
 
   const isVoucherUpgrade = sub?.plan === "VOUCHER";
